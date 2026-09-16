@@ -51,13 +51,12 @@
     {
       title: 'Customer Experience',
       items: [
-        { label: 'Channels', path: '/pages/wxcc/channels.html' },
+        { label: 'Entry Point', path: '/pages/wxcc/channels.html' },
         { label: 'Queues', path: '/pages/wxcc/queues.html' },
         { label: 'Business Hours', path: '/pages/wxcc/businesshours.html' },
         { label: 'Flows', path: '/pages/wxcc/flows.html' },
         { label: 'Functions', path: '/pages/wxcc/functions.html' },
         { label: 'Function Builder', path: '/pages/wxcc/functionbuilder.html' },
-        { label: 'Outbound Campaign Manager', path: '/pages/wxcc/ocm.html' },
         { label: 'AI Agent', path: '/pages/wxcc/aiagent.html' }
       ]
     },

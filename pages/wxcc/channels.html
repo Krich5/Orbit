@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="color-scheme" content="light" />
-  <title>WxCC — Channels</title>
+  <title>WxCC — Entry Point</title>
   <link rel="stylesheet" href="../../assets/css/theme.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -147,73 +147,11 @@
       <section class="card">
         <div class="pageHeader">
           <div>
-            <h1>Channels</h1>
+            <h1>Entry Point</h1>
             <p class="lead">Browse entry points with linked flow names.</p>
           </div>
           <div style="display:flex; justify-content:flex-end;">
             <button class="btn primary exportBtn" id="exportChannelsBtn" type="button" disabled>Export CSV</button>
-          </div>
-        </div>
-        <div class="addEntrySection">
-          <div class="section-title">
-            <div>
-              <p class="lead" style="margin:0;">Create entry point + dial number</p>
-            </div>
-          </div>
-          <div class="addEntryGrid">
-            <label for="newChannelName">
-              Name
-              <input id="newChannelName" type="text" placeholder="e.g., Support Inbound" />
-            </label>
-            <label for="newChannelDescription">
-              Description
-              <input id="newChannelDescription" type="text" placeholder="Optional description" />
-            </label>
-            <label for="newChannelEntryType">
-              Entry Point Type
-              <select id="newChannelEntryType">
-                <option value="INBOUND">INBOUND</option>
-                <option value="OUTBOUND">OUTBOUND</option>
-              </select>
-            </label>
-            <label for="newChannelChannelType">
-              Channel Type
-              <select id="newChannelChannelType">
-                <option value="TELEPHONY">TELEPHONY</option>
-                <option value="CHAT">CHAT</option>
-                <option value="EMAIL">EMAIL</option>
-                <option value="SOCIAL">SOCIAL</option>
-                <option value="SMS">SMS</option>
-              </select>
-            </label>
-            <label for="newChannelServiceLevel">
-              Service Level Threshold
-              <input id="newChannelServiceLevel" type="number" min="0" value="30" />
-            </label>
-            <label for="newChannelDialNumber">
-              Dialled Number
-              <input id="newChannelDialNumber" type="text" placeholder="+12025550123" />
-            </label>
-            <label for="newChannelExtension">
-              Extension
-              <input id="newChannelExtension" type="text" placeholder="1234" />
-            </label>
-            <label for="newChannelLocation">
-              Location ID
-              <input id="newChannelLocation" type="text" list="locationOptionsList" placeholder="Optional location ID" />
-              <datalist id="locationOptionsList"></datalist>
-              <span class="hint" id="locationHint">Loading location IDs…</span>
-            </label>
-            <label for="newChannelRegion">
-              Region ID
-              <input id="newChannelRegion" type="text" list="regionOptionsList" placeholder="Optional region ID" />
-              <datalist id="regionOptionsList"></datalist>
-              <span class="hint" id="regionHint">Loading region IDs…</span>
-            </label>
-          </div>
-          <div class="actionsRow">
-            <button class="btn primary" id="createChannelBtn" type="button" disabled>Create entry point</button>
-            <div class="status addEntryStatus" id="createChannelStatus" aria-live="polite"></div>
           </div>
         </div>
         <div class="grid" style="grid-template-columns:1fr;">

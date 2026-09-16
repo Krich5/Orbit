@@ -12,13 +12,12 @@
     {
       title: 'Customer Experience',
       items: [
-        { title: 'Channels', desc: 'Browse Channels and linked Flows.', href: 'pages/wxcc/channels.html' },
+        { title: 'Entry Point', desc: 'Browse entry points and linked flows.', href: 'pages/wxcc/channels.html' },
         { title: 'Queues', desc: 'List inbound queues and dependencies.', href: 'pages/wxcc/queues.html' },
         { title: 'Business Hours', desc: 'View and manage business hours schedules and shifts.', href: 'pages/wxcc/businesshours.html' },
         { title: 'Flows', desc: 'List flows, export, and Flow Visualizations.', href: 'pages/wxcc/flows.html' },
         { title: 'Functions', desc: 'Browse hidden Functions, edit fnCode, and save updates back through the BFF.', href: 'pages/wxcc/functions.html' },
         { title: 'Function Builder', desc: 'Build a lookup-table function from an input variable and a set of rows.', href: 'pages/wxcc/functionbuilder.html' },
-        { title: 'Outbound Campaign Manager', desc: 'Manage outbound campaigns, contact lists, and manual contacts.', href: 'pages/wxcc/ocm.html' },
         { title: 'AI Agent', desc: 'Review AI call summaries, endpoints, and auth guidance.', href: 'pages/wxcc/aiagent.html' }
       ]
     },
