@@ -278,6 +278,7 @@
   }
 
   function ensureHeader() {
+    if (document.body.classList.contains('api-home')) return;
     if (document.querySelector('.tp-header')) return;
     const root = getToolsRootPath();
     const header = document.createElement('header');
@@ -990,7 +991,7 @@
             height: 20px;
             margin-right: 8px;
             vertical-align: middle;
-            background-image: url('/assets/images/WxCC_Icon-192.png');
+            background-image: url('/assets/images/Orbit_Icon-192.png');
             background-size: contain;
             background-repeat: no-repeat;
             background-position: center;

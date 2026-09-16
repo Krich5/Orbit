@@ -59,7 +59,7 @@
           <div class="tp-header-inner">
             <div class="left">
               <a class="tp-logo" href="${base}home.html" aria-label="Orbit — Home">
-                <span class="tp-logo-text">Orbit</span>
+                <img src="${base}assets/images/Orbit.png" alt="Orbit">
               </a>
             </div>
             <div class="right">
