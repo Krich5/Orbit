@@ -45,7 +45,6 @@
         { label: 'Bulk Import', path: '/pages/wxcc/bulkimport.html' },
         { label: 'Setup Wizard', path: '/pages/wxcc/S1_Teams.html' },
         { label: 'Search API', path: '/pages/wxcc/searchapi.html' },
-        { label: 'Epoch Time', path: '/pages/wxcc/epochtime.html' },
         { label: 'Supervisor Controls', path: '/pages/wxcc/supervisorcontrols.html' }
       ]
     },

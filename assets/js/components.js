@@ -6,7 +6,6 @@
         { title: 'Bulk Import', desc: 'Bulk-create Teams, Queues, Entry Points, Desktop Profiles, and Users from fillable rows.', href: 'pages/wxcc/bulkimport.html' },
         { title: 'Setup Wizard', desc: 'Step-by-step guided setup for Contact Center configuration.', href: 'pages/wxcc/S1_Teams.html' },
         { title: 'Search API', desc: 'Run contact searches with custom filters and payloads.', href: 'pages/wxcc/searchapi.html' },
-        { title: 'Epoch Time', desc: 'Convert between epoch time and readable timestamps.', href: 'pages/wxcc/epochtime.html' },
         { title: 'Supervisor Controls', desc: 'Supervisor-facing contact center controls.', href: 'pages/wxcc/supervisorcontrols.html' }
       ]
     },
