@@ -1,0 +1,848 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="light" />
+  <title>WxCC — Desktop Profiles</title>
+  <link rel="stylesheet" href="../../assets/css/theme.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/png" href="../../assets/images/WxCC_Icon-192.png" />
+  <style>
+main { padding:32px 0 80px; display:flex; justify-content:flex-start; }
+.actionsRow { display:flex; flex-wrap:wrap; gap:16px; align-items:flex-end; margin-bottom:20px; }
+.searchWrapper { flex:1; min-width:260px; }
+.searchLabel { font-size:13px; color:var(--muted); margin-bottom:6px; display:block; }
+.searchControl { border:1px solid var(--border); background:var(--input); border-radius:12px; padding:10px 12px; }
+.searchInput { width:100%; border:none; background:transparent; color:var(--fg); font-size:14px; font-family:inherit; }
+.searchInput:focus { outline:none; }
+.actionsRight { display:flex; align-items:center; gap:10px; margin-left:auto; }
+.pill { display:inline-flex; align-items:center; gap:6px; padding:6px 12px; border-radius:999px; border:1px solid var(--border); background:var(--panel); font-size:13px; font-weight:600; }
+.desktopProfileListWrapper { position:relative; overflow-x:auto; }
+.desktopProfileTable { margin-top:16px; border:1px solid var(--border); border-radius:14px; overflow:hidden; box-shadow:var(--shadow); min-width:1700px; }
+.desktopProfileHeaderRow, .desktopProfileRow { display:grid; grid-template-columns:minmax(280px,1.35fr) repeat(6, minmax(220px,1fr)); align-items:stretch; }
+.desktopProfileHeaderRow { background:var(--panel); color:var(--accent); font-weight:700; font-size:12px; letter-spacing:.01em; }
+.desktopProfileRow { background:var(--card); border-top:1px solid var(--border); }
+.desktopProfileRow:nth-child(even) { background:var(--panel); }
+.desktopProfileRow:hover { background:rgba(8,172,242,.08); }
+.desktopProfileHeadCell { padding:12px; min-height:46px; display:flex; align-items:center; }
+.desktopProfileCell { padding:14px 12px; display:flex; align-items:flex-start; min-width:0; }
+.desktopProfileNameBlock { display:flex; flex-direction:column; gap:6px; min-width:0; }
+.desktopProfileTitleRow { display:flex; align-items:flex-start; justify-content:space-between; gap:10px; }
+.desktopProfileTitle { margin:0; font-size:15px; font-weight:700; color:var(--fg); }
+.desktopProfileMeta { color:var(--muted); font-size:12px; margin:0; word-break:break-word; }
+.desktopProfileSubtle { color:var(--muted); font-size:12px; margin:0; }
+.desktopSection { border:none; border-radius:0; padding:0; background:transparent; width:100%; }
+.desktopSection h3 { display:none; }
+.desktopSection dl { margin:0; }
+.desktopSection dt { color:var(--muted); font-size:12px; margin-bottom:4px; }
+.desktopSection dd { margin:0 0 10px; font-size:13px; }
+.statRow { display:flex; flex-direction:column; gap:4px; font-size:13px; }
+.statRowLine { display:flex; align-items:center; justify-content:space-between; gap:6px; }
+.statLabel { color:var(--muted); font-size:12px; }
+.statValue { font-weight:600; }
+.chipRow { display:flex; flex-wrap:wrap; gap:6px; }
+.chip { display:inline-flex; align-items:center; gap:6px; padding:4px 10px; border-radius:999px; border:1px solid var(--border); background:var(--card); font-size:12px; font-weight:600; }
+.tableLoader { position:absolute; inset:0; background:rgba(15,23,42,.25); border-radius:14px; display:flex; align-items:center; justify-content:center; opacity:0; pointer-events:none; transition:opacity .2s ease; }
+.tableLoader.open { opacity:1; pointer-events:auto; }
+.loaderInner { width:100%; display:flex; justify-content:center; align-items:center; gap:10px; }
+.loaderSpinner { width:34px; height:34px; border:4px solid rgba(255,255,255,0.4); border-top-color:var(--accent); border-radius:50%; animation:spin 1s linear infinite; }
+.loaderText { font-size:14px; color:#fff; }
+@keyframes spin { from { transform:rotate(0deg); } to { transform:rotate(360deg); } }
+.copyInline { background:transparent; border:1px solid var(--border); border-radius:8px; color:var(--muted); width:30px; height:30px; min-width:30px; display:inline-flex; align-items:center; justify-content:center; cursor:pointer; }
+.copyInline:hover { color:var(--fg); border-color:rgba(0,0,0,.2); }
+.copyInline svg { width:18px; height:18px; }
+.copyInline--mini { width:22px; height:22px; min-width:22px; border-radius:6px; }
+.copyInline--mini svg { width:14px; height:14px; }
+.copyBadge { display:inline-block; margin-left:6px; font-size:11px; color:var(--accent); opacity:0; animation:copyPop 900ms ease; }
+@keyframes copyPop { 0% { opacity:0; transform:translateY(2px); } 20% { opacity:1; transform:translateY(0); } 80% { opacity:1; } 100% { opacity:0; transform:translateY(-2px); } }
+.emptyState { padding:14px 16px; color:var(--muted); border:1px dashed var(--border); border-radius:14px; text-align:center; }
+@media (max-width: 900px) {
+  .desktopProfileTable { min-width:0; border:none; box-shadow:none; margin-top:12px; }
+  .desktopProfileHeaderRow { display:none; }
+  .desktopProfileRow { grid-template-columns:1fr !important; gap:12px; border:1px solid var(--border); border-radius:14px; padding:12px; margin-bottom:12px; }
+  .desktopProfileCell { padding:0; }
+  .desktopProfileCell::before {
+    content: attr(data-label);
+    display:block;
+    margin-bottom:6px;
+    font-size:11px;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+    color:var(--muted);
+  }
+}
+  </style>
+</head>
+<body class="dark-mode">
+  <script>if (localStorage.getItem("tpRailExpanded") === "true") document.body.classList.add("tp-rail-expanded");</script>
+  <api-tools-header basepath="../../"></api-tools-header>
+
+  <main>
+    <div class="wrap wide contentWrap">
+      <section class="card">
+        <div class="pageHeader">
+          <div>
+            <h1>Desktop Profiles</h1>
+            <p class="lead">Inspect every desktop profile and its routing permissions.</p>
+          </div>
+        </div>
+        <div class="actionsRow">
+          <div class="searchWrapper">
+            <label class="searchLabel" for="desktopSearch">Filter profiles</label>
+            <div class="searchControl">
+              <input id="desktopSearch" class="searchInput" type="text" placeholder="Search profile names, IDs, or routes..." />
+            </div>
+          </div>
+          <div class="actionsRight">
+            <span class="pill" id="desktopProfileCount">0 profiles</span>
+          </div>
+        </div>
+        <div class="desktopProfileListWrapper">
+          <div id="desktopProfileList"></div>
+          <div id="desktopLoader" class="tableLoader">
+          <div class="loaderInner">
+            <div class="loaderSpinner" aria-hidden="true"></div>
+            <div class="loaderText" id="desktopLoaderText">Loading desktop profiles…</div>
+          </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+    <script src="../../assets/js/orbit-config.js"></script>
+    <script src="../../assets/js/components.js"></script>
+    <script src="../../assets/js/theme.js"></script>
+<script>
+    const profileListEl = document.getElementById('desktopProfileList');
+    const profileCountEl = document.getElementById('desktopProfileCount');
+    const desktopSearchInput = document.getElementById('desktopSearch');
+    const desktopLoader = document.getElementById('desktopLoader');
+    const desktopLoaderText = document.getElementById('desktopLoaderText');
+
+    const cacheKeyBearer = 'authBearer';
+    const cacheKeyOrg = 'authOrg';
+    const cacheKeyOrgName = 'authOrgName';
+    const cacheKeyUser = 'authUserName';
+
+    const TEAM_ENDPOINT = (orgId, teamId) => `https://api.wxcc-us1.cisco.com/organization/${encodeURIComponent(orgId)}/v2/team?filter=${encodeURIComponent('id=="' + teamId + '"')}`;
+    const AGENT_PROFILE_ENDPOINT = (orgId, page, pageSize) => `https://api.wxcc-us1.cisco.com/organization/${encodeURIComponent(orgId)}/v2/agent-profile?page=${page}&pageSize=${pageSize}`;
+    const AUXILIARY_CODES_ENDPOINT = (orgId, page, pageSize) => `https://api.wxcc-us1.cisco.com/organization/${encodeURIComponent(orgId)}/v2/auxiliary-code?page=${page}&pageSize=${pageSize}`;
+    const ENTRY_POINT_ENDPOINT = (orgId, page, pageSize) => `https://api.wxcc-us1.cisco.com/organization/${encodeURIComponent(orgId)}/v2/entry-point?page=${page}&pageSize=${pageSize}`;
+    const ADDRESS_BOOK_ENDPOINT = (orgId, page, pageSize) => `https://api.wxcc-us1.cisco.com/organization/${encodeURIComponent(orgId)}/v3/address-book?page=${page}&pageSize=${pageSize}`;
+    const DIAL_PLAN_ENDPOINT = (orgId, page, pageSize) => `https://api.wxcc-us1.cisco.com/organization/${encodeURIComponent(orgId)}/v2/dial-plan?page=${page}&pageSize=${pageSize}`;
+    const CONTACT_SERVICE_QUEUE_ENDPOINT = (orgId, page, pageSize) => `https://api.wxcc-us1.cisco.com/organization/${encodeURIComponent(orgId)}/v3/contact-service-queue?page=${page}&pageSize=${pageSize}`;
+    const AGENT_PROFILE_PAGE_SIZE = 100;
+    const AUXILIARY_CODE_PAGE_SIZE = 100;
+    const ENTRY_POINT_PAGE_SIZE = 100;
+    const ADDRESS_BOOK_PAGE_SIZE = 100;
+    const DIAL_PLAN_PAGE_SIZE = 100;
+    const CONTACT_SERVICE_QUEUE_PAGE_SIZE = 100;
+
+    const agentProfileMap = new Map();
+    const auxiliaryCodeMap = new Map();
+    const entryPointMap = new Map();
+    const addressBookMap = new Map();
+    const dialPlanMap = new Map();
+    const contactServiceQueueMap = new Map();
+    const teamNameCache = new Map();
+    let desktopProfiles = [];
+
+    function escapeHtml(text) {
+      return String(text)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    function escapeAttr(text) {
+      return escapeHtml(text).replace(/`/g, '&#96;');
+    }
+
+    function copyButton(val, title, extraClass = '') {
+      if (!val) return '';
+      return `<button class="copyInline ${extraClass}" title="${title}" data-copy-value="${String(val).replace(/"/g,'&quot;')}">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="9" y="9" width="13" height="13" rx="2"></rect>
+          <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+        </svg>
+      </button>`;
+    }
+
+    function bindCopyValueButtons() {
+      document.querySelectorAll('[data-copy-value]').forEach(btn => {
+        if (btn._copyBound) return;
+        btn._copyBound = true;
+        btn.addEventListener('click', async () => {
+          const val = btn.getAttribute('data-copy-value') || '';
+          if (!val) return;
+          const original = btn.innerHTML;
+          try {
+            await navigator.clipboard.writeText(val);
+            btn.innerHTML = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"></path></svg>';
+            setTimeout(() => btn.innerHTML = original, 900);
+          } catch (err) {
+            console.error('Copy failed', err);
+          }
+        });
+      });
+    }
+
+    function renderChips(values) {
+      const items = (values || []).map(item => (typeof item === 'string' ? item.trim() : '')).filter(Boolean);
+      if (!items.length) return '';
+      return `<div class="chipRow">${Array.from(new Set(items)).map(item => `<span class="chip">${escapeHtml(item)}</span>`).join('')}</div>`;
+    }
+
+    function formatBoolLabel(value) {
+      return value ? 'Enabled' : 'Disabled';
+    }
+
+    function renderBoolPill(value) {
+      const color = value ? 'var(--accent)' : 'var(--muted)';
+      const background = value ? 'rgba(16,185,129,.12)' : 'rgba(148,163,184,.15)';
+      return `<span class="chip" style="background:${background}; border-color:${color}; color:${value ? 'var(--accent)' : 'var(--fg)'};">${value ? 'Enabled' : 'Disabled'}</span>`;
+    }
+
+    function humanizeStatus(value) {
+      if (!value) return '—';
+      const normalized = value.toString().trim();
+      if (!normalized) return '—';
+      switch (normalized.toUpperCase()) {
+        case 'ALL':
+          return 'All';
+        case 'SPECIFIC':
+          return 'Specific';
+        case 'NONE':
+          return 'None';
+        default:
+          return normalized.charAt(0).toUpperCase() + normalized.slice(1).toLowerCase();
+      }
+    }
+
+    function renderStatGroup(statusLabel, statusValue, chipsHtml) {
+      const formattedValue = statusValue ? humanizeStatus(statusValue) : '';
+      const shouldShowChips = chipsHtml && chipsHtml !== '';
+      return `
+        <div class="statRow">
+          <div class="statRowLine">
+            <span class="statLabel">${escapeHtml(statusLabel)}${formattedValue ? ':' : ''}</span>
+            ${formattedValue ? `<span class="statValue">${escapeHtml(formattedValue)}</span>` : ''}
+          </div>
+          ${shouldShowChips ? chipsHtml : ''}
+        </div>
+      `;
+    }
+
+    function renderChannelOptions(values) {
+      const map = {
+        BROWSER: 'Desktop',
+        EXTENSION: 'Extension',
+        DESKTOP: 'Desktop',
+        AGENT_DN: 'Agent DN',
+        DIAL_NUMBER: 'Dial Number'
+      };
+      const humanize = value => (value || '').toString().split(/[\s_]+/).map(part => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase()).join(' ');
+      const processed = (values || []).map(val => map[val] || humanize(val)).filter(Boolean);
+      return renderChips(processed);
+    }
+
+    const AGENT_DN_VALIDATION_LABELS = {
+      NONE: 'Unrestricted',
+      PROVISIONED_VALUE: 'Provisioned DN',
+      Specific: 'Specific',
+      AGENT_DN: 'Agent DN'
+    };
+    const AGENT_DN_CRITERIA_LABELS = {
+      All: 'All',
+      Specific: 'Specific'
+    };
+
+    function renderAgentDnValidationContent(profile) {
+      const modeKey = (profile.agentDNValidation || 'NONE').toUpperCase();
+      const summary = AGENT_DN_VALIDATION_LABELS[modeKey] || modeKey.charAt(0).toUpperCase() + modeKey.slice(1).toLowerCase();
+      const criteriaKey = (profile.agentDNValidationCriteria || '').toUpperCase();
+      const detailLines = [];
+      if (criteriaKey) {
+        const criteriaLabel = AGENT_DN_CRITERIA_LABELS[criteriaKey] || criteriaKey.charAt(0).toUpperCase() + criteriaKey.slice(1).toLowerCase();
+        detailLines.push(`<div class="statRowLine"><span class="statLabel">Validate using Dial Plans</span><span class="statValue">${escapeHtml(criteriaLabel)}</span></div>`);
+      }
+      const dialPlanIds = Array.isArray(profile.agentDNValidationCriterions) ? profile.agentDNValidationCriterions : [];
+      const dialPlanNames = dialPlanIds.map(lookupDialPlanName).filter(name => name && name !== '—');
+      const dialPlanChips = dialPlanNames.length ? renderChips(dialPlanNames) : '';
+      return `
+        <div class="statRow">
+          <div class="statRowLine">
+            <span class="statValue">${escapeHtml(summary)}</span>
+          </div>
+          ${detailLines.join('')}
+          ${dialPlanChips}
+        </div>
+      `;
+    }
+
+    function formatSeconds(ms) {
+      if (ms == null) return '—';
+      const seconds = Math.floor(Number(ms) / 1000);
+      return `${seconds.toLocaleString()} seconds`;
+    }
+
+    function renderWrapTime(profile) {
+      const value = profile.autoWrapUp ? formatSeconds(profile.autoWrapAfterSeconds) : 'Manual';
+      return `<div class="statRowLine"><span class="statValue">${escapeHtml(value)}</span></div>`;
+    }
+
+    function renderWrapCodesRow(profile) {
+      const accessMode = (profile.accessWrapUpCode || '').toUpperCase();
+      const humanized = humanizeStatus(accessMode);
+      const wrapChips = accessMode === 'SPECIFIC' ? renderChips(profile.wrapUpCodes?.map(lookupAuxCodeName)) : '';
+      const displayValue = accessMode === 'ALL' ? 'All wrap-up codes' : humanized || '—';
+      return `
+        <div class="statRow">
+          <div class="statRowLine">
+            <span class="statValue">${escapeHtml(displayValue)}</span>
+          </div>
+          ${wrapChips}
+        </div>
+      `;
+    }
+
+    function renderBuddyTeamRow(profile) {
+      const accessMode = (profile.accessBuddyTeam || '').toUpperCase();
+      const humanized = humanizeStatus(accessMode);
+      const chips = accessMode === 'SPECIFIC' ? renderChips(profile.buddyTeams.map(getTeamLabel)) : '';
+      const displayValue = accessMode === 'ALL' ? 'All' : humanized || '—';
+      return `
+        <div class="statRow">
+          <div class="statRowLine">
+            <span class="statValue">${escapeHtml(displayValue)}</span>
+          </div>
+          ${chips}
+        </div>
+      `;
+    }
+
+    function renderEntryQueueTargets(profile) {
+      const entryNames = formatEntryPoints(profile.entryPoints);
+      const queueNames = profile.queues?.map(lookupContactQueueName) || [];
+      const combined = [...entryNames, ...queueNames];
+      const accessMode = (profile.accessQueue || profile.accessEntryPoint || '').toUpperCase();
+      const humanized = humanizeStatus(accessMode);
+      let displayValue = humanized || (combined.length ? 'Specific' : '—');
+      if (accessMode === 'ALL') {
+        displayValue = 'All';
+      } else if (accessMode === 'NONE') {
+        displayValue = 'None';
+      }
+      const chips = accessMode === 'SPECIFIC' && combined.length ? renderChips(combined) : '';
+      return `
+        <div class="statRow">
+          <div class="statRowLine">
+            <span class="statValue">${escapeHtml(displayValue)}</span>
+          </div>
+          ${chips}
+        </div>
+      `;
+    }
+
+    function renderIdleRow(profile) {
+      const accessMode = (profile.accessIdleCode || '').toUpperCase();
+      const humanized = humanizeStatus(accessMode);
+      const chips = accessMode === 'SPECIFIC' ? renderChips(profile.idleCodes.map(lookupAuxCodeName)) : '';
+      const displayValue = accessMode === 'ALL' ? 'All idle codes' : humanized || '—';
+      return `
+        <div class="statRow">
+          <div class="statRowLine">
+            <span class="statValue">${escapeHtml(displayValue)}</span>
+          </div>
+          ${chips}
+        </div>
+      `;
+    }
+
+    function lookupEntryPointName(id) {
+      if (!id) return '—';
+      const entry = entryPointMap.get(id);
+      return entry?.name || id;
+    }
+
+    function lookupAddressBookName(id) {
+      if (!id) return 'None';
+      const entry = addressBookMap.get(id);
+      if (entry?.name) return entry.name;
+      return 'None';
+    }
+
+    function lookupDialPlanName(id) {
+      if (!id) return '—';
+      const entry = dialPlanMap.get(id);
+      return entry?.name || id;
+    }
+
+    function lookupContactQueueName(id) {
+      if (!id) return '—';
+      const entry = contactServiceQueueMap.get(id);
+      return entry?.name || id;
+    }
+
+    function formatEntryPoints(ids) {
+      if (!Array.isArray(ids) || !ids.length) return [];
+      return ids.map(lookupEntryPointName).filter(Boolean);
+    }
+
+    function lookupAuxCodeName(id) {
+      if (!id) return '';
+      const entry = auxiliaryCodeMap.get(id);
+      return entry?.name || id;
+    }
+
+    function buildDesktopSection(title, rows) {
+      const content = rows.map(([label, value]) => `
+        <dt>${escapeHtml(label)}</dt><dd>${value?.html ? value.value : escapeHtml(value ?? '—')}</dd>
+      `).join('');
+      return `
+        <section class="desktopSection">
+          <h3>${escapeHtml(title)}</h3>
+          <dl>${content}</dl>
+        </section>
+      `;
+    }
+
+    function renderProfileNameCell(profile) {
+      return `
+        <div class="desktopProfileNameBlock">
+          <div class="desktopProfileTitleRow">
+            <h3 class="desktopProfileTitle">${escapeHtml(profile.name || 'Desktop Profile')}</h3>
+            ${copyButton(profile.id || '', 'Copy desktop profile ID')}
+          </div>
+          <p class="desktopProfileMeta">ID: ${escapeHtml(profile.id || '—')}</p>
+          <p class="desktopProfileSubtle">Last updated: ${escapeHtml(formatTimestamp(profile.lastUpdatedTime))}</p>
+        </div>
+      `;
+    }
+
+    function renderProfileRow(profile) {
+      const rowsGeneral = [
+        ['Screen popups', { value: renderBoolPill(profile.screenPopup), html: true }],
+        ['Last agent routing', { value: renderBoolPill(profile.lastAgentRouting), html: true }],
+        ['Auto answer', { value: renderBoolPill(profile.autoAnswer), html: true }],
+        ['Personal greeting', { value: renderBoolPill(profile.agentPersonalGreeting), html: true }]
+      ];
+      const rowsIdleWrap = [
+        ['Wrap-up Time', { value: renderWrapTime(profile), html: true }],
+        ['Wrap-up codes', { value: renderWrapCodesRow(profile), html: true }],
+        ['Idle Codes', { value: renderIdleRow(profile), html: true }]
+      ];
+      const rowsCollab = [
+        ['Entry Point/Queue transfer targets', { value: renderEntryQueueTargets(profile), html: true }],
+        ['Consult to queue', { value: renderBoolPill(profile.consultToQueue), html: true }],
+        ['Buddy teams', { value: renderBuddyTeamRow(profile), html: true }]
+      ];
+      const rowsDial = [
+        ['Outdial enabled', { value: renderBoolPill(profile.outdialEnabled), html: true }],
+        ['Outdial entry point', lookupEntryPointName(profile.outdialEntryPointId)],
+        ['Address book', lookupAddressBookName(profile.addressBookId)],
+        ['Dial plans', profile.dialPlans?.length ? profile.dialPlans.map(lookupDialPlanName).join(', ') : '—']
+      ];
+      const rowsVoice = [
+        ['Options', { value: renderChannelOptions(profile.loginVoiceOptions), html: true }]
+      ];
+      const voiceOptions = Array.isArray(profile.loginVoiceOptions) ? profile.loginVoiceOptions.map(val => (val || '').toUpperCase()) : [];
+      if (voiceOptions.some(val => val === 'EXTENSION' || val === 'DIAL_NUMBER')) {
+        rowsVoice.push(['Validation for Agent DN', { value: renderAgentDnValidationContent(profile), html: true }]);
+      }
+      const stats = profile.viewableStatistics || {};
+      const rowsStats = [
+        ['Agent stats', { value: renderBoolPill(stats.agentStats), html: true }],
+        ['Queue stats', { value: renderStatGroup('Queues', stats.accessQueueStats || '—', renderChips(stats.contactServiceQueues?.map(lookupContactQueueName))), html: true }],
+        ['Team stats', { value: renderStatGroup('Teams', stats.accessTeamStats || '—', renderChips(stats.teams.map(getTeamLabel))), html: true }]
+      ];
+      return `
+        <div class="desktopProfileRow">
+          <div class="desktopProfileCell" data-label="Profile">${renderProfileNameCell(profile)}</div>
+          <div class="desktopProfileCell" data-label="General">${buildDesktopSection('General', rowsGeneral)}</div>
+          <div class="desktopProfileCell" data-label="Idle / Wrap-up">${buildDesktopSection('Idle / Wrap-up', rowsIdleWrap)}</div>
+          <div class="desktopProfileCell" data-label="Collaboration">${buildDesktopSection('Collaboration', rowsCollab)}</div>
+          <div class="desktopProfileCell" data-label="Dial Plans">${buildDesktopSection('Dial Plans', rowsDial)}</div>
+          <div class="desktopProfileCell" data-label="Voice Channels">${buildDesktopSection('Voice channels', rowsVoice)}</div>
+          <div class="desktopProfileCell" data-label="Agent Statistics">${buildDesktopSection('Agent statistics', rowsStats)}</div>
+        </div>
+      `;
+    }
+
+    function renderProfiles() {
+      if (!profileListEl) return;
+      const term = (desktopSearchInput?.value || '').toLowerCase().trim();
+      const filtered = desktopProfiles.filter(profile => {
+        const name = (profile.name || '').toLowerCase();
+        const id = (profile.id || '').toLowerCase();
+        const blob = `${name} ${id}`;
+        return !term || blob.includes(term);
+      });
+      if (profileCountEl) {
+        profileCountEl.textContent = `${filtered.length} profile${filtered.length === 1 ? '' : 's'}`;
+      }
+      if (!filtered.length) {
+        profileListEl.innerHTML = '<div class="emptyState">No desktop profiles found.</div>';
+        return;
+      }
+      profileListEl.innerHTML = `
+        <div class="desktopProfileTable">
+          <div class="desktopProfileHeaderRow">
+            <div class="desktopProfileHeadCell">Profile</div>
+            <div class="desktopProfileHeadCell">General</div>
+            <div class="desktopProfileHeadCell">Idle / Wrap-up</div>
+            <div class="desktopProfileHeadCell">Collaboration</div>
+            <div class="desktopProfileHeadCell">Dial Plans</div>
+            <div class="desktopProfileHeadCell">Voice Channels</div>
+            <div class="desktopProfileHeadCell">Agent Statistics</div>
+          </div>
+          ${filtered.map(renderProfileRow).join('')}
+        </div>
+      `;
+      bindCopyValueButtons();
+    }
+
+    function formatTimestamp(value) {
+      if (!value) return '—';
+      try {
+        return new Date(value).toLocaleString();
+      } catch {
+        return '—';
+      }
+    }
+
+    function getOrgIdValue() {
+      const cached = localStorage.getItem('authOrgId') || '';
+      if (cached) {
+        if (/^Y2lz/i.test(cached)) {
+          try {
+            const padded = cached.replace(/-/g, '+').replace(/_/g, '/').padEnd(Math.ceil(cached.length / 4) * 4, '=');
+            const decoded = atob(padded);
+            const parts = decoded.split('/');
+            const result = parts[parts.length - 1] || decoded;
+            localStorage.setItem('authOrgId', result);
+            return result;
+          } catch {
+            return cached;
+          }
+        }
+        const orgPathIdx = cached.toLowerCase().indexOf('organization/');
+        if (orgPathIdx !== -1) {
+          const candidate = cached.slice(orgPathIdx + 'organization/'.length);
+          if (candidate) {
+            localStorage.setItem('authOrgId', candidate);
+            return candidate;
+          }
+        }
+        return cached;
+      }
+      const raw = localStorage.getItem(cacheKeyOrg) || '';
+      if (!raw) return '';
+
+      if (/^Y2lz/i.test(raw)) {
+        try {
+          const padded = raw.replace(/-/g, '+').replace(/_/g, '/').padEnd(Math.ceil(raw.length / 4) * 4, '=');
+          const decoded = atob(padded);
+          const parts = decoded.split('/');
+          return parts[parts.length - 1] || decoded;
+        } catch {
+          return raw;
+        }
+      }
+
+      const orgPathIdx = raw.toLowerCase().indexOf('organization/');
+      if (orgPathIdx !== -1) {
+        const candidate = raw.slice(orgPathIdx + 'organization/'.length);
+        return candidate || raw;
+      }
+
+      return raw;
+    }
+
+    async function fetchTeamName(teamId) {
+      const bearer = (localStorage.getItem(cacheKeyBearer) || '').trim();
+      const orgId = getOrgIdValue();
+      if (!bearer || !orgId || !teamId) return;
+      const url = TEAM_ENDPOINT(orgId, teamId);
+      try {
+        const res = await fetch(url, { headers: { Authorization: `Bearer ${bearer}` } });
+        const parsed = await res.json();
+        const name = parsed?.data?.[0]?.name || '';
+        if (name) {
+          teamNameCache.set(teamId, { status:'ok', name });
+        } else {
+          teamNameCache.set(teamId, { status:'error', name: '' });
+        }
+      } catch (err) {
+        teamNameCache.set(teamId, { status:'error', name: '' });
+      }
+    }
+
+    async function ensureTeamNames(teamIds) {
+      const uniqueIds = Array.from(new Set((teamIds || []).filter(Boolean)));
+      if (!uniqueIds.length) return;
+      const missing = uniqueIds.filter(id => {
+        const entry = teamNameCache.get(id);
+        return !entry || entry.status === 'loading';
+      });
+      if (!missing.length) return;
+      missing.forEach(id => teamNameCache.set(id, { status:'loading', name: '' }));
+      for (const teamId of missing) {
+        await fetchTeamName(teamId);
+      }
+    }
+
+    function getTeamLabel(teamId) {
+      const entry = teamNameCache.get(teamId);
+      if (entry?.status === 'error') return 'Unknown team';
+      if (entry?.name) return entry.name;
+      return 'Loading...';
+    }
+
+    async function loadAuxiliaryCodes(orgId, bearer) {
+      auxiliaryCodeMap.clear();
+      let page = 0;
+      let totalPages = 1;
+      const headers = { Authorization: `Bearer ${bearer}` };
+      do {
+        const url = AUXILIARY_CODES_ENDPOINT(orgId, page, AUXILIARY_CODE_PAGE_SIZE);
+        try {
+          const res = await fetch(url, { headers });
+          if (!res.ok) break;
+          const parsed = await res.json();
+          const chunk = parsed?.data || [];
+          chunk.forEach(code => {
+            if (code?.id) {
+              auxiliaryCodeMap.set(code.id, code);
+            }
+          });
+          const meta = parsed?.meta || {};
+          totalPages = typeof meta.totalPages === 'number' ? meta.totalPages : totalPages;
+          page += 1;
+        } catch (err) {
+          console.error('Failed to load auxiliary codes', err);
+          break;
+        }
+      } while (page < totalPages);
+    }
+
+    async function loadEntryPoints(orgId, bearer) {
+      entryPointMap.clear();
+      let page = 0;
+      let totalPages = 1;
+      const headers = { Authorization: `Bearer ${bearer}` };
+      do {
+        const url = ENTRY_POINT_ENDPOINT(orgId, page, ENTRY_POINT_PAGE_SIZE);
+        try {
+          const res = await fetch(url, { headers });
+          if (!res.ok) break;
+          const parsed = await res.json();
+          const chunk = parsed?.data || [];
+          chunk.forEach(entry => {
+            if (entry?.id) entryPointMap.set(entry.id, entry);
+          });
+          const meta = parsed?.meta || {};
+          totalPages = typeof meta.totalPages === 'number' ? meta.totalPages : totalPages;
+          page += 1;
+        } catch (err) {
+          console.error('Failed to load entry points', err);
+          break;
+        }
+      } while (page < totalPages);
+    }
+
+    async function loadAddressBooks(orgId, bearer) {
+      addressBookMap.clear();
+      let page = 0;
+      let totalPages = 1;
+      const headers = { Authorization: `Bearer ${bearer}` };
+      do {
+        const url = ADDRESS_BOOK_ENDPOINT(orgId, page, ADDRESS_BOOK_PAGE_SIZE);
+        try {
+          const res = await fetch(url, { headers });
+          if (!res.ok) break;
+          const parsed = await res.json();
+          const chunk = parsed?.data || [];
+          chunk.forEach(book => {
+            if (book?.id) addressBookMap.set(book.id, book);
+          });
+          const meta = parsed?.meta || {};
+          totalPages = typeof meta.totalPages === 'number' ? meta.totalPages : totalPages;
+          page += 1;
+        } catch (err) {
+          console.error('Failed to load address books', err);
+          break;
+        }
+      } while (page < totalPages);
+    }
+
+    async function loadDialPlans(orgId, bearer) {
+      dialPlanMap.clear();
+      let page = 0;
+      let totalPages = 1;
+      const headers = { Authorization: `Bearer ${bearer}` };
+      do {
+        const url = DIAL_PLAN_ENDPOINT(orgId, page, DIAL_PLAN_PAGE_SIZE);
+        try {
+          const res = await fetch(url, { headers });
+          if (!res.ok) break;
+          const parsed = await res.json();
+          const chunk = parsed?.data || [];
+          chunk.forEach(plan => {
+            if (plan?.id) dialPlanMap.set(plan.id, plan);
+          });
+          const meta = parsed?.meta || {};
+          totalPages = typeof meta.totalPages === 'number' ? meta.totalPages : totalPages;
+          page += 1;
+        } catch (err) {
+          console.error('Failed to load dial plans', err);
+          break;
+        }
+      } while (page < totalPages);
+    }
+
+    async function loadContactServiceQueues(orgId, bearer) {
+      contactServiceQueueMap.clear();
+      let page = 0;
+      let totalPages = 1;
+      const headers = { Authorization: `Bearer ${bearer}` };
+      do {
+        const url = CONTACT_SERVICE_QUEUE_ENDPOINT(orgId, page, CONTACT_SERVICE_QUEUE_PAGE_SIZE);
+        try {
+          const res = await fetch(url, { headers });
+          if (!res.ok) break;
+          const parsed = await res.json();
+          const chunk = parsed?.data || [];
+          chunk.forEach(queue => {
+            if (queue?.id) contactServiceQueueMap.set(queue.id, queue);
+          });
+          const meta = parsed?.meta || {};
+          totalPages = typeof meta.totalPages === 'number' ? meta.totalPages : totalPages;
+          page += 1;
+        } catch (err) {
+          console.error('Failed to load queues', err);
+          break;
+        }
+      } while (page < totalPages);
+    }
+
+    async function loadAgentProfiles(orgId, bearer) {
+      agentProfileMap.clear();
+      let page = 0;
+      let totalPages = 1;
+      const headers = { Authorization: `Bearer ${bearer}` };
+      const profiles = [];
+      do {
+        const url = AGENT_PROFILE_ENDPOINT(orgId, page, AGENT_PROFILE_PAGE_SIZE);
+        try {
+          const res = await fetch(url, { headers });
+          if (!res.ok) break;
+          const parsed = await res.json();
+          const chunk = parsed?.data || [];
+          chunk.forEach(profile => {
+            if (profile?.id) {
+              agentProfileMap.set(profile.id, profile);
+              profiles.push(profile);
+            }
+          });
+          const meta = parsed?.meta || {};
+          totalPages = typeof meta.totalPages === 'number' ? meta.totalPages : totalPages;
+          page += 1;
+        } catch (err) {
+          console.error('Failed to load agent profiles', err);
+          break;
+        }
+      } while (page < totalPages);
+      desktopProfiles = profiles.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+    }
+
+    function setDesktopLoading(active, message = 'Loading desktop profiles…') {
+      if (!desktopLoader) return;
+      if (desktopLoaderText) desktopLoaderText.textContent = message;
+      desktopLoader.classList.toggle('open', Boolean(active));
+    }
+
+    function sanitizeError(message) {
+      return escapeHtml(message || 'Unable to load desktop profiles.');
+    }
+
+    async function loadDesktopProfiles() {
+      const bearer = (localStorage.getItem(cacheKeyBearer) || '').trim();
+      const orgId = getOrgIdValue();
+      if (!bearer || !orgId) {
+        if (profileListEl) profileListEl.innerHTML = '<div class="emptyState">Authenticate via Webex to view desktop profiles.</div>';
+        if (profileCountEl) profileCountEl.textContent = '0 profiles';
+        return;
+      }
+      try {
+        setDesktopLoading(true, 'Loading auxiliary data…');
+        await loadAuxiliaryCodes(orgId, bearer);
+        await loadEntryPoints(orgId, bearer);
+        await loadAddressBooks(orgId, bearer);
+        await loadDialPlans(orgId, bearer);
+        await loadContactServiceQueues(orgId, bearer);
+        setDesktopLoading(true, 'Loading desktop profiles…');
+        await loadAgentProfiles(orgId, bearer);
+        const teamIds = Array.from(new Set(desktopProfiles.flatMap(profile => [
+          ...(profile.buddyTeams || []),
+          ...(profile.viewableStatistics?.teams || [])
+        ].filter(Boolean))));
+        await ensureTeamNames(teamIds);
+        renderProfiles();
+      } catch (err) {
+        console.error('Failed to load desktop profiles', err);
+        const message = sanitizeError(err?.message);
+        if (profileListEl) profileListEl.innerHTML = `<div class="emptyState">${message}</div>`;
+        if (profileCountEl) profileCountEl.textContent = '0 profiles';
+      } finally {
+        setDesktopLoading(false);
+      }
+    }
+
+    if (desktopSearchInput) {
+      desktopSearchInput.addEventListener('input', () => {
+        renderProfiles();
+      });
+    }
+
+    function updateAuthIndicators() {
+      const b = localStorage.getItem(cacheKeyBearer) || '';
+      const org = localStorage.getItem(cacheKeyOrgName) || localStorage.getItem(cacheKeyOrg) || '';
+      const user = localStorage.getItem(cacheKeyUser) || '';
+      const userNameEl = document.getElementById('userName');
+      const userOrgEl = document.getElementById('userOrg');
+      if (userNameEl) userNameEl.textContent = b ? (user || 'Authenticated') : 'Not authenticated';
+      if (userOrgEl) userOrgEl.textContent = org || '';
+    }
+    updateAuthIndicators();
+
+    const signOutBtn = document.getElementById('signOutBtn');
+    if (signOutBtn) {
+      signOutBtn.addEventListener('click', () => {
+        localStorage.removeItem(cacheKeyBearer);
+        localStorage.removeItem(cacheKeyOrg);
+        localStorage.removeItem(cacheKeyOrgName);
+        localStorage.removeItem(cacheKeyUser);
+        localStorage.removeItem('authRefreshToken');
+        localStorage.removeItem('authExpiresAt');
+        window.location.href = '../../index.html';
+      });
+    }
+
+
+    document.addEventListener('click', (event) => {
+    });
+
+    document.addEventListener('keydown', (event) => {
+    });
+
+    loadDesktopProfiles();
+  </script>
+
+  </body>
+</html>

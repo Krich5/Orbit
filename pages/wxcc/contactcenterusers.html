@@ -1,0 +1,2290 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="light" />
+  <title>WxCC — Contact Center Users</title>
+  <link rel="stylesheet" href="../../assets/css/theme.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/png" href="../../assets/images/WxCC_Icon-192.png" />
+  <style>
+    main { padding:32px 0 80px; display:flex; justify-content:flex-start; }
+    .section-title { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:12px; font-size:15px; letter-spacing:.02em; color:var(--muted); text-transform:uppercase; }
+    label { display:block; font-size:13px; color:var(--muted); margin:8px 0 6px; }
+    select { width:100%; border-radius:12px; border:1px solid var(--border); background:var(--input); color:var(--fg); padding:10px 12px; font-size:14px; }
+    .actionsRow { display:flex; gap:12px; flex-wrap:wrap; margin-top:14px; align-items:center; }
+    .searchWrapper { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+    .searchControl { display:flex; align-items:center; gap:10px; flex:1; min-width:260px; max-width:860px; }
+    .searchControl .searchInput { flex:1; }
+    .searchLabel { font-size:13px; color:var(--muted); font-weight:600; margin:0; }
+    .pageHeaderRow { display:flex; justify-content:space-between; align-items:flex-start; gap:16px; flex-wrap:wrap; }
+    .actionsRight { margin-left:auto; display:flex; flex-direction:column; gap:10px; align-items:flex-end; }
+    .actionRow { display:flex; gap:10px; align-items:center; justify-content:flex-end; }
+    .actionRow--pager { margin-top:-6px; }
+    .statusRight { color:var(--muted); font-size:13px; text-align:right; }
+    .tableMeta { display:flex; justify-content:flex-end; gap:12px; align-items:center; margin-top:6px; }
+    .response { background:var(--input); border:1px solid var(--border); border-radius:10px; padding:12px; color:var(--fg); font-family:ui-monospace,SFMono-Regular,Menlo,Monospace,Consolas,"Liberation Mono","Courier New"; white-space:pre-wrap; min-height:200px; resize:vertical; overflow:auto; }
+    .response-wrap { position:relative; }
+    .response-wrap .response { padding-right:48px; margin:0; }
+    .copy-fab { position:absolute; top:8px; right:8px; padding:0; background:transparent; border:none; border-radius:6px; width:32px; height:32px; min-width:32px; display:flex; align-items:center; justify-content:center; color:var(--muted); }
+    .copy-fab svg { width:16px; height:16px; }
+    .queueTable { margin-top:16px; border:1px solid var(--border); border-radius:14px; overflow:hidden; box-shadow:var(--shadow); }
+    .queueHeader, .queueRow { display:grid; grid-template-columns:1.2fr 1.2fr 2.2fr 2.2fr 2fr 1.1fr 2.4fr; align-items:center; }
+    .queueHeader { background:var(--panel); color:var(--accent); font-weight:700; font-size:12px; letter-spacing:.01em; }
+    .headerTop { display:flex; align-items:center; gap:8px; width:100%; }
+    .queueRow { background:var(--card); border-top:1px solid var(--border); }
+    .queueRow:nth-child(even) { background:var(--input); }
+    .queueRow:hover { background:rgba(8,172,242,.08); }
+    .queueRow--inactive { border-left:3px solid rgba(239,68,68,0.5); background:rgba(239,68,68,0.08); }
+    .queueCell { padding:12px; display:flex; align-items:center; gap:8px; min-height:46px; min-width:0; }
+    .queueCell > * { min-width:0; }
+    .queueEmpty { padding:14px 16px; color:var(--muted); }
+    .headerCell { padding:12px; min-height:46px; display:flex; flex-direction:column; gap:6px; align-items:flex-start; justify-content:center; }
+    .headLabel { font-weight:700; }
+    .headerFilter { width:100%; border-radius:10px; border:1px solid var(--border); background:var(--input); color:var(--fg); padding:8px 10px; font-size:12px; }
+    .queueName { font-weight:700; color:var(--fg); margin:0; font-size:14px; }
+    .queueDesc { color:var(--fg); font-size:13px; margin:0; }
+    .depBtn { display:inline-flex; align-items:center; gap:6px; padding:6px 10px; border-radius:10px; border:1px solid var(--border); background:var(--panel); color:var(--accent); font-size:12px; font-weight:600; cursor:pointer; }
+    .depBtn:hover { border-color: rgba(21,157,216,.5); }
+    .depModal { position:fixed; inset:0; background:rgba(0,0,0,.45); display:none; align-items:center; justify-content:center; z-index:400; padding:16px; }
+    .depModal.open { display:flex; }
+    .depCard { width:min(720px, 92vw); background:var(--card); border:1px solid var(--border); border-radius:18px; padding:20px; box-shadow:0 18px 40px rgba(0,0,0,.2); }
+    .depHeader { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; }
+    .depTitle { font-size:18px; font-weight:600; margin:0; }
+    .depSub { font-size:13px; color:var(--muted); margin-top:4px; }
+    .depClose { background:transparent; border:none; color:var(--muted); font-size:18px; cursor:pointer; }
+    .depPills { display:flex; flex-wrap:wrap; gap:8px; margin:14px 0; }
+    .depPill { padding:4px 8px; border-radius:999px; border:1px solid var(--border); background:var(--panel); font-size:12px; color:var(--fg); }
+    .depTable { width:100%; border-collapse:collapse; margin-top:8px; font-size:13px; }
+    .depTable th, .depTable td { text-align:left; padding:8px 6px; border-bottom:1px solid var(--border); }
+    .depFooter { display:flex; justify-content:flex-end; gap:10px; margin-top:16px; }
+    .depDelete { background:linear-gradient(135deg,#ef4444,#dc2626); color:#fff; border:none; border-radius:10px; padding:8px 12px; font-weight:600; cursor:pointer; }
+    .depStatus { font-size:13px; color:var(--muted); margin-top:8px; }
+    .queueId { color:var(--muted); font-size:12px; margin:0; word-break:break-all; }
+    .queueIdSub { color:var(--muted); font-size:12px; margin:0; word-break:break-all; }
+    .queueIdRow { display:flex; align-items:center; gap:6px; margin-top:2px; }
+    .queueNameBlock { display:flex; flex-direction:column; gap:4px; }
+    .queuePill { display:inline-flex; align-items:center; gap:6px; padding:4px 8px; border-radius:10px; background:var(--card); border:1px solid var(--border); color:var(--accent); font-size:12px; }
+    .statusPill { display:inline-flex; align-items:center; justify-content:center; padding:4px 10px; border-radius:999px; font-size:12px; font-weight:600; border:1px solid var(--border); background:var(--card); }
+    .statusPill.active { color:#0f766e; border-color:rgba(15,118,110,.25); background:rgba(15,118,110,.08); }
+    .statusPill.inactive { color:#b45309; border-color:rgba(180,83,9,.25); background:rgba(180,83,9,.08); }
+    .teamList { display:flex; flex-direction:column; align-items:flex-start; gap:2px; font-size:14px; }
+    .teamName { color:var(--fg); display:block; line-height:1.4; }
+    .teamName--extra { display:none; }
+    .teamList.expanded .teamName--extra { display:block; }
+    .teamToggle { background:transparent; border:none; color:var(--accent); font-size:12px; font-weight:600; cursor:pointer; padding:0; }
+    .teamToggle:hover { text-decoration:underline; }
+    .filterIconBtn { display:inline-flex; align-items:center; justify-content:center; width:26px; height:26px; border-radius:6px; border:1px solid var(--border); background:var(--card); color:var(--accent); cursor:pointer; }
+    .filterPopover { position:fixed; width:260px; background:var(--card); border:1px solid var(--border); border-radius:12px; box-shadow:var(--shadow); padding:12px; z-index:2000; display:none; }
+    .filterPopover.open { display:block; }
+    .filterSearch { width:100%; border-radius:10px; border:1px solid var(--border); background:var(--input); color:var(--fg); padding:8px 10px; font-size:12px; margin-bottom:8px; }
+    .filterList { max-height:220px; overflow:auto; display:flex; flex-direction:column; gap:6px; }
+    .filterItem { display:flex; align-items:center; gap:8px; font-size:12px; color:var(--fg); }
+    .filterMeta { color:var(--muted); font-size:11px; }
+    .columnToggleBtn { display:inline-flex; align-items:center; gap:8px; min-height:36px; }
+    .actionRow .columnToggleBtn { min-width:140px; justify-content:center; }
+    .actionRow .btn { min-height:36px; }
+    .btn.inactive-toggle { border-color:rgba(239,68,68,.5); color:rgba(239,68,68,.8); }
+    .btn.inactive-toggle.active { background:rgba(239,68,68,.12); border-color:rgba(239,68,68,.7); color:rgb(220,38,38); }
+    .columnTogglePopover { position:fixed; width:220px; background:var(--card); border:1px solid var(--border); border-radius:12px; box-shadow:var(--shadow); padding:12px; z-index:2000; display:none; }
+    .columnTogglePopover.open { display:block; }
+    .columnToggleList { display:flex; flex-direction:column; gap:8px; }
+    .sortBtn { background:transparent; border:none; color:var(--fg); font-weight:700; font-size:12px; cursor:pointer; padding:0; text-align:left; }
+    .sortBtn span { color:var(--muted); font-weight:700; margin-left:4px; }
+    .pagerControls { display:flex; align-items:center; gap:10px; color:var(--fg); font-size:12px; }
+    .pagerControls label { display:flex; align-items:center; gap:8px; margin:0; }
+    .pageSizeSelect { border-radius:10px; border:1px solid var(--border); background:var(--input); color:var(--fg); padding:6px 8px; font-size:12px; }
+    .pageBtn { border:1px solid var(--border); background:var(--panel); color:var(--fg); padding:6px 10px; border-radius:10px; cursor:pointer; font-size:12px; }
+    .pageBtn:disabled { opacity:.5; cursor:not-allowed; }
+    .truncate { display:block; min-width:0; max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; flex:1 1 auto; }
+    .copyInline { background:transparent; border:1px solid var(--border); border-radius:8px; color:var(--muted); width:30px; height:30px; min-width:30px; display:inline-flex; align-items:center; justify-content:center; cursor:pointer; }
+    .copyInline:hover { color:var(--fg); border-color:rgba(0,0,0,.2); }
+    .copyInline svg { width:18px; height:18px; }
+    .copyInline.copyInline--mini { width:22px; height:22px; min-width:22px; border-radius:6px; }
+    .copyInline.copyInline--mini svg { width:14px; height:14px; }
+    .copyText { cursor:pointer; }
+    .copyText:hover { text-decoration: underline; }
+    .copyText.copied { color:var(--accent); }
+    .copyBadge { display:inline-block; margin-left:6px; font-size:11px; color:var(--accent); opacity:0; animation:copyPop 900ms ease; }
+    @keyframes copyPop {
+      0% { opacity:0; transform:translateY(2px); }
+      20% { opacity:1; transform:translateY(0); }
+      80% { opacity:1; transform:translateY(0); }
+      100% { opacity:0; transform:translateY(-2px); }
+    }
+    @media (max-width: 900px) {
+      .queueHeader { display:none; }
+      .queueRow { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: 12px; }
+      .queueCell { flex-direction:column; align-items:flex-start; gap:6px; width:100%; }
+      .queueCell[data-label="First Name"] { grid-column: 1 / -1; }
+      .queueCell[data-label="First Name"] .queueNameWrap { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+      .queueCell::before {
+        content: attr(data-label);
+        font-size: 11px;
+        letter-spacing: .08em;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+    }
+    .skillToggle { background:transparent; border:none; color:var(--accent); font-size:12px; font-weight:600; cursor:pointer; padding:0; }
+    .skillToggle:hover { text-decoration:underline; }
+    .desktopProfileColumn { display:flex; flex-direction:column; gap:4px; }
+    .desktopProfileName { font-weight:700; font-size:14px; }
+    .desktopProfileLink { background:transparent; border:none; padding:0; text-align:left; cursor:pointer; color:var(--fg); }
+    .skillProfileColumn { display:flex; flex-direction:column; gap:6px; }
+    .skillProfileTitle { font-weight:700; font-size:14px; }
+    .skillProfileSkills { display:flex; flex-direction:column; gap:4px; }
+    .skillProfileSkillRow { display:flex; align-items:center; gap:6px; font-size:13px; color:var(--muted); }
+    .skillProfileSkillLabel { flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .skillProfileSkill--extra { display:none; }
+    .skillProfileSkills.expanded .skillProfileSkill--extra { display:flex; }
+    .copyField { display:flex; align-items:center; gap:6px; }
+    .copyField span { flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .desktopModalOverlay {
+      position:fixed;
+      inset:0;
+      background:rgba(15,23,42,.5);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      z-index:2000;
+      padding:20px;
+      opacity:0;
+      pointer-events:none;
+      transition:opacity .2s ease;
+    }
+    .desktopModalOverlay.open {
+      opacity:1;
+      pointer-events:auto;
+    }
+    .desktopModalCard {
+      width:calc(100vw - 64px);
+      max-width:1440px;
+      max-height:min(96vh, 860px);
+      overflow:auto;
+      background:var(--card);
+      border:1px solid var(--border);
+      border-radius:18px;
+      box-shadow:0 20px 50px rgba(15,23,42,.35);
+      padding:24px;
+      display:flex;
+      flex-direction:column;
+      gap:16px;
+    }
+    .desktopModalHeader {
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:12px;
+      flex-wrap:wrap;
+    }
+    .desktopModalTitle { margin:0; font-size:1.6rem; }
+    .desktopModalMeta { color:var(--muted); font-size:13px; }
+    .desktopModalClose { background:transparent; border:none; font-size:1.5rem; cursor:pointer; color:var(--fg); }
+    .desktopSections {
+      display:grid;
+      grid-template-columns:repeat(3, minmax(0, 1fr));
+      grid-auto-rows: minmax(0, auto);
+      gap:16px;
+    }
+    .desktopSection {
+      border:1px solid var(--border);
+      border-radius:14px;
+      padding:14px;
+      background:var(--panel);
+    }
+    .chipRow {
+      display:flex;
+      flex-wrap:wrap;
+      gap:6px;
+      margin-top:4px;
+    }
+    .chip {
+      display:inline-flex;
+      align-items:center;
+      border-radius:999px;
+      background:var(--card);
+      border:1px solid var(--border);
+      padding:2px 9px;
+      font-size:12px;
+      color:var(--fg);
+      max-width:100%;
+      white-space:nowrap;
+    }
+    .statRow {
+      display:flex;
+      flex-direction:column;
+      gap:4px;
+      font-size:13px;
+    }
+    .statRowLine {
+      display:flex;
+      align-items:center;
+      gap:6px;
+    }
+    .statLabel {
+      color:var(--muted);
+      font-weight:500;
+    }
+    .statValue {
+      font-weight:500;
+      color:var(--fg);
+      text-transform:none;
+    }
+    .desktopSection h3 { margin:0 0 10px; font-size:14px; font-weight:600; }
+    .desktopSection dl { margin:0; }
+    .desktopSection dt, .desktopSection dd { margin:0; font-size:13px; line-height:1.5; }
+    .desktopSection dt { color:var(--muted); }
+    .desktopSection dd { margin-bottom:10px; }
+    .queueWrapper { position:relative; }
+    .queueWrapper.loading-users #userList { visibility:hidden; }
+    .queueWrapper.loading-users { min-height:420px; }
+    .tableLoader {
+      position:absolute;
+      inset:0;
+      background:linear-gradient(180deg, rgba(255,255,255,.97), rgba(248,250,252,.94));
+      border-radius:14px;
+      display:flex;
+      align-items:flex-start;
+      justify-content:center;
+      opacity:0;
+      pointer-events:none;
+      transition:opacity .2s ease;
+      border:1px solid var(--border);
+      padding-top:36px;
+    }
+    .tableLoader.open { opacity:1; }
+    .loaderInner { display:flex; align-items:center; gap:10px; }
+    .tableLoader .loaderInner {
+      width:min(420px, calc(100% - 32px));
+      flex-direction:column;
+      gap:14px;
+      text-align:center;
+      padding:28px 24px;
+      background:var(--card);
+      border:1px solid var(--border);
+      border-radius:18px;
+      box-shadow:0 24px 60px rgba(15,23,42,.14);
+    }
+    .loaderHint { font-size:12px; color:var(--muted); line-height:1.45; margin:0; }
+    .loaderTitle { font-size:1.25rem; font-weight:700; color:var(--fg); margin:0; }
+    .loaderText { font-size:14px; color:var(--muted); line-height:1.5; margin:0; }
+    .loaderSpinner { width:32px; height:32px; border:4px solid rgba(15,23,42,0.1); border-top-color:var(--accent); border-radius:50%; animation:spin 1s linear infinite; }
+    body.dark-mode .tableLoader {
+      background:linear-gradient(180deg, rgba(3,9,37,.82), rgba(3,9,37,.74));
+      border-color:rgba(255,255,255,.08);
+    }
+    body.dark-mode .tableLoader .loaderInner {
+      background:#0d1730;
+      border-color:rgba(255,255,255,.08);
+      box-shadow:0 28px 70px rgba(0,0,0,.45);
+    }
+    @keyframes spin { from { transform:rotate(0deg); } to { transform:rotate(360deg); } }
+  </style>
+</head>
+<body class="dark-mode">
+  <script>if (localStorage.getItem("tpRailExpanded") === "true") document.body.classList.add("tp-rail-expanded");</script>
+  <script>
+    (function() {
+      try {
+        const theme = localStorage.getItem('apiTheme');
+        if (theme === 'dark') {
+          document.documentElement.classList.add('dark-mode');
+          document.body.classList.add('dark-mode');
+        }
+      } catch {
+        // ignore
+      }
+    })();
+  </script>
+  <api-tools-header basepath="../../"></api-tools-header>
+
+  <main>
+    <div class="wrap wide contentWrap">
+      <section class="card">
+        <div class="pageHeader">
+          <h1>Contact Center Users</h1>
+          <p class="lead">List users, status, and team assignments.</p>
+        </div>
+      <div class="grid" style="grid-template-columns:1fr;">
+        <div>
+          <div class="actionsRow">
+            <div class="searchWrapper">
+              <label class="searchLabel" for="searchInput">Search</label>
+              <div class="searchControl">
+                <input id="searchInput" class="searchInput" type="text" placeholder="Search users, emails, IDs, teams, skills..." />
+              </div>
+            </div>
+            <div class="actionsRight">
+              <span class="pill" id="userCountPill">0 users</span>
+              <div class="actionRow">
+                <button class="btn columnToggleBtn" id="columnToggleBtn" type="button">Columns ▾</button>
+                <button class="btn" id="inactiveToggleBtn" type="button">Show Inactive</button>
+                <button class="btn" id="exportAllBtn" disabled>Export Users</button>
+              </div>
+              <div class="actionRow actionRow--pager">
+                  <div class="pagerControls">
+                    <label>
+                      Show
+                      <select id="userPageSize" class="pageSizeSelect">
+                        <option value="25">25</option>
+                        <option value="50" selected>50</option>
+                        <option value="100">100</option>
+                        <option value="250">250</option>
+                        <option value="all">All</option>
+                      </select>
+                    </label>
+                    <button class="pageBtn" id="userPrevPage" type="button">Prev</button>
+                    <span id="userPageInfo">1/1</span>
+                    <button class="pageBtn" id="userNextPage" type="button">Next</button>
+                  </div>
+                </div>
+            </div>
+          </div>
+          <div class="queueWrapper">
+            <div id="userList" class="queueList"></div>
+            <div class="tableLoader" id="tableLoader" role="status" aria-live="assertive">
+              <div class="loaderInner">
+                <p class="loaderTitle">Loading contact center users</p>
+                <div class="loaderSpinner" aria-hidden="true"></div>
+                <p class="loaderText">Please wait while the user list is loaded.</p>
+                <p class="loaderHint">You can keep using the header while loading continues.</p>
+              </div>
+            </div>
+          </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+    <script src="../../assets/js/orbit-config.js"></script>
+    <script src="../../assets/js/components.js"></script>
+    <script src="../../assets/js/theme.js"></script>
+<script>
+    const userListEl = document.getElementById('userList');
+    const searchInput = document.getElementById('searchInput');
+    const userCountPill = document.getElementById('userCountPill');
+    const exportAllBtn = document.getElementById('exportAllBtn');
+    const columnToggleBtn = document.getElementById('columnToggleBtn');
+    const inactiveToggleBtn = document.getElementById('inactiveToggleBtn');
+    const userPageSizeEl = document.getElementById('userPageSize');
+    const userPrevPageBtn = document.getElementById('userPrevPage');
+    const userNextPageBtn = document.getElementById('userNextPage');
+    const userPageInfo = document.getElementById('userPageInfo');
+    const loaderEl = document.getElementById('tableLoader');
+    const queueWrapperEl = document.querySelector('.queueWrapper');
+    const loaderText = loaderEl?.querySelector('.loaderText');
+    const loaderTitle = loaderEl?.querySelector('.loaderTitle');
+    const loaderStates = { users:false, teams:false, skills:false, agents:false, aux:false, entry:false, address:false, dial:false, queues:false };
+    const DESKTOP_MODAL_ID = 'desktopProfileModal';
+    const AGENT_PROFILE_DETAIL_ENDPOINT = (orgId, profileId) => `https://api.wxcc-us1.cisco.com/organization/${encodeURIComponent(orgId)}/v2/agent-profile?filter=${encodeURIComponent('id=="' + profileId + '"')}&page=0&pageSize=1`;
+
+    function setUserTableLoading(active, message = 'Please wait while the user list is loaded.') {
+      if (!loaderEl || !queueWrapperEl) return;
+      queueWrapperEl.classList.toggle('loading-users', active);
+      loaderEl.classList.toggle('open', active);
+      if (loaderTitle) loaderTitle.textContent = 'Loading contact center users';
+      if (loaderText) loaderText.textContent = message;
+    }
+
+    function updateLoaderState(key, active) {
+      if (!loaderEl) return;
+      loaderStates[key] = active;
+      if (key === 'users') {
+        setUserTableLoading(active, active ? 'Please wait while the user list is loaded.' : '');
+      }
+      const activeKeys = Object.keys(loaderStates).filter(k => loaderStates[k]);
+      if (!activeKeys.length) {
+        loaderEl.classList.remove('open');
+        if (queueWrapperEl) queueWrapperEl.classList.remove('loading-users');
+        return;
+      }
+      const labels = {
+        users: 'Loading users…',
+        teams: 'Loading team names…',
+        skills: 'Gathering skill metadata…',
+        agents: 'Loading desktop profiles…',
+        aux: 'Loading auxiliary codes…',
+        entry: 'Loading entry points…',
+        address: 'Loading address books…',
+        dial: 'Loading dial plans…',
+        queues: 'Loading contact queues…'
+      };
+      if (loaderText && key !== 'users') loaderText.textContent = activeKeys.map(k => labels[k] || k).join(' / ');
+    }
+
+    const cacheKeyBearer = 'authBearer';
+    const cacheKeyOrg = 'authOrg';
+    const cacheKeyOrgName = 'authOrgName';
+    const cacheKeyUser = 'authUserName';
+
+    const USERS_ENDPOINT = (orgId, page, pageSize) => `https://api.wxcc-us1.cisco.com/organization/${encodeURIComponent(orgId)}/v2/user?page=${page}&pageSize=${pageSize}`;
+    const TEAM_ENDPOINT = (orgId, teamId) => `https://api.wxcc-us1.cisco.com/organization/${encodeURIComponent(orgId)}/v2/team?filter=${encodeURIComponent('id=="' + teamId + '"')}`;
+    const SKILL_PROFILE_ENDPOINT = (orgId, page, pageSize) => `https://api.wxcc-us1.cisco.com/organization/${encodeURIComponent(orgId)}/v2/skill-profile?page=${page}&pageSize=${pageSize}`;
+    const SKILL_ENDPOINT = (orgId, page, pageSize) => `https://api.wxcc-us1.cisco.com/organization/${encodeURIComponent(orgId)}/v2/skill?page=${page}&pageSize=${pageSize}`;
+    const AGENT_PROFILE_ENDPOINT = (orgId, page, pageSize) => `https://api.wxcc-us1.cisco.com/organization/${encodeURIComponent(orgId)}/v2/agent-profile?page=${page}&pageSize=${pageSize}`;
+    const AUXILIARY_CODES_ENDPOINT = (orgId, page, pageSize) => `https://api.wxcc-us1.cisco.com/organization/${encodeURIComponent(orgId)}/v2/auxiliary-code?page=${page}&pageSize=${pageSize}`;
+    const ENTRY_POINT_ENDPOINT = (orgId, page, pageSize) => `https://api.wxcc-us1.cisco.com/organization/${encodeURIComponent(orgId)}/v2/entry-point?page=${page}&pageSize=${pageSize}`;
+    const ADDRESS_BOOK_ENDPOINT = (orgId, page, pageSize) => `https://api.wxcc-us1.cisco.com/organization/${encodeURIComponent(orgId)}/v3/address-book?page=${page}&pageSize=${pageSize}`;
+    const DIAL_PLAN_ENDPOINT = (orgId, page, pageSize) => `https://api.wxcc-us1.cisco.com/organization/${encodeURIComponent(orgId)}/v2/dial-plan?page=${page}&pageSize=${pageSize}`;
+    const CONTACT_SERVICE_QUEUE_ENDPOINT = (orgId, page, pageSize) => `https://api.wxcc-us1.cisco.com/organization/${encodeURIComponent(orgId)}/v3/contact-service-queue?page=${page}&pageSize=${pageSize}`;
+
+    const FILTER_BLANK_TOKEN = '__BLANK__';
+    const TEAM_NONE_TOKEN = '__NO_TEAMS__';
+    const COLUMN_PREF_KEY = 'wxccContactUsersColumns';
+    const USER_PAGE_SIZES = [25, 50, 100, 250, 'all'];
+    const SKILL_PAGE_SIZE = 100;
+    const SKILL_PROFILE_PAGE_SIZE = 100;
+    const AGENT_PROFILE_PAGE_SIZE = 100;
+    const AUXILIARY_CODE_PAGE_SIZE = 100;
+    const ENTRY_POINT_PAGE_SIZE = 100;
+    const ADDRESS_BOOK_PAGE_SIZE = 100;
+    const DIAL_PLAN_PAGE_SIZE = 100;
+    const CONTACT_SERVICE_QUEUE_PAGE_SIZE = 100;
+
+    const columns = [
+      { id:'firstName', label:'First Name', width:'1.4fr', filterKeys: ['firstName'], render:(u)=> renderCopyField(u.firstName, 'first name') },
+      { id:'lastName', label:'Last Name', width:'1.4fr', filterKeys: ['lastName'], render:(u)=> renderCopyField(u.lastName, 'last name') },
+      { id:'email', label:'Email', width:'2fr', filterKeys: ['email'], render:(u)=> renderCopyField(u.email, 'email address') },
+      { id:'teams', label:'Teams', width:'1.8fr', filterKeys: ['teams'], render:(u)=> renderTeams(u) },
+      { id:'skillProfile', label:'Skill Profile', width:'2.6fr', filterKeys: ['skillProfile','skillSummary'], render:(u)=> renderSkillProfileCell(u) },
+      { id:'id', label:'Contact Center User ID', width:'1.8fr', filterKeys: ['id'], render:(u)=>`
+        <div class="queueNameBlock">
+          <span class="queueIdSub${u.id ? ' copyText' : ''}" ${u.id ? `data-copy-text="${String(u.id).replace(/"/g,'&quot;')}" title="Click to copy user ID"` : ''}>${u.id || '—'}</span>
+          <div class="queueIdRow">
+            ${copyButton(u.id || '', 'Copy user ID', 'copyInline--mini')}
+          </div>
+        </div>
+      `},
+      { id:'ciUserId', label:'Cisco User ID', width:'1.8fr', filterKeys: ['ciUserId'], render:(u)=>`
+        <div class="queueNameBlock">
+          <span class="queueIdSub${u.ciUserId ? ' copyText' : ''}" ${u.ciUserId ? `data-copy-text="${String(u.ciUserId).replace(/"/g,'&quot;')}" title="Click to copy Cisco user ID"` : ''}>${u.ciUserId || '—'}</span>
+          <div class="queueIdRow">
+            ${copyButton(u.ciUserId || '', 'Copy Cisco user ID', 'copyInline--mini')}
+          </div>
+        </div>
+      `},
+      { id: 'desktopProfile', label: 'Desktop Profile', width: '1.6fr', filterKeys: ['desktopProfile'], render: (u) => renderDesktopProfile(u) }
+    ];
+
+    const defaultVisibleColumns = new Set([
+      'firstName',
+      'lastName',
+      'email',
+      'teams',
+      'skillProfile',
+      'desktopProfile'
+    ]);
+    let visibleColumns = new Set(defaultVisibleColumns);
+    function getColumnFilterKeys(col) {
+      if (Array.isArray(col.filterKeys) && col.filterKeys.length) return col.filterKeys;
+      if (col.filterKey) return [col.filterKey];
+      return [];
+    }
+
+    const filterLabels = {
+      firstName: 'First Name',
+      lastName: 'Last Name',
+      email: 'Email',
+      id: 'Contact Center User ID',
+      ciUserId: 'Cisco User ID',
+      teams: 'Teams',
+      desktopProfile: 'Desktop Profile',
+      skillProfile: 'Skill Profile',
+      skillSummary: 'Profile Skills'
+    };
+
+    let lastUsers = [];
+    let globalSearchTerm = '';
+    const teamNameCache = new Map();
+
+    const filterValues = {
+      firstName: [],
+      lastName: [],
+      email: [],
+      id: [],
+      ciUserId: [],
+      teams: [],
+      desktopProfile: [],
+      skillProfile: [],
+      skillSummary: []
+    };
+    const filterSelections = {
+      firstName: new Set(),
+      lastName: new Set(),
+      email: new Set(),
+      id: new Set(),
+      ciUserId: new Set(),
+      teams: new Set(),
+      desktopProfile: new Set(),
+      skillProfile: new Set(),
+      skillSummary: new Set()
+    };
+    const filterSearchTerms = {
+      firstName: '',
+      lastName: '',
+      email: '',
+      id: '',
+      ciUserId: '',
+      teams: '',
+      desktopProfile: '',
+      skillProfile: '',
+      skillSummary: ''
+    };
+    let activeFilterKey = '';
+    let sortKey = 'firstName';
+    let sortDir = 'asc';
+    let columnPopoverOpen = false;
+    let currentPage = 1;
+    let currentPageSize = 50;
+    let showInactive = false;
+    const skillProfileMap = new Map();
+    const skillDefinitionMap = new Map();
+    const enumSkillValueMap = new Map();
+    const agentProfileMap = new Map();
+    const auxiliaryCodeMap = new Map();
+    const entryPointMap = new Map();
+    const addressBookMap = new Map();
+    const dialPlanMap = new Map();
+    const contactServiceQueueMap = new Map();
+    let skillMetadataLoaded = false;
+    let skillMetadataLoading = false;
+    let skillMetadataPromise = null;
+
+    const columnPopover = document.createElement('div');
+    columnPopover.className = 'columnTogglePopover';
+    columnPopover.id = 'columnTogglePopover';
+    columnPopover.innerHTML = '<div class=\"columnToggleList\" id=\"columnToggleList\"></div>';
+    document.body.appendChild(columnPopover);
+
+    function loadColumnPrefs() {
+      try {
+        const raw = localStorage.getItem(COLUMN_PREF_KEY);
+        if (!raw) {
+          visibleColumns = new Set(defaultVisibleColumns);
+          return;
+        }
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed) && parsed.length) {
+          const allowed = new Set(columns.map(c => c.id));
+          visibleColumns = new Set(parsed.filter(id => allowed.has(id)));
+          const missingDefaults = [...defaultVisibleColumns].filter(id => !visibleColumns.has(id));
+          missingDefaults.forEach(id => visibleColumns.add(id));
+          if (!visibleColumns.size) visibleColumns = new Set(columns.map(c => c.id));
+        }
+      } catch {}
+    }
+
+    function saveColumnPrefs() {
+      try {
+        localStorage.setItem(COLUMN_PREF_KEY, JSON.stringify([...visibleColumns]));
+      } catch {}
+    }
+
+    function renderColumnToggleList() {
+      const list = document.getElementById('columnToggleList');
+      if (!list) return;
+      list.innerHTML = columns.map(col => {
+        const checked = visibleColumns.has(col.id);
+        return `
+          <label class="filterItem">
+            <input type="checkbox" data-column-id="${col.id}" ${checked ? 'checked' : ''} />
+            <span>${escapeHtml(col.label)}</span>
+          </label>
+        `;
+      }).join('');
+    }
+
+    function escapeHtml(text) {
+      return String(text)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    function escapeAttr(text) {
+      return escapeHtml(text).replace(/`/g, '&#96;');
+    }
+
+    function getOrgIdValue() {
+      const cached = localStorage.getItem('authOrgId') || '';
+      if (cached) {
+        if (/^Y2lz/i.test(cached)) {
+          try {
+            const padded = cached.replace(/-/g, '+').replace(/_/g, '/').padEnd(Math.ceil(cached.length / 4) * 4, '=');
+            const decoded = atob(padded);
+            const parts = decoded.split('/');
+            const result = parts[parts.length - 1] || decoded;
+            localStorage.setItem('authOrgId', result);
+            return result;
+          } catch {
+            return cached;
+          }
+        }
+        const orgPathIdx = cached.toLowerCase().indexOf('organization/');
+        if (orgPathIdx !== -1) {
+          const candidate = cached.slice(orgPathIdx + 'organization/'.length);
+          if (candidate) {
+            localStorage.setItem('authOrgId', candidate);
+            return candidate;
+          }
+        }
+        return cached;
+      }
+      const raw = localStorage.getItem(cacheKeyOrg) || '';
+      if (!raw) return '';
+
+      if (/^Y2lz/i.test(raw)) {
+        try {
+          const padded = raw.replace(/-/g, '+').replace(/_/g, '/').padEnd(Math.ceil(raw.length / 4) * 4, '=');
+          const decoded = atob(padded);
+          const parts = decoded.split('/');
+          return parts[parts.length - 1] || decoded;
+        } catch {
+          return raw;
+        }
+      }
+
+      const orgPathIdx = raw.toLowerCase().indexOf('organization/');
+      if (orgPathIdx !== -1) {
+        const candidate = raw.slice(orgPathIdx + 'organization/'.length);
+        return candidate || raw;
+      }
+
+      return raw;
+    }
+
+    function copyButton(val, title, extraClass = '') {
+      if (!val) return '';
+      return `<button class="copyInline ${extraClass}" title="${title}" data-copy-value="${String(val).replace(/"/g,'&quot;')}">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="9" y="9" width="13" height="13" rx="2"></rect>
+          <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+        </svg>
+      </button>`;
+    }
+
+    function renderCopyField(value, label) {
+      if (!value) return '—';
+      const safeValue = escapeHtml(value);
+      const attrValue = escapeAttr(value);
+      return `
+        <div class="copyField">
+          <span title=${attrValue}>${safeValue}</span>
+          ${copyButton(value, `Copy ${label}`, 'copyInline--mini')}
+        </div>
+      `;
+    }
+
+    function renderSkillProfileRow(text, isExtra = false) {
+      if (!text) return '';
+      return `
+        <div class="skillProfileSkillRow ${isExtra ? 'skillProfileSkill--extra' : ''}">
+          <span class="skillProfileSkillLabel">${escapeHtml(text)}</span>
+          ${copyButton(text, 'Copy skill entry', 'copyInline--mini')}
+        </div>
+      `;
+    }
+
+    function formatBoolLabel(value) {
+      return value ? 'Enabled' : 'Disabled';
+    }
+
+    function renderBoolPill(value) {
+      const color = value ? 'var(--accent)' : 'var(--muted)';
+      const background = value ? 'rgba(16,185,129,.12)' : 'rgba(148,163,184,.15)';
+      return `<span class="chip" style="background:${background}; border-color:${color}; color:${value ? 'var(--accent)' : 'var(--fg)'};">${value ? 'Enabled' : 'Disabled'}</span>`;
+    }
+
+    function formatList(values) {
+      if (!Array.isArray(values) || !values.length) return '—';
+      return values.join(', ');
+    }
+
+    function renderChips(values) {
+      const items = (values || []).map(item => (typeof item === 'string' ? item.trim() : '')).filter(Boolean);
+      if (!items.length) return '—';
+      return `
+        <div class="chipRow">
+          ${Array.from(new Set(items)).map(item => `<span class="chip">${escapeHtml(item)}</span>`).join('')}
+        </div>
+      `;
+    }
+
+    function humanizeStatus(value) {
+      if (!value) return '—';
+      const normalized = value.toString().trim();
+      if (!normalized) return '—';
+      switch (normalized.toUpperCase()) {
+        case 'All':
+          return 'All';
+        case 'Specific':
+          return 'Specific';
+        case 'NONE':
+          return 'None';
+        default:
+          return normalized.charAt(0).toUpperCase() + normalized.slice(1).toLowerCase();
+      }
+    }
+
+    function renderStatGroup(statusLabel, statusValue, chipsHtml) {
+      const formattedValue = statusValue ? humanizeStatus(statusValue) : '';
+      const shouldShowChips = chipsHtml && chipsHtml !== '—';
+      return `
+        <div class="statRow">
+          <div class="statRowLine">
+            <span class="statLabel">${escapeHtml(statusLabel)}${formattedValue ? ':' : ''}</span>
+            ${formattedValue ? `<span class="statValue">${escapeHtml(formattedValue)}</span>` : ''}
+          </div>
+          ${shouldShowChips ? chipsHtml : ''}
+        </div>
+      `;
+    }
+
+    function renderChannelOptions(values) {
+      const map = {
+        BROWSER: 'Desktop',
+        EXTENSION: 'Extension',
+        DESKTOP: 'Desktop',
+        AGENT_DN: 'Agent DN',
+        DIAL_NUMBER: 'Dial Number'
+      };
+      const humanize = value => (value || '').toString().split(/[\s_]+/).map(part => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase()).join(' ');
+      const processed = (values || []).map(val => map[val] || humanize(val)).filter(Boolean);
+      return renderChips(processed);
+    }
+
+    const AGENT_DN_VALIDATION_LABELS = {
+      NONE: 'Unrestricted',
+      PROVISIONED_VALUE: 'Provisioned DN',
+      Specific: 'Specific',
+      AGENT_DN: 'Agent DN'
+    };
+    const AGENT_DN_CRITERIA_LABELS = {
+      All: 'All',
+      Specific: 'Specific'
+    };
+
+    function renderAgentDnValidationContent(profile) {
+      const modeKey = (profile.agentDNValidation || 'NONE').toUpperCase();
+      const summary = AGENT_DN_VALIDATION_LABELS[modeKey] || modeKey.charAt(0).toUpperCase() + modeKey.slice(1).toLowerCase();
+      const criteriaKey = (profile.agentDNValidationCriteria || '').toUpperCase();
+      const detailLines = [];
+      if (criteriaKey) {
+        const criteriaLabel = AGENT_DN_CRITERIA_LABELS[criteriaKey] || criteriaKey.charAt(0).toUpperCase() + criteriaKey.slice(1).toLowerCase();
+        detailLines.push(`<div class="statRowLine"><span class="statLabel">Validate using Dial Plans</span><span class="statValue">${escapeHtml(criteriaLabel)}</span></div>`);
+      }
+      const dialPlanIds = Array.isArray(profile.agentDNValidationCriterions) ? profile.agentDNValidationCriterions : [];
+      const dialPlanNames = dialPlanIds.map(lookupDialPlanName).filter(name => name && name !== '—');
+      const dialPlanChips = dialPlanNames.length ? renderChips(dialPlanNames) : '';
+      return `
+        <div class="statRow">
+          <div class="statRowLine">
+            <span class="statValue">${escapeHtml(summary)}</span>
+          </div>
+          ${detailLines.join('')}
+          ${dialPlanChips}
+        </div>
+      `;
+    }
+
+    function formatSeconds(ms) {
+      if (ms == null) return '—';
+      const seconds = Math.floor(Number(ms) / 1000);
+      return `${seconds.toLocaleString()} seconds`;
+    }
+
+    function renderWrapTime(profile) {
+      const value = profile.autoWrapUp ? formatSeconds(profile.autoWrapAfterSeconds) : 'Manual';
+      return `
+        <div class="statRowLine">
+          <span class="statValue">${escapeHtml(value)}</span>
+        </div>
+      `;
+    }
+
+    function renderWrapCodesRow(profile) {
+      const accessMode = (profile.accessWrapUpCode || '').toUpperCase();
+      const humanized = humanizeStatus(accessMode);
+      const wrapChips = accessMode === 'SPECIFIC'
+        ? renderChips(profile.wrapUpCodes?.map(lookupAuxCodeName))
+        : '';
+      const displayValue = accessMode === 'ALL'
+        ? 'All wrap-up codes'
+        : humanized || '—';
+      return `
+        <div class="statRow">
+          <div class="statRowLine">
+            <span class="statValue">${escapeHtml(displayValue)}</span>
+          </div>
+          ${wrapChips}
+        </div>
+      `;
+    }
+
+    function renderBuddyTeamRow(profile) {
+      const accessMode = (profile.accessBuddyTeam || '').toUpperCase();
+      const humanized = humanizeStatus(accessMode);
+      const chips = accessMode === 'SPECIFIC'
+        ? renderChips(profile.buddyTeams.map(getTeamLabel))
+        : '';
+      const displayValue = accessMode === 'ALL'
+        ? 'All'
+        : humanized || '—';
+      return `
+        <div class="statRow">
+          <div class="statRowLine">
+            <span class="statValue">${escapeHtml(displayValue)}</span>
+          </div>
+          ${chips}
+        </div>
+      `;
+    }
+
+    function renderEntryQueueTargets(profile) {
+      const entryNames = formatEntryPoints(profile.entryPoints);
+      const queueNames = profile.queues?.map(lookupContactQueueName) || [];
+      const combined = [...entryNames, ...queueNames];
+      const accessMode = (profile.accessQueue || profile.accessEntryPoint || '').toUpperCase();
+      const humanized = humanizeStatus(accessMode);
+      let displayValue = humanized || (combined.length ? 'Specific' : '—');
+      if (accessMode === 'ALL') {
+        displayValue = 'All';
+      } else if (accessMode === 'NONE') {
+        displayValue = 'None';
+      }
+      const chips = accessMode === 'SPECIFIC' && combined.length ? renderChips(combined) : '';
+      return `
+        <div class="statRow">
+          <div class="statRowLine">
+            <span class="statValue">${escapeHtml(displayValue)}</span>
+          </div>
+          ${chips}
+        </div>
+      `;
+    }
+
+    function renderIdleRow(profile) {
+      const accessMode = (profile.accessIdleCode || '').toUpperCase();
+      const humanized = humanizeStatus(accessMode);
+      const chips = accessMode === 'SPECIFIC'
+        ? renderChips(profile.idleCodes.map(lookupAuxCodeName))
+        : '';
+      const displayValue = accessMode === 'ALL'
+        ? 'All idle codes'
+        : humanized || '—';
+      return `
+        <div class="statRow">
+          <div class="statRowLine">
+            <span class="statValue">${escapeHtml(displayValue)}</span>
+          </div>
+          ${chips}
+        </div>
+      `;
+    }
+
+    function formatTeamNames(ids) {
+      if (!Array.isArray(ids) || !ids.length) return '—';
+      return ids.map(id => {
+        const label = getTeamLabel(id);
+        return label || id || '—';
+      }).join(', ');
+    }
+
+    function lookupEntryPointName(id) {
+      if (!id) return '—';
+      const entry = entryPointMap.get(id);
+      return entry?.name || id;
+    }
+
+    function lookupAddressBookName(id) {
+      if (!id) return 'None';
+      const entry = addressBookMap.get(id);
+      if (entry?.name) return entry.name;
+      return 'None';
+    }
+
+    function lookupDialPlanName(id) {
+      if (!id) return '—';
+      const entry = dialPlanMap.get(id);
+      return entry?.name || id;
+    }
+
+    function lookupContactQueueName(id) {
+      if (!id) return '—';
+      const entry = contactServiceQueueMap.get(id);
+      return entry?.name || id;
+    }
+
+    function formatEntryPoints(ids) {
+      if (!Array.isArray(ids) || !ids.length) return [];
+      return ids.map(lookupEntryPointName).filter(Boolean);
+    }
+
+    function lookupAuxCodeName(id) {
+      if (!id) return '';
+      const entry = auxiliaryCodeMap.get(id);
+      return entry?.name || id;
+    }
+
+    function formatAuxCodes(ids) {
+      if (!Array.isArray(ids) || !ids.length) return '—';
+      return ids.map(lookupAuxCodeName).join(', ');
+    }
+
+    function formatTimestamp(value) {
+      if (!value) return '—';
+      try {
+        return new Date(value).toLocaleString();
+      } catch {
+        return '—';
+      }
+    }
+
+    function buildDesktopSection(title, rows) {
+      const content = rows.map(([label, value]) => `
+        <dt>${escapeHtml(label)}</dt><dd>${value?.html ? value.value : escapeHtml(value ?? '—')}</dd>
+      `).join('');
+      return `
+        <section class="desktopSection">
+          <h3>${escapeHtml(title)}</h3>
+          <dl>${content}</dl>
+        </section>
+      `;
+    }
+
+    async function ensureAgentProfile(profileId, { refresh = false } = {}) {
+      if (!profileId) return null;
+      if (!refresh && agentProfileMap.has(profileId)) return agentProfileMap.get(profileId);
+      const bearer = (localStorage.getItem(cacheKeyBearer) || '').trim();
+      const orgId = getOrgIdValue();
+      if (!bearer || !orgId) return null;
+      try {
+        const url = AGENT_PROFILE_DETAIL_ENDPOINT(orgId, profileId);
+        const res = await fetch(url, { headers: { Authorization: `Bearer ${bearer}` } });
+        if (!res.ok) return null;
+        const parsed = await res.json();
+        const profile = parsed?.data?.[0];
+        if (profile?.id) {
+          agentProfileMap.set(profile.id, profile);
+          const statsTeams = profile.viewableStatistics?.teams || [];
+          const statsQueues = profile.viewableStatistics?.contactServiceQueues || [];
+          const extraTeams = Array.from(new Set([
+            ...(profile.buddyTeams || []),
+            ...(profile.queues || []),
+            ...statsTeams,
+            ...statsQueues
+          ].filter(Boolean)));
+          await ensureTeamNames(extraTeams);
+          return profile;
+        }
+      } catch (err) {
+        console.error('Failed to load agent profile detail', err);
+      }
+      return null;
+    }
+
+    function closeDesktopProfileModal() {
+      const modal = document.getElementById(DESKTOP_MODAL_ID);
+      if (!modal) return;
+      modal.classList.remove('open');
+      setTimeout(() => {
+        if (modal.parentNode) modal.parentNode.removeChild(modal);
+      }, 250);
+    }
+
+    function populateDesktopModal(profile, overlay) {
+      const card = overlay.querySelector('.desktopModalCard');
+      if (!card) return;
+      const rowsGeneral = [
+        ['Screen popups', { value: renderBoolPill(profile.screenPopup), html: true }],
+        ['Last agent routing', { value: renderBoolPill(profile.lastAgentRouting), html: true }],
+        ['Auto answer', { value: renderBoolPill(profile.autoAnswer), html: true }],
+        ['Personal greeting', { value: renderBoolPill(profile.agentPersonalGreeting), html: true }]
+      ];
+      const rowsIdleWrap = [
+        ['Wrap-up Time', { value: renderWrapTime(profile), html: true }],
+        ['Wrap-up codes', { value: renderWrapCodesRow(profile), html: true }],
+        ['Idle Codes', { value: renderIdleRow(profile), html: true }]
+      ];
+      const rowsCollab = [
+        ['Entry Point/Queue transfer targets', { value: renderEntryQueueTargets(profile), html: true }],
+        ['Consult to queue', { value: renderBoolPill(profile.consultToQueue), html: true }],
+        ['Buddy teams', { value: renderBuddyTeamRow(profile), html: true }]
+      ];
+      const rowsDial = [
+        ['Outdial enabled', { value: renderBoolPill(profile.outdialEnabled), html: true }],
+        ['Outdial entry point', lookupEntryPointName(profile.outdialEntryPointId)],
+        ['Address book', lookupAddressBookName(profile.addressBookId)],
+        ['Dial plans', profile.dialPlans?.length ? profile.dialPlans.map(lookupDialPlanName).join(', ') : '—']
+      ];
+      const rowsVoice = [
+        ['Options', { value: renderChannelOptions(profile.loginVoiceOptions), html: true }]
+      ];
+      const voiceOptions = Array.isArray(profile.loginVoiceOptions) ? profile.loginVoiceOptions.map(val => (val || '').toUpperCase()) : [];
+      if (voiceOptions.some(val => val === 'EXTENSION' || val === 'DIAL_NUMBER')) {
+        rowsVoice.push(['Validation for Agent DN', { value: renderAgentDnValidationContent(profile), html: true }]);
+      }
+      const stats = profile.viewableStatistics || {};
+      const rowsStats = [
+        ['Agent stats', { value: renderBoolPill(stats.agentStats), html: true }],
+        ['Queue stats', { value: renderStatGroup('Queues', stats.accessQueueStats || '—', renderChips(stats.contactServiceQueues?.map(lookupContactQueueName))), html: true }],
+        ['Team stats', { value: renderStatGroup('Teams', stats.accessTeamStats || '—', renderChips(stats.teams.map(getTeamLabel))), html: true }]
+      ];
+      card.innerHTML = `
+        <div class="desktopModalHeader">
+          <div>
+            <h2 class="desktopModalTitle">${escapeHtml(profile.name || 'Desktop Profile')}</h2>
+            <p class="desktopModalMeta">
+              ID: ${escapeHtml(profile.id)} • Last updated: ${escapeHtml(formatTimestamp(profile.lastUpdatedTime))}
+            </p>
+          </div>
+          <button class="desktopModalClose" data-close-desktop-modal aria-label="Close desktop profile details">×</button>
+        </div>
+        <div class="desktopSections">
+          ${buildDesktopSection('General', rowsGeneral)}
+          ${buildDesktopSection('Idle/Wrap-up Codes', rowsIdleWrap)}
+          ${buildDesktopSection('Collaboration', rowsCollab)}
+          ${buildDesktopSection('Dial Plans', rowsDial)}
+          ${buildDesktopSection('Voice Channel options', rowsVoice)}
+          ${buildDesktopSection('Agent Statistics', rowsStats)}
+        ${''}
+        </div>
+      `;
+      const closeBtn = card.querySelector('[data-close-desktop-modal]');
+      if (closeBtn) {
+        closeBtn.addEventListener('click', closeDesktopProfileModal);
+      }
+    }
+
+    async function openDesktopProfileModal(profileId) {
+      if (!profileId) return;
+      closeDesktopProfileModal();
+      const overlay = document.createElement('div');
+      overlay.id = DESKTOP_MODAL_ID;
+      overlay.className = 'desktopModalOverlay';
+      overlay.innerHTML = `
+        <div class="desktopModalCard">
+          <div class="desktopModalHeader">
+            <div>
+              <h2 class="desktopModalTitle">Loading profile…</h2>
+              <p class="desktopModalMeta">Fetching details</p>
+            </div>
+            <button class="desktopModalClose" data-close-desktop-modal aria-label="Close desktop profile details">×</button>
+          </div>
+          <div class="loaderInner">
+            <div class="loaderSpinner" aria-hidden="true"></div>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(overlay);
+      setTimeout(() => overlay.classList.add('open'), 10);
+      const profile = await ensureAgentProfile(profileId, { refresh: true });
+      if (profile) {
+        populateDesktopModal(profile, overlay);
+      } else {
+        const card = overlay.querySelector('.desktopModalCard');
+        if (card) {
+          card.innerHTML = `
+            <div class="desktopModalHeader">
+              <div>
+                <h2 class="desktopModalTitle">Profile unavailable</h2>
+                <p class="desktopModalMeta">Unable to load desktop profile.</p>
+              </div>
+              <button class="desktopModalClose" data-close-desktop-modal aria-label="Close desktop profile details">×</button>
+            </div>
+          `;
+          const closeBtn = card.querySelector('[data-close-desktop-modal]');
+          if (closeBtn) closeBtn.addEventListener('click', closeDesktopProfileModal);
+        }
+      }
+    }
+
+    function getTeamLabel(teamId) {
+      const entry = teamNameCache.get(teamId);
+      if (entry?.status === 'error') return 'Unknown team';
+      if (entry?.name) return entry.name;
+      return 'Loading...';
+    }
+
+    function getTeamLabels(user) {
+      const teamIds = Array.isArray(user.teamIds) ? user.teamIds.filter(Boolean) : [];
+      if (!teamIds.length) return [];
+      return teamIds.map(getTeamLabel);
+    }
+
+    function renderTeams(user) {
+      const labels = getTeamLabels(user);
+      if (!labels.length) return '<span class="muted">—</span>';
+      const visibleLabels = labels.slice(0, 3);
+      const extraLabels = labels.slice(3);
+      const extraCount = extraLabels.length;
+      return `
+        <div class="teamList">
+          ${visibleLabels.map(name => `<span class="teamName copyText" data-copy-text="${escapeAttr(name)}">${escapeHtml(name)}</span>`).join('')}
+          ${extraLabels.map(name => `<span class="teamName teamName--extra copyText" data-copy-text="${escapeAttr(name)}">${escapeHtml(name)}</span>`).join('')}
+          ${extraCount > 0 ? `<button class="teamToggle" data-team-toggle="true" data-extra-count="${extraCount}">Show ${extraCount} more</button>` : ''}
+        </div>
+      `;
+    }
+
+    function getDesktopProfileName(user) {
+      if (!user?.agentProfileId) return '';
+      const entry = agentProfileMap.get(user.agentProfileId);
+      return entry?.name || '';
+    }
+
+    function renderDesktopProfile(user) {
+      const name = getDesktopProfileName(user) || '—';
+      const profileId = user?.agentProfileId || '';
+      const nameDisplay = profileId
+        ? `<button class="desktopProfileLink" type="button" data-desktop-profile-id="${escapeAttr(profileId)}">${escapeHtml(name)}</button>`
+        : `<span class="desktopProfileName">${escapeHtml(name)}</span>`;
+      const copyCtrl = profileId
+        ? copyButton(profileId, 'Copy desktop profile ID', 'copyInline--mini')
+        : '';
+      return `<div class="desktopProfileColumn">
+        ${nameDisplay}
+        ${copyCtrl}
+      </div>`;
+    }
+
+    function getSkillProfileForUser(user) {
+      if (!user || !user.skillProfileId) return null;
+      return skillProfileMap.get(user.skillProfileId) || null;
+    }
+
+    function getSkillSummariesForUser(user) {
+      const profile = getSkillProfileForUser(user);
+      if (!profile) return [];
+      const entries = [];
+      (profile.activeSkills || []).forEach(skill => {
+        const definition = skillDefinitionMap.get(skill.skillId);
+        const skillName = definition?.name || 'Skill';
+        const skillType = definition?.skillType || 'SKILL';
+        let displayValue = '';
+        if (skillType === 'BOOLEAN') {
+          displayValue = skill.booleanValue ? 'True' : 'False';
+        } else if (skillType === 'PROFICIENCY') {
+          displayValue = skill.proficiencyValue != null ? String(skill.proficiencyValue) : '';
+        } else if (skillType === 'TEXT') {
+          displayValue = skill.textValue || '';
+        }
+        entries.push(displayValue ? `${skillName} - ${displayValue}` : skillName);
+      });
+      (profile.activeEnumSkills || []).forEach(enumSkill => {
+        const enumValue = enumSkillValueMap.get(enumSkill.enumSkillValueId);
+        if (!enumValue) return;
+        const definition = skillDefinitionMap.get(enumValue.skillId);
+        const skillName = definition?.name || 'Enum Skill';
+        const valueName = enumValue.name;
+        entries.push(valueName ? `${skillName} - ${valueName}` : skillName);
+      });
+      return entries;
+    }
+
+    function renderSkillProfileCell(user) {
+      if (skillMetadataLoading && !skillMetadataLoaded) {
+        return '<span class="muted">Loading…</span>';
+      }
+      const profile = getSkillProfileForUser(user);
+      if (!profile) return '<span class="muted">—</span>';
+      const profileName = profile.name || 'Unnamed profile';
+      const summaries = getSkillSummariesForUser(user);
+      const visible = summaries.slice(0, 3);
+      const extras = summaries.slice(3);
+      const extraCount = extras.length;
+      return `
+        <div class="skillProfileColumn">
+          <span class="skillProfileTitle">${escapeHtml(profileName)}</span>
+          ${summaries.length ? `
+            <div class="skillProfileSkills">
+              ${visible.map(text => renderSkillProfileRow(text)).join('')}
+              ${extras.map(text => renderSkillProfileRow(text, true)).join('')}
+            </div>
+          ` : ''}
+          ${extraCount > 0 ? `<button class="skillToggle" data-skill-toggle="true" data-extra-count="${extraCount}">Show ${extraCount} more</button>` : ''}
+        </div>
+      `;
+    }
+
+    function renderSkillListCell(user) {
+      if (skillMetadataLoading && !skillMetadataLoaded) {
+        return '<span class="muted">Loading…</span>';
+      }
+      const summaries = getSkillSummariesForUser(user);
+      if (!summaries.length) return '<span class="muted">—</span>';
+      const visible = summaries.slice(0, 3);
+      const extras = summaries.slice(3);
+      const extraCount = extras.length;
+      return `
+        <div class="skillSummaryList">
+          ${visible.map(text => `<span class="skillText copyText" data-copy-text="${escapeAttr(text)}">${escapeHtml(text)}</span>`).join('')}
+          ${extras.map(text => `<span class="skillText skillText--extra copyText" data-copy-text="${escapeAttr(text)}">${escapeHtml(text)}</span>`).join('')}
+          ${extraCount > 0 ? `<button class="skillToggle" data-skill-toggle="true" data-extra-count="${extraCount}">Show ${extraCount} more</button>` : ''}
+        </div>
+      `;
+    }
+
+    function getPrimaryPhoneLabel(user) {
+      if (user?.primaryPhoneNumber) return user.primaryPhoneNumber;
+      if (user?.phoneNumber) return user.phoneNumber;
+      if (user?.extension) return `Ext. ${user.extension}`;
+      return '';
+    }
+
+    function getUserRoles(user) {
+      const roles = [];
+      const pushRole = (role) => {
+        if (!role) return;
+        if (typeof role === 'string') {
+          roles.push(role);
+        } else if (role.displayName) {
+          roles.push(role.displayName);
+        } else if (role.name) {
+          roles.push(role.name);
+        }
+      };
+      if (Array.isArray(user?.contactCenterRoles)) {
+        user.contactCenterRoles.forEach(pushRole);
+      }
+      if (Array.isArray(user?.roles)) {
+        user.roles.forEach(pushRole);
+      }
+      if (user?.role) pushRole(user.role);
+      return [...new Set(roles)].filter(Boolean);
+    }
+
+    function formatDetailValue(value) {
+      if (Array.isArray(value)) {
+        const filtered = value.filter(Boolean);
+        return filtered.length ? filtered.join(', ') : '—';
+      }
+      if (value === null || value === undefined || value === '') return '—';
+      if (typeof value === 'boolean') return value ? 'Yes' : 'No';
+      return String(value);
+    }
+
+
+    function buildFilterValues(resetSelections = false) {
+      const values = {
+        firstName: new Set(),
+        lastName: new Set(),
+        email: new Set(),
+        id: new Set(),
+        ciUserId: new Set(),
+        teams: new Set(),
+        desktopProfile: new Set(),
+        skillProfile: new Set(),
+        skillSummary: new Set()
+      };
+
+      lastUsers.forEach(user => {
+        const firstName = user.firstName ? user.firstName.trim() : '';
+        const lastName = user.lastName ? user.lastName.trim() : '';
+        const email = user.email ? user.email.trim() : '';
+        const id = user.id ? user.id.trim() : '';
+        const ciUserId = user.ciUserId ? user.ciUserId.trim() : '';
+        values.firstName.add(firstName || FILTER_BLANK_TOKEN);
+        values.lastName.add(lastName || FILTER_BLANK_TOKEN);
+        values.email.add(email || FILTER_BLANK_TOKEN);
+        values.id.add(id || FILTER_BLANK_TOKEN);
+        values.ciUserId.add(ciUserId || FILTER_BLANK_TOKEN);
+        const teamLabels = getTeamLabels(user);
+        if (!teamLabels.length) {
+          values.teams.add(TEAM_NONE_TOKEN);
+        } else {
+          teamLabels.forEach(label => values.teams.add(label || 'Unknown team'));
+        }
+
+        const desktopName = getDesktopProfileName(user) || FILTER_BLANK_TOKEN;
+        values.desktopProfile.add(desktopName);
+
+        const profile = getSkillProfileForUser(user);
+        const profileName = profile?.name?.trim() || FILTER_BLANK_TOKEN;
+        values.skillProfile.add(profileName);
+
+        const summaries = getSkillSummariesForUser(user);
+        if (!summaries.length) {
+          values.skillSummary.add(FILTER_BLANK_TOKEN);
+        } else {
+          summaries.forEach(text => values.skillSummary.add(text || FILTER_BLANK_TOKEN));
+        }
+      });
+
+      filterValues.firstName = [...values.firstName].sort((a, b) => a.localeCompare(b));
+      filterValues.lastName = [...values.lastName].sort((a, b) => a.localeCompare(b));
+      filterValues.email = [...values.email].sort((a, b) => a.localeCompare(b));
+      filterValues.id = [...values.id].sort((a, b) => a.localeCompare(b));
+      filterValues.ciUserId = [...values.ciUserId].sort((a, b) => a.localeCompare(b));
+      filterValues.teams = [...values.teams].sort((a, b) => a.localeCompare(b));
+      filterValues.desktopProfile = [...values.desktopProfile].sort((a, b) => a.localeCompare(b));
+      filterValues.skillProfile = [...values.skillProfile].sort((a, b) => a.localeCompare(b));
+      filterValues.skillSummary = [...values.skillSummary].sort((a, b) => a.localeCompare(b));
+
+      if (filterValues.firstName.includes(FILTER_BLANK_TOKEN)) {
+        filterValues.firstName = [FILTER_BLANK_TOKEN, ...filterValues.firstName.filter(v => v !== FILTER_BLANK_TOKEN)];
+      }
+      if (filterValues.lastName.includes(FILTER_BLANK_TOKEN)) {
+        filterValues.lastName = [FILTER_BLANK_TOKEN, ...filterValues.lastName.filter(v => v !== FILTER_BLANK_TOKEN)];
+      }
+      if (filterValues.email.includes(FILTER_BLANK_TOKEN)) {
+        filterValues.email = [FILTER_BLANK_TOKEN, ...filterValues.email.filter(v => v !== FILTER_BLANK_TOKEN)];
+      }
+      if (filterValues.id.includes(FILTER_BLANK_TOKEN)) {
+        filterValues.id = [FILTER_BLANK_TOKEN, ...filterValues.id.filter(v => v !== FILTER_BLANK_TOKEN)];
+      }
+      if (filterValues.ciUserId.includes(FILTER_BLANK_TOKEN)) {
+        filterValues.ciUserId = [FILTER_BLANK_TOKEN, ...filterValues.ciUserId.filter(v => v !== FILTER_BLANK_TOKEN)];
+      }
+      if (filterValues.teams.includes(TEAM_NONE_TOKEN)) {
+        filterValues.teams = [TEAM_NONE_TOKEN, ...filterValues.teams.filter(v => v !== TEAM_NONE_TOKEN)];
+      }
+      if (filterValues.desktopProfile.includes(FILTER_BLANK_TOKEN)) {
+        filterValues.desktopProfile = [FILTER_BLANK_TOKEN, ...filterValues.desktopProfile.filter(v => v !== FILTER_BLANK_TOKEN)];
+      }
+      if (filterValues.skillProfile.includes(FILTER_BLANK_TOKEN)) {
+        filterValues.skillProfile = [FILTER_BLANK_TOKEN, ...filterValues.skillProfile.filter(v => v !== FILTER_BLANK_TOKEN)];
+      }
+      if (filterValues.skillSummary.includes(FILTER_BLANK_TOKEN)) {
+        filterValues.skillSummary = [FILTER_BLANK_TOKEN, ...filterValues.skillSummary.filter(v => v !== FILTER_BLANK_TOKEN)];
+      }
+
+      Object.keys(filterValues).forEach(key => {
+        const current = filterSelections[key];
+        if (resetSelections || !current || current.size === 0) {
+          filterSelections[key] = new Set(filterValues[key]);
+          return;
+        }
+        filterSelections[key] = new Set([...current].filter(val => filterValues[key].includes(val)));
+      });
+    }
+
+    function formatFilterLabel(key, value) {
+      if (value === FILTER_BLANK_TOKEN) return '(Blank)';
+      if (key === 'teams' && value === TEAM_NONE_TOKEN) return '(No teams)';
+      return value;
+    }
+
+    function renderFilterButton(key) {
+      const label = filterLabels[key] || key;
+      return `
+        <button class="filterIconBtn" data-filter-btn="${key}" title="Filter ${escapeAttr(label)}" aria-label="Filter ${escapeAttr(label)}">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M3 5h18l-7 8v5l-4 2v-7L3 5z"></path>
+          </svg>
+        </button>
+        <div class="filterPopover" data-filter-popover="${key}">
+          <input class="filterSearch" data-filter-search="${key}" type="text" placeholder="Search..." value="${escapeAttr(filterSearchTerms[key] || '')}" />
+          <div class="filterList" data-filter-list="${key}"></div>
+          <div class="filterMeta" data-filter-summary="${key}"></div>
+        </div>
+      `;
+    }
+
+    function renderFilterPopover(key) {
+      const listEl = userListEl.querySelector(`[data-filter-list="${key}"]`);
+      const summaryEl = userListEl.querySelector(`[data-filter-summary="${key}"]`);
+      if (!listEl || !summaryEl) return;
+      const term = (filterSearchTerms[key] || '').toLowerCase();
+      const values = filterValues[key] || [];
+      const filteredValues = values.filter(val => {
+        const label = formatFilterLabel(key, val);
+        return label.toLowerCase().includes(term);
+      });
+      const selected = filterSelections[key];
+      const allSelected = selected && selected.size === values.length;
+      const rows = [
+        `
+          <label class="filterItem">
+            <input type="checkbox" data-filter-key="${key}" data-filter-value="__All__" ${allSelected ? 'checked' : ''} />
+            <span>Select All</span>
+          </label>
+        `,
+        ...filteredValues.map(val => {
+          const label = formatFilterLabel(key, val);
+          const checked = selected.has(val);
+          return `
+            <label class="filterItem">
+              <input type="checkbox" data-filter-key="${key}" data-filter-value="${escapeAttr(val)}" ${checked ? 'checked' : ''} />
+              <span>${escapeHtml(label)}</span>
+            </label>
+          `;
+        })
+      ];
+      listEl.innerHTML = rows.join('');
+      summaryEl.textContent = allSelected
+        ? `All ${values.length} values selected`
+        : `${selected.size} of ${values.length} values selected`;
+    }
+
+    function setFilterValue(key, value, checked) {
+      if (value === '__All__') {
+        filterSelections[key] = checked ? new Set(filterValues[key]) : new Set();
+        renderFilterPopover(key);
+        currentPage = 1;
+        renderUsers(applySort(applyFilters(lastUsers)));
+        return;
+      }
+      if (!filterSelections[key]) filterSelections[key] = new Set();
+      if (checked) {
+        filterSelections[key].add(value);
+      } else {
+        filterSelections[key].delete(value);
+      }
+      renderFilterPopover(key);
+      currentPage = 1;
+      renderUsers(applySort(applyFilters(lastUsers)));
+    }
+
+    function applyFilters(data) {
+      return (data || []).filter(user => {
+        const firstName = user.firstName ? user.firstName.trim() : '';
+        const lastName = user.lastName ? user.lastName.trim() : '';
+        const email = user.email ? user.email.trim() : '';
+        const id = user.id ? user.id.trim() : '';
+        const ciUserId = user.ciUserId ? user.ciUserId.trim() : '';
+
+        const firstKey = firstName || FILTER_BLANK_TOKEN;
+        const lastKey = lastName || FILTER_BLANK_TOKEN;
+        const emailKey = email || FILTER_BLANK_TOKEN;
+        const idKey = id || FILTER_BLANK_TOKEN;
+        const ciKey = ciUserId || FILTER_BLANK_TOKEN;
+        const teamIds = Array.isArray(user.teamIds) ? user.teamIds.filter(Boolean) : [];
+
+        if (!showInactive && !user.contactCenterEnabled) return false;
+        if (filterSelections.firstName.size && !filterSelections.firstName.has(firstKey)) return false;
+        if (filterSelections.lastName.size && !filterSelections.lastName.has(lastKey)) return false;
+        if (filterSelections.email.size && !filterSelections.email.has(emailKey)) return false;
+        if (filterSelections.id.size && !filterSelections.id.has(idKey)) return false;
+        if (filterSelections.ciUserId.size && !filterSelections.ciUserId.has(ciKey)) return false;
+
+        let teamKeys = getTeamLabels(user);
+        if (!teamKeys.length) {
+          teamKeys = [TEAM_NONE_TOKEN];
+        }
+        if (filterSelections.teams.size) {
+          const hasMatch = teamKeys.some(team => filterSelections.teams.has(team));
+          if (!hasMatch) return false;
+        }
+
+        const profile = getSkillProfileForUser(user);
+        const profileName = profile?.name?.trim() || FILTER_BLANK_TOKEN;
+        const desktopProfileName = getDesktopProfileName(user) || FILTER_BLANK_TOKEN;
+        if (filterSelections.skillProfile.size && !filterSelections.skillProfile.has(profileName)) return false;
+        if (filterSelections.desktopProfile.size && !filterSelections.desktopProfile.has(desktopProfileName)) return false;
+
+        const skillSummaries = getSkillSummariesForUser(user);
+        if (filterSelections.skillSummary.size) {
+          const matches = skillSummaries.some(text => filterSelections.skillSummary.has(text || FILTER_BLANK_TOKEN));
+          const blankMatch = !skillSummaries.length && filterSelections.skillSummary.has(FILTER_BLANK_TOKEN);
+          if (!matches && !blankMatch) return false;
+        }
+
+        if (globalSearchTerm) {
+          const teamSearch = teamKeys.join(' ');
+          const profileNameForSearch = profile?.name || '';
+          const desktopSearch = desktopProfileName || '';
+          const skillSearch = getSkillSummariesForUser(user).join(' ');
+          const blob = `${firstName} ${lastName} ${email} ${id} ${ciUserId} ${teamSearch} ${teamIds.join(' ')} ${profileNameForSearch} ${desktopSearch} ${skillSearch}`.toLowerCase();
+          if (!blob.includes(globalSearchTerm)) return false;
+        }
+        return true;
+      });
+    }
+
+    function getSortValue(user, key) {
+      if (!key) return '';
+      if (key === 'teams') {
+        const teamIds = Array.isArray(user.teamIds) ? user.teamIds.filter(Boolean) : [];
+        const teamNames = teamIds.map(teamId => {
+          const entry = teamNameCache.get(teamId);
+          if (entry?.status === 'error') return 'Unknown team';
+          return entry?.name || '';
+        }).filter(Boolean);
+        return teamNames.join(' | ').toLowerCase();
+      }
+      const value = user?.[key];
+      return (value ?? '').toString().toLowerCase();
+    }
+
+    function applySort(data) {
+      if (!sortKey) return data;
+      const dir = sortDir === 'desc' ? -1 : 1;
+      return [...data].sort((a, b) => {
+        const av = getSortValue(a, sortKey);
+        const bv = getSortValue(b, sortKey);
+        if (av < bv) return -1 * dir;
+        if (av > bv) return 1 * dir;
+        return 0;
+      });
+    }
+
+    function renderUsers(users) {
+      if (!userListEl) return;
+      const displayUsers = showInactive ? users : users.filter(user => Boolean(user?.contactCenterEnabled));
+      if (userCountPill) {
+        const note = showInactive ? ' (incl. inactive)' : '';
+        userCountPill.textContent = `${displayUsers.length} users${note}`;
+      }
+      if (exportAllBtn) {
+        exportAllBtn.disabled = !lastUsers.length;
+      }
+
+      const activeCols = columns.filter(col => visibleColumns.has(col.id));
+      const colsToRender = activeCols.length ? activeCols : columns;
+      const template = colsToRender.map(c => `minmax(0, ${c.width || '1fr'})`).join(' ');
+      const totalItems = displayUsers.length;
+      const isAll = currentPageSize === 'all';
+      const totalPages = isAll ? 1 : Math.max(1, Math.ceil(totalItems / currentPageSize));
+      if (currentPage > totalPages) currentPage = totalPages;
+      if (currentPage < 1) currentPage = 1;
+      const start = isAll ? 0 : (currentPage - 1) * currentPageSize;
+      const end = isAll ? totalItems : start + currentPageSize;
+      const pageItems = displayUsers.slice(start, end);
+      if (userPageInfo) userPageInfo.textContent = `${totalPages ? currentPage : 1}/${totalPages || 1}`;
+      if (userPrevPageBtn) userPrevPageBtn.disabled = currentPage <= 1 || totalPages <= 1;
+      if (userNextPageBtn) userNextPageBtn.disabled = currentPage >= totalPages || totalPages <= 1;
+      const header = `
+        <div class="queueHeader" style="grid-template-columns:${template};">
+          ${colsToRender.map(col => {
+            const filterKeys = getColumnFilterKeys(col);
+            const filtersMarkup = filterKeys.map(key => renderFilterButton(key)).join('');
+            return `
+              <div class="headerCell">
+                <div class="headerTop">
+                  ${filtersMarkup}
+                  <button class="sortBtn" data-sort="${col.id}">${col.label}<span>${sortKey === col.id ? (sortDir === 'asc' ? '▲' : '▼') : ''}</span></button>
+                </div>
+              </div>
+            `;
+          }).join('')}
+        </div>`;
+
+      const rows = (pageItems || []).map(user => {
+        const inactiveClass = user?.contactCenterEnabled ? '' : ' queueRow--inactive';
+        return `
+          <div class="queueRow${inactiveClass}" style="grid-template-columns:${template};">
+          ${colsToRender.map(col => `<div class="queueCell" data-label="${col.label}">${col.render(user)}</div>`).join('')}
+          </div>
+        `;
+      }).join('');
+
+      const emptyState = totalItems
+        ? ''
+        : '<div class="queueEmpty">No users found.</div>';
+
+      userListEl.innerHTML = `<div class="queueTable">${header}${rows}${emptyState}</div>`;
+      bindCopyValueButtons();
+      bindCopyText();
+      userListEl.querySelectorAll('.filterPopover.open').forEach(el => el.classList.remove('open'));
+      activeFilterKey = '';
+    }
+
+    function bindCopyValueButtons() {
+      document.querySelectorAll('[data-copy-value]').forEach(btn => {
+        if (btn._copyBound) return;
+        btn._copyBound = true;
+        btn.addEventListener('click', async () => {
+          const val = btn.getAttribute('data-copy-value') || '';
+          if (!val) return;
+          const original = btn.innerHTML;
+          try {
+            await navigator.clipboard.writeText(val);
+            btn.innerHTML = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"></path></svg>';
+            setTimeout(() => btn.innerHTML = original, 900);
+          } catch (err) {
+            console.error('Copy failed', err);
+          }
+        });
+      });
+    }
+
+    function bindCopyText() {
+      document.querySelectorAll('[data-copy-text]').forEach(el => {
+        if (el._copyTextBound) return;
+        el._copyTextBound = true;
+        el.addEventListener('click', async () => {
+          const val = el.getAttribute('data-copy-text') || '';
+          if (!val) return;
+          const originalTitle = el._copyOriginalTitle ?? el.title;
+          el._copyOriginalTitle = originalTitle;
+          try {
+            await navigator.clipboard.writeText(val);
+            el.classList.add('copied');
+            el.title = 'Copied';
+            const existingBadge = el.nextElementSibling?.classList?.contains('copyBadge') ? el.nextElementSibling : null;
+            if (existingBadge) existingBadge.remove();
+            const badge = document.createElement('span');
+            badge.className = 'copyBadge';
+            badge.textContent = 'Copied!';
+            el.insertAdjacentElement('afterend', badge);
+            setTimeout(() => {
+              el.classList.remove('copied');
+              el.title = originalTitle || '';
+              badge.remove();
+            }, 900);
+          } catch (err) {
+            console.error('Copy failed', err);
+          }
+        });
+      });
+    }
+
+    loadColumnPrefs();
+
+    async function fetchUsers() {
+      const bearer = (localStorage.getItem(cacheKeyBearer) || '').trim();
+      const orgId = getOrgIdValue();
+      if (!bearer || !orgId) {
+        userListEl.innerHTML = '';
+        return;
+      }
+
+      updateLoaderState('users', true);
+      const opts = { method: 'GET', headers: { Authorization: `Bearer ${bearer}` } };
+      userListEl.innerHTML = '';
+
+      try {
+        const pageSize = 100;
+        let page = 0;
+        let totalPages = 1;
+        const collected = [];
+        let lastResponseOk = true;
+        let totalRecords = null;
+        let hasMore = true;
+
+        do {
+          const url = USERS_ENDPOINT(orgId, page, pageSize);
+          const res = await fetch(url, opts);
+          if (!res.ok) {
+            throw new Error(`User request failed with ${res.status} ${res.statusText}`);
+          }
+          lastResponseOk = res.ok;
+          const parsed = await res.json();
+          const chunk = parsed?.data || [];
+          if (Array.isArray(chunk)) collected.push(...chunk);
+          const meta = parsed?.meta || {};
+          totalRecords = typeof meta.totalRecords === 'number' ? meta.totalRecords : totalRecords;
+          totalPages = typeof meta.totalPages === 'number'
+            ? meta.totalPages
+            : (totalRecords != null ? Math.max(1, Math.ceil(totalRecords / pageSize)) : totalPages);
+          page += 1;
+          if (totalRecords != null) {
+            hasMore = collected.length < totalRecords;
+          } else {
+            hasMore = Array.isArray(chunk) && chunk.length === pageSize;
+          }
+        } while (page < totalPages || hasMore);
+
+      lastUsers = collected;
+      buildFilterValues();
+      renderUsers(applySort(applyFilters(lastUsers)));
+      await preloadTeamNames(lastUsers);
+      buildFilterValues(true);
+      renderUsers(applySort(applyFilters(lastUsers)));
+      loadSkillMetadata();
+
+      } catch (err) {
+        console.error && console.error('Failed to load users', err);
+        const errMsg = err?.message || 'Network error loading users.';
+        userListEl.innerHTML = `<div style="grid-column:1/-1; color:#ef4444; padding:10px 0;">${escapeHtml(errMsg)}</div>`;
+      } finally {
+        updateLoaderState('users', false);
+      }
+    }
+
+    async function fetchTeamName(teamId) {
+      const bearer = (localStorage.getItem(cacheKeyBearer) || '').trim();
+      const orgId = getOrgIdValue();
+      if (!bearer || !orgId || !teamId) return;
+      const url = TEAM_ENDPOINT(orgId, teamId);
+      try {
+        const res = await fetch(url, { headers: { Authorization: `Bearer ${bearer}` } });
+        const parsed = await res.json();
+        const name = parsed?.data?.[0]?.name || '';
+        if (name) {
+          teamNameCache.set(teamId, { status:'ok', name });
+        } else {
+          teamNameCache.set(teamId, { status:'error', name: '' });
+        }
+      } catch (err) {
+        teamNameCache.set(teamId, { status:'error', name: '' });
+      }
+    }
+
+    async function ensureTeamNames(teamIds) {
+      const uniqueIds = Array.from(new Set((teamIds || []).filter(Boolean)));
+      if (!uniqueIds.length) return;
+      const missing = uniqueIds.filter(id => {
+        const entry = teamNameCache.get(id);
+        return !entry || entry?.status === 'loading';
+      });
+      if (!missing.length) return;
+      missing.forEach(id => teamNameCache.set(id, { status:'loading', name:'' }));
+      for (const teamId of missing) {
+        await fetchTeamName(teamId);
+      }
+    }
+
+    async function preloadTeamNames(users) {
+      const teamIds = Array.from(new Set((users || []).flatMap(user => Array.isArray(user.teamIds) ? user.teamIds : []).filter(Boolean)));
+      const missing = teamIds.filter(id => !teamNameCache.has(id));
+      if (!missing.length) return;
+      updateLoaderState('teams', true);
+
+      missing.forEach(id => teamNameCache.set(id, { status:'loading', name:'' }));
+      renderUsers(applySort(applyFilters(lastUsers)));
+
+      let completed = 0;
+      for (const teamId of missing) {
+        await fetchTeamName(teamId);
+        completed += 1;
+      }
+      updateLoaderState('teams', false);
+    }
+
+    async function loadSkillDefinitions(orgId, bearer) {
+      skillDefinitionMap.clear();
+      enumSkillValueMap.clear();
+      let page = 0;
+      let totalPages = 1;
+      if (!orgId || !bearer) return;
+      do {
+        const url = SKILL_ENDPOINT(orgId, page, SKILL_PAGE_SIZE);
+        try {
+          const res = await fetch(url, { headers: { Authorization: `Bearer ${bearer}` } });
+          if (!res.ok) break;
+          const parsed = await res.json();
+          const chunk = parsed?.data || [];
+          chunk.forEach(skill => {
+            if (!skill?.id) return;
+            skillDefinitionMap.set(skill.id, skill);
+            if (Array.isArray(skill.enumSkillValues)) {
+              skill.enumSkillValues.forEach(value => {
+                if (value?.id) {
+                  enumSkillValueMap.set(value.id, { ...value });
+                }
+              });
+            }
+          });
+          const meta = parsed?.meta || {};
+          totalPages = typeof meta.totalPages === 'number' ? meta.totalPages : totalPages;
+          page += 1;
+        } catch (err) {
+          break;
+        }
+      } while (page < totalPages);
+    }
+
+    async function loadAuxiliaryCodes(orgId, bearer) {
+      auxiliaryCodeMap.clear();
+      let page = 0;
+      let totalPages = 1;
+      if (!orgId || !bearer) return;
+      do {
+        const url = AUXILIARY_CODES_ENDPOINT(orgId, page, AUXILIARY_CODE_PAGE_SIZE);
+        try {
+          const res = await fetch(url, { headers: { Authorization: `Bearer ${bearer}` } });
+          if (!res.ok) break;
+          const parsed = await res.json();
+          const chunk = parsed?.data || [];
+          chunk.forEach(code => {
+            if (code?.id) {
+              auxiliaryCodeMap.set(code.id, code);
+            }
+          });
+          const meta = parsed?.meta || {};
+          totalPages = typeof meta.totalPages === 'number' ? meta.totalPages : totalPages;
+          page += 1;
+        } catch (err) {
+          break;
+        }
+      } while (page < totalPages);
+    }
+
+    async function loadEntryPoints(orgId, bearer) {
+      entryPointMap.clear();
+      let page = 0;
+      let totalPages = 1;
+      if (!orgId || !bearer) return;
+      do {
+        const url = ENTRY_POINT_ENDPOINT(orgId, page, ENTRY_POINT_PAGE_SIZE);
+        try {
+          const res = await fetch(url, { headers: { Authorization: `Bearer ${bearer}` } });
+          if (!res.ok) break;
+          const parsed = await res.json();
+          const chunk = parsed?.data || [];
+          chunk.forEach(entry => {
+            if (entry?.id) entryPointMap.set(entry.id, entry);
+          });
+          const meta = parsed?.meta || {};
+          totalPages = typeof meta.totalPages === 'number' ? meta.totalPages : totalPages;
+          page += 1;
+        } catch (err) {
+          break;
+        }
+      } while (page < totalPages);
+    }
+
+    async function loadAddressBooks(orgId, bearer) {
+      addressBookMap.clear();
+      let page = 0;
+      let totalPages = 1;
+      if (!orgId || !bearer) return;
+      do {
+        const url = ADDRESS_BOOK_ENDPOINT(orgId, page, ADDRESS_BOOK_PAGE_SIZE);
+        try {
+          const res = await fetch(url, { headers: { Authorization: `Bearer ${bearer}` } });
+          if (!res.ok) break;
+          const parsed = await res.json();
+          const chunk = parsed?.data || [];
+          chunk.forEach(book => {
+            if (book?.id) addressBookMap.set(book.id, book);
+          });
+          const meta = parsed?.meta || {};
+          totalPages = typeof meta.totalPages === 'number' ? meta.totalPages : totalPages;
+          page += 1;
+        } catch (err) {
+          break;
+        }
+      } while (page < totalPages);
+    }
+
+    async function loadDialPlans(orgId, bearer) {
+      dialPlanMap.clear();
+      let page = 0;
+      let totalPages = 1;
+      if (!orgId || !bearer) return;
+      do {
+        const url = DIAL_PLAN_ENDPOINT(orgId, page, DIAL_PLAN_PAGE_SIZE);
+        try {
+          const res = await fetch(url, { headers: { Authorization: `Bearer ${bearer}` } });
+          if (!res.ok) break;
+          const parsed = await res.json();
+          const chunk = parsed?.data || [];
+          chunk.forEach(plan => {
+            if (plan?.id) dialPlanMap.set(plan.id, plan);
+          });
+          const meta = parsed?.meta || {};
+          totalPages = typeof meta.totalPages === 'number' ? meta.totalPages : totalPages;
+          page += 1;
+        } catch (err) {
+          break;
+        }
+      } while (page < totalPages);
+    }
+
+    async function loadContactServiceQueues(orgId, bearer) {
+      contactServiceQueueMap.clear();
+      let page = 0;
+      let totalPages = 1;
+      if (!orgId || !bearer) return;
+      do {
+        const url = CONTACT_SERVICE_QUEUE_ENDPOINT(orgId, page, CONTACT_SERVICE_QUEUE_PAGE_SIZE);
+        try {
+          const res = await fetch(url, { headers: { Authorization: `Bearer ${bearer}` } });
+          if (!res.ok) break;
+          const parsed = await res.json();
+          const chunk = parsed?.data || [];
+          chunk.forEach(queue => {
+            if (queue?.id) contactServiceQueueMap.set(queue.id, queue);
+          });
+          const meta = parsed?.meta || {};
+          totalPages = typeof meta.totalPages === 'number' ? meta.totalPages : totalPages;
+          page += 1;
+        } catch (err) {
+          break;
+        }
+      } while (page < totalPages);
+    }
+
+    async function loadSkillProfiles(orgId, bearer) {
+      skillProfileMap.clear();
+      let page = 0;
+      let totalPages = 1;
+      if (!orgId || !bearer) return;
+      do {
+        const url = SKILL_PROFILE_ENDPOINT(orgId, page, SKILL_PROFILE_PAGE_SIZE);
+        try {
+          const res = await fetch(url, { headers: { Authorization: `Bearer ${bearer}` } });
+          if (!res.ok) break;
+          const parsed = await res.json();
+          const chunk = parsed?.data || [];
+          chunk.forEach(profile => {
+            if (profile?.id) {
+              skillProfileMap.set(profile.id, profile);
+            }
+          });
+          const meta = parsed?.meta || {};
+          totalPages = typeof meta.totalPages === 'number' ? meta.totalPages : totalPages;
+          page += 1;
+        } catch (err) {
+          break;
+        }
+      } while (page < totalPages);
+    }
+
+    async function loadAgentProfiles(orgId, bearer) {
+      agentProfileMap.clear();
+      let page = 0;
+      let totalPages = 1;
+      if (!orgId || !bearer) return;
+      do {
+        const url = AGENT_PROFILE_ENDPOINT(orgId, page, AGENT_PROFILE_PAGE_SIZE);
+        try {
+          const res = await fetch(url, { headers: { Authorization: `Bearer ${bearer}` } });
+          if (!res.ok) break;
+          const parsed = await res.json();
+          const chunk = parsed?.data || [];
+          chunk.forEach(profile => {
+            if (profile?.id) {
+              agentProfileMap.set(profile.id, profile);
+            }
+          });
+          const meta = parsed?.meta || {};
+          totalPages = typeof meta.totalPages === 'number' ? meta.totalPages : totalPages;
+          page += 1;
+        } catch (err) {
+          break;
+        }
+      } while (page < totalPages);
+    }
+
+    function loadSkillMetadata() {
+      if (skillMetadataLoaded) return;
+      if (skillMetadataPromise) return skillMetadataPromise;
+      const bearer = (localStorage.getItem(cacheKeyBearer) || '').trim();
+      const orgId = getOrgIdValue();
+      if (!bearer || !orgId) return;
+      skillMetadataLoading = true;
+      skillMetadataPromise = (async () => {
+        try {
+          updateLoaderState('skills', true);
+          await loadSkillDefinitions(orgId, bearer);
+          await loadSkillProfiles(orgId, bearer);
+          updateLoaderState('skills', false);
+
+          updateLoaderState('aux', true);
+          await loadAuxiliaryCodes(orgId, bearer);
+          updateLoaderState('aux', false);
+
+          updateLoaderState('entry', true);
+          await loadEntryPoints(orgId, bearer);
+          updateLoaderState('entry', false);
+
+          updateLoaderState('address', true);
+          await loadAddressBooks(orgId, bearer);
+          updateLoaderState('address', false);
+
+          updateLoaderState('dial', true);
+          await loadDialPlans(orgId, bearer);
+          updateLoaderState('dial', false);
+
+          updateLoaderState('queues', true);
+          await loadContactServiceQueues(orgId, bearer);
+          updateLoaderState('queues', false);
+
+          updateLoaderState('agents', true);
+          await loadAgentProfiles(orgId, bearer);
+          updateLoaderState('agents', false);
+
+          skillMetadataLoaded = true;
+          buildFilterValues(true);
+        } finally {
+          skillMetadataLoading = false;
+          renderUsers(applySort(applyFilters(lastUsers)));
+        }
+      })();
+      return skillMetadataPromise;
+    }
+
+    function exportUsersCSV() {
+      const rows = applyFilters(lastUsers);
+      if (!rows.length) return;
+      const headers = ['First Name', 'Last Name', 'Email', 'Contact Center User ID', 'Cisco User ID', 'Contact Center Enabled', 'Team Names'];
+      const csv = [
+        headers.join(','),
+        ...rows.map(u => {
+          const teamNames = getTeamLabels(u).filter(name => name && name !== 'Loading...');
+          return [
+            u.firstName || '',
+            u.lastName || '',
+            u.email || '',
+            u.id || '',
+            u.ciUserId || '',
+            u.contactCenterEnabled ? 'Active' : 'Not Active',
+            teamNames.join(' | ')
+          ].map(val => `"${String(val).replace(/"/g,'""')}"`).join(',');
+        })
+      ].join('\n');
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `wxcc-contact-center-users-${new Date().toISOString().slice(0,10)}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    if (exportAllBtn) {
+      exportAllBtn.addEventListener('click', exportUsersCSV);
+    }
+
+    if (inactiveToggleBtn) {
+      inactiveToggleBtn.addEventListener('click', () => {
+        showInactive = !showInactive;
+        inactiveToggleBtn.classList.toggle('active', showInactive);
+        inactiveToggleBtn.textContent = showInactive ? 'Hide Inactive' : 'Show Inactive';
+        currentPage = 1;
+        renderUsers(applySort(applyFilters(lastUsers)));
+      });
+    }
+
+    userListEl.addEventListener('click', (event) => {
+      if (event.target.closest('.filterPopover')) {
+        event.stopPropagation();
+      }
+
+      const desktopBtn = event.target.closest('[data-desktop-profile-id]');
+      if (desktopBtn) {
+        const profileId = desktopBtn.getAttribute('data-desktop-profile-id');
+        if (profileId) {
+          openDesktopProfileModal(profileId);
+        }
+        return;
+      }
+
+      const sortBtn = event.target.closest('[data-sort]');
+      if (sortBtn) {
+        const key = sortBtn.getAttribute('data-sort') || '';
+        if (key) {
+          if (sortKey === key) {
+            sortDir = sortDir === 'asc' ? 'desc' : 'asc';
+          } else {
+            sortKey = key;
+            sortDir = 'asc';
+          }
+          currentPage = 1;
+          renderUsers(applySort(applyFilters(lastUsers)));
+        }
+        return;
+      }
+
+      const toggleBtn = event.target.closest('[data-team-toggle]');
+      if (toggleBtn) {
+        const list = toggleBtn.closest('.teamList');
+        if (!list) return;
+        const expanded = list.classList.toggle('expanded');
+        const extraCount = Number(toggleBtn.getAttribute('data-extra-count') || '0');
+        toggleBtn.textContent = expanded ? 'Show less' : `Show ${extraCount} more`;
+        return;
+      }
+
+      const skillToggleBtn = event.target.closest('[data-skill-toggle]');
+      if (skillToggleBtn) {
+        const skillsList = skillToggleBtn.closest('.skillProfileColumn')?.querySelector('.skillProfileSkills');
+        if (!skillsList) return;
+        const expanded = skillsList.classList.toggle('expanded');
+        const extraCount = Number(skillToggleBtn.getAttribute('data-extra-count') || '0');
+        skillToggleBtn.textContent = expanded ? 'Show less' : `Show ${extraCount} more`;
+        return;
+      }
+
+      const btn = event.target.closest('[data-filter-btn]');
+      if (btn) {
+        const key = btn.dataset.filterBtn;
+        if (key) {
+          const popover = userListEl.querySelector(`[data-filter-popover="${key}"]`);
+          if (popover) {
+            const isOpen = popover.classList.contains('open');
+            userListEl.querySelectorAll('.filterPopover.open').forEach(el => el.classList.remove('open'));
+            if (!isOpen) {
+              popover.classList.add('open');
+              activeFilterKey = key;
+              const rect = btn.getBoundingClientRect();
+              const popoverWidth = popover.offsetWidth || 260;
+              const left = Math.max(12, Math.min(rect.left, window.innerWidth - popoverWidth - 12));
+              const top = rect.bottom + 8;
+              popover.style.left = `${left}px`;
+              popover.style.top = `${top}px`;
+              renderFilterPopover(key);
+              const searchEl = popover.querySelector('.filterSearch');
+              if (searchEl) searchEl.focus();
+            } else {
+              activeFilterKey = '';
+            }
+          }
+        }
+        return;
+      }
+
+    });
+
+    if (columnToggleBtn) {
+      columnToggleBtn.addEventListener('click', (event) => {
+        event.stopPropagation();
+        const isOpen = columnPopover.classList.contains('open');
+        if (!isOpen) {
+          renderColumnToggleList();
+          columnPopover.classList.add('open');
+          columnPopoverOpen = true;
+          const rect = columnToggleBtn.getBoundingClientRect();
+          const popoverWidth = columnPopover.offsetWidth || 220;
+          const left = Math.max(12, Math.min(rect.left, window.innerWidth - popoverWidth - 12));
+          const top = rect.bottom + 8;
+          columnPopover.style.left = `${left}px`;
+          columnPopover.style.top = `${top}px`;
+        } else {
+          columnPopover.classList.remove('open');
+          columnPopoverOpen = false;
+        }
+      });
+    }
+
+    columnPopover.addEventListener('change', (event) => {
+      const input = event.target;
+      if (!input?.matches('input[data-column-id]')) return;
+      const id = input.getAttribute('data-column-id');
+      if (!id) return;
+      if (input.checked) {
+        visibleColumns.add(id);
+      } else {
+        visibleColumns.delete(id);
+      }
+      if (!visibleColumns.size) {
+        visibleColumns = new Set(columns.map(col => col.id));
+        renderColumnToggleList();
+      }
+      saveColumnPrefs();
+      currentPage = 1;
+      renderUsers(applySort(applyFilters(lastUsers)));
+    });
+
+    userListEl.addEventListener('input', (event) => {
+      const input = event.target;
+      if (input?.matches('[data-filter-search]')) {
+        event.stopPropagation();
+        const key = input.dataset.filterSearch;
+        filterSearchTerms[key] = input.value || '';
+        renderFilterPopover(key);
+      }
+    });
+
+    userListEl.addEventListener('change', (event) => {
+      const input = event.target;
+      if (input?.matches('input[data-filter-value][data-filter-key]')) {
+        event.stopPropagation();
+        setFilterValue(input.dataset.filterKey, input.dataset.filterValue, input.checked);
+      }
+    });
+
+    document.addEventListener('click', (event) => {
+      if (!activeFilterKey) return;
+      const popover = userListEl.querySelector(`[data-filter-popover="${activeFilterKey}"]`);
+      const button = userListEl.querySelector(`[data-filter-btn="${activeFilterKey}"]`);
+      if (!popover || !button) return;
+      const within = popover.contains(event.target) || button.contains(event.target);
+      if (!within) {
+        popover.classList.remove('open');
+        activeFilterKey = '';
+      }
+    });
+
+    document.addEventListener('click', (event) => {
+      if (!columnPopoverOpen) return;
+      const within = columnPopover.contains(event.target) || columnToggleBtn?.contains(event.target);
+      if (!within) {
+        columnPopover.classList.remove('open');
+        columnPopoverOpen = false;
+      }
+    });
+
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape') {
+        userListEl.querySelectorAll('.filterPopover.open').forEach(el => el.classList.remove('open'));
+        activeFilterKey = '';
+        if (columnPopoverOpen) {
+          columnPopover.classList.remove('open');
+          columnPopoverOpen = false;
+        }
+      }
+    });
+
+    if (userPageSizeEl) {
+      userPageSizeEl.addEventListener('change', (event) => {
+        const value = event.target.value;
+        currentPageSize = value === 'all' ? 'all' : Number(value) || 50;
+        currentPage = 1;
+        renderUsers(applySort(applyFilters(lastUsers)));
+      });
+    }
+
+    if (userPrevPageBtn) {
+      userPrevPageBtn.addEventListener('click', () => {
+        if (currentPage > 1) {
+          currentPage -= 1;
+          renderUsers(applySort(applyFilters(lastUsers)));
+        }
+      });
+    }
+
+    if (userNextPageBtn) {
+      userNextPageBtn.addEventListener('click', () => {
+        currentPage += 1;
+        renderUsers(applySort(applyFilters(lastUsers)));
+      });
+    }
+
+    if (searchInput) {
+      searchInput.addEventListener('input', (e) => {
+        globalSearchTerm = (e.target.value || '').toLowerCase().trim();
+        currentPage = 1;
+        renderUsers(applySort(applyFilters(lastUsers)));
+      });
+    }
+
+    function updateAuthIndicators() {
+      const b = localStorage.getItem(cacheKeyBearer) || '';
+      const org = localStorage.getItem(cacheKeyOrgName) || localStorage.getItem(cacheKeyOrg) || '';
+      const user = localStorage.getItem(cacheKeyUser) || '';
+      const userNameEl = document.getElementById('userName');
+      const userOrgEl = document.getElementById('userOrg');
+      if (userNameEl) userNameEl.textContent = b ? (user || 'Authenticated') : 'Not authenticated';
+      if (userOrgEl) userOrgEl.textContent = org || '';
+    }
+    updateAuthIndicators();
+
+    const signOutBtn = document.getElementById('signOutBtn');
+    if (signOutBtn) {
+      signOutBtn.addEventListener('click', () => {
+        localStorage.removeItem(cacheKeyBearer);
+        localStorage.removeItem(cacheKeyOrg);
+        localStorage.removeItem(cacheKeyOrgName);
+        localStorage.removeItem(cacheKeyUser);
+        localStorage.removeItem('authRefreshToken');
+        localStorage.removeItem('authExpiresAt');
+        window.location.href = '../../index.html';
+      });
+    }
+
+
+    document.addEventListener('click', (event) => {
+    });
+
+    document.addEventListener('keydown', (event) => {
+    });
+
+    fetchUsers();
+  </script>
+
+
+  </body>
+</html>

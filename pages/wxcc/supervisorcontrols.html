@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="light">
+    <title>WxCC — Supervisor Portal</title>
+    <link rel="stylesheet" href="../../assets/css/theme.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" href="../../assets/images/WxCC_Icon-192.png">
+    <style>
+        main {
+            padding: 32px 0 80px;
+            width: 100%;
+            margin: 0 auto;
+            display: flex;
+            justify-content: flex-start;
+        }
+
+        .grid {
+            display: grid;
+            gap: 16px;
+        }
+        .supervisorShell {
+            width: 100%;
+        }
+        global-variable-manager {
+            display: block;
+            min-height: 420px;
+        }
+    </style>
+</head>
+<body class="dark-mode">
+  <script>if (localStorage.getItem("tpRailExpanded") === "true") document.body.classList.add("tp-rail-expanded");</script>
+  <api-tools-header basepath="../../"></api-tools-header>
+
+  <main>
+    <div class="wrap wide contentWrap">
+      <section class="card">
+        <div class="pageHeader">
+          <h1>Supervisor Controls</h1>
+          <p class="lead">View and manage supervisor variables in your org.</p>
+        </div>
+        <div class="grid">
+          <div class="supervisorShell">
+            <global-variable-manager id="gvm" theme="dark"></global-variable-manager>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+    <script src="../../assets/js/orbit-config.js"></script>
+
+    <script src="../../assets/js/components.js"></script>
+
+    <script src="../../assets/js/theme.js"></script>
+<script src="https://cxasteam.bitbucket.io/WxCC_Desktop_Layout_Tools/SupervisorControls.js"></script>
+  <script>
+    const cacheKeyBearer = 'authBearer';
+    const cacheKeyOrg = 'authOrg';
+    const cacheKeyOrgName = 'authOrgName';
+    const cacheKeyUser = 'authUserName';
+
+    const gvmEl = document.getElementById('gvm');
+
+    function getOrgIdValue() {
+      const cached = localStorage.getItem('authOrgId') || '';
+      if (cached) {
+        if (/^Y2lz/i.test(cached)) {
+          try {
+            const padded = cached.replace(/-/g, '+').replace(/_/g, '/').padEnd(Math.ceil(cached.length / 4) * 4, '=');
+            const decoded = atob(padded);
+            const parts = decoded.split('/');
+            const result = parts[parts.length - 1] || decoded;
+            localStorage.setItem('authOrgId', result);
+            return result;
+          } catch {
+            return cached;
+          }
+        }
+        const orgPathIdx = cached.toLowerCase().indexOf('organization/');
+        if (orgPathIdx !== -1) {
+          const candidate = cached.slice(orgPathIdx + 'organization/'.length);
+          if (candidate) {
+            localStorage.setItem('authOrgId', candidate);
+            return candidate;
+          }
+        }
+        return cached;
+      }
+      const raw = localStorage.getItem(cacheKeyOrg) || '';
+      if (!raw) return '';
+
+      if (/^Y2lz/i.test(raw)) {
+        try {
+          const padded = raw.replace(/-/g, '+').replace(/_/g, '/').padEnd(Math.ceil(raw.length / 4) * 4, '=');
+          const decoded = atob(padded);
+          const parts = decoded.split('/');
+          return parts[parts.length - 1] || decoded;
+        } catch {
+          return raw;
+        }
+      }
+
+      const orgPathIdx = raw.toLowerCase().indexOf('organization/');
+      if (orgPathIdx !== -1) {
+        const candidate = raw.slice(orgPathIdx + 'organization/'.length);
+        return candidate || raw;
+      }
+
+      return raw;
+    }
+
+    function getDataCenter() {
+      const params = new URLSearchParams(window.location.search);
+      return params.get('dc') || 'us1';
+    }
+
+    function setupSupervisorControls() {
+      if (!gvmEl) return;
+      const token = (localStorage.getItem(cacheKeyBearer) || '').trim();
+      const orgId = getOrgIdValue();
+      const dataCenter = getDataCenter();
+
+      gvmEl.setAttribute('token', token);
+      gvmEl.setAttribute('org-id', orgId);
+      gvmEl.setAttribute('data-center', dataCenter);
+      gvmEl.setAttribute('theme', 'dark');
+    }
+
+    function updateAuthIndicators() {
+      const b = localStorage.getItem(cacheKeyBearer) || '';
+      const org = localStorage.getItem(cacheKeyOrgName) || localStorage.getItem(cacheKeyOrg) || '';
+      const user = localStorage.getItem(cacheKeyUser) || '';
+      const userNameEl = document.getElementById('userName');
+      const userOrgEl = document.getElementById('userOrg');
+      if (userNameEl) userNameEl.textContent = b ? (user || 'Authenticated') : 'Not authenticated';
+      if (userOrgEl) userOrgEl.textContent = org || '';
+    }
+
+    const signOutBtn = document.getElementById('signOutBtn');
+    if (signOutBtn) {
+      signOutBtn.addEventListener('click', () => {
+        localStorage.removeItem(cacheKeyBearer);
+        localStorage.removeItem(cacheKeyOrg);
+        localStorage.removeItem(cacheKeyOrgName);
+        localStorage.removeItem(cacheKeyUser);
+        localStorage.removeItem('authRefreshToken');
+        localStorage.removeItem('authExpiresAt');
+        window.location.href = '../../index.html';
+      });
+    }
+
+
+    document.addEventListener('click', (event) => {
+    });
+
+    document.addEventListener('keydown', (event) => {
+    });
+
+    window.addEventListener('load', () => {
+      updateAuthIndicators();
+      setupSupervisorControls();
+    });
+    window.addEventListener('storage', (e) => {
+      if (!e.key) return;
+      if ([cacheKeyBearer, cacheKeyOrg, cacheKeyOrgName, cacheKeyUser].includes(e.key)) {
+        updateAuthIndicators();
+        setupSupervisorControls();
+      }
+    });
+  </script>
+
+
+  </body>
+</html>

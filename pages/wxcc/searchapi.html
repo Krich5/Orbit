@@ -1,0 +1,1931 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="light" />
+  <title>WxCC Search API</title>
+  <link rel="stylesheet" href="../../assets/css/theme.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/png" href="../../assets/images/WxCC_Icon-192.png" />
+  <style>
+    .sub { display:none; }
+    .btn.primary { background:linear-gradient(135deg,var(--accentA),var(--accentB)); color:#ffffff; border:none; }
+    .authLink.authed { background:linear-gradient(135deg,var(--accentA),var(--accentB)); color:#ffffff; border:none; }
+    .orgPane { display:none; }
+    .orgTag { font-weight:800; color:var(--fg); font-size:16px; text-align:left; margin-top:8px; }
+    main { padding:32px 0 80px; display:flex; justify-content:flex-start; }
+    .layout { display:flex; flex-direction:column; gap:16px; max-width:100%; }
+    .col { display:flex; flex-direction:column; gap:12px; }
+    @media (max-width:1200px) { .layout { grid-template-columns:1fr; } }
+
+    .section-title { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:12px; font-size:15px; letter-spacing:.02em; color:var(--muted); text-transform:uppercase; }
+    .org-title { margin:4px 0 10px; font-size:18px; font-weight:700; color:var(--text); letter-spacing:.01em; }
+    .epoch-display { display:grid; gap:12px; grid-template-columns:repeat(auto-fit,minmax(320px,1fr)); }
+    .epoch-display--triple { grid-template-columns:repeat(3,1fr); }
+    @media (max-width:900px) { .epoch-display--triple { grid-template-columns:1fr; } }
+    .epoch-display--triple .epoch-row { height:100%; align-items:flex-start; }
+    .epoch-row { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:12px 14px; border-radius:12px; background:var(--card); border:1px solid var(--border); }
+    .epoch-label { font-size:14px; color:var(--muted); }
+    .epoch-value { font-variant-numeric:tabular-nums; font-weight:600; font-size:26px; letter-spacing:0.03em; }
+    .range-bar { margin-top:14px; display:flex; flex-wrap:wrap; gap:12px; align-items:flex-end; justify-content:space-between; }
+    .range-group { display:flex; flex-direction:column; gap:8px; }
+    .fetch-group { display:flex; align-items:flex-end; gap:10px; }
+    .search-row { margin-top:12px; display:flex; align-items:center; gap:10px; flex-wrap:wrap; justify-content:flex-end; }
+    .toggle-note { font-size:12px; color:var(--muted); }
+    .utilityBar { display:flex; align-items:center; justify-content:flex-end; gap:10px; margin:4px 0 2px; }
+
+    .controls { display:grid; gap:10px; }
+    .control-row { display:grid; gap:8px; }
+    .control-label { color:var(--muted); font-size:14px; letter-spacing:0.01em; }
+    .button-row { display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+
+    button.action { background:linear-gradient(135deg,var(--accentA),var(--accentB)); border:none; color:#ffffff; padding:10px 14px; border-radius:12px; cursor:pointer; font-weight:700; letter-spacing:0.01em; transition:opacity .15s ease; }
+    button.action.secondary { background:var(--input); color:var(--text); border:1px solid var(--border); }
+    button.action.small { padding:6px 10px; font-size:13px; }
+    button.action:hover { opacity:.9; }
+    button.action:active { opacity:.8; }
+    button.action:disabled { opacity:.5; cursor:not-allowed; }
+    .range-btn.active { background:linear-gradient(135deg,var(--accentA),var(--accentB)) !important; color:#ffffff !important; border:1px solid rgba(8,172,242,0.6) !important; box-shadow:0 10px 26px rgba(0,0,0,.15),0 0 0 3px rgba(8,172,242,.2); font-weight:700; letter-spacing:.01em; }
+    #customTimeBtn.active { background:linear-gradient(135deg,var(--accentA),var(--accentB)) !important; color:#ffffff !important; border:none !important; box-shadow:0 10px 26px rgba(0,0,0,.15),0 0 0 3px rgba(8,172,242,.2); font-weight:700; }
+
+    input[type="number"], input[type="datetime-local"], input[type="text"], input[type="password"], select {
+      background:var(--input);
+      border:1px solid var(--border);
+      color:var(--text);
+      padding:10px 12px;
+      border-radius:10px;
+      font-size:15px;
+      min-width:140px;
+      appearance:none;
+      -webkit-appearance:none;
+      -moz-appearance:none;
+    }
+    select { cursor:pointer; background-image: linear-gradient(45deg, transparent 50%, var(--muted) 50%), linear-gradient(135deg, var(--muted) 50%, transparent 50%); background-position: calc(100% - 14px) calc(50% - 3px), calc(100% - 8px) calc(50% - 3px); background-size: 6px 6px, 6px 6px; background-repeat:no-repeat; padding-right:28px; }
+    input:focus, textarea:focus, select:focus { outline:2px solid rgba(59,130,246,.25); }
+    textarea { width:100%; min-height:285px; background:var(--input); border:1px solid var(--border); color:var(--text); padding:10px 12px; border-radius:10px; font-size:15px; resize:vertical; font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,'Liberation Mono',monospace; line-height:1.4; }
+    textarea::placeholder { color:var(--muted); opacity:1; }
+
+    .copy-btn { background:rgba(8,172,242,0.12); border:1px solid rgba(8,172,242,0.4); color:var(--fg); border-radius:10px; padding:8px 10px; cursor:pointer; font-weight:600; transition:all .2s ease; }
+    .copy-btn:hover { background:rgba(8,172,242,0.2); }
+
+    .meta { display:flex; flex-wrap:wrap; gap:8px 14px; color:var(--muted); font-size:14px; }
+    .tag { display:inline-flex; align-items:center; background:transparent; border:none; padding:0; border-radius:0; font-size:13px; color:var(--muted); }
+
+    .response { background:var(--input); border:1px solid var(--border); border-radius:10px; padding:12px; color:var(--text); font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,'Liberation Mono',monospace; white-space:pre-wrap; min-height:180px; resize:vertical; overflow:auto; }
+    .json-key { color:#159DD8; cursor:pointer; text-decoration:underline; text-decoration-style:dotted; transition:all .15s ease; }
+    .json-key:hover { background:rgba(34,211,238,0.15); text-decoration-style:solid; }
+    .field-row { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:10px; }
+    .pathList { display:flex; flex-wrap:wrap; gap:8px; margin-top:8px; }
+    .pathBadge { padding:6px 10px; border-radius:10px; background:var(--card); border:1px solid var(--border); font-size:12px; color:var(--fg); cursor:pointer; transition:background-color .15s ease, border-color .15s ease; }
+    .pathBadge:hover { background:var(--input); border-color:rgba(0,0,0,.15); }
+
+    .collapseHead { display:flex; justify-content:space-between; gap:12px; align-items:flex-start; }
+    .collapseBody { border-top:none; margin-top:0; padding-top:0; display:block; }
+
+    .toolbar { display:flex; flex-wrap:wrap; gap:10px; align-items:center; justify-content:space-between; }
+    .toolbar-left { display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+    .toolbar-right { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+    .toolbar-right input { flex:1; min-width:220px; }
+    #presetSelect { min-width:260px; }
+    .icon-btn { background:var(--input); border:1px solid var(--border); color:var(--text); border-radius:10px; padding:8px 14px; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; min-width:80px; transition:all .2s ease; }
+    .icon-btn:hover { background:rgba(255,255,255,.08); }
+    .icon-btn svg { width:16px; height:16px; }
+    .copy-input { position:relative; flex:1; }
+    .copy-input input { width:100%; min-height:42px; height:42px; line-height:42px; padding-right:48px; }
+    .copy-input .copy-fab { position:absolute; right:8px; top:50%; transform:translateY(-50%); }
+    .copy-stack { display:flex; flex-direction:column; align-items:flex-end; gap:6px; margin-top:8px; }
+    .copy-label { font-size:12px; color:var(--muted); }
+    .response-wrap { position:relative; }
+    .response-wrap .response { padding-right:48px; margin:0; }
+    .copy-fab { position:absolute; top:8px; right:8px; padding:0; background:transparent; border:none; border-radius:6px; width:32px; height:32px; min-width:32px; display:flex; align-items:center; justify-content:center; color:var(--muted); }
+    .copy-fab:hover { color:var(--text); background:rgba(255,255,255,0.05); }
+    .divider { border-top:1px solid rgba(255,255,255,.08); margin:12px 0; }
+    .auth-help { margin-top:6px; text-align:right; }
+    .auth-help a { color:var(--text); text-decoration:underline; font-weight:600; }
+
+    /* Preset badge styles */
+    .preset-badge { display:inline-block; padding:2px 6px; border-radius:6px; font-size:11px; font-weight:600; margin-left:6px; }
+    .preset-badge.builtin { background:rgba(34,211,238,0.15); color:var(--accentA); }
+    .preset-badge.custom { background:rgba(16,185,129,0.15); color:var(--success); }
+
+    /* Keyboard shortcut hint */
+    .kbd { display:inline-block; padding:2px 6px; border-radius:4px; background:rgba(255,255,255,.08); border:1px solid var(--border); font-size:11px; font-family:ui-monospace,monospace; color:var(--muted); }
+
+    /* Status indicators */
+    .status-dot { display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:6px; }
+    .status-dot.success { background:var(--success); }
+    .status-dot.error { background:var(--danger); }
+    .status-dot.warning { background:var(--warning); }
+    .status-dot.idle { background:var(--muted); }
+
+    /* History dropdown */
+    .history-dropdown { position:relative; }
+    .history-menu { position:absolute; top:100%; right:0; margin-top:4px; background:var(--card); border:1px solid var(--border); border-radius:12px; padding:8px; min-width:200px; max-height:300px; overflow-y:auto; box-shadow:var(--shadow); z-index:100; display:none; }
+    .history-menu.open { display:block; }
+    .history-item { padding:8px 10px; border-radius:8px; cursor:pointer; font-size:13px; color:var(--text); border:1px solid transparent; margin-bottom:4px; }
+    .history-item:hover { background:rgba(255,255,255,.06); border-color:var(--border); }
+    .history-item-time { font-size:11px; color:var(--muted); margin-top:2px; }
+    .history-empty { padding:8px; text-align:center; color:var(--muted); font-size:13px; }
+
+    /* Query info bar */
+    .query-info { display:flex; align-items:center; gap:12px; font-size:12px; color:var(--muted); margin-top:4px; }
+    .query-info span { display:flex; align-items:center; gap:4px; }
+
+    /* Query parameters */
+    .param-field { display:flex; flex-direction:column; gap:4px; min-width:200px; }
+    .param-field label { font-size:12px; color:var(--muted); font-weight:600; }
+    .param-field input { min-width:200px; }
+    .param-update-btn { align-self:flex-end; }
+
+    /* Custom Time Modal */
+    .time-modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,.55); display:none; align-items:center; justify-content:center; z-index:9999; padding:16px; }
+    .time-modal-overlay.open { display:flex; }
+    .time-modal { width:100%; max-width:500px; background:var(--card); border:1px solid var(--border); border-radius:16px; padding:24px; box-shadow:0 18px 36px rgba(0,0,0,.45); position:relative; }
+    .time-modal h3 { margin:0 0 16px; font-size:1.2rem; }
+    .time-modal-close { position:absolute; right:12px; top:12px; background:transparent; border:none; color:var(--muted); font-size:20px; cursor:pointer; }
+    .time-modal-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:16px; }
+    .time-modal-field { display:flex; flex-direction:column; gap:6px; }
+    .time-modal-field label { font-size:13px; color:var(--muted); font-weight:600; }
+    .time-modal-field input { padding:10px 12px; border-radius:10px; border:1px solid var(--border); background:var(--input); color:var(--text); font-size:14px; }
+    .time-modal-field input:focus { outline:none; border-color:var(--accentA); box-shadow:0 0 0 3px rgba(34,211,238,.15); }
+    .time-modal-actions { display:flex; gap:10px; justify-content:flex-end; margin-top:20px; }
+    
+    /* Dark theme for date/time pickers */
+    input[type="date"], input[type="time"] { color-scheme: light; }
+    input[type="date"]::-webkit-calendar-picker-indicator,
+    input[type="time"]::-webkit-calendar-picker-indicator { filter: invert(1); cursor: pointer; }
+    input[type="date"]::-webkit-datetime-edit,
+    input[type="time"]::-webkit-datetime-edit { color: var(--text); }
+    input[type="date"]::-webkit-datetime-edit-fields-wrapper,
+    input[type="time"]::-webkit-datetime-edit-fields-wrapper { color: var(--text); }
+    input[type="date"]::-webkit-datetime-edit-text,
+    input[type="time"]::-webkit-datetime-edit-text { color: var(--muted); }
+    input[type="date"]::-webkit-datetime-edit-month-field,
+    input[type="date"]::-webkit-datetime-edit-day-field,
+    input[type="date"]::-webkit-datetime-edit-year-field,
+    input[type="time"]::-webkit-datetime-edit-hour-field,
+    input[type="time"]::-webkit-datetime-edit-minute-field,
+    input[type="time"]::-webkit-datetime-edit-second-field,
+    input[type="time"]::-webkit-datetime-edit-millisecond-field,
+    input[type="time"]::-webkit-datetime-edit-meridiem-field { color: var(--text); }
+
+    @media (max-width:1024px) { .wrap { flex-direction:column; } }
+  </style>
+</head>
+<body class="dark-mode">
+  <script>if (localStorage.getItem("tpRailExpanded") === "true") document.body.classList.add("tp-rail-expanded");</script>
+  <api-tools-header basepath="../../"></api-tools-header>
+
+  <main>
+    <div class="wrap wide contentWrap">
+      <div class="layout">
+        <section class="card" style="grid-column: 1 / -1;">
+          <div class="pageHeader">
+            <h1>Search API</h1>
+            <p class="lead">Run contact searches with custom filters and payloads.</p>
+          </div>
+          <div class="section-title">
+            <span>Epoch window</span>
+          </div>
+          <div class="epoch-display epoch-display--triple">
+            <div class="epoch-row">
+              <div>
+                <div class="epoch-label">FROM</div>
+                <div class="epoch-value" id="fromMs">--</div>
+                <div class="epoch-label" id="fromLocal">--</div>
+              </div>
+              <button class="copy-btn" data-copy="from">Copy</button>
+            </div>
+            <div class="epoch-row">
+              <div>
+                <div class="epoch-label">TO</div>
+                <div class="epoch-value" id="toMs">--</div>
+                <div class="epoch-label" id="toLocal">--</div>
+              </div>
+              <button class="copy-btn" data-copy="to">Copy</button>
+            </div>
+            <div class="epoch-row">
+              <div style="flex:1;">
+                <div class="epoch-label">CONVERT</div>
+                <input type="text" id="epochConvertInput" placeholder="Paste epoch (ms or seconds)" inputmode="numeric" style="width:100%; margin-top:6px;">
+                <div class="epoch-label" id="epochConvertResult" style="margin-top:8px; font-weight:600; color:var(--text); font-size:15px;">Local time: --</div>
+              </div>
+            </div>
+          </div>
+          <div class="range-bar">
+            <div class="range-group">
+              <div class="control-label">Pick a window</div>
+              <div class="button-row compact">
+                <button class="action secondary range-btn" data-range="600000">10m</button>
+                <button class="action secondary range-btn" data-range="3600000">1h</button>
+                <button class="action secondary range-btn" data-range="86400000">1d</button>
+                <button class="action secondary range-btn" data-range="432000000">5d</button>
+                <button class="action secondary range-btn" data-range="604800000">7d</button>
+                <button class="action secondary" id="customTimeBtn">Custom Time</button>
+              </div>
+            </div>
+          </div>
+          <div class="divider"></div>
+          <div class="collapseBody">
+            <div class="controls">
+              <div class="control-row">
+                <div class="toolbar">
+                  <div class="toolbar-left">
+                    <select id="presetSelect" aria-label="Preset query"></select>
+                    <button class="action" id="runSearch">SEND</button>
+                  </div>
+                  <div class="toolbar-right">
+                    <div class="history-dropdown">
+                      <button class="action secondary" id="historyBtn" title="Query history">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                          <circle cx="12" cy="12" r="10"></circle>
+                          <polyline points="12 6 12 12 16 14"></polyline>
+                        </svg>
+                        History
+                      </button>
+                      <div class="history-menu" id="historyMenu"></div>
+                    </div>
+                    <button class="action secondary" id="managePresets">Manage</button>
+                    <button class="action secondary" id="savePresetBtn">
+                      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                        <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                        <polyline points="7 3 7 8 15 8"></polyline>
+                      </svg>
+                      Save
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <div class="control-row" id="queryParamsRow" style="display:none;">
+                <div class="control-label">Query Parameters</div>
+                <div id="queryParamsContainer" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:6px;"></div>
+              </div>
+              <div class="control-row">
+                <div class="control-label">Request body (GraphQL)</div>
+                <div class="response-wrap">
+                  <button class="icon-btn copy-fab" data-copy-target="searchBody" title="Copy request body" aria-label="Copy request body">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                      <rect x="9" y="9" width="13" height="13" rx="2"></rect>
+                      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                    </svg>
+                  </button>
+                  <textarea id="searchBody"></textarea>
+                </div>
+              </div>
+              <div class="query-info">
+                <span>
+                  <span class="status-dot idle" id="statusDot"></span>
+                  <span id="searchStatus">Idle</span>
+                </span>
+                <span id="queryStats"></span>
+              </div>
+              <div class="control-row" style="margin-top:32px;">
+                <div class="control-label">Response <span style="font-size:12px;color:var(--muted);font-weight:400;">(Click any key to extract its value)</span></div>
+              </div>
+              <div class="control-row" style="margin-top:0;">
+                <div class="response-wrap">
+                  <button class="icon-btn copy-fab" id="copyResponse" title="Copy response" aria-label="Copy response">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                      <rect x="9" y="9" width="13" height="13" rx="2"></rect>
+                      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                    </svg>
+                  </button>
+                  <pre class="response" id="searchOutput">Waiting to call API…</pre>
+                </div>
+              </div>
+
+              <!-- Parse Tester integrated below Response -->
+              <div class="control-row" style="margin-top:32px;">
+                <div class="control-label">JSONPath Expression</div>
+                <div class="toolbar">
+                  <div class="toolbar-right" style="flex:1; justify-content:flex-start;">
+                    <div class="copy-input">
+                      <input type="text" id="parsePath" placeholder="Click a key in Response..." aria-label="Parse path" style="min-width:100%;" readonly />
+                      <button class="icon-btn copy-fab" data-copy-target="parsePath" title="Copy parse path" aria-label="Copy parse path" style="width:32px;height:32px;">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                          <rect x="9" y="9" width="13" height="13" rx="2"></rect>
+                          <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="control-row" style="margin-top:12px;">
+                <div class="control-label">Extracted Value</div>
+                <div class="response-wrap">
+                  <button class="icon-btn copy-fab" data-copy-target="extractedValue" title="Copy extracted value" aria-label="Copy extracted value">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                      <rect x="9" y="9" width="13" height="13" rx="2"></rect>
+                      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                    </svg>
+                  </button>
+                  <pre class="response" id="extractedValue" style="min-height:100px;">Click a key in Response to see its value…</pre>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+  </main>
+  <!-- Custom Time Modal -->
+  <div class="time-modal-overlay" id="customTimeModal">
+    <div class="time-modal">
+      <button class="time-modal-close" aria-label="Close">×</button>
+      <h3>Set Custom Time Range</h3>
+      <div class="time-modal-row">
+        <div class="time-modal-field">
+          <label for="fromDate">From Date</label>
+          <input type="date" id="fromDate" />
+        </div>
+        <div class="time-modal-field">
+          <label for="fromTime">From Time</label>
+          <input type="time" id="fromTime" step="1" />
+        </div>
+      </div>
+      <div class="time-modal-row">
+        <div class="time-modal-field">
+          <label for="toDate">To Date</label>
+          <input type="date" id="toDate" />
+        </div>
+        <div class="time-modal-field">
+          <label for="toTime">To Time</label>
+          <input type="time" id="toTime" step="1" />
+        </div>
+      </div>
+      <div class="time-modal-actions">
+        <button class="action secondary" id="cancelCustomTime">Cancel</button>
+        <button class="action primary" id="applyCustomTime">Apply</button>
+      </div>
+    </div>
+  </div>
+  
+    <script src="../../assets/js/orbit-config.js"></script>
+  
+    <script src="../../assets/js/components.js"></script>
+  
+    <script src="../../assets/js/theme.js"></script>
+<script>
+    // ========================================
+    // GLOBAL STATE & CONSTANTS
+    // ========================================
+    const fromMsEl = document.getElementById('fromMs');
+    const toMsEl = document.getElementById('toMs');
+    const fromLocalEl = document.getElementById('fromLocal');
+    const toLocalEl = document.getElementById('toLocal');
+    const customTimeBtn = document.getElementById('customTimeBtn');
+    const customTimeModal = document.getElementById('customTimeModal');
+    const fromDateInput = document.getElementById('fromDate');
+    const fromTimeInput = document.getElementById('fromTime');
+    const toDateInput = document.getElementById('toDate');
+    const toTimeInput = document.getElementById('toTime');
+    const applyCustomTimeBtn = document.getElementById('applyCustomTime');
+    const cancelCustomTimeBtn = document.getElementById('cancelCustomTime');
+    const customTimeModalClose = customTimeModal.querySelector('.time-modal-close');
+    const searchCardEl = document.getElementById('searchCard');
+    const searchStatusEl = document.getElementById('searchStatus');
+    const statusDotEl = document.getElementById('statusDot');
+    const searchOutputEl = document.getElementById('searchOutput');
+    const runSearchBtn = document.getElementById('runSearch');
+    const searchBodyEl = document.getElementById('searchBody');
+    const savePresetBtn = document.getElementById('savePresetBtn');
+    const managePresetsBtn = document.getElementById('managePresets');
+    const copyResponseBtn = document.getElementById('copyResponse');
+    const presetSelect = document.getElementById('presetSelect');
+    const parsePathInput = document.getElementById('parsePath');
+    const parseBtn = document.getElementById('parseBtn');
+    const extractedValueEl = document.getElementById('extractedValue');
+    const historyBtn = document.getElementById('historyBtn');
+    const historyMenu = document.getElementById('historyMenu');
+  const queryStatsEl = document.getElementById('queryStats');
+  const queryParamsRow = document.getElementById('queryParamsRow');
+  const queryParamsContainer = document.getElementById('queryParamsContainer');
+  const userNameEl = document.getElementById('userName');
+  const userOrgEl = document.getElementById('userOrg');
+  const signOutBtn = document.getElementById('signOutBtn');
+
+    const ENDPOINT = 'https://api.wxcc-us1.cisco.com/search';
+    const cacheKeyBearer = 'authBearer';
+  const cacheKeyOrg = 'authOrg';
+  const cacheKeyOrgName = 'authOrgName';
+  const cacheKeyOrgId = 'authOrgId';
+  const cacheKeyUser = 'authUserName';
+    const CUSTOM_PRESETS_KEY = 'wxcc_custom_presets';
+    const QUERY_HISTORY_KEY = 'wxcc_query_history';
+    const MAX_HISTORY = 10;
+    const BOT_EVENT_NAME = 'bot-search';
+    let lastBotPayload = null;
+
+    let selectedRangeMs = 600000; // default 10m
+    let lastFetchMs = null;
+    let fromMs = null;
+    let toMs = null;
+    let lastJson = null;
+    let queryHistory = [];
+
+    function getOrgIdValue() {
+      const cached = localStorage.getItem(cacheKeyOrgId) || '';
+      if (cached) {
+        if (/^Y2lz/i.test(cached)) {
+          try {
+            const padded = cached.replace(/-/g, '+').replace(/_/g, '/').padEnd(Math.ceil(cached.length / 4) * 4, '=');
+            const decoded = atob(padded);
+            const parts = decoded.split('/');
+            const result = parts[parts.length - 1] || decoded;
+            localStorage.setItem(cacheKeyOrgId, result);
+            if (!localStorage.getItem(cacheKeyOrg)) localStorage.setItem(cacheKeyOrg, result);
+            return result;
+          } catch {
+            return cached;
+          }
+        }
+        const orgPathIdx = cached.toLowerCase().indexOf('organization/');
+        if (orgPathIdx !== -1) {
+          const candidate = cached.slice(orgPathIdx + 'organization/'.length);
+          if (candidate) {
+            localStorage.setItem(cacheKeyOrgId, candidate);
+            if (!localStorage.getItem(cacheKeyOrg)) localStorage.setItem(cacheKeyOrg, candidate);
+            return candidate;
+          }
+        }
+        if (!localStorage.getItem(cacheKeyOrg)) localStorage.setItem(cacheKeyOrg, cached);
+        return cached;
+      }
+      const raw = localStorage.getItem(cacheKeyOrg) || '';
+      if (!raw) return '';
+      if (/^Y2lz/i.test(raw)) {
+        try {
+          const padded = raw.replace(/-/g, '+').replace(/_/g, '/').padEnd(Math.ceil(raw.length / 4) * 4, '=');
+          const decoded = atob(padded);
+          const parts = decoded.split('/');
+          return parts[parts.length - 1] || decoded;
+        } catch {
+          return raw;
+        }
+      }
+      const orgPathIdx = raw.toLowerCase().indexOf('organization/');
+      if (orgPathIdx !== -1) {
+        const candidate = raw.slice(orgPathIdx + 'organization/'.length);
+        return candidate || raw;
+      }
+      return raw;
+    }
+
+    // ========================================
+    // BUILT-IN PRESETS
+    // ========================================
+    const BUILTIN_PRESETS = [
+      { key: 'simple', label: 'Task IDs', query: `{\n  task(\n    from: {{FROM}}\n    to: {{TO}}\n  ) {\n    tasks { id }\n  }\n}` },
+      { key: 'basicFields', label: 'Basic Fields', query: `{\n  task(\n    from: {{FROM}}\n    to: {{TO}}\n    pagination: { cursor: "0" }\n  ) {\n    tasks {\n      createdTime\n      channelType\n      entryPoint { name }\n      lastQueue { name }\n      direction\n      terminationType\n      owner { name }\n      id\n      status\n      destination\n      isActive\n      selfserviceDuration\n      ringingDuration\n      queueDuration\n      connectedDuration\n      totalDuration\n      holdDuration\n      wrapupDuration\n    }\n    pageInfo { endCursor hasNextPage }\n  }\n}` },
+      { key: 'interactionsByANI', label: 'Interactions by ANI', query: `{\n  task(\n    from: {{FROM}}\n    to: {{TO}}\n    filter: {\n      and: [\n        { channelType: { equals: telephony } }\n        { direction: { equals: "inbound" } }\n        { origin: { equals: "<ANI>" } }\n        { status: { equals: "ended" } }\n      ]\n    }\n    pagination: { cursor: "0" }\n  ) {\n    tasks {\n      id\n      createdTime\n    }\n    pageInfo { hasNextPage endCursor }\n  }\n}` },
+      { key: 'lookupANItoGlobalVariable', label: 'Lookup ANI to Global Variable', query: `{\n  task(\n    from: {{FROM}}\n    to: {{TO}}\n    timeComparator: createdTime\n    filter: {\n      and: [\n        { channelType: { equals: telephony } }\n        { direction: { equals: "inbound" } }\n        { origin: { equals: "<ani>" } }\n        {\n          or: [\n            { stringGlobalVariables: { name: { equals: "<global variable name>" } value: { equals: "<global variable value>" } } }\n          ]\n        }\n      ]\n    }\n    aggregations: [\n      { field: "id", type: count, name: "SurveyHits" }\n    ]\n    pagination: { cursor: "0" }\n  ) {\n    tasks {\n      aggregation { name value }\n    }\n  }\n}` },
+      { key: 'realTimeQueuedTasks', label: 'Real-time Queued Tasks', query: `{\n  task(\n    from: {{FROM}}\n    to: {{TO}}\n    filter: {\n      and: [\n        { channelType: { equals: telephony } }\n        { direction: { equals: "inbound" } }\n        { isActive: { equals: true } }\n      ]\n    }\n  ) {\n    tasks {\n      id\n      origin\n      destination\n      isActive\n      direction\n      owner { id name }\n      lastEntryPoint { id name }\n    }\n  }\n}` },
+      { key: 'advanced', label: 'Advanced Aggregates', query: `{\n  task(\n    from: {{FROM}}\n    to: {{TO}}\n    timeComparator: endedTime\n    filter: {\n      and: [\n        { channelType: { equals: telephony } }\n        { status: { equals: "ended" } }\n        { isActive: { equals: false } }\n      ]\n    }\n    aggregation: {\n      aggr: [\n        { field: totalDuration, type: sum, name: "Total Duration" }\n        { field: connectedDuration, type: sum, name: "Total Connected Duration" }\n      ]\n    }\n  ) {\n    tasks {\n      lastWrapupCodeName\n      aggregation { name value }\n    }\n    pageInfo { endCursor hasNextPage }\n  }\n}` },
+      { key: 'interactionDetails', label: 'Interaction Details', query: `{\n  task(\n    from: {{FROM}}\n    to: {{TO}}\n     timeComparator: createdTime\n    filter: {\n      and: [\n        { channelType: { equals: telephony } }\n        { origin: { equals: "<phone number>" } }\n      ]\n    }\n  ) {\n    tasks {\n      id\n      isActive\n      createdTime\n      endedTime\n      origin\n      destination\n      totalDuration\n      lastEntryPoint { id name }\n      lastQueue { id name }\n      lastTeam { id name }\n      owner { name id }\n    }\n  }\n}` },
+      { key: 'lastAgentInteraction', label: 'Last Agent Interaction', query: `{\n  task(\n    from: {{FROM}}\n    to: {{TO}}\n    timeComparator: createdTime\n    filter: {\n      and: [\n        { channelType: { equals: telephony } }\n        { origin: { equals: "<phone number>" } }\n        { status: { equals: "ended" } }\n        { direction: { equals: "inbound" } }\n        { isActive: { equals: false } }\n      ]\n    }\n    pagination: { cursor: "0" }\n  ) {\n    tasks {\n      id\n      createdTime\n      endedTime\n      origin\n      destination\n      lastWrapupCodeName\n      totalDuration\n      selfserviceDuration\n      captureRequested\n      lastEntryPoint { id name }\n      lastQueue { id name }\n      lastTeam { id name }\n      owner { name id }\n    }\n    pageInfo { endCursor hasNextPage }\n  }\n}` },
+      { key: 'agentSessionState', label: 'Agent Session State', query: `{\n  agentSession(\n    from: {{FROM}}\n    to: {{TO}}\n    filter: { isActive: { equals: true } }\n  ) {\n    agentSessions {\n      agentName\n    }\n  }\n}` },
+      { key: 'wallboardQueue', label: 'Wallboard: Queue Metrics', query: `{\n  task(\n    from: {{FROM}}\n    to: {{TO}}\n    timeComparator: createdTime\n    filter: {\n      and: [\n        { direction: { equals: "inbound" } }\n        { channelType: { equals: telephony } }\n      ]\n    }\n    aggregations: [\n      { field: "id", type: count, name: "Total Contacts by Queue" }\n      { field: "queueDuration", type: average, name: "Average Queue Time" }\n      { field: "queueDuration", type: max, name: "Maximum Queue Time" }\n      { field: "totalDuration", type: average, name: "Average Handle Time by Queue" }\n    ]\n  ) {\n    tasks {\n      lastQueue { name id }\n      aggregation { name value }\n    }\n    pageInfo { hasNextPage endCursor }\n  }\n}` },
+      { key: 'queueRealtime', label: 'Realtime Queued Count', query: `{\n  task(\n    from: {{FROM}}\n    to: {{TO}}\n    timeComparator: createdTime\n    filter: {\n      and: [\n        { direction: { equals: "inbound" } }\n        { isActive: { equals: true } }\n        { status: { equals: "parked" } }\n        { channelType: { equals: telephony } }\n      ]\n    }\n    aggregations: {\n      field: "id"\n      type: count\n      name: "Total Queued Contacts RealTime"\n    }\n  ) {\n    tasks {\n      aggregation { name value }\n    }\n    pageInfo { hasNextPage endCursor }\n  }\n}` },
+      { key: 'AgentsLogin', label: 'Realtime Agents Logged In', query: `{\n  agentSession(\n    from: {{FROM}}\n    to: {{TO}}\n    filter: { isActive: { equals: true } }\n  ) {\n    agentSessions { agentId teamId }\n  }\n}` },
+      { key: 'loggedOnAgents', label: 'Logged On agents', query: `{\n  agentSession(\n    from: {{FROM}}\n    to: {{TO}}\n    filter: {\n      and: [\n        { isActive: { equals: true } }\n        { teamId: { equals: "<enter team id>" } }\n      ]\n    }\n  ) {\n    agentSessions {\n      agentId\n      agentSessionId\n      teamId\n      channelInfo {\n        channelType\n        connectedCount\n        availableCount\n        idleCount\n      }\n    }\n  }\n}` },
+      { key: 'timesCalledByNumber', label: 'Times Called', query: `{\n  task(\n    from: {{FROM}}\n    to: {{TO}}\n    timeComparator: createdTime\n    filter: {\n      and: [\n        { channelType: { equals: telephony } }\n        { direction: { equals: "inbound" } }\n        { origin: { equals: "<add number here>" } }\n      ]\n    }\n    aggregations: [\n      { field: "id", type: count, name: "TimesCalled" }\n    ]\n    pagination: { cursor: "0" }\n  ) {\n    tasks {\n      aggregation { name value }\n    }\n    pageInfo { hasNextPage endCursor }\n  }\n}` },
+    ];
+
+    // ========================================
+    // QUERY PARAMETER DETECTION & MANAGEMENT
+    // ========================================
+    const detectQueryParams = (query) => {
+      const params = [];
+
+      // Detect patterns like <add number here>, <ANI>, <phone number>, etc.
+      for (const match of query.matchAll(/<([^>]+)>/g)) {
+        const placeholder = match[0]; // e.g., "<add number here>"
+        const label = match[1].trim(); // e.g., "add number here"
+        if (!params.find(p => p.placeholder === placeholder)) {
+          params.push({ placeholder, label });
+        }
+      }
+
+      // Detect handlebar-style tokens like {{PreDial.otherPartyDn}}, skipping
+      // {{FROM}} / {{TO}} since those are populated by the epoch window.
+      for (const match of query.matchAll(/\{\{\s*([^}]+?)\s*\}\}/g)) {
+        const label = match[1].trim();
+        if (/^(FROM|TO)$/i.test(label)) continue;
+        const placeholder = match[0]; // e.g., "{{PreDial.otherPartyDn}}"
+        if (!params.find(p => p.placeholder === placeholder)) {
+          params.push({ placeholder, label });
+        }
+      }
+
+      return params;
+    };
+
+    const renderQueryParams = () => {
+      const query = searchBodyEl.value;
+      const params = detectQueryParams(query);
+      
+      if (params.length === 0) {
+        queryParamsRow.style.display = 'none';
+        return;
+      }
+      
+      queryParamsRow.style.display = '';
+      
+      // Group and order parameters intelligently
+      const orderedParams = [];
+      const remainingParams = [...params];
+      
+      // First, find ANI/number fields and put them first
+      const aniIndex = remainingParams.findIndex(p => 
+        p.label.toLowerCase().includes('ani') || 
+        (p.label.toLowerCase().includes('number') && !p.label.toLowerCase().includes('variable'))
+      );
+      if (aniIndex !== -1) {
+        orderedParams.push(remainingParams.splice(aniIndex, 1)[0]);
+      }
+      
+      // Then, group variable pairs (name + value)
+      const variablePairs = [];
+      
+      // First check for numbered variable pairs (variable name 1, variable value 1, etc.)
+      for (let i = 1; i <= 10; i++) {
+        const nameIdx = remainingParams.findIndex(p => 
+          p.label.toLowerCase().includes('variable') && 
+          p.label.toLowerCase().includes('name') && 
+          p.label.includes(i.toString())
+        );
+        const valueIdx = remainingParams.findIndex(p => 
+          p.label.toLowerCase().includes('variable') && 
+          p.label.toLowerCase().includes('value') && 
+          p.label.includes(i.toString())
+        );
+        
+        if (nameIdx !== -1 && valueIdx !== -1) {
+          const namePair = remainingParams.splice(Math.max(nameIdx, valueIdx), 1)[0];
+          const valuePair = remainingParams.splice(Math.min(nameIdx, valueIdx), 1)[0];
+          variablePairs.push({ 
+            name: nameIdx < valueIdx ? valuePair : namePair, 
+            value: nameIdx < valueIdx ? namePair : valuePair,
+            num: i
+          });
+        }
+      }
+      
+      // Then check for unnumbered variable pairs (just "variable name" and "variable value")
+      const unnumberedNameIdx = remainingParams.findIndex(p => 
+        p.label.toLowerCase().includes('variable') && 
+        p.label.toLowerCase().includes('name') &&
+        !p.label.match(/\d/) // no digits in the name
+      );
+      const unnumberedValueIdx = remainingParams.findIndex(p => 
+        p.label.toLowerCase().includes('variable') && 
+        p.label.toLowerCase().includes('value') &&
+        !p.label.match(/\d/) // no digits in the name
+      );
+      
+      if (unnumberedNameIdx !== -1 && unnumberedValueIdx !== -1) {
+        const namePair = remainingParams.splice(Math.max(unnumberedNameIdx, unnumberedValueIdx), 1)[0];
+        const valuePair = remainingParams.splice(Math.min(unnumberedNameIdx, unnumberedValueIdx), 1)[0];
+        variablePairs.push({ 
+          name: unnumberedNameIdx < unnumberedValueIdx ? valuePair : namePair, 
+          value: unnumberedNameIdx < unnumberedValueIdx ? namePair : valuePair,
+          num: 0 // 0 indicates unnumbered
+        });
+      }
+      
+      // Add remaining params at the end
+      orderedParams.push(...remainingParams);
+      
+      // Build HTML with proper grouping
+      let html = '';
+      let paramIndex = 0;
+      const allParamData = []; // Track all params for the update button
+      
+      // Render ANI/number fields first (full width)
+      const aniParams = orderedParams.filter(p => {
+        const lowerLabel = p.label.toLowerCase();
+        return lowerLabel.includes('number') || lowerLabel.includes('ani') || lowerLabel.includes('phone');
+      });
+      
+      aniParams.forEach(param => {
+        const displayLabel = 'Enter Number';
+        const placeholderText = 'e.g. +13854442222';
+        allParamData.push({ index: paramIndex, placeholder: param.placeholder });
+        html += `
+          <div class="param-field" style="grid-column: 1 / -1;">
+            <label for="param_${paramIndex}">${displayLabel}</label>
+            <input type="text" id="param_${paramIndex}" placeholder="${placeholderText}" data-placeholder="${param.placeholder}" style="width:100%;" />
+          </div>
+        `;
+        paramIndex++;
+      });
+      
+      // Render variable pairs in rows
+      variablePairs.forEach(pair => {
+        allParamData.push({ index: paramIndex, placeholder: pair.name.placeholder });
+        allParamData.push({ index: paramIndex + 1, placeholder: pair.value.placeholder });
+        
+        // If pair.num is 0, it's unnumbered, otherwise show the number
+        const nameLabel = pair.num === 0 ? 'Variable Name' : `Variable ${pair.num} Name`;
+        const valueLabel = pair.num === 0 ? 'Variable Value' : `Variable ${pair.num} Value`;
+        
+        html += `
+          <div class="param-field">
+            <label for="param_${paramIndex}">${nameLabel}</label>
+            <input type="text" id="param_${paramIndex}" placeholder="e.g. CustomerID" data-placeholder="${pair.name.placeholder}" style="width:100%;" />
+          </div>
+          <div class="param-field">
+            <label for="param_${paramIndex + 1}">${valueLabel}</label>
+            <input type="text" id="param_${paramIndex + 1}" placeholder="e.g. 12345" data-placeholder="${pair.value.placeholder}" style="width:100%;" />
+          </div>
+        `;
+        paramIndex += 2;
+      });
+      
+      // Render any other remaining params
+      const otherParams = orderedParams.filter(p => {
+        const lowerLabel = p.label.toLowerCase();
+        return !lowerLabel.includes('number') && !lowerLabel.includes('ani') && 
+               !lowerLabel.includes('phone') && !lowerLabel.includes('variable');
+      });
+      
+      otherParams.forEach(param => {
+        allParamData.push({ index: paramIndex, placeholder: param.placeholder });
+        html += `
+          <div class="param-field">
+            <label for="param_${paramIndex}">${param.label}</label>
+            <input type="text" id="param_${paramIndex}" placeholder="${param.label}" data-placeholder="${param.placeholder}" style="width:100%;" />
+          </div>
+        `;
+        paramIndex++;
+      });
+      
+      // Add single Update button
+      html += `
+        <div class="param-field" style="grid-column: 1 / -1; display:flex; justify-content:flex-end; margin-top:4px;">
+          <button class="action primary" id="updateAllParams">Update</button>
+        </div>
+      `;
+      
+      queryParamsContainer.innerHTML = html;
+      
+      // Attach single update handler for all parameters
+      const updateAllBtn = document.getElementById('updateAllParams');
+      if (updateAllBtn) {
+        updateAllBtn.addEventListener('click', () => {
+          let updatedQuery = searchBodyEl.value;
+          let anyUpdated = false;
+          
+          allParamData.forEach(paramData => {
+            const input = document.getElementById(`param_${paramData.index}`);
+            if (input && input.value.trim()) {
+              updatedQuery = updatedQuery.split(paramData.placeholder).join(input.value.trim());
+              anyUpdated = true;
+            }
+          });
+          
+          if (anyUpdated) {
+            searchBodyEl.value = updatedQuery;
+            autosizeTextarea();
+            renderQueryParams(); // Re-render to show updated placeholders
+            setStatus('Parameters updated', 'success');
+          } else {
+            setStatus('No parameters to update', 'warning');
+          }
+        });
+      }
+    };
+
+    // ========================================
+    // UTILITY FUNCTIONS
+    // ========================================
+    const formatLocal = (ms, opts = {}) => {
+      return new Intl.DateTimeFormat(undefined, {
+        year: 'numeric',
+        month: 'short',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        fractionalSecondDigits: opts.ms ? 3 : undefined,
+        timeZoneName: 'short'
+      }).format(new Date(ms));
+    };
+
+    const epochConvertInput = document.getElementById('epochConvertInput');
+    const epochConvertResult = document.getElementById('epochConvertResult');
+    if (epochConvertInput && epochConvertResult) {
+      epochConvertInput.addEventListener('input', () => {
+        const raw = epochConvertInput.value.trim();
+        if (!raw) {
+          epochConvertResult.textContent = 'Local time: --';
+          return;
+        }
+        if (!/^\d+$/.test(raw)) {
+          epochConvertResult.textContent = 'Enter digits only.';
+          return;
+        }
+        const ms = raw.length <= 10 ? Number(raw) * 1000 : Number(raw);
+        const date = new Date(ms);
+        if (isNaN(date.getTime())) {
+          epochConvertResult.textContent = 'Invalid timestamp.';
+          return;
+        }
+        epochConvertResult.textContent = `Local time: ${formatLocal(ms)}`;
+      });
+    }
+
+    const flashCopyState = (btn) => {
+      const hasIcon = /<svg\\b/i.test(btn.innerHTML);
+      const datasetKey = hasIcon ? 'copyOriginalIcon' : 'copyOriginalText';
+      let original = btn.dataset[datasetKey];
+      if (!original) {
+        original = hasIcon ? btn.innerHTML : btn.textContent;
+        if (original) {
+          btn.dataset[datasetKey] = original;
+        }
+      }
+
+      const checkmarkSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"></path></svg>';
+
+      if (!hasIcon) {
+        btn.textContent = 'Copied';
+        setTimeout(() => {
+          btn.textContent = original || '';
+        }, 900);
+      } else {
+        btn.innerHTML = checkmarkSvg;
+        setTimeout(() => {
+          btn.innerHTML = original || '';
+        }, 900);
+      }
+    };
+
+    const setStatus = (text, type = 'idle') => {
+      searchStatusEl.textContent = text;
+      statusDotEl.className = `status-dot ${type}`;
+    };
+
+    // ========================================
+    // CUSTOM PRESET MANAGEMENT
+    // ========================================
+    const getCustomPresets = () => {
+      try {
+        const stored = localStorage.getItem(CUSTOM_PRESETS_KEY);
+        return stored ? JSON.parse(stored) : [];
+      } catch {
+        return [];
+      }
+    };
+
+    const saveCustomPresets = (presets) => {
+      localStorage.setItem(CUSTOM_PRESETS_KEY, JSON.stringify(presets));
+    };
+
+    const addCustomPreset = (name, query) => {
+      const customs = getCustomPresets();
+      const key = `custom_${Date.now()}`;
+      customs.push({ key, label: name, query, custom: true });
+      saveCustomPresets(customs);
+      fillPresetSelect();
+      return key;
+    };
+
+    const deleteCustomPreset = (key) => {
+      const customs = getCustomPresets().filter(p => p.key !== key);
+      saveCustomPresets(customs);
+      fillPresetSelect();
+    };
+
+    const updateCustomPreset = (key, name, query) => {
+      const customs = getCustomPresets();
+      const preset = customs.find(p => p.key === key);
+      if (preset) {
+        preset.label = name;
+        preset.query = query;
+        saveCustomPresets(customs);
+        fillPresetSelect();
+      }
+    };
+
+    const getAllPresets = () => {
+      return [...BUILTIN_PRESETS, ...getCustomPresets()];
+    };
+
+    // ========================================
+    // QUERY HISTORY
+    // ========================================
+    const loadQueryHistory = () => {
+      try {
+        const stored = localStorage.getItem(QUERY_HISTORY_KEY);
+        queryHistory = stored ? JSON.parse(stored) : [];
+      } catch {
+        queryHistory = [];
+      }
+    };
+
+    const saveQueryHistory = () => {
+      localStorage.setItem(QUERY_HISTORY_KEY, JSON.stringify(queryHistory));
+    };
+
+    const addToHistory = (query) => {
+      const trimmed = query.trim();
+      if (!trimmed || trimmed === buildDefaultSearchBody().trim()) return;
+      
+      // Remove duplicate if exists
+      queryHistory = queryHistory.filter(h => h.query !== trimmed);
+      
+      // Add to beginning
+      queryHistory.unshift({
+        query: trimmed,
+        timestamp: Date.now()
+      });
+      
+      // Keep only MAX_HISTORY items
+      if (queryHistory.length > MAX_HISTORY) {
+        queryHistory = queryHistory.slice(0, MAX_HISTORY);
+      }
+      
+      saveQueryHistory();
+    };
+
+    const renderHistoryMenu = () => {
+      if (queryHistory.length === 0) {
+        historyMenu.innerHTML = '<div class="history-empty">No history yet</div>';
+        return;
+      }
+      
+      historyMenu.innerHTML = queryHistory.map((h, i) => {
+        const preview = h.query.split('\n')[0].slice(0, 50);
+        const time = new Date(h.timestamp).toLocaleString();
+        return `
+          <div class="history-item" data-index="${i}">
+            <div>${preview}${h.query.length > 50 ? '...' : ''}</div>
+            <div class="history-item-time">${time}</div>
+          </div>
+        `;
+      }).join('');
+      
+      // Add click handlers
+      historyMenu.querySelectorAll('.history-item').forEach(item => {
+        item.addEventListener('click', () => {
+          const index = parseInt(item.dataset.index);
+          const historyItem = queryHistory[index];
+          if (historyItem) {
+            searchBodyEl.value = historyItem.query;
+            searchBodyEl.dataset.template = historyItem.query;
+            autosizeTextarea();
+            renderQueryParams();
+            historyMenu.classList.remove('open');
+            setStatus('Loaded from history', 'idle');
+          }
+        });
+      });
+    };
+
+    // ========================================
+    // PRESET SELECT POPULATION
+    // ========================================
+    const fillPresetSelect = () => {
+      presetSelect.innerHTML = '';
+      const empty = document.createElement('option');
+      empty.value = '';
+      empty.textContent = 'Select a preset';
+      presetSelect.appendChild(empty);
+      
+      const allPresets = getAllPresets();
+      allPresets.forEach((p) => {
+        const opt = document.createElement('option');
+        opt.value = p.key;
+        opt.textContent = p.label;
+        if (p.custom) {
+          opt.textContent += ' 🟢';
+        }
+        presetSelect.appendChild(opt);
+      });
+    };
+
+    // ========================================
+    // EPOCH WINDOW MANAGEMENT
+    // ========================================
+    const highlightRangeButton = () => {
+      document.querySelectorAll('.range-btn').forEach((btn) => {
+        const val = Number(btn.dataset.range);
+        const isActive = val === selectedRangeMs;
+        btn.classList.toggle('active', isActive);
+        btn.setAttribute('aria-pressed', String(isActive));
+      });
+      // Clear custom time active state when a range is selected
+      customTimeBtn.classList.remove('active');
+    };
+
+    const copyActions = {
+      from: () => String(fromMs ?? ''),
+      to: () => String(toMs ?? '')
+    };
+
+    const updateDisplay = () => {
+      if (fromMs !== null && toMs !== null) {
+        fromMsEl.textContent = fromMs;
+        toMsEl.textContent = toMs;
+        fromLocalEl.textContent = formatLocal(fromMs, { ms: true });
+        toLocalEl.textContent = formatLocal(toMs, { ms: true });
+      }
+    };
+
+    const applyEpochToQuery = (query) => {
+      const from = fromMs ?? Date.now() - selectedRangeMs;
+      const to = toMs ?? Date.now();
+      return query.replace(/{{FROM}}/g, from).replace(/{{TO}}/g, to);
+    };
+
+    const applyBotTimeRange = (payload = {}) => {
+      const rawFrom = payload.rangeFrom ?? payload.from ?? payload.fromMs;
+      const rawTo = payload.rangeTo ?? payload.to ?? payload.toMs;
+      const from = Number(rawFrom);
+      const to = Number(rawTo);
+      if (!Number.isNaN(from) && !Number.isNaN(to) && from < to) {
+        fromMs = from;
+        toMs = to;
+        selectedRangeMs = to - from;
+        lastFetchMs = Date.now();
+        updateDisplay();
+        document.querySelectorAll('.range-btn').forEach(btn => btn.classList.remove('active'));
+        customTimeBtn.classList.add('active');
+      }
+    };
+
+    const setSearchBodyFromTemplate = (template) => {
+      if (!template) return;
+      searchBodyEl.dataset.template = template;
+      searchBodyEl.value = applyEpochToQuery(template);
+      autosizeTextarea();
+      renderQueryParams();
+    };
+
+    const DEFAULT_BODY = `{
+      task(
+        from: {{FROM}}
+    to: {{TO}}
+  ) {
+    tasks { id }
+  }
+}`;
+
+    const buildDefaultSearchBody = () => applyEpochToQuery(DEFAULT_BODY);
+
+    const refreshEpochWindow = ({ updateBody = false, presetKey } = {}) => {
+      const now = Date.now();
+      toMs = now;
+      fromMs = now - selectedRangeMs;
+      lastFetchMs = now;
+      updateDisplay();
+
+        const example = buildDefaultSearchBody();
+        searchBodyEl.placeholder = example;
+
+      if (updateBody) {
+        const currentVal = searchBodyEl.value.trim();
+        const presetTemplate = (() => {
+          if (!presetKey) return '';
+          const preset = getAllPresets().find((p) => p.key === presetKey);
+          return preset ? preset.query : '';
+        })();
+
+        const hasPlaceholders = /{{FROM}}|{{TO}}/.test(currentVal);
+        const templateFromDataset = searchBodyEl.dataset.template || '';
+
+        let template = presetTemplate || (hasPlaceholders ? currentVal : templateFromDataset);
+
+        if (!template) {
+          template = currentVal
+            .replace(/(from:\s*)\d+/i, '$1{{FROM}}')
+            .replace(/(to:\s*)\d+/i, '$1{{TO}}');
+        }
+
+      if (!template.trim()) template = DEFAULT_BODY;
+
+      searchBodyEl.dataset.template = template;
+      searchBodyEl.value = applyEpochToQuery(template);
+      delete searchBodyEl.dataset.example;
+      autosizeTextarea();
+    }
+      // Don't call autosizeTextarea() here if updateBody is false, since we didn't change the content
+
+      const orgName = localStorage.getItem(cacheKeyOrgName) || '';
+      const orgId = localStorage.getItem(cacheKeyOrg) || '';
+      const userName = localStorage.getItem(cacheKeyUser) || '';
+      if (userNameEl) userNameEl.textContent = userName || 'Authenticated';
+      if (userOrgEl) userOrgEl.textContent = orgName ? `Org: ${orgName}` : (orgId ? `Org: ${orgId}` : '');
+    };
+
+    const injectBotSearch = (payload = {}) => {
+      if (!payload || typeof payload !== 'object') return;
+      lastBotPayload = payload;
+
+      applyBotTimeRange(payload);
+
+      let template = (payload.query || '').trim();
+      const presetKey = payload.presetKey;
+      let presetLabel = '';
+      if (presetKey) {
+        const preset = getAllPresets().find((p) => p.key === presetKey);
+        if (preset) {
+          template = template || preset.query;
+          presetSelect.value = preset.key;
+          presetLabel = preset.label;
+        }
+      }
+
+      if (!template) {
+        template = searchBodyEl.dataset.template || buildDefaultSearchBody();
+      }
+
+      setSearchBodyFromTemplate(template);
+      setStatus(presetLabel ? `Bot preset loaded: ${presetLabel}` : 'Bot payload loaded', 'idle');
+
+      if (payload.autoRun) {
+        runSearch();
+      }
+    };
+
+    // ========================================
+    // TEXTAREA AUTO-SIZING
+    // ========================================
+    const autosizeTextarea = () => {
+      if (!searchBodyEl) return;
+      searchBodyEl.style.height = 'auto';
+      searchBodyEl.style.height = `${Math.max(searchBodyEl.scrollHeight, 285)}px`;
+      
+      // Update query stats
+      const lines = searchBodyEl.value.split('\n').length;
+      const chars = searchBodyEl.value.length;
+      queryStatsEl.textContent = `${lines} lines · ${chars} chars`;
+    };
+
+    // ========================================
+    // PARSE TESTER
+    // ========================================
+    const parsePath = (obj, path) => {
+      if (!path) return obj;
+      const cleaned = path.replace(/^\s*\$\.?/, '');
+      const parts = cleaned
+        .replace(/\[(\w+)\]/g, '.$1')
+        .split('.')
+        .filter(Boolean);
+      return parts.reduce((curr, key) => (curr && key in curr ? curr[key] : undefined), obj);
+    };
+
+    // Make the parse result clickable to generate JSONPath expressions
+    const makeParseResultInteractive = (jsonText) => {
+      if (!jsonText || (!jsonText.trim().startsWith('{') && !jsonText.trim().startsWith('['))) {
+        return;
+      }
+      
+      try {
+        // Parse to validate it's JSON
+        const json = JSON.parse(jsonText);
+        
+        // Create a syntax-highlighted, clickable version
+        const lines = jsonText.split('\n');
+        let html = '';
+        
+        for (let i = 0; i < lines.length; i++) {
+          const line = lines[i];
+          const keyMatch = line.match(/^(\s*)"([^"]+)":/);
+          
+          if (keyMatch) {
+            const indent = keyMatch[1];
+            const key = keyMatch[2];
+            const rest = line.substring(keyMatch[0].length);
+            
+            // Calculate the JSONPath for this key
+            const path = calculatePathFromContext(lines, i);
+            
+            html += `${indent}<span class="json-key" data-path="${path}" title="Click to extract: ${path}">"${key}"</span>:${rest}\n`;
+          } else {
+            html += line + '\n';
+          }
+        }
+        
+        searchOutputEl.innerHTML = html.trimEnd();
+        
+        // Add click handlers to all keys
+        searchOutputEl.querySelectorAll('.json-key').forEach(el => {
+          el.addEventListener('click', async (e) => {
+            e.stopPropagation();
+            const path = el.getAttribute('data-path');
+            parsePathInput.value = path;
+            
+            // Extract the value at this path
+            try {
+              const value = extractValueByPath(json, path);
+              const extractedValueEl = document.getElementById('extractedValue');
+              if (extractedValueEl) {
+                if (value === undefined || value === null) {
+                  extractedValueEl.textContent = value === null ? 'null' : 'Path not found';
+                } else if (typeof value === 'object') {
+                  extractedValueEl.textContent = JSON.stringify(value, null, 2);
+                } else {
+                  extractedValueEl.textContent = String(value);
+                }
+              }
+            } catch (err) {
+              console.error('Extract error:', err);
+              const extractedValueEl = document.getElementById('extractedValue');
+              if (extractedValueEl) {
+                extractedValueEl.textContent = 'Error: ' + err.message;
+              }
+            }
+            
+            // Copy path to clipboard
+            try {
+              await navigator.clipboard.writeText(path);
+              // Visual feedback
+              const originalBg = el.style.background;
+              el.style.background = 'rgba(34,211,238,0.4)';
+              setTimeout(() => el.style.background = originalBg, 400);
+            } catch (err) {
+              console.error('Copy failed', err);
+            }
+          });
+        });
+      } catch (err) {
+        // Not JSON, leave as is
+      }
+    };
+
+    // Helper function to extract value by JSONPath
+    const extractValueByPath = (obj, path) => {
+      // Remove leading $. if present
+      const cleanPath = path.replace(/^\$\.?/, '');
+      if (!cleanPath) return obj;
+      
+      const parts = cleanPath.split('.');
+      let current = obj;
+      
+      for (const part of parts) {
+        // Handle array notation like "tasks[0]"
+        const arrayMatch = part.match(/^(.+?)\[(\d+)\]$/);
+        if (arrayMatch) {
+          const key = arrayMatch[1];
+          const index = parseInt(arrayMatch[2], 10);
+          current = current?.[key]?.[index];
+        } else {
+          current = current?.[part];
+        }
+        
+        if (current === undefined) break;
+      }
+      
+      return current;
+    };
+
+    // Calculate JSONPath from the line context
+    const calculatePathFromContext = (lines, currentLineIdx) => {
+      const path = [];
+      const indentStack = [];
+      
+      for (let i = 0; i <= currentLineIdx; i++) {
+        const line = lines[i];
+        const indent = (line.match(/^\s*/) || [''])[0].length;
+        const keyMatch = line.match(/^\s*"([^"]+)":/);
+        
+        if (!keyMatch) continue;
+        
+        const key = keyMatch[1];
+        
+        // Remove items from stack if indentation decreased
+        while (indentStack.length > 0 && indentStack[indentStack.length - 1] >= indent) {
+          indentStack.pop();
+          path.pop();
+        }
+        
+        // Add current level
+        indentStack.push(indent);
+        
+        // Check if the value after this key is an array
+        const valueMatch = line.match(/:\s*\[/);
+        if (valueMatch) {
+          // This is an array - we'll determine the index later
+          path.push(key + '[INDEX]');
+        } else {
+          path.push(key);
+        }
+      }
+      
+      // Now fix array indices by counting braces
+      const finalPath = [];
+      for (let i = 0; i < path.length; i++) {
+        const part = path[i];
+        if (part.includes('[INDEX]')) {
+          // Find where this array was declared
+          const baseKey = part.replace('[INDEX]', '');
+          const searchPath = finalPath.join('.') + (finalPath.length > 0 ? '.' : '') + baseKey;
+          
+          // Count opening braces after this array declaration and find which one contains our line
+          let arrayIndex = -1;
+          let foundArray = false;
+          let arrayIndent = -1;
+          let currentBraceIndex = -1;
+          let insideBraceIndent = -1;
+          
+          for (let j = 0; j <= currentLineIdx; j++) {
+            const searchLine = lines[j];
+            const lineIndent = (searchLine.match(/^\s*/) || [''])[0].length;
+            const trimmed = searchLine.trim();
+            
+            // Find the array declaration
+            if (!foundArray && searchLine.includes(`"${baseKey}"`) && searchLine.includes('[')) {
+              foundArray = true;
+              arrayIndent = lineIndent;
+              continue;
+            }
+            
+            // Count opening braces at the right indent level after array starts
+            if (foundArray) {
+              // Look for { that are direct children of the array
+              if (trimmed === '{' && lineIndent === arrayIndent + 2) {
+                currentBraceIndex++;
+                insideBraceIndent = lineIndent;
+              }
+              
+              // Check if we're at or past the clicked line
+              if (j === currentLineIdx) {
+                // The array index is the last brace we entered
+                arrayIndex = currentBraceIndex;
+                break;
+              }
+              
+              // Check for closing brace to reset our "inside" tracking
+              if (trimmed === '}' && lineIndent === arrayIndent + 2) {
+                insideBraceIndent = -1;
+              }
+            }
+          }
+          
+          finalPath.push(baseKey + '[' + Math.max(0, arrayIndex) + ']');
+        } else {
+          finalPath.push(part);
+        }
+      }
+      
+      return '$.' + finalPath.join('.');
+    };
+
+    // Make the response output auto-populate parse tester
+    const makeResponseInteractive = () => {
+      if (!lastJson) return;
+      
+      const responseText = searchOutputEl.textContent;
+      if (!responseText || (!responseText.startsWith('{') && !responseText.startsWith('['))) return;
+      
+      // Auto-populate the parse tester with the response
+      makeParseResultInteractive(responseText);
+    };
+
+    const renderPaths = () => {
+      if (!pathListEl) return;
+      pathListEl.innerHTML = '';
+      if (!lastJson || typeof lastJson !== 'object') return;
+      const paths = [];
+      const MAX_PATHS = 40;
+      const MAX_DEPTH = 8;
+      const add = (p) => { if (paths.length < MAX_PATHS) paths.push(p); };
+      const queue = [['$', lastJson, 0]];
+      while (queue.length && paths.length < MAX_PATHS) {
+        const [p, val, depth] = queue.shift();
+        if (depth > MAX_DEPTH) continue;
+        if (Array.isArray(val)) {
+          add(p);
+          if (val[0] !== undefined) queue.push([`${p}[0]`, val[0], depth + 1]);
+        } else if (val && typeof val === 'object') {
+          add(p);
+          Object.keys(val).slice(0, 6).forEach((k) => queue.push([`${p}.${k}`, val[k], depth + 1]));
+        } else {
+          add(p);
+        }
+      }
+      paths.forEach(p => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'pathBadge';
+        btn.textContent = p;
+        btn.addEventListener('click', () => {
+          parsePathInput.value = p;
+          parseBtn.click();
+        });
+        pathListEl.appendChild(btn);
+      });
+    };
+
+    // ========================================
+    // API CALL
+    // ========================================
+    const runSearch = async () => {
+      const bearer = (localStorage.getItem(cacheKeyBearer) || '').trim();
+      const orgId = getOrgIdValue().trim();
+      if (!bearer || !orgId) {
+        setStatus('Missing bearer token or Org ID — click Authenticate.', 'error');
+        return;
+      }
+
+      // Validate auth before making the call
+      const isValid = await validateAuthentication();
+      if (!isValid) {
+        setStatus('Authentication expired - please re-authenticate', 'error');
+        return;
+      }
+
+      const gql = (searchBodyEl.value.trim() || buildDefaultSearchBody()).trim();
+      const bodyObj = { query: gql, variables: {} };
+      const body = JSON.stringify(bodyObj);
+
+      setStatus('Calling…', 'warning');
+      searchOutputEl.textContent = 'Calling API with body:\n' + body;
+
+      const headers = {
+        Authorization: `Bearer ${bearer}`,
+        OrgId: orgId,
+        'Content-Type': 'application/json'
+      };
+
+      const startTime = Date.now();
+      const url = `${ENDPOINT}?orgId=${encodeURIComponent(orgId)}`;
+      try {
+        const res = await fetch(url, {
+          method: 'POST',
+          headers,
+          body
+        });
+        const elapsed = Date.now() - startTime;
+        const text = await res.text();
+        let formatted = text || '(empty response)';
+        try {
+          const parsed = JSON.parse(text);
+          formatted = JSON.stringify(parsed, null, 2);
+          lastJson = parsed;
+        } catch (_) {
+          lastJson = null;
+        }
+        
+        // Set the text first
+        searchOutputEl.textContent = formatted;
+        
+        // Then make it interactive if it's valid JSON
+        if (lastJson) {
+          makeParseResultInteractive(formatted);
+        }
+        
+        if (res.ok) {
+          setStatus(`Success (${elapsed}ms)`, 'success');
+          addToHistory(gql);
+        } else if (res.status === 401 || res.status === 403) {
+          setStatus(`Authentication error ${res.status} (${elapsed}ms)`, 'error');
+          clearAuthAndUpdate();
+        } else {
+          setStatus(`Error ${res.status} (${elapsed}ms)`, 'error');
+        }
+      } catch (err) {
+        setStatus('Network/connection error', 'error');
+        searchOutputEl.textContent = `Fetch failed:\n${String(err)}\n\nPayload sent:\n${body}`;
+        lastJson = null;
+      }
+    };
+
+    // ========================================
+    // PRESET OPERATIONS
+    // ========================================
+    const loadPreset = () => {
+      const key = presetSelect.value;
+      const preset = getAllPresets().find((p) => p.key === key);
+      if (preset) {
+        refreshEpochWindow({ updateBody: true, presetKey: key });
+        setStatus(`Loaded preset: ${preset.label}`, 'idle');
+        renderQueryParams(); // Check for parameters
+      }
+    };
+
+    const openPresetPreview = () => {
+      const key = presetSelect.value;
+      const preset = getAllPresets().find((p) => p.key === key);
+      const text = preset ? applyEpochToQuery(preset.query) : 'Select a preset first.';
+
+      let overlay = document.getElementById('presetPreviewModal');
+      if (!overlay) {
+        const style = document.createElement('style');
+        style.textContent = `
+          .presetOverlay{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;z-index:9998;padding:16px;}
+          .presetOverlay.open{display:flex;}
+          .presetCard{width:100%;max-width:720px;background:#131a2a;border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:18px;box-shadow:0 18px 36px rgba(0,0,0,.45);position:relative;}
+          .presetCard h3{margin:0 0 8px;font-size:1.05rem;}
+          .presetClose{position:absolute;right:10px;top:10px;background:transparent;border:none;color:#92a0b8;font-size:18px;cursor:pointer;}
+          .presetBody{background:var(--input);border:1px solid var(--border);border-radius:12px;padding:12px;color:var(--text);font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,'Liberation Mono',monospace;white-space:pre-wrap;max-height:60vh;overflow:auto;}
+        `;
+        document.head.appendChild(style);
+        overlay = document.createElement('div');
+        overlay.className = 'presetOverlay';
+        overlay.id = 'presetPreviewModal';
+        overlay.innerHTML = `
+          <div class="presetCard">
+            <button class="presetClose" aria-label="Close">×</button>
+            <h3>Preset preview</h3>
+            <pre class="presetBody" id="presetPreviewBody"></pre>
+          </div>
+        `;
+        document.body.appendChild(overlay);
+        overlay.addEventListener('click', (e)=>{ if (e.target === overlay) overlay.classList.remove('open'); });
+        overlay.querySelector('.presetClose').addEventListener('click', ()=> overlay.classList.remove('open'));
+        window.addEventListener('keydown',(e)=>{ if (e.key === 'Escape') overlay.classList.remove('open'); });
+      }
+
+      const body = overlay.querySelector('#presetPreviewBody');
+      if (body) body.textContent = text;
+      overlay.classList.add('open');
+    };
+
+    const openSavePresetModal = () => {
+      let modal = document.getElementById('savePresetModal');
+      if (!modal) {
+        const style = document.createElement('style');
+        style.textContent = `
+          .savePresetOverlay{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;z-index:9998;padding:16px;}
+          .savePresetOverlay.open{display:flex;}
+          .savePresetCard{width:100%;max-width:520px;background:#131a2a;border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:20px;box-shadow:0 18px 36px rgba(0,0,0,.45);position:relative;}
+          .savePresetCard h3{margin:0 0 12px;font-size:1.1rem;}
+          .savePresetCard label{display:block;font-size:13px;color:var(--muted);margin:10px 0 6px;}
+          .savePresetCard input{width:100%;border-radius:12px;border:1px solid rgba(255,255,255,.08);background:var(--input);color:var(--text);padding:10px 12px;font-size:14px;}
+          .savePresetCard .actions{display:flex;gap:10px;justify-content:flex-end;margin-top:16px;}
+          .savePresetClose{position:absolute;right:10px;top:10px;background:transparent;border:none;color:var(--muted);font-size:18px;cursor:pointer;}
+        `;
+        document.head.appendChild(style);
+        modal = document.createElement('div');
+        modal.className = 'savePresetOverlay';
+        modal.id = 'savePresetModal';
+        modal.innerHTML = `
+          <div class="savePresetCard">
+            <button class="savePresetClose" aria-label="Close">×</button>
+            <h3>Save as Preset</h3>
+            <label for="presetName">Preset name</label>
+            <input id="presetName" type="text" placeholder="My Custom Query" />
+            <div class="actions">
+              <button class="action secondary" id="cancelSavePreset">Cancel</button>
+              <button class="action primary" id="confirmSavePreset">Save</button>
+            </div>
+          </div>
+        `;
+        document.body.appendChild(modal);
+
+        const nameInput = modal.querySelector('#presetName');
+        const confirmBtn = modal.querySelector('#confirmSavePreset');
+        const cancelBtn = modal.querySelector('#cancelSavePreset');
+        const closeBtn = modal.querySelector('.savePresetClose');
+
+        const close = () => {
+          modal.classList.remove('open');
+          nameInput.value = '';
+        };
+
+        confirmBtn.addEventListener('click', () => {
+          const name = nameInput.value.trim();
+          if (!name) {
+            alert('Please enter a preset name');
+            return;
+          }
+          const query = searchBodyEl.value.trim() || buildDefaultSearchBody();
+          const key = addCustomPreset(name, query);
+          setStatus(`Saved preset: ${name}`, 'success');
+          presetSelect.value = key;
+          close();
+        });
+
+        cancelBtn.addEventListener('click', close);
+        closeBtn.addEventListener('click', close);
+        modal.addEventListener('click', (e) => { if (e.target === modal) close(); });
+      }
+
+      modal.classList.add('open');
+      const nameInput = modal.querySelector('#presetName');
+      nameInput.focus();
+    };
+
+    const openManagePresetsModal = () => {
+      let modal = document.getElementById('managePresetsModal');
+      if (!modal) {
+        const style = document.createElement('style');
+        style.textContent = `
+          .managePresetsOverlay{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;z-index:9998;padding:16px;}
+          .managePresetsOverlay.open{display:flex;}
+          .managePresetsCard{width:100%;max-width:720px;max-height:80vh;background:#131a2a;border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:20px;box-shadow:0 18px 36px rgba(0,0,0,.45);position:relative;display:flex;flex-direction:column;}
+          .managePresetsCard h3{margin:0 0 12px;font-size:1.1rem;}
+          .managePresetsClose{position:absolute;right:10px;top:10px;background:transparent;border:none;color:var(--muted);font-size:18px;cursor:pointer;}
+          .presetsList{flex:1;overflow-y:auto;margin:12px 0;}
+          .presetItem{background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:12px;padding:12px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;gap:12px;}
+          .presetItem.builtin{opacity:.7;}
+          .presetInfo{flex:1;min-width:0;}
+          .presetLabel{font-weight:600;font-size:14px;margin-bottom:4px;}
+          .presetQuery{font-size:11px;color:var(--muted);font-family:monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+          .presetActions{display:flex;gap:6px;}
+          .manageActions{display:flex;gap:10px;justify-content:space-between;margin-top:12px;padding-top:12px;border-top:1px solid var(--border);}
+        `;
+        document.head.appendChild(style);
+        modal = document.createElement('div');
+        modal.className = 'managePresetsOverlay';
+        modal.id = 'managePresetsModal';
+        modal.innerHTML = `
+          <div class="managePresetsCard">
+            <button class="managePresetsClose" aria-label="Close">×</button>
+            <h3>Manage Presets</h3>
+            <div class="presetsList" id="presetsListContainer"></div>
+          </div>
+        `;
+        document.body.appendChild(modal);
+
+        const closeBtn = modal.querySelector('.managePresetsClose');
+        closeBtn.addEventListener('click', () => modal.classList.remove('open'));
+        modal.addEventListener('click', (e) => { if (e.target === modal) modal.classList.remove('open'); });
+      }
+
+      const renderPresetsList = () => {
+        const container = modal.querySelector('#presetsListContainer');
+        const customPresets = getCustomPresets();
+        
+        if (customPresets.length === 0) {
+          container.innerHTML = '<div style="text-align:center;padding:20px;color:var(--muted);">No custom presets saved yet.<br><br>Load a preset, make changes, and click "Save" to create your own.</div>';
+          return;
+        }
+        
+        container.innerHTML = customPresets.map(p => `
+          <div class="presetItem custom">
+            <div class="presetInfo">
+              <div class="presetLabel">
+                ${p.label}
+                <span class="preset-badge custom">Custom</span>
+              </div>
+              <div class="presetQuery">${p.query.split('\n')[0]}</div>
+            </div>
+            <div class="presetActions">
+              <button class="action secondary small" data-delete="${p.key}">Delete</button>
+            </div>
+          </div>
+        `).join('');
+
+        // Attach delete handlers
+        container.querySelectorAll('[data-delete]').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const key = btn.dataset.delete;
+            if (confirm('Delete this preset?')) {
+              deleteCustomPreset(key);
+              renderPresetsList();
+              setStatus('Preset deleted', 'success');
+            }
+          });
+        });
+      };
+
+      renderPresetsList();
+      modal.classList.add('open');
+    };
+
+    // ========================================
+    // EVENT HANDLERS
+    // ========================================
+    document.querySelectorAll('.copy-btn').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        const kind = btn.dataset.copy;
+        const getter = copyActions[kind];
+        if (getter) {
+          const text = getter();
+          try {
+            await navigator.clipboard.writeText(text);
+            flashCopyState(btn);
+          } catch (err) {
+            console.error('Copy failed', err);
+          }
+        }
+      });
+    });
+
+    document.querySelectorAll('.range-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const val = Number(btn.dataset.range);
+        if (!Number.isNaN(val)) {
+          selectedRangeMs = val;
+          highlightRangeButton();
+          
+          // Auto-update the time window
+          const now = Date.now();
+          toMs = now;
+          fromMs = now - selectedRangeMs;
+          lastFetchMs = now;
+          updateDisplay();
+          
+          // Also update the epoch numbers in the existing query
+          const currentQuery = searchBodyEl.value;
+          if (currentQuery.trim()) {
+            const updatedQuery = currentQuery
+              .replace(/(from:\s*)\d{13,}/gi, `$1${fromMs}`)
+              .replace(/(to:\s*)\d{13,}/gi, `$1${toMs}`);
+            searchBodyEl.value = updatedQuery;
+            autosizeTextarea();
+          }
+          
+          setStatus('Time window updated', 'idle');
+        }
+      });
+    });
+
+    // Custom Time Modal handlers
+    const toLocalDateInputValue = (date) => {
+      const y = date.getFullYear();
+      const m = String(date.getMonth() + 1).padStart(2, '0');
+      const d = String(date.getDate()).padStart(2, '0');
+      return `${y}-${m}-${d}`;
+    };
+
+    customTimeBtn.addEventListener('click', () => {
+      // Pre-populate with current times (local date + local time, so they agree)
+      const fromDate = new Date(fromMs);
+      const toDate = new Date(toMs);
+
+      fromDateInput.value = toLocalDateInputValue(fromDate);
+      fromTimeInput.value = fromDate.toTimeString().split(' ')[0];
+      toDateInput.value = toLocalDateInputValue(toDate);
+      toTimeInput.value = toDate.toTimeString().split(' ')[0];
+
+      customTimeModal.classList.add('open');
+    });
+
+    const closeCustomTimeModal = () => {
+      customTimeModal.classList.remove('open');
+    };
+
+    customTimeModalClose.addEventListener('click', closeCustomTimeModal);
+    cancelCustomTimeBtn.addEventListener('click', closeCustomTimeModal);
+    customTimeModal.addEventListener('click', (e) => {
+      if (e.target === customTimeModal) closeCustomTimeModal();
+    });
+
+    applyCustomTimeBtn.addEventListener('click', () => {
+      try {
+        // Parse the custom date/time inputs
+        const fromDateTimeStr = `${fromDateInput.value}T${fromTimeInput.value}`;
+        const toDateTimeStr = `${toDateInput.value}T${toTimeInput.value}`;
+        
+        const newFromMs = new Date(fromDateTimeStr).getTime();
+        const newToMs = new Date(toDateTimeStr).getTime();
+        
+        if (isNaN(newFromMs) || isNaN(newToMs)) {
+          alert('Invalid date/time. Please check your inputs.');
+          return;
+        }
+        
+        if (newFromMs >= newToMs) {
+          alert('From time must be before To time.');
+          return;
+        }
+        
+        // Update the global times
+        fromMs = newFromMs;
+        toMs = newToMs;
+        lastFetchMs = Date.now();
+        selectedRangeMs = toMs - fromMs;
+        
+        updateDisplay();
+        
+        // Clear all range button highlights and activate Custom Time button
+        document.querySelectorAll('.range-btn').forEach(btn => btn.classList.remove('active'));
+        customTimeBtn.classList.add('active');
+        
+        // Update timestamps in query
+        const currentQuery = searchBodyEl.value;
+        if (currentQuery.trim()) {
+          const updatedQuery = currentQuery
+            .replace(/(from:\s*)\d{13,}/gi, `$1${fromMs}`)
+            .replace(/(to:\s*)\d{13,}/gi, `$1${toMs}`);
+          searchBodyEl.value = updatedQuery;
+          autosizeTextarea();
+        }
+        
+        setStatus('Custom time range applied', 'idle');
+        closeCustomTimeModal();
+      } catch (err) {
+        alert('Error parsing date/time: ' + err.message);
+      }
+    });
+
+    runSearchBtn.addEventListener('click', runSearch);
+
+    // Auto-load preset when selection changes
+    presetSelect.addEventListener('change', () => {
+      if (presetSelect.value) {
+        loadPreset();
+      }
+    });
+
+    savePresetBtn.addEventListener('click', openSavePresetModal);
+
+    managePresetsBtn.addEventListener('click', openManagePresetsModal);
+
+    searchBodyEl.addEventListener('input', () => {
+      autosizeTextarea();
+      renderQueryParams();
+    });
+
+    // Remove old parse functionality that's no longer needed
+    // parsePathInput.addEventListener('input', runParse);
+
+    copyResponseBtn.addEventListener('click', async () => {
+      const text = searchOutputEl.textContent || '';
+      try {
+        await navigator.clipboard.writeText(text);
+        flashCopyState(copyResponseBtn);
+      } catch (err) {
+        console.error('Copy failed', err);
+      }
+    });
+
+    document.querySelectorAll('[data-copy-target]').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        const targetId = btn.getAttribute('data-copy-target');
+        const target = document.getElementById(targetId);
+        if (!target) return;
+        const text = target.value !== undefined ? target.value : target.textContent || '';
+        try {
+          await navigator.clipboard.writeText(text);
+          flashCopyState(btn);
+        } catch (err) {
+          console.error('Copy failed', err);
+        }
+      });
+    });
+
+    // History dropdown
+    historyBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      historyMenu.classList.toggle('open');
+      if (historyMenu.classList.contains('open')) {
+        renderHistoryMenu();
+      }
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!historyMenu.contains(e.target) && e.target !== historyBtn) {
+        historyMenu.classList.remove('open');
+      }
+    });
+
+    // Keyboard shortcuts
+    document.addEventListener('keydown', (e) => {
+      // Ctrl/Cmd + Enter = Send
+      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+        e.preventDefault();
+        runSearch();
+      }
+      // Escape = Close modals
+      if (e.key === 'Escape') {
+        document.querySelectorAll('.presetOverlay, .savePresetOverlay, .managePresetsOverlay, .authModalOverlay').forEach(el => {
+          el.classList.remove('open');
+        });
+        historyMenu.classList.remove('open');
+      }
+    });
+
+    // ========================================
+    // AUTH MODAL
+    // ========================================
+
+  function updateAuthIndicators() {
+    const b = localStorage.getItem('authBearer') || '';
+    const org = localStorage.getItem('authOrgName') || localStorage.getItem('authOrg') || getOrgIdValue() || '';
+    const userName = localStorage.getItem('authUserName') || '';
+    if (userNameEl) userNameEl.textContent = b ? (userName || 'Authenticated') : 'Not authenticated';
+    if (userOrgEl) userOrgEl.textContent = org || '';
+  }
+
+    async function validateAuthentication() {
+      const bearer = (localStorage.getItem(cacheKeyBearer) || '').trim();
+      const orgId = getOrgIdValue().trim();
+      
+      if (!bearer || !orgId) {
+        // No credentials stored
+        clearAuthAndUpdate();
+        return false;
+      }
+      
+      try {
+        const res = await fetch(`https://webexapis.com/v1/organizations/${encodeURIComponent(orgId)}`, { 
+          headers: { Authorization: `Bearer ${bearer}` }
+        });
+        
+        if (res.ok) {
+          const data = await res.json();
+          const orgName = data.displayName || data.name || data.organization?.displayName || data.organization?.name || orgId;
+          localStorage.setItem(cacheKeyOrgName, orgName);
+          updateAuthIndicators();
+          return true;
+        } else if (res.status === 401 || res.status === 403) {
+          // Token expired or invalid
+          console.log('Authentication expired or invalid');
+          clearAuthAndUpdate();
+          setStatus('Authentication expired - please re-authenticate', 'error');
+          return false;
+        }
+      } catch (err) {
+        console.error('Auth validation error:', err);
+        // Don't clear auth on network errors, just log it
+        return false;
+      }
+      
+      return false;
+    }
+
+    function clearAuthAndUpdate() {
+      localStorage.removeItem(cacheKeyBearer);
+      localStorage.removeItem(cacheKeyOrg);
+      localStorage.removeItem(cacheKeyOrgName);
+      localStorage.removeItem('authUserName');
+      localStorage.removeItem('authRefreshToken');
+      localStorage.removeItem('authExpiresAt');
+      updateAuthIndicators();
+    }
+
+    // Validate authentication on page load
+    validateAuthentication();
+    
+    // Revalidate every 30 minutes
+    setInterval(validateAuthentication, 30 * 60 * 1000);
+
+    window.injectBotSearch = injectBotSearch;
+    window.addEventListener(BOT_EVENT_NAME, (event) => {
+      if (event && event.detail) {
+        injectBotSearch(event.detail);
+      }
+    });
+
+    // ========================================
+    // INITIALIZATION
+    // ========================================
+    highlightRangeButton();
+    fillPresetSelect();
+    loadQueryHistory();
+    updateAuthIndicators();
+    if (signOutBtn) {
+      signOutBtn.addEventListener('click', () => {
+        localStorage.removeItem(cacheKeyBearer);
+        localStorage.removeItem(cacheKeyOrg);
+        localStorage.removeItem(cacheKeyOrgName);
+        localStorage.removeItem('authUserName');
+        localStorage.removeItem('authRefreshToken');
+        localStorage.removeItem('authExpiresAt');
+        window.location.href = '../../index.html';
+      });
+    }
+
+    document.addEventListener('click', (event) => {
+    });
+
+    document.addEventListener('keydown', (event) => {
+    });
+    // Initialize default time window (7d)
+    const now = Date.now();
+    toMs = now;
+    fromMs = now - selectedRangeMs;
+    lastFetchMs = now;
+    updateDisplay();
+    highlightRangeButton();
+    
+    autosizeTextarea();
+    renderQueryParams();
+  </script>
+
+
+  
+  <!-- IMI chat widget (matches the provided loader configuration) -->
+  <div id="divicw"
+       data-bind="FA7A140D-146B-4BE8-8E2C-6CFCED44E432"
+       data-org=""
+       data-guid="d69b6739-f390-4523-bae9-ee4210c61670"></div>
+
+  <script>
+  (function () {
+    try {
+      var container = document.getElementById("divicw");
+      var script = document.createElement("script");
+      script.src = "https://media.imi.chat/widget/js/imichatinit.js?t=" + new Date().toISOString();
+      container.insertAdjacentElement("afterend", script);
+      script.onload = function () {
+        console.log("Live chat widget loaded successfully");
+      };
+    } catch (err) {
+      console.error("Chat widget load error", err);
+    }
+  })();
+  </script>
+</body>
+</html>

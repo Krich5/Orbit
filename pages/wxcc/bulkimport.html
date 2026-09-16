@@ -1,0 +1,498 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="light" />
+  <title>Bulk Import - Orbit</title>
+  <link rel="icon" type="image/png" href="../../assets/images/WxCC_Icon-192.png" />
+  <link rel="stylesheet" href="../../assets/css/theme.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    main { padding: 32px 0 80px; }
+
+    /* ── Tab strip (same hand-rolled idiom as aiagent.html's mode switch) ── */
+    .cg-tabs { display: flex; gap: 8px; flex-wrap: wrap; }
+    .cg-tab {
+      border: 1px solid var(--border); background: var(--input); color: var(--fg);
+      padding: 9px 16px; border-radius: 12px; font-size: 0.85rem; font-weight: 600;
+      cursor: pointer; font-family: inherit;
+    }
+    .cg-tab.active { background: linear-gradient(135deg,#2196f3,#1976d2); color: #fff; border-color: #1976d2; }
+    .cg-panel { display: none; }
+    .cg-panel.active { display: block; }
+
+    .cg-panel-toolbar { display: flex; gap: 10px; align-items: center; justify-content: space-between; margin: 18px 0 14px; flex-wrap: wrap; }
+    .cg-panel-toolbar .cg-toolbar-left { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+    .cg-note { font-size: 0.82rem; color: var(--muted); margin: 16px 0 10px; }
+    .cg-limitation { font-size: 0.78rem; color: var(--muted); background: rgba(255,193,7,0.08); border: 1px solid rgba(255,193,7,0.25); border-radius: 10px; padding: 8px 12px; margin: 16px 0 14px; }
+
+    /* ── Sheet grid (adapted from pages/wxc/workspaces.html) ── */
+    .cg-sheetWrap { border: 1px solid var(--border); border-radius: 14px; overflow: auto; background: var(--card); max-width: 100%; }
+    table.cg-sheet { width: 100%; border-collapse: separate; border-spacing: 0; min-width: 900px; }
+    table.cg-sheet th, table.cg-sheet td { padding: 8px 10px; border-bottom: 1px solid var(--border); border-right: 1px solid rgba(255,255,255,0.06); }
+    table.cg-sheet th { position: sticky; top: 0; background: var(--panel); text-align: left; font-weight: 700; color: var(--accent); z-index: 1; font-size: 11px; letter-spacing: 0.02em; white-space: nowrap; }
+    .cg-fill-down { border: none; background: rgba(33,150,243,0.15); color: #2196f3; border-radius: 6px; width: 18px; height: 18px; line-height: 16px; font-size: 11px; cursor: pointer; padding: 0; margin-left: 4px; vertical-align: middle; }
+    .cg-fill-down:hover { background: rgba(33,150,243,0.3); }
+    table.cg-sheet tr:last-child td { border-bottom: none; }
+    table.cg-sheet th:last-child, table.cg-sheet td:last-child { border-right: none; }
+    table.cg-sheet td { font-size: 13px; background: var(--card); }
+    table.cg-sheet td input, table.cg-sheet td select { width: 100%; min-width: 90px; background: transparent; border: none; color: var(--fg); outline: none; padding: 0 6px; height: 28px; font-size: 13px; box-sizing: border-box; font-family: inherit; }
+    table.cg-sheet td select { cursor: pointer; }
+    table.cg-sheet tbody tr:nth-child(even) td { background: var(--input); }
+    table.cg-sheet tbody tr:hover td { background: rgba(33,150,243,0.08); }
+    table.cg-sheet tr.cg-row-error td { background: rgba(248,113,113,0.08) !important; }
+    table.cg-sheet tr.cg-row-done td { background: rgba(34,197,94,0.06) !important; }
+    .cg-status-icon { font-size: 1rem; }
+    .cg-status-icon.cg-status-active { color: #2196f3; }
+    .cg-status-icon.cg-status-done { color: #22c55e; }
+    .cg-status-icon.cg-status-error { color: #f87171; cursor: help; }
+
+    /* ── Custom autocomplete dropdown (replaces native <datalist> popups) ── */
+    .cg-suggest-box { position: fixed; z-index: 10000; max-height: 260px; overflow-y: auto; background: var(--panel); border: 1px solid var(--border); border-radius: 10px; box-shadow: 0 12px 30px rgba(0,0,0,0.4); }
+    .cg-suggest-box.hidden { display: none; }
+    .cg-suggest-item { padding: 8px 12px; font-size: 0.85rem; color: var(--fg); cursor: pointer; white-space: nowrap; }
+    .cg-suggest-item:hover { background: rgba(33,150,243,0.18); }
+
+    /* ── Queue Type — compact pill selector, merged into the same card as
+       Configure Queue Settings (was a separate row of large cards) ── */
+    .step-label { margin: 0 0 12px; font-size: 1rem; letter-spacing: 0.25em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+    .queue-type-grid { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+    .queue-type-card { display: flex; align-items: center; gap: 8px; border-radius: 10px; border: 1px solid var(--border); background: var(--input); color: var(--fg); cursor: pointer; font-family: inherit; padding: 8px 14px; transition: background 0.15s ease, border-color 0.15s ease; }
+    .queue-type-card:hover { border-color: rgba(124,214,255,0.45); }
+    .queue-type-card.active { background: linear-gradient(135deg,#2196f3,#1976d2); border-color: #1976d2; color: #fff; }
+    .queue-type-card.disabled { cursor: not-allowed; opacity: 0.5; }
+    .queue-type-card.disabled:hover { border-color: var(--border); }
+    .queue-type-icon { width: 16px; height: 16px; flex-shrink: 0; }
+    .queue-type-title { font-size: 0.85rem; font-weight: 600; }
+
+    /* ── Shared settings panel (e.g. Configure Queue Settings) ── */
+    .cg-shared-settings { border: 1px solid var(--border); border-radius: 14px; padding: 14px 18px; background: var(--card); margin: 16px 0; }
+    .cg-shared-settings-title { font-weight: 700; font-size: 0.9rem; margin-bottom: 12px; }
+    .cg-shared-settings-hint { font-weight: 400; font-size: 0.78rem; color: var(--muted); margin-left: 8px; }
+    .cg-shared-settings-grid { display: flex; gap: 20px; flex-wrap: wrap; align-items: end; }
+    .cg-shared-field { display: flex; flex-direction: column; gap: 6px; font-size: 0.78rem; color: var(--muted); }
+    .cg-shared-field input:not([type="checkbox"]), .cg-shared-field select { border-radius: 10px; border: 1px solid var(--border); background: var(--input); color: var(--fg); padding: 8px 10px; font-family: inherit; font-size: 0.85rem; min-width: 160px; }
+    .cg-shared-checkbox { flex-direction: row; align-items: center; gap: 8px; font-size: 0.85rem; color: var(--fg); }
+    .cg-shared-checkbox input { width: auto; }
+
+    .cg-results-box { border: 1px solid var(--border); border-radius: 14px; padding: 16px 20px; background: rgba(255,255,255,0.02); margin-top: 14px; }
+    .cg-results-title { font-size: 1rem; font-weight: 700; }
+    .cg-ok { color: #22c55e; }
+    .cg-err { color: #f87171; }
+    .cg-results-detail { font-size: 0.82rem; color: var(--muted); margin-top: 8px; line-height: 1.5; }
+
+    .hidden { display: none !important; }
+
+    /* ── Small modal for Entry Points' TTS / phone-number sub-editors ── */
+    .cg-modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.55); display: none; align-items: center; justify-content: center; z-index: 9999; padding: 16px; }
+    .cg-modal-overlay.open { display: flex; }
+    .cg-modal-card { width: 100%; max-width: 560px; max-height: 85vh; overflow-y: auto; background: var(--panel); border: 1px solid var(--border); border-radius: 18px; padding: 22px 26px; box-shadow: 0 25px 60px rgba(0,0,0,0.4); }
+    .cg-modal-card h3 { margin: 0 0 14px; }
+    .cg-modal-field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
+    .cg-modal-field span { font-size: 0.78rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); }
+    .cg-modal-field textarea, .cg-modal-field input { border-radius: 12px; border: 1px solid var(--border); background: var(--input); color: var(--fg); padding: 10px 12px; font-family: inherit; font-size: 0.9rem; }
+    .cg-phone-row { display: flex; gap: 8px; margin-bottom: 8px; }
+    .cg-phone-row input, .cg-phone-row select { flex: 1; }
+    .cg-modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 16px; }
+
+    /* ── Business Hours shift builder (Bulk Import) — mirrors the Setup
+       Wizard's Panel 3 shift rows so both tools share one mental model. ── */
+    .bh-preset-btn { padding: 7px 14px; border-radius: 20px; border: 1px solid var(--border); background: var(--input); color: var(--fg); font-size: 0.82rem; font-weight: 600; cursor: pointer; transition: all 0.15s; font-family: inherit; }
+    .bh-preset-btn:hover { border-color: rgba(33,150,243,0.5); background: rgba(33,150,243,0.08); }
+    .bh-preset-btn.selected { border-color: #2196f3; background: rgba(33,150,243,0.12); color: #2196f3; }
+    .bh-shifts-list { display: flex; flex-direction: column; gap: 8px; margin: 12px 0; }
+    .bh-shift-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 12px; padding: 10px 14px; width: 100%; box-sizing: border-box; }
+    body:not(.dark-mode) .bh-shift-row { background: rgba(0,0,0,0.02); }
+    .bh-shift-name { flex: 1 1 140px; min-width: 0; font-size: 0.85rem; }
+    .bh-day-pills { display: flex; gap: 5px; flex-shrink: 0; }
+    .bh-day-pill { padding: 6px 10px; border-radius: 8px; font-size: 0.78rem; font-weight: 600; letter-spacing: 0.03em; border: 1px solid var(--border); background: transparent; color: var(--muted); cursor: pointer; transition: all 0.12s; }
+    .bh-day-pill:hover { border-color: rgba(33,150,243,0.5); color: var(--fg); }
+    .bh-day-pill.active { border-color: #2196f3; background: rgba(33,150,243,0.15); color: #2196f3; font-weight: 700; }
+    .bh-shift-time { width: 100px; flex-shrink: 0; font-size: 0.85rem; }
+    .bh-time-sep { color: var(--muted); font-size: 0.82rem; white-space: nowrap; }
+    .btn-icon { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 8px; border: 1px solid var(--border); background: var(--input); cursor: pointer; font-size: 0.9rem; transition: all 0.15s; color: var(--fg); flex-shrink: 0; }
+    .btn-icon:hover { background: rgba(33,150,243,0.15); border-color: rgba(33,150,243,0.5); }
+    .btn-icon.remove:hover { background: rgba(248,113,113,0.15); border-color: rgba(248,113,113,0.5); }
+    .btn-icon.clone:hover { background: rgba(34,197,94,0.15); border-color: rgba(34,197,94,0.5); color: #22c55e; }
+
+    /* ── Searchable dropdown — replaces native <select> popups everywhere
+       on this page (grid cells and standalone selects alike). ── */
+    .cg-search-select-trigger { display: block; width: 100%; box-sizing: border-box; text-align: left; cursor: pointer; font-family: inherit; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; border-radius: 10px; border: 1px solid var(--border); background: var(--input); color: var(--fg); padding: 8px 26px 8px 10px; font-size: 0.85rem; line-height: 1.3; min-width: 160px; min-height: 36px; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238a97a8' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 8px center; background-size: 13px; }
+    .cg-search-select-trigger:hover { border-color: rgba(33,150,243,0.5); }
+    .cg-search-select-trigger.cg-search-select-empty { color: var(--muted); }
+    .cg-search-select-trigger:disabled { cursor: not-allowed; opacity: 0.55; background-image: none; }
+    table.cg-sheet td .cg-search-select-trigger { border: 1px solid var(--border); background-color: var(--input); border-radius: 6px; box-sizing: border-box; height: 24px; min-height: 24px; padding: 0 22px 0 6px; font-size: 13px; min-width: 90px; background-position: right 4px center; background-size: 11px; }
+    table.cg-sheet td .cg-search-select-trigger:hover { border-color: rgba(33,150,243,0.5); background-color: rgba(33,150,243,0.08); }
+    .cg-search-select-panel { position: fixed; z-index: 10001; background: var(--panel); border: 1px solid var(--border); border-radius: 10px; box-shadow: 0 12px 30px rgba(0,0,0,0.4); overflow: hidden; }
+    .cg-search-select-panel.hidden { display: none; }
+    .cg-search-select-input { width: 100%; box-sizing: border-box; border: none; border-bottom: 1px solid var(--border); background: var(--input); color: var(--fg); padding: 8px 12px; font-family: inherit; font-size: 0.85rem; outline: none; }
+    .cg-search-select-list { max-height: 240px; overflow-y: auto; }
+    .cg-search-select-option { padding: 7px 12px; font-size: 0.85rem; color: var(--fg); cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .cg-search-select-option:hover { background: rgba(33,150,243,0.18); }
+    .cg-search-select-option.active { background: rgba(33,150,243,0.12); font-weight: 600; }
+    .cg-search-select-nomatch { padding: 10px 12px; font-size: 0.8rem; color: var(--muted); }
+
+    /* ── Run progress modal ── */
+    .cg-run-count { font-size: 0.82rem; color: var(--muted); margin-bottom: 10px; }
+    .cg-run-list { max-height: 340px; overflow-y: auto; display: flex; flex-direction: column; gap: 2px; border: 1px solid var(--border); border-radius: 10px; padding: 6px; }
+    .cg-run-item { display: flex; align-items: center; gap: 10px; padding: 6px 8px; border-radius: 8px; font-size: 0.85rem; }
+    .cg-run-item .cg-status-icon { font-size: 0.9rem; width: 16px; text-align: center; flex-shrink: 0; }
+    .cg-run-item.cg-run-error { background: rgba(248,113,113,0.08); }
+    .cg-run-item.cg-run-done { background: rgba(34,197,94,0.06); }
+  </style>
+</head>
+<body class="dark-mode api-bulkimport">
+  <script>if (localStorage.getItem("tpRailExpanded") === "true") document.body.classList.add("tp-rail-expanded");</script>
+  <api-tools-header basepath="../../"></api-tools-header>
+
+  <main>
+    <div class="wrap wide contentWrap">
+      <section class="card">
+        <div class="pageHeader">
+          <div>
+            <h1>Bulk Import</h1>
+            <p class="lead">Fill in rows for Teams, Business Hours, Skills, Queues, Flows, Inbound Entry Points, Outbound Entry Points, Desktop Profiles, and Users — then run each tab to bulk-create them in Webex Contact Center.</p>
+          </div>
+          <div class="pageHeaderActions">
+            <button class="btn secondary" id="cgClearAllBtn" type="button">Clear All</button>
+            <button class="btn" id="cgRunAllBtn" type="button">Run All ▶</button>
+          </div>
+        </div>
+
+        <div class="cg-tabs" role="tablist" aria-label="Bulk Import tabs">
+          <button class="cg-tab active" type="button" data-tab="teams" role="tab" aria-selected="true">Teams</button>
+          <button class="cg-tab" type="button" data-tab="businesshours" role="tab" aria-selected="false">Business Hours</button>
+          <button class="cg-tab" type="button" data-tab="skills" role="tab" aria-selected="false">Skills</button>
+          <button class="cg-tab" type="button" data-tab="queues" role="tab" aria-selected="false">Queues</button>
+          <button class="cg-tab" type="button" data-tab="flows" role="tab" aria-selected="false">Flows</button>
+          <button class="cg-tab" type="button" data-tab="entrypoints" role="tab" aria-selected="false">Inbound Entry Points</button>
+          <button class="cg-tab" type="button" data-tab="outbound" role="tab" aria-selected="false">Outbound Entry Points</button>
+          <button class="cg-tab" type="button" data-tab="desktopprofiles" role="tab" aria-selected="false">Desktop Profiles</button>
+          <button class="cg-tab" type="button" data-tab="users" role="tab" aria-selected="false">Users</button>
+        </div>
+
+        <p id="cgAuthNote" class="cg-limitation hidden">You're not signed in yet — use the Sign In link in the side rail (Settings) before running a tab. You can still fill in rows without signing in.</p>
+
+        <!-- ===== Teams ===== -->
+        <section class="cg-panel active" data-panel="teams">
+          <div class="cg-panel-toolbar">
+            <div class="cg-toolbar-left">
+              <button class="btn secondary sm" type="button" data-download-template="teams">⬇ CSV Template</button>
+              <label class="btn secondary sm" style="cursor:pointer;">Upload CSV<input type="file" accept=".csv" class="hidden" data-upload-csv="teams"></label>
+              <button class="btn secondary sm" type="button" data-clear-tab="teams">Clear All</button>
+            </div>
+            <button class="btn primary" type="button" data-run-tab="teams">Run Teams ▶</button>
+          </div>
+          <div class="cg-sheetWrap"><table class="cg-sheet" id="cgSheetTeams"></table></div>
+          <div class="cg-results-box hidden" id="cgResultsTeams"></div>
+        </section>
+
+        <!-- ===== Business Hours ===== -->
+        <section class="cg-panel" data-panel="businesshours">
+          <div class="cg-panel-toolbar">
+            <div class="cg-toolbar-left">
+              <button class="btn secondary sm" type="button" data-download-template="businesshours">⬇ CSV Template</button>
+              <label class="btn secondary sm" style="cursor:pointer;">Upload CSV<input type="file" accept=".csv" class="hidden" data-upload-csv="businesshours"></label>
+              <button class="btn secondary sm" type="button" data-clear-tab="businesshours">Clear All</button>
+            </div>
+            <button class="btn primary" type="button" data-run-tab="businesshours">Run Business Hours ▶</button>
+          </div>
+          <div class="cg-sheetWrap"><table class="cg-sheet" id="cgSheetBusinessHours"></table></div>
+          <div class="cg-results-box hidden" id="cgResultsBusinessHours"></div>
+        </section>
+
+        <!-- ===== Skills ===== -->
+        <section class="cg-panel" data-panel="skills">
+          <div class="cg-panel-toolbar">
+            <div class="cg-toolbar-left">
+              <button class="btn secondary sm" type="button" data-download-template="skills">⬇ CSV Template</button>
+              <label class="btn secondary sm" style="cursor:pointer;">Upload CSV<input type="file" accept=".csv" class="hidden" data-upload-csv="skills"></label>
+              <button class="btn secondary sm" type="button" data-clear-tab="skills">Clear All</button>
+            </div>
+            <button class="btn primary" type="button" data-run-tab="skills">Run Skills ▶</button>
+          </div>
+          <div class="cg-sheetWrap"><table class="cg-sheet" id="cgSheetSkills"></table></div>
+          <div class="cg-results-box hidden" id="cgResultsSkills"></div>
+        </section>
+
+        <!-- ===== Queues ===== -->
+        <section class="cg-panel" data-panel="queues">
+          <div class="cg-shared-settings" id="cgQueueSettingsPanel">
+            <div class="cg-shared-settings-title">Queue Type</div>
+            <div class="queue-type-grid" id="cgQueueTypeGrid">
+              <button type="button" class="queue-type-card active" data-queue-type="TEAM_BASED" aria-pressed="true">
+                <svg class="queue-type-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M17 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2"/>
+                  <circle cx="9" cy="7" r="4"/>
+                  <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                  <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                </svg>
+                <span class="queue-type-title">Teams</span>
+              </button>
+              <button type="button" class="queue-type-card" data-queue-type="SKILL_BASED_FLOW" aria-pressed="false">
+                <svg class="queue-type-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <circle cx="8" cy="8" r="3"/>
+                  <circle cx="16" cy="16" r="3"/>
+                  <path d="M10.5 10.5 13.5 13.5"/>
+                  <path d="M18.6 5.4a2 2 0 1 1-2.83-2.83 2 2 0 0 1 2.83 2.83Z"/>
+                  <path d="m17.2 6.8-1.7 1.7"/>
+                </svg>
+                <span class="queue-type-title">Skills to Flow</span>
+              </button>
+              <button type="button" class="queue-type-card" data-queue-type="SKILL_BASED_QUEUE" aria-pressed="false">
+                <svg class="queue-type-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="m9 12 2 2 4-4"/>
+                  <path d="M12 2v4"/>
+                  <path d="m16.24 7.76 2.83-2.83"/>
+                  <path d="M20 12h-4"/>
+                  <path d="m16.24 16.24 2.83 2.83"/>
+                  <path d="M12 18v4"/>
+                  <path d="m4.93 19.07 2.83-2.83"/>
+                  <path d="M4 12h4"/>
+                  <path d="m4.93 4.93 2.83 2.83"/>
+                  <circle cx="12" cy="12" r="8"/>
+                </svg>
+                <span class="queue-type-title">Skills to Queue</span>
+              </button>
+            </div>
+            <div class="cg-shared-settings-title">Configure Queue Settings <span class="cg-shared-settings-hint">Applies to every queue created on this run</span></div>
+            <div class="cg-shared-settings-grid">
+              <label class="cg-shared-field">
+                <span>Service Level Threshold</span>
+                <input type="number" id="cgQueueSlt" value="30">
+              </label>
+              <label class="cg-shared-field">
+                <span>Max Time In Queue</span>
+                <input type="number" id="cgQueueMaxTime" value="300">
+              </label>
+              <label class="cg-shared-field">
+                <span>Music On Hold</span>
+                <select id="cgQueueMusicOnHold"></select>
+              </label>
+              <label class="cg-shared-field cg-shared-checkbox">
+                <input type="checkbox" id="cgQueueMonitoring" checked>
+                <span>Monitoring</span>
+              </label>
+              <label class="cg-shared-field cg-shared-checkbox">
+                <input type="checkbox" id="cgQueueRecording">
+                <span>Recording</span>
+              </label>
+              <label class="cg-shared-field cg-shared-checkbox">
+                <input type="checkbox" id="cgQueueRecordAll">
+                <span>Record All Calls</span>
+              </label>
+            </div>
+          </div>
+          <div class="cg-panel-toolbar">
+            <div class="cg-toolbar-left">
+              <button class="btn secondary sm" type="button" data-download-template="queues">⬇ CSV Template</button>
+              <label class="btn secondary sm" style="cursor:pointer;">Upload CSV<input type="file" accept=".csv" class="hidden" data-upload-csv="queues"></label>
+              <button class="btn secondary sm" type="button" data-clear-tab="queues">Clear All</button>
+            </div>
+            <button class="btn primary" type="button" data-run-tab="queues">Run Queues ▶</button>
+          </div>
+          <div class="cg-sheetWrap"><table class="cg-sheet" id="cgSheetQueues"></table></div>
+          <div class="cg-results-box hidden" id="cgResultsQueues"></div>
+        </section>
+
+        <!-- ===== Flows ===== -->
+        <section class="cg-panel" data-panel="flows">
+          <div class="cg-shared-settings" id="cgFlowTemplatePanel">
+            <div class="cg-shared-settings-title">Template Source</div>
+            <div class="queue-type-grid" id="cgFlowTemplateModeGrid">
+              <button type="button" class="queue-type-card active" data-template-mode="static">
+                <span class="queue-type-title">Static Template</span>
+              </button>
+              <button type="button" class="queue-type-card" data-template-mode="copy">
+                <span class="queue-type-title">Copy from Tenant Flow</span>
+              </button>
+            </div>
+            <div class="cg-shared-settings-grid hidden" id="cgFlowCopyPicker">
+              <label class="cg-shared-field" style="flex:1;">
+                <span>Tenant Flow</span>
+                <select id="cgFlowCopySelect"><option value="">Select a flow…</option></select>
+              </label>
+            </div>
+            <p id="cgFlowTemplateStatus" class="cg-shared-settings-hint" style="display:block; margin: 10px 0 0;"></p>
+          </div>
+          <div class="cg-panel-toolbar">
+            <div class="cg-toolbar-left">
+              <button class="btn secondary sm" type="button" data-download-template="flows">⬇ CSV Template</button>
+              <label class="btn secondary sm" style="cursor:pointer;">Upload CSV<input type="file" accept=".csv" class="hidden" data-upload-csv="flows"></label>
+              <button class="btn secondary sm" type="button" data-clear-tab="flows">Clear All</button>
+            </div>
+            <button class="btn primary" type="button" data-run-tab="flows">Run Flows ▶</button>
+          </div>
+          <div class="cg-sheetWrap"><table class="cg-sheet" id="cgSheetFlows"></table></div>
+          <div class="cg-results-box hidden" id="cgResultsFlows"></div>
+        </section>
+
+        <!-- ===== Entry Points ===== -->
+        <section class="cg-panel" data-panel="entrypoints">
+          <div class="cg-panel-toolbar">
+            <div class="cg-toolbar-left">
+              <button class="btn secondary sm" type="button" data-download-template="entrypoints">⬇ CSV Template</button>
+              <label class="btn secondary sm" style="cursor:pointer;">Upload CSV<input type="file" accept=".csv" class="hidden" data-upload-csv="entrypoints"></label>
+              <button class="btn secondary sm" type="button" data-clear-tab="entrypoints">Clear All</button>
+            </div>
+            <button class="btn primary" type="button" data-run-tab="entrypoints">Run Inbound Entry Points ▶</button>
+          </div>
+          <div class="cg-sheetWrap"><table class="cg-sheet" id="cgSheetEntryPoints"></table></div>
+          <div class="cg-results-box hidden" id="cgResultsEntryPoints"></div>
+        </section>
+
+        <!-- ===== Outbound ===== -->
+        <section class="cg-panel" data-panel="outbound">
+          <p class="cg-note">Clones the outdial flow template with a valid tenant number as the Caller ID, publishes it, then creates an OUTBOUND entry point named "&lt;Name&gt;_Outbound" wired to that flow.</p>
+          <div class="cg-panel-toolbar">
+            <div class="cg-toolbar-left">
+              <button class="btn secondary sm" type="button" data-download-template="outbound">⬇ CSV Template</button>
+              <label class="btn secondary sm" style="cursor:pointer;">Upload CSV<input type="file" accept=".csv" class="hidden" data-upload-csv="outbound"></label>
+              <button class="btn secondary sm" type="button" data-clear-tab="outbound">Clear All</button>
+            </div>
+            <button class="btn primary" type="button" data-run-tab="outbound">Run Outbound Entry Points ▶</button>
+          </div>
+          <div class="cg-sheetWrap"><table class="cg-sheet" id="cgSheetOutbound"></table></div>
+          <div class="cg-results-box hidden" id="cgResultsOutbound"></div>
+        </section>
+
+        <!-- ===== Desktop Profiles ===== -->
+        <section class="cg-panel" data-panel="desktopprofiles">
+          <p class="cg-note">Multi-value fields (dial plans, wrap-up/idle codes, consult targets, buddy teams) take a comma-separated list of names — leave a field blank to mean "All".</p>
+          <div class="cg-panel-toolbar">
+            <div class="cg-toolbar-left">
+              <button class="btn secondary sm" type="button" data-download-template="desktopprofiles">⬇ CSV Template</button>
+              <label class="btn secondary sm" style="cursor:pointer;">Upload CSV<input type="file" accept=".csv" class="hidden" data-upload-csv="desktopprofiles"></label>
+              <button class="btn secondary sm" type="button" data-clear-tab="desktopprofiles">Clear All</button>
+            </div>
+            <button class="btn primary" type="button" data-run-tab="desktopprofiles">Run Desktop Profiles ▶</button>
+          </div>
+          <div class="cg-sheetWrap"><table class="cg-sheet" id="cgSheetDesktopProfiles"></table></div>
+          <div class="cg-results-box hidden" id="cgResultsDesktopProfiles"></div>
+        </section>
+
+        <!-- ===== Users ===== -->
+        <section class="cg-panel" data-panel="users">
+          <div class="cg-panel-toolbar">
+            <div class="cg-toolbar-left">
+              <label class="field-group" style="display:flex; align-items:center; gap:8px; font-size:0.85rem; color:var(--muted);">
+                Site
+                <select id="cgUsersSiteSelect" style="border-radius:10px; border:1px solid var(--border); background:var(--input); color:var(--fg); padding:6px 10px;"></select>
+              </label>
+              <button class="btn secondary sm" type="button" data-download-template="users">⬇ CSV Template</button>
+              <label class="btn secondary sm" style="cursor:pointer;">Upload CSV<input type="file" accept=".csv" class="hidden" data-upload-csv="users"></label>
+              <button class="btn secondary sm" type="button" data-clear-tab="users">Clear All</button>
+            </div>
+            <button class="btn primary" type="button" data-run-tab="users">Run Users ▶</button>
+          </div>
+          <div class="cg-sheetWrap"><table class="cg-sheet" id="cgSheetUsers"></table></div>
+          <div class="cg-results-box hidden" id="cgResultsUsers"></div>
+        </section>
+
+      </section>
+    </div>
+  </main>
+
+  <!-- Flows sub-editors -->
+  <div class="cg-modal-overlay" id="cgFlowTtsModal">
+    <div class="cg-modal-card">
+      <h3>TTS Messages</h3>
+      <div id="cgFlowTtsFields"></div>
+      <div class="cg-modal-actions">
+        <button class="btn secondary" type="button" data-modal-cancel>Cancel</button>
+        <button class="btn primary" type="button" data-modal-save="flowTts">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="cg-modal-overlay" id="cgMenuOptionsModal">
+    <div class="cg-modal-card">
+      <h3>Menu Options</h3>
+      <div id="cgMenuOptionRows"></div>
+      <button class="btn secondary sm" type="button" id="cgAddMenuOptionRow">+ Add option</button>
+      <div class="cg-modal-actions">
+        <button class="btn secondary" type="button" data-modal-cancel>Cancel</button>
+        <button class="btn primary" type="button" data-modal-save="menuOptions">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="cg-modal-overlay" id="cgTransferNumbersModal">
+    <div class="cg-modal-card">
+      <h3>Transfer Numbers</h3>
+      <div id="cgTransferNumberFields"></div>
+      <div class="cg-modal-actions">
+        <button class="btn secondary" type="button" data-modal-cancel>Cancel</button>
+        <button class="btn primary" type="button" data-modal-save="transferNumbers">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Business Hours shift builder -->
+  <div class="cg-modal-overlay" id="cgBhShiftsModal">
+    <div class="cg-modal-card" style="max-width: 720px;">
+      <h3>Business Hours</h3>
+      <div style="display:flex; gap:8px; flex-wrap:wrap;">
+        <button type="button" class="bh-preset-btn" data-bh-preset="247">24 / 7</button>
+        <button type="button" class="bh-preset-btn" data-bh-preset="mf85">Mon–Fri 8–5</button>
+        <button type="button" class="bh-preset-btn" data-bh-preset="mf95">Mon–Fri 9–5</button>
+      </div>
+      <div id="cgBhShiftRows" class="bh-shifts-list"></div>
+      <button type="button" class="btn secondary sm" id="cgAddBhShiftRow">+ Add shift</button>
+      <div class="cg-modal-actions">
+        <button class="btn secondary" type="button" data-modal-cancel>Cancel</button>
+        <button class="btn primary" type="button" data-modal-save="bhShifts">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Entry Point sub-editor -->
+  <div class="cg-modal-overlay" id="cgPhoneModal">
+    <div class="cg-modal-card">
+      <h3>Phone Numbers</h3>
+      <div id="cgPhoneRows"></div>
+      <button class="btn secondary sm" type="button" id="cgAddPhoneRow">+ Add number</button>
+      <div class="cg-modal-actions">
+        <button class="btn secondary" type="button" data-modal-cancel>Cancel</button>
+        <button class="btn primary" type="button" data-modal-save="phones">Save</button>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- Generic confirm modal (replaces native confirm() everywhere in this page) -->
+  <div class="cg-modal-overlay" id="cgConfirmModal">
+    <div class="cg-modal-card" style="max-width: 440px;">
+      <h3 id="cgConfirmTitle"></h3>
+      <p id="cgConfirmBody" style="color: var(--muted); font-size: 0.9rem; margin: 0 0 18px;"></p>
+      <div class="cg-modal-actions">
+        <button class="btn secondary" type="button" id="cgConfirmCancel">Cancel</button>
+        <button class="btn primary" type="button" id="cgConfirmOk">OK</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Run progress modal (replaces the per-row Status column while a tab runs) -->
+  <div class="cg-modal-overlay" id="cgRunModal">
+    <div class="cg-modal-card" style="max-width: 480px;">
+      <h3 id="cgRunModalTitle">Running…</h3>
+      <div id="cgRunModalCount" class="cg-run-count"></div>
+      <div id="cgRunModalList" class="cg-run-list"></div>
+      <div class="cg-modal-actions">
+        <button class="btn secondary" type="button" id="cgRunModalCancel">Cancel</button>
+        <button class="btn primary hidden" type="button" id="cgRunModalClose">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+  <script src="../../assets/js/orbit-config.js"></script>
+  <script src="../../assets/js/components.js"></script>
+  <script src="../../assets/js/theme.js"></script>
+  <script src="../../assets/js/wxcc-wizard-common.js"></script>
+  <script src="../../assets/js/bulkimport-page.js"></script>
+</body>
+</html>

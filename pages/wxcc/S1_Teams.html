@@ -1,0 +1,644 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="light" />
+  <title>WxCC Wizard - Team Setup</title>
+  <link rel="icon" type="image/png" href="../../assets/images/WxCC_Icon-192.png" />
+  <link rel="stylesheet" href="../../assets/css/theme.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+
+    main {
+      padding:32px 0 64px;
+      width:100%;
+      margin:0 auto;
+      display:flex;
+      justify-content:flex-start;
+      align-items:flex-start;
+    }
+    .wizard-card {
+      width:100%;
+      background:var(--panel);
+      border:1px solid rgba(255,255,255,0.08);
+      border-radius:36px;
+      padding:28px 32px;
+      box-shadow:0 30px 60px rgba(0,0,0,0.35);
+      margin:0 auto;
+    }
+    .wizard-title {
+      margin:0 0 8px;
+      font-size:clamp(2.75rem,3vw,3.6rem);
+      font-weight:700;
+      color:var(--fg);
+    }
+    .wizard-stage { display:none; }
+    .wizard-stage.active { display:flex; justify-content:center; }
+    .form-panel {
+      border:1px solid rgba(255,255,255,0.1);
+      border-radius:26px;
+      padding:32px 40px;
+      background:rgba(255,255,255,0.02);
+      box-shadow:inset 0 0 0 1px rgba(255,255,255,0.03);
+      display:flex;
+      flex-direction:column;
+      gap:18px;
+      width:100%;
+    }
+    body:not(.dark-mode) .form-panel {
+      border-color:rgba(0,0,0,0.12);
+      background:rgba(255,255,255,0.92);
+      box-shadow:0 25px 60px rgba(0,0,0,0.12), inset 0 0 0 1px rgba(255,255,255,0.25);
+    }
+    .form-panel form {
+      display:flex;
+      flex-direction:column;
+      gap:20px;
+      width:100%;
+    }
+    .step-label {
+      margin:0 0 12px;
+      font-size:1rem;
+      letter-spacing:0.25em;
+      text-transform:uppercase;
+      color:var(--muted);
+      font-weight:600;
+    }
+    .step-label.form-heading {
+      font-size:1.15rem;
+      font-weight:700;
+      color:var(--fg);
+      letter-spacing:0.4em;
+    }
+    body.dark-mode .step-label.form-heading {
+      color:#fff;
+    }
+    .wizard-subtitle {
+      margin:0 0 28px;
+      font-size:1rem;
+      color:var(--muted);
+      letter-spacing:0.2em;
+      text-transform:uppercase;
+    }
+    .progress-bar {
+      display:flex;
+      gap:8px;
+      margin-bottom:32px;
+    }
+    .progress-step {
+      flex:1;
+      height:6px;
+      background:#d4d4d4;
+      border-radius:3px;
+    }
+    body.dark-mode .progress-step {
+      background:rgba(255,255,255,0.18);
+    }
+    .progress-step.complete {
+      background:linear-gradient(135deg,#2196f3,#1976d2);
+    }
+    .progress-step.active {
+      background:linear-gradient(135deg,#22c55e,#10b981);
+    }
+    body.dark-mode .progress-step.complete {
+      background:linear-gradient(135deg,#2196f3,#1976d2);
+    }
+    body.dark-mode .progress-step.active {
+      background:linear-gradient(135deg,#22c55e,#10b981);
+    }
+    .team-intro {
+      margin:0 0 18px;
+      color:var(--muted);
+      line-height:1.5;
+      font-size:1rem;
+      max-width:760px;
+    }
+    .field-grid {
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+      gap:20px;
+      align-items:flex-start;
+    }
+    .field-grid--with-toggles {
+      grid-template-columns:repeat(3,minmax(0,1fr));
+    }
+    .field-grid--triple { grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); }
+    .field-group { display:flex; flex-direction:column; gap:6px; }
+    .field-group span,
+    .field-group label {
+      font-size:0.8rem;
+      letter-spacing:0.3em;
+      text-transform:uppercase;
+      color:var(--muted);
+      min-height:38px;
+      line-height:1.2;
+    }
+    .field-group input,
+    .field-group textarea,
+    .field-group select {
+      border-radius:14px;
+      border:1px solid var(--border);
+      background:var(--input);
+      color:var(--fg);
+      padding:12px 14px;
+      font-size:1rem;
+      font-family:inherit;
+    }
+    .field-group select[multiple] {
+      height:auto;
+      min-height:160px;
+      padding:12px;
+    }
+    .field-note {
+      font-size:0.85rem;
+      color:var(--muted);
+      margin-top:6px;
+    }
+    .text-link {
+      background:none;
+      border:none;
+      padding:0;
+      font:inherit;
+      color:#7cd6ff;
+      cursor:pointer;
+      text-decoration:underline;
+      margin-top:6px;
+    }
+    .skill-create-panel {
+      margin-top:12px;
+      padding:16px;
+      border-radius:18px;
+      border:1px dashed rgba(255,255,255,0.2);
+      background:rgba(255,255,255,0.02);
+      box-shadow:inset 0 0 0 1px rgba(255,255,255,0.04);
+    }
+    .btn {
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      padding:12px 24px;
+      border-radius:16px;
+      font-weight:700;
+      font-size:1rem;
+      cursor:pointer;
+      transition:all 0.2s;
+      border:none;
+    }
+    .btn.primary {
+      background:linear-gradient(135deg,#2196f3,#1976d2);
+      color:#fff;
+      border:1px solid #1976d2;
+    }
+    .btn.primary:hover {
+      background:linear-gradient(135deg,#1976d2,#1565c0);
+    }
+    .btn.secondary {
+      border:1px solid rgba(255,255,255,0.25);
+      background:rgba(255,255,255,0.08);
+      color:var(--fg);
+      min-width:140px;
+      transition:background 0.2s ease;
+    }
+    .btn.secondary:hover {
+      background:rgba(255,255,255,0.12);
+    }
+    body.dark-mode .btn.secondary {
+      color:#fff;
+    }
+    .button-row {
+      display:flex;
+      justify-content:flex-end;
+      gap:12px;
+      margin-top:16px;
+    }
+    .button-row .btn { min-width:140px; }
+    .statusMessage {
+      margin-top:16px;
+      padding:12px 16px;
+      border-radius:12px;
+      text-align:center;
+      width:min(360px,100%);
+      font-size:1rem;
+      font-weight:600;
+      background-color:rgba(255,255,255,0.05);
+      color:var(--muted);
+      border:1px solid transparent;
+      display:none;
+    }
+    .statusMessage.success {
+      background:linear-gradient(135deg,#10b981,#22c55e);
+      color:#fff;
+      border-color:#22c55e;
+    }
+    .statusMessage.error {
+      background:#f87171;
+      color:#1f2937;
+      border-color:#f87171;
+    }
+    .status-actions {
+      display:flex;
+      flex-wrap:wrap;
+      justify-content:center;
+      gap:12px;
+      margin-top:12px;
+    }
+    .stage-status {
+      display:none !important;
+    }
+    .stage-status.active {
+      display:flex !important;
+      justify-content:center;
+    }
+    .stage-status.active .form-panel {
+      align-items:center;
+      width:min(100%,1080px);
+      max-width:1080px;
+      margin:0;
+      padding:40px 48px;
+    }
+    body:not(.dark-mode) .stage-status.active .form-panel {
+      border-color:rgba(0,0,0,0.12);
+      background:rgba(255,255,255,0.92);
+      box-shadow:0 25px 60px rgba(0,0,0,0.12), inset 0 0 0 1px rgba(255,255,255,0.25);
+    }
+    .stage-status .status-card {
+      display:flex;
+      flex-direction:column;
+      gap:18px;
+      align-items:center;
+      justify-content:center;
+      min-height:240px;
+      text-align:center;
+      padding:24px 12px 24px;
+      width:min(520px,100%);
+    }
+    .stage-status .status-card strong {
+      font-size:clamp(2.5rem,3vw,3rem);
+      font-weight:700;
+      letter-spacing:0.05em;
+      text-transform:uppercase;
+    }
+    .stage-status .status-card span {
+      font-size:0.9rem;
+      letter-spacing:0.35em;
+      text-transform:uppercase;
+      color:var(--muted);
+    }
+    .hidden {
+      display:none !important;
+    }
+    @media (max-width: 768px) {
+      .wizard-card { padding:32px 24px; }
+      .button-row { justify-content:flex-start; }
+    }
+  </style>
+</head>
+<body class="dark-mode">
+  <script>if (localStorage.getItem("tpRailExpanded") === "true") document.body.classList.add("tp-rail-expanded");</script>
+  <api-tools-header basepath="../../"></api-tools-header>
+
+  <main>
+    <div class="wrap wide contentWrap">
+      <section class="wizard-card">
+        <h1 class="wizard-title">Contact Center Setup Wizard</h1>
+        <p class="wizard-subtitle">Step 1 of 5 · Team Creation</p>
+
+
+        <div class="progress-bar">
+          <div class="progress-step active"></div>
+          <div class="progress-step"></div>
+          <div class="progress-step"></div>
+          <div class="progress-step"></div>
+          <div class="progress-step"></div>
+        </div>
+
+        <div id="stageTeam" class="wizard-stage active">
+          <div class="form-panel">
+            <div class="step-label form-heading">Step 1 · Team Creation</div>
+            <form id="teamForm" novalidate>
+              <div class="field-grid">
+                <label class="field-group">
+                  <span>Team Name</span>
+                  <input id="teamName" type="text" placeholder="Enter a team name" autocomplete="off" required>
+                </label>
+                <label class="field-group">
+                  <span>Description (optional)</span>
+                  <input id="teamDescription" type="text" placeholder="Defaults to the team name" autocomplete="off">
+                </label>
+              </div>
+              <div class="field-grid">
+                <label class="field-group">
+                  <span>Site</span>
+                  <select id="siteSelect" aria-label="Select Site" data-placeholder="Select Site"></select>
+                </label>
+                <!-- Multimedia profile is auto-selected (telephony) — not shown to user -->
+                <select id="mmpSelect" aria-hidden="true" class="hidden"></select>
+                <label class="field-group">
+                  <span>Desktop Layout</span>
+                  <select id="desktopSelect" aria-label="Select Desktop Layout" data-placeholder="Select Desktop Layout"></select>
+                </label>
+              </div>
+              <div class="button-row">
+                <button type="button" class="btn primary" id="createTeamBtn">Create Team</button>
+              </div>
+              <p id="teamStatus" class="statusMessage"></p>
+            </form>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  
+  <script src="../../assets/js/orbit-config.js"></script>
+
+  
+  <script src="../../assets/js/components.js"></script>
+
+  
+  <script src="../../assets/js/theme.js"></script>
+  <script>
+    const teamForm = document.getElementById('teamForm');
+    const stageTeam = document.getElementById('stageTeam');
+    const teamNameInput = document.getElementById('teamName');
+    const teamDescriptionInput = document.getElementById('teamDescription');
+    const siteSelectEl = document.getElementById('siteSelect');
+    const mmpSelectEl = document.getElementById('mmpSelect');
+    const desktopSelectEl = document.getElementById('desktopSelect');
+    const createTeamBtn = document.getElementById('createTeamBtn');
+    const teamStatusEl = document.getElementById('teamStatus');
+
+    const cacheKeyBearer = 'authBearer';
+    const cacheKeyOrg = 'authOrg';
+    const cacheKeyOrgName = 'authOrgName';
+    const cacheKeyUser = 'authUserName';
+    const WIZARD_TEAM_ID_KEY = 'wizardTeamId';
+    const WIZARD_TEAM_NAME_KEY = 'wizardTeamName';
+
+    const authToken = (localStorage.getItem(cacheKeyBearer) || '').trim();
+
+    function setStatus(element, text = '', type = '') {
+      if (!element) return;
+      element.textContent = text;
+      element.classList.toggle('success', type === 'success');
+      element.classList.toggle('error', type === 'error');
+      element.style.display = text ? 'block' : 'none';
+    }
+
+    function showStage(targetStage) {
+      [stageTeam].filter(Boolean).forEach((stage) => {
+        stage.classList.remove('active');
+        stage.classList.add('hidden');
+      });
+      if (targetStage) {
+        targetStage.classList.remove('hidden');
+        targetStage.classList.add('active');
+      }
+    }
+
+    function decodeOrgId(raw) {
+      if (!raw) return '';
+      if (/^[0-9a-fA-F-]{30,}$/.test(raw)) return raw;
+      if (/^Y2lz/i.test(raw)) {
+        try {
+          const padded = raw.replace(/-/g, '+').replace(/_/g, '/').padEnd(Math.ceil(raw.length / 4) * 4, '=');
+          const decoded = atob(padded);
+          const parts = decoded.split('/');
+          return parts[parts.length - 1] || decoded;
+        } catch {
+          return raw;
+        }
+      }
+      const orgPathIdx = raw.toLowerCase().indexOf('organization/');
+      if (orgPathIdx !== -1) {
+        const candidate = raw.slice(orgPathIdx + 'organization/'.length);
+        return candidate || raw;
+      }
+      return raw;
+    }
+
+    function resolveOrgId() {
+      const storedId = (localStorage.getItem('authOrgId') || '').trim();
+      if (storedId) return decodeOrgId(storedId) || storedId;
+      const raw = (localStorage.getItem(cacheKeyOrg) || '').trim();
+      if (raw) return decodeOrgId(raw) || raw;
+      return '';
+    }
+
+    const ORG_ID = resolveOrgId();
+    const BASE_URL = `https://api.wxcc-us1.cisco.com/organization/${encodeURIComponent(ORG_ID)}`;
+    const endpoints = {
+      selectedSite: `${BASE_URL}/v2/site`,
+      selectedMultimedia: `${BASE_URL}/v2/multimedia-profile`,
+      selectedDesktop: `${BASE_URL}/v2/desktop-layout`,
+      teams: `${BASE_URL}/v2/team?page=0&pageSize=200`
+    };
+
+    const fetchHeaders = Object.assign(
+      { Accept: 'application/json' },
+      authToken ? { Authorization: `Bearer ${authToken}` } : {}
+    );
+
+    const fallbackSites = [];
+    const fallbackMultimedia = [];
+    const fallbackDesktop = [];
+
+    const selectConfigs = [
+      { el: desktopSelectEl, endpointKey: 'selectedDesktop', fallback: fallbackDesktop, placeholder: 'Select Desktop Layout' }
+    ];
+
+    async function autoSelectMultimedia() {
+      const data = await fetchList(endpoints.selectedMultimedia);
+      const list = Array.isArray(data) && data.length ? data : fallbackMultimedia;
+      // Pick first profile whose name contains 'telephony' (case-insensitive), else first in list
+      const pick = list.find((p) => /telephony/i.test(p.name)) || list[0];
+      if (mmpSelectEl && pick) {
+        mmpSelectEl.innerHTML = `<option value="${pick.id}">${pick.name}</option>`;
+        mmpSelectEl.value = pick.id;
+      }
+    }
+
+    let siteList = [];
+    let currentSite = null;
+    let creatingTeam = false;
+
+    function renderSelectOptions(selectEl, items, placeholder) {
+      if (!selectEl) return;
+      selectEl.innerHTML = '';
+      const placeholderOption = document.createElement('option');
+      placeholderOption.value = '';
+      placeholderOption.textContent = placeholder;
+      placeholderOption.disabled = true;
+      placeholderOption.selected = true;
+      selectEl.appendChild(placeholderOption);
+      items.forEach((item) => {
+        const option = document.createElement('option');
+        option.value = item.id;
+        option.textContent = item.name || item.id;
+        selectEl.appendChild(option);
+      });
+      selectEl.selectedIndex = 0;
+    }
+
+    async function fetchList(url) {
+      try {
+        const response = await fetch(url, { headers: fetchHeaders });
+        if (!response.ok) throw new Error('Fetch failed');
+        const json = await response.json();
+        return Array.isArray(json?.data) ? json.data : [];
+      } catch {
+        return null;
+      }
+    }
+
+    async function hydrateSelect(config) {
+      if (!config.el) return;
+      const data = await fetchList(endpoints[config.endpointKey]);
+      const list = Array.isArray(data) && data.length ? data : config.fallback;
+      renderSelectOptions(config.el, list, config.placeholder);
+    }
+
+    async function hydrateSites() {
+      const data = await fetchList(endpoints.selectedSite);
+      siteList = Array.isArray(data) && data.length ? data : fallbackSites;
+      renderSelectOptions(siteSelectEl, siteList, 'Select Site');
+      currentSite = null;
+    }
+
+    function buildTeamPayload() {
+      const name = teamNameInput.value.trim() || '<team name>';
+      return {
+        name,
+        teamType: 'AGENT',
+        teamStatus: 'IN_SERVICE',
+        active: true,
+        siteId: currentSite?.id || '',
+        multiMediaProfileId: mmpSelectEl.value,
+        desktopLayoutId: desktopSelectEl.value,
+        description: teamDescriptionInput.value.trim() || name
+      };
+    }
+
+    function resetTeamForm() {
+      if (teamForm) teamForm.reset();
+      currentSite = null;
+    }
+
+    async function submitTeamCreation() {
+      if (creatingTeam) return;
+      const teamName = teamNameInput.value.trim();
+      const desktopId = desktopSelectEl.value;
+      if (!teamName) {
+        setStatus(teamStatusEl, 'Team name is required.', 'error');
+        return;
+      }
+      if (!currentSite?.id) {
+        setStatus(teamStatusEl, 'Please select a site before continuing.', 'error');
+        return;
+      }
+      if (!desktopId) {
+        setStatus(teamStatusEl, 'Please select a desktop layout before continuing.', 'error');
+        return;
+      }
+      if (!authToken) {
+        setStatus(teamStatusEl, 'Authentication is required to create a team.', 'error');
+        return;
+      }
+      creatingTeam = true;
+      createTeamBtn.disabled = true;
+      createTeamBtn.textContent = 'CREATING…';
+      try {
+        const response = await fetch(`${BASE_URL}/team`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Accept: 'application/json',
+            Authorization: `Bearer ${authToken}`
+          },
+          body: JSON.stringify(buildTeamPayload())
+        });
+        const body = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          throw new Error(body?.message || response.statusText || `HTTP ${response.status}`);
+        }
+        const createdName = body?.name || body?.description || teamName;
+        setStatus(teamStatusEl, '');
+        if (body?.id) {
+          localStorage.setItem(WIZARD_TEAM_ID_KEY, body.id);
+          localStorage.setItem(WIZARD_TEAM_NAME_KEY, createdName);
+        }
+        resetTeamForm();
+        window.location.href = 'S2_Queues.html';
+      } catch (error) {
+        setStatus(teamStatusEl, `Failed to create team: ${error.message}`, 'error');
+      } finally {
+        creatingTeam = false;
+        createTeamBtn.disabled = false;
+        createTeamBtn.textContent = 'Create Team';
+      }
+    }
+
+    [teamNameInput, siteSelectEl, mmpSelectEl, desktopSelectEl].filter(Boolean).forEach((el) => {
+      el.addEventListener('input', () => {
+        setStatus(teamStatusEl, '');
+        showStage(stageTeam);
+      });
+      el.addEventListener('change', () => {
+        setStatus(teamStatusEl, '');
+        showStage(stageTeam);
+      });
+    });
+
+    if (siteSelectEl) {
+      siteSelectEl.addEventListener('change', () => {
+        const match = siteList.find((entry) => entry.id === siteSelectEl.value);
+        currentSite = match ? { id: match.id, name: match.name || match.id } : null;
+      });
+    }
+
+    if (createTeamBtn) {
+      createTeamBtn.addEventListener('click', submitTeamCreation);
+    }
+    (async () => {
+      setStatus(teamStatusEl, '');
+      showStage(stageTeam);
+      await Promise.all([
+        hydrateSites(),
+        autoSelectMultimedia(),
+        ...selectConfigs.map(hydrateSelect)
+      ]);
+    })();
+
+
+    function updateAuthIndicators() {
+      const token = (localStorage.getItem(cacheKeyBearer) || '').trim();
+      const orgName = localStorage.getItem(cacheKeyOrgName) || localStorage.getItem(cacheKeyOrg) || '';
+      const userName = localStorage.getItem(cacheKeyUser) || '';
+      const userNameEl = document.getElementById('userName');
+      const userOrgEl = document.getElementById('userOrg');
+      if (userNameEl) userNameEl.textContent = token ? (userName || 'Signed in') : 'Not authenticated';
+      if (userOrgEl) userOrgEl.textContent = token ? orgName : '';
+    }
+
+    updateAuthIndicators();
+
+    const signOutBtn = document.getElementById('signOutBtn');
+    if (signOutBtn) {
+      signOutBtn.addEventListener('click', () => {
+        ['authBearer','authOrg','authOrgName','authOrgId','authUserName','authRefreshToken','authExpiresAt','authLoginMethod','authScopes'].forEach((key) => localStorage.removeItem(key));
+        window.location.href = '../../index.html';
+      });
+    }
+
+
+    document.addEventListener('click', (event) => {
+    });
+
+    document.addEventListener('keydown', (event) => {
+    });
+  </script>
+  </body>
+</html>

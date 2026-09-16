@@ -1,0 +1,1120 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="light" />
+  <title>WxCC — Business Hours</title>
+  <link rel="stylesheet" href="../../assets/css/theme.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/png" href="../../assets/images/WxCC_Icon-192.png" />
+  <style>
+    main { padding:32px 0 80px; display:flex; justify-content:flex-start; }
+    label { display:block; font-size:13px; color:var(--muted); margin:8px 0 6px; }
+    select { width:100%; border-radius:12px; border:1px solid var(--border); background:var(--input); color:var(--fg); padding:10px 12px; font-size:14px; }
+    .actionsRow { display:flex; gap:10px; flex-wrap:wrap; margin-top:10px; align-items:center; }
+    .actionsRight { margin-left:auto; display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+
+    /* ── Table ── */
+    .bhTable { margin-top:16px; border:1px solid var(--border); border-radius:14px; overflow:hidden; box-shadow:var(--shadow); }
+    .bhHeader, .bhRow { display:grid; grid-template-columns:2fr 1.3fr 3fr 1.3fr 1.3fr .7fr; align-items:center; }
+    .bhHeader { background:var(--panel); color:var(--accent); font-weight:700; font-size:12px; letter-spacing:.01em; }
+    .bhRow { background:var(--card); border-top:1px solid var(--border); }
+    .bhRow:nth-child(even) { background:var(--input); }
+    .bhRow:hover { background:rgba(8,172,242,.06); }
+    .bhCell { padding:12px; display:flex; align-items:flex-start; gap:8px; min-height:52px; }
+    .bhCell.center { align-items:center; }
+    .bhEmpty { padding:16px; color:var(--muted); }
+    .headerCell { padding:12px; min-height:46px; display:flex; flex-direction:column; gap:6px; align-items:flex-start; justify-content:center; }
+    .headLabel { font-weight:700; }
+
+    .bhName { font-weight:700; color:var(--fg); margin:0; font-size:14px; }
+    .bhId { color:var(--muted); font-size:12px; margin:0; word-break:break-all; }
+    .bhIdRow { display:flex; align-items:center; gap:6px; margin-top:2px; }
+    .bhNameBlock { display:flex; flex-direction:column; gap:4px; }
+    .bhTimezone { font-size:13px; color:var(--fg); }
+    .bhLinked { font-size:12px; color:var(--accent); font-weight:600; word-break:break-all; }
+    .bhNone { font-size:12px; color:var(--muted); font-style:italic; }
+
+    /* ── Day grid (table view) ── */
+    .dayGrid { display:flex; flex-wrap:wrap; gap:4px; }
+    .dayChip { display:flex; flex-direction:column; align-items:center; padding:4px 6px; border-radius:8px; min-width:40px; font-size:11px; border:1px solid var(--border); }
+    .dayChip.active { background:rgba(8,172,242,.1); border-color:rgba(8,172,242,.3); }
+    .dayChip.closed { background:var(--panel); opacity:.5; }
+    .dayChipName { font-weight:700; color:var(--accent); font-size:10px; letter-spacing:.04em; }
+    .dayChipTime { color:var(--fg); font-size:10px; text-align:center; line-height:1.3; }
+    .dayChipClosed { color:var(--muted); font-size:10px; }
+
+    /* ── Copy button ── */
+    .copyInline { background:transparent; border:1px solid var(--border); border-radius:8px; color:var(--muted); width:26px; height:26px; min-width:26px; display:inline-flex; align-items:center; justify-content:center; cursor:pointer; flex-shrink:0; }
+    .copyInline:hover { color:var(--fg); border-color:rgba(0,0,0,.2); }
+    .copyInline--mini { width:20px; height:20px; min-width:20px; border-radius:6px; }
+    .copyInline--mini svg { width:12px; height:12px; }
+
+    /* ── Row action buttons ── */
+    .rowBtn { display:inline-flex; align-items:center; gap:4px; padding:5px 10px; border-radius:10px; border:1px solid var(--border); background:var(--panel); color:var(--fg); font-size:12px; font-weight:600; cursor:pointer; white-space:nowrap; }
+    .rowBtn:hover { border-color:rgba(21,157,216,.5); color:var(--accent); }
+
+    /* ── Modal ── */
+    .modal { position:fixed; inset:0; background:rgba(0,0,0,.5); display:none; align-items:flex-start; justify-content:center; z-index:400; padding:16px; overflow-y:auto; }
+    .modal.open { display:flex; }
+    .modalCard { width:min(960px, 96vw); background:var(--card); border:1px solid var(--border); border-radius:18px; padding:24px; box-shadow:0 20px 50px rgba(0,0,0,.25); margin:auto; }
+    .modalHeader { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; margin-bottom:16px; }
+    .modalTitle { font-size:18px; font-weight:700; margin:0; }
+    .modalClose { background:transparent; border:none; color:var(--muted); font-size:24px; cursor:pointer; line-height:1; padding:0 4px; }
+    .modalClose:hover { color:var(--fg); }
+    .modalFooter { display:flex; justify-content:flex-end; gap:10px; margin-top:20px; padding-top:16px; border-top:1px solid var(--border); }
+
+    /* ── Form ── */
+    .formGroup { margin-bottom:14px; }
+    .formRow { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+    .formInput { width:100%; border-radius:12px; border:1px solid var(--border); background:var(--input); color:var(--fg); padding:10px 12px; font-size:14px; box-sizing:border-box; }
+    .formTextarea { width:100%; border-radius:12px; border:1px solid var(--border); background:var(--input); color:var(--fg); padding:10px 12px; font-size:14px; box-sizing:border-box; resize:vertical; min-height:64px; }
+    .formSelect { width:100%; border-radius:12px; border:1px solid var(--border); background:var(--input); color:var(--fg); padding:10px 12px; font-size:14px; box-sizing:border-box; }
+
+    /* ── Shifts section ── */
+    .sectionBox { border:1px solid var(--border); border-radius:14px; padding:14px; background:var(--panel); }
+    .sectionBoxHeader { display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; }
+    .sectionBoxTitle { font-weight:700; font-size:14px; color:var(--fg); }
+    .shiftRow { display:grid; grid-template-columns:1.2fr auto minmax(130px,1fr) minmax(130px,1fr) auto; gap:10px; align-items:start; padding:10px 12px; border:1px solid var(--border); border-radius:12px; background:var(--card); margin-bottom:8px; }
+    .shiftDays { display:flex; flex-wrap:wrap; gap:5px; padding-top:4px; }
+    .dayCheckLabel { display:flex; flex-direction:column; align-items:center; gap:3px; cursor:pointer; user-select:none; }
+    .dayCheckLabel input { width:14px; height:14px; cursor:pointer; accent-color:var(--accent); }
+    .dayCheckLabel span { font-size:10px; font-weight:700; letter-spacing:.04em; color:var(--accent); }
+    .removeShiftBtn { background:transparent; border:1px solid var(--border); border-radius:8px; color:var(--muted); padding:8px; font-size:12px; cursor:pointer; margin-top:22px; }
+    .removeShiftBtn:hover { border-color:#ef4444; color:#ef4444; }
+    .addShiftBtn { background:transparent; border:2px dashed var(--border); border-radius:10px; color:var(--accent); padding:9px 14px; font-size:13px; font-weight:600; cursor:pointer; width:100%; text-align:center; margin-top:4px; }
+    .addShiftBtn:hover { border-color:var(--accent); background:rgba(8,172,242,.05); }
+
+    /* ── Override section ── */
+    .checkRow { display:flex; align-items:center; gap:8px; }
+    .checkRow input[type="checkbox"] { width:16px; height:16px; cursor:pointer; accent-color:var(--accent); flex-shrink:0; }
+    .checkRow label { margin:0; cursor:pointer; font-size:14px; color:var(--fg); font-weight:500; }
+
+    /* ── Form messages ── */
+    .formMsg { padding:10px 14px; border-radius:10px; font-size:13px; margin:8px 0; }
+    .formMsg.error { background:rgba(239,68,68,.1); border:1px solid rgba(239,68,68,.3); color:#dc2626; }
+    .formMsg.success { background:rgba(16,185,129,.1); border:1px solid rgba(16,185,129,.3); color:#059669; }
+    .formMsg.info { background:rgba(8,172,242,.08); border:1px solid rgba(8,172,242,.3); color:var(--accent); }
+
+    /* ── Detail modal schedule ── */
+    .detailGrid { display:grid; grid-template-columns:repeat(7, 1fr); gap:8px; margin-top:8px; }
+    .detailDayCell { border:1px solid var(--border); border-radius:12px; padding:10px 8px; display:flex; flex-direction:column; align-items:center; gap:4px; min-height:64px; }
+    .detailDayCell.active { background:rgba(8,172,242,.08); border-color:rgba(8,172,242,.3); }
+    .detailDayCell.closed { background:var(--panel); opacity:.55; }
+    .detailDayName { font-weight:700; font-size:11px; letter-spacing:.04em; color:var(--accent); }
+    .detailDayTime { font-size:11px; color:var(--fg); text-align:center; line-height:1.4; }
+    .detailDayClosed { font-size:11px; color:var(--muted); }
+    .detailSection { margin-top:14px; }
+    .detailLabel { font-size:12px; color:var(--muted); text-transform:uppercase; letter-spacing:.06em; margin-bottom:4px; }
+    .detailValue { font-size:14px; color:var(--fg); }
+    .detailShiftList { display:flex; flex-direction:column; gap:8px; margin-top:6px; }
+    .detailShift { padding:10px 12px; border:1px solid var(--border); border-radius:10px; background:var(--panel); font-size:13px; }
+    .detailShiftName { font-weight:700; margin-bottom:4px; }
+    .detailShiftDays { display:flex; flex-wrap:wrap; gap:4px; margin-bottom:4px; }
+    .detailShiftDay { padding:2px 7px; border-radius:6px; background:rgba(8,172,242,.12); color:var(--accent); font-size:11px; font-weight:700; }
+    .detailShiftTime { color:var(--muted); font-size:12px; }
+    .linkedId { display:flex; align-items:center; gap:6px; }
+    .linkedIdText { font-size:13px; color:var(--accent); font-weight:600; word-break:break-all; }
+    .calLink { background:none; border:none; padding:0; cursor:pointer; font-size:13px; font-weight:600; color:var(--accent); text-align:left; text-decoration:underline; text-underline-offset:2px; }
+    .calLink:hover { opacity:.75; }
+    .calLinkCell { display:flex; flex-direction:column; gap:2px; }
+    .calLinkSub { font-size:11px; color:var(--muted); }
+    .rawJson { background:var(--input); border:1px solid var(--border); border-radius:10px; padding:12px; font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,'Liberation Mono',monospace; font-size:12px; white-space:pre-wrap; color:var(--fg); max-height:260px; overflow-y:auto; margin-top:6px; }
+
+    /* ── Dark mode ── */
+    body.dark-mode .bhRow { background:#0f1c38; }
+    body.dark-mode .bhRow:nth-child(even) { background:#0d1730; }
+    body.dark-mode .bhRow:hover { background:rgba(8,172,242,.1); }
+    body.dark-mode .dayChip.active { background:rgba(8,172,242,.18); }
+    body.dark-mode .dayChip.closed { background:rgba(255,255,255,.04); }
+    body.dark-mode .sectionBox { background:#0d1730; }
+    body.dark-mode .shiftRow { background:#0f1c38; }
+    body.dark-mode .detailDayCell.active { background:rgba(8,172,242,.16); }
+    body.dark-mode .detailDayCell.closed { background:rgba(255,255,255,.04); }
+    body.dark-mode .detailShift { background:#0f1c38; }
+
+    /* ── Responsive ── */
+    @media (max-width: 1100px) {
+      .bhHeader, .bhRow { grid-template-columns:2fr 1.2fr 3fr 1fr 1fr .6fr; }
+    }
+    @media (max-width: 900px) {
+      .bhHeader { display:none; }
+      .bhRow { grid-template-columns:1fr 1fr !important; gap:8px; }
+      .bhCell { flex-direction:column; align-items:flex-start; width:100%; }
+      .bhCell[data-label="Name"] { grid-column:1 / -1; }
+      .bhCell::before { content:attr(data-label); font-size:10px; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); }
+      .detailGrid { grid-template-columns:repeat(4,1fr); }
+    }
+    @media (max-width: 600px) {
+      .formRow { grid-template-columns:1fr; }
+      .shiftRow { grid-template-columns:1fr; }
+      .removeShiftBtn { margin-top:0; }
+      .detailGrid { grid-template-columns:repeat(3,1fr); }
+    }
+  </style>
+</head>
+<body class="dark-mode">
+  <script>if (localStorage.getItem("tpRailExpanded") === "true") document.body.classList.add("tp-rail-expanded");</script>
+  <api-tools-header basepath="../../"></api-tools-header>
+
+  <main>
+    <div class="wrap wide contentWrap">
+      <section class="card">
+        <div class="pageHeader">
+          <h1>Business Hours</h1>
+          <p class="lead">View and manage contact center business hours schedules and working shifts.</p>
+        </div>
+        <div class="actionsRow">
+          <input id="searchInput" class="searchInput" type="text" placeholder="Search by name, ID, or timezone..." />
+          <span class="pill" id="bhCountPill">0 schedules</span>
+          <div class="actionsRight">
+            <button class="btn" id="refreshBtn">Refresh</button>
+            <button class="btn primary" id="addBhBtn">Add Business Hours</button>
+          </div>
+        </div>
+        <div class="status" id="statusText"></div>
+        <div class="grid" style="grid-template-columns:1fr;">
+          <div id="bhList"></div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <!-- ════════════════════════════════════════════
+       Add Business Hours Modal
+  ════════════════════════════════════════════ -->
+  <div class="modal" id="addModal" role="dialog" aria-modal="true" aria-labelledby="addModalTitle">
+    <div class="modalCard">
+      <div class="modalHeader">
+        <h2 class="modalTitle" id="addModalTitle">Add Business Hours</h2>
+        <button class="modalClose" id="addModalClose" type="button" aria-label="Close">&times;</button>
+      </div>
+      <div id="addFormMsg"></div>
+      <form id="addForm" autocomplete="off">
+
+        <div class="formRow">
+          <div class="formGroup">
+            <label for="bhName">Name <span style="color:#ef4444;">*</span></label>
+            <input class="formInput" type="text" id="bhName" required placeholder="e.g. Standard Business Hours" />
+          </div>
+          <div class="formGroup">
+            <label for="bhTimezone">Timezone <span style="color:#ef4444;">*</span></label>
+            <select id="bhTimezone" class="formSelect" required>
+              <option value="">Select timezone...</option>
+              <optgroup label="North America">
+                <option value="America/New_York">America/New_York (ET)</option>
+                <option value="America/Chicago">America/Chicago (CT)</option>
+                <option value="America/Denver">America/Denver (MT)</option>
+                <option value="America/Los_Angeles">America/Los_Angeles (PT)</option>
+                <option value="America/Phoenix">America/Phoenix (MST no DST)</option>
+                <option value="America/Anchorage">America/Anchorage (AKT)</option>
+                <option value="Pacific/Honolulu">Pacific/Honolulu (HT)</option>
+                <option value="America/Toronto">America/Toronto</option>
+                <option value="America/Vancouver">America/Vancouver</option>
+              </optgroup>
+              <optgroup label="Latin America">
+                <option value="America/Sao_Paulo">America/Sao_Paulo (BRT)</option>
+                <option value="America/Mexico_City">America/Mexico_City (CST)</option>
+                <option value="America/Bogota">America/Bogota (COT)</option>
+                <option value="America/Lima">America/Lima (PET)</option>
+                <option value="America/Santiago">America/Santiago (CLT)</option>
+                <option value="America/Buenos_Aires">America/Buenos_Aires (ART)</option>
+              </optgroup>
+              <optgroup label="Europe">
+                <option value="Europe/London">Europe/London (GMT/BST)</option>
+                <option value="Europe/Dublin">Europe/Dublin</option>
+                <option value="Europe/Lisbon">Europe/Lisbon</option>
+                <option value="Europe/Paris">Europe/Paris (CET)</option>
+                <option value="Europe/Berlin">Europe/Berlin (CET)</option>
+                <option value="Europe/Madrid">Europe/Madrid (CET)</option>
+                <option value="Europe/Rome">Europe/Rome (CET)</option>
+                <option value="Europe/Amsterdam">Europe/Amsterdam (CET)</option>
+                <option value="Europe/Brussels">Europe/Brussels (CET)</option>
+                <option value="Europe/Stockholm">Europe/Stockholm (CET)</option>
+                <option value="Europe/Warsaw">Europe/Warsaw (CET)</option>
+                <option value="Europe/Helsinki">Europe/Helsinki (EET)</option>
+                <option value="Europe/Athens">Europe/Athens (EET)</option>
+                <option value="Europe/Bucharest">Europe/Bucharest (EET)</option>
+                <option value="Europe/Istanbul">Europe/Istanbul (TRT)</option>
+                <option value="Europe/Moscow">Europe/Moscow (MSK)</option>
+              </optgroup>
+              <optgroup label="Middle East & Africa">
+                <option value="Asia/Dubai">Asia/Dubai (GST)</option>
+                <option value="Asia/Riyadh">Asia/Riyadh (AST)</option>
+                <option value="Asia/Kuwait">Asia/Kuwait</option>
+                <option value="Africa/Cairo">Africa/Cairo (EET)</option>
+                <option value="Africa/Johannesburg">Africa/Johannesburg (SAST)</option>
+                <option value="Africa/Lagos">Africa/Lagos (WAT)</option>
+              </optgroup>
+              <optgroup label="Asia & Pacific">
+                <option value="Asia/Karachi">Asia/Karachi (PKT)</option>
+                <option value="Asia/Kolkata">Asia/Kolkata (IST)</option>
+                <option value="Asia/Dhaka">Asia/Dhaka (BST)</option>
+                <option value="Asia/Bangkok">Asia/Bangkok (ICT)</option>
+                <option value="Asia/Singapore">Asia/Singapore (SGT)</option>
+                <option value="Asia/Hong_Kong">Asia/Hong_Kong (HKT)</option>
+                <option value="Asia/Shanghai">Asia/Shanghai (CST)</option>
+                <option value="Asia/Taipei">Asia/Taipei</option>
+                <option value="Asia/Tokyo">Asia/Tokyo (JST)</option>
+                <option value="Asia/Seoul">Asia/Seoul (KST)</option>
+                <option value="Australia/Perth">Australia/Perth (AWST)</option>
+                <option value="Australia/Adelaide">Australia/Adelaide (ACST)</option>
+                <option value="Australia/Sydney">Australia/Sydney (AEDT)</option>
+                <option value="Australia/Melbourne">Australia/Melbourne</option>
+                <option value="Pacific/Auckland">Pacific/Auckland (NZDT)</option>
+              </optgroup>
+            </select>
+          </div>
+        </div>
+
+        <div class="formGroup">
+          <label for="bhDescription">Description</label>
+          <textarea class="formTextarea" id="bhDescription" placeholder="Optional description..."></textarea>
+        </div>
+
+        <!-- Working Hours Shifts -->
+        <div class="formGroup">
+          <div class="sectionBox">
+            <div class="sectionBoxHeader">
+              <span class="sectionBoxTitle">Working Hours Shifts</span>
+              <span style="font-size:12px; color:var(--muted);">Define one or more time windows per day</span>
+            </div>
+            <div id="shiftsContainer"></div>
+            <button type="button" class="addShiftBtn" id="addShiftBtn">+ Add Shift</button>
+          </div>
+        </div>
+
+        <!-- Holiday Calendar -->
+        <div class="formGroup">
+          <div class="sectionBox">
+            <div class="sectionBoxHeader">
+              <span class="sectionBoxTitle">Holiday Calendar</span>
+            </div>
+            <label for="bhHolidaySelect" style="margin-top:0;">Select an existing holiday calendar</label>
+            <select id="bhHolidaySelect" class="formSelect">
+              <option value="">None</option>
+            </select>
+            <div class="status" id="holidayLoadStatus" style="margin-top:6px;"></div>
+          </div>
+        </div>
+
+        <!-- Override Calendar -->
+        <div class="formGroup">
+          <div class="sectionBox">
+            <div class="sectionBoxHeader">
+              <span class="sectionBoxTitle">Override Calendar</span>
+            </div>
+            <div class="checkRow">
+              <input type="checkbox" id="createOverrideCheck" />
+              <label for="createOverrideCheck">Create Override Calendar</label>
+            </div>
+            <div id="overrideNameRow" style="display:none; margin-top:10px;">
+              <label for="overrideCalName">Override Calendar Name</label>
+              <input class="formInput" type="text" id="overrideCalName" placeholder="e.g. Standard Business Hours Override" />
+            </div>
+          </div>
+        </div>
+
+        <div class="modalFooter">
+          <button type="button" class="btn" id="addModalCancelBtn">Cancel</button>
+          <button type="submit" class="btn primary" id="createBhBtn">Create Business Hours</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════
+       Detail / View Modal
+  ════════════════════════════════════════════ -->
+  <div class="modal" id="detailModal" role="dialog" aria-modal="true" aria-labelledby="detailModalTitle">
+    <div class="modalCard">
+      <div class="modalHeader">
+        <h2 class="modalTitle" id="detailModalTitle">Business Hours Detail</h2>
+        <button class="modalClose" id="detailModalClose" type="button" aria-label="Close">&times;</button>
+      </div>
+      <div id="detailContent"></div>
+      <div class="modalFooter">
+        <button type="button" class="btn" id="detailCloseBtn">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="../../assets/js/orbit-config.js"></script>
+
+  <script src="../../assets/js/components.js"></script>
+
+  <script src="../../assets/js/theme.js"></script>
+  <script>
+    /* ──────────────────────────────────────────────
+       Globals & helpers
+    ────────────────────────────────────────────── */
+    const API_BASE = 'https://api.wxcc-us1.cisco.com';
+    const DAY_ORDER = ['SUN','MON','TUE','WED','THU','FRI','SAT'];
+
+    let lastBhList  = [];
+    let searchTerm  = '';
+    let holidayList = [];
+    let holidayMap  = {};   // id → full holiday object
+    let overrideMap = {};   // id → full override object
+    let shiftIdx    = 0;
+
+    const $ = id => document.getElementById(id);
+
+    function getOrgId() {
+      const raw = localStorage.getItem('authOrgId') || localStorage.getItem('authOrg') || '';
+      if (!raw) return '';
+      if (/^Y2lz/i.test(raw)) {
+        try {
+          const padded = raw.replace(/-/g,'+').replace(/_/g,'/').padEnd(Math.ceil(raw.length/4)*4,'=');
+          const decoded = atob(padded);
+          const parts = decoded.split('/');
+          return parts[parts.length-1] || decoded;
+        } catch { return raw; }
+      }
+      const idx = raw.toLowerCase().indexOf('organization/');
+      if (idx !== -1) return raw.slice(idx + 'organization/'.length) || raw;
+      return raw;
+    }
+
+    function getBearer() { return localStorage.getItem('authBearer') || ''; }
+
+    function esc(s) {
+      return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    function setStatus(msg, cls = '') {
+      const el = $('statusText');
+      el.textContent = msg;
+      el.className = 'status' + (cls ? ' ' + cls : '');
+    }
+
+    function copyBtn(val, title='Copy', cls='') {
+      if (!val) return '';
+      return `<button class="copyInline ${cls}" title="${esc(title)}" data-copy="${esc(val)}">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="9" y="9" width="13" height="13" rx="2"></rect>
+          <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+        </svg>
+      </button>`;
+    }
+
+    function bindCopyBtns(root) {
+      root.querySelectorAll('[data-copy]').forEach(btn => {
+        btn.addEventListener('click', e => {
+          e.stopPropagation();
+          navigator.clipboard.writeText(btn.dataset.copy).then(() => {
+            const orig = btn.innerHTML;
+            btn.innerHTML = '<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="#10b981" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>';
+            setTimeout(() => { btn.innerHTML = orig; }, 1000);
+          });
+        });
+      });
+    }
+
+    /* ──────────────────────────────────────────────
+       Day grid helpers
+    ────────────────────────────────────────────── */
+    function buildDayMap(workingHours) {
+      const map = {};
+      (workingHours || []).forEach(sh => {
+        (sh.days || []).forEach(day => {
+          if (!map[day]) map[day] = [];
+          map[day].push({ start: sh.startTime || '', end: sh.endTime || '' });
+        });
+      });
+      return map;
+    }
+
+    function renderDayGrid(workingHours) {
+      const map = buildDayMap(workingHours);
+      return `<div class="dayGrid">${DAY_ORDER.map(day => {
+        const entries = map[day] || [];
+        if (entries.length) {
+          const times = entries.map(e => `${e.start}–${e.end}`).join('<br>');
+          return `<div class="dayChip active"><span class="dayChipName">${day}</span><span class="dayChipTime">${times}</span></div>`;
+        }
+        return `<div class="dayChip closed"><span class="dayChipName">${day}</span><span class="dayChipClosed">—</span></div>`;
+      }).join('')}</div>`;
+    }
+
+    /* ──────────────────────────────────────────────
+       Render table
+    ────────────────────────────────────────────── */
+    function renderTable(list) {
+      const el = $('bhList');
+      const filtered = list.filter(bh => {
+        if (!searchTerm) return true;
+        return (
+          (bh.name     || '').toLowerCase().includes(searchTerm) ||
+          (bh.id       || '').toLowerCase().includes(searchTerm) ||
+          (bh.timezone || '').toLowerCase().includes(searchTerm)
+        );
+      });
+
+      $('bhCountPill').textContent = `${list.length} schedule${list.length !== 1 ? 's' : ''}`;
+
+      if (!filtered.length) {
+        el.innerHTML = `<div class="bhTable"><div class="bhEmpty">${list.length ? 'No results match your search.' : 'No business hours found.'}</div></div>`;
+        return;
+      }
+
+      const header = `
+        <div class="bhHeader">
+          <div class="headerCell"><div class="headLabel">Name</div></div>
+          <div class="headerCell"><div class="headLabel">Timezone</div></div>
+          <div class="headerCell"><div class="headLabel">Working Hours</div></div>
+          <div class="headerCell"><div class="headLabel">Holiday Calendar</div></div>
+          <div class="headerCell"><div class="headLabel">Override Calendar</div></div>
+          <div class="headerCell"></div>
+        </div>`;
+
+      const rows = filtered.map(bh => {
+        const hObj = bh.holidaysId ? (holidayMap[bh.holidaysId] || null) : null;
+        const oObj = bh.overridesId ? (overrideMap[bh.overridesId] || null) : null;
+        const hName = hObj ? (hObj.name || bh.holidaysId) : (bh.holidaysId || '');
+        const oName = oObj ? (oObj.name || bh.overridesId) : (bh.overridesId || '');
+
+        const holidayCell = bh.holidaysId
+          ? `<div class="calLinkCell">
+               <div style="display:flex;align-items:center;gap:5px;">
+                 ${copyBtn(bh.holidaysId,'Copy ID','copyInline--mini')}
+                 <button class="calLink" data-cal-type="holiday" data-cal-id="${esc(bh.holidaysId)}">${esc(hName)}</button>
+               </div>
+             </div>`
+          : `<span class="bhNone">None</span>`;
+        const overrideCell = bh.overridesId
+          ? `<div class="calLinkCell">
+               <div style="display:flex;align-items:center;gap:5px;">
+                 ${copyBtn(bh.overridesId,'Copy ID','copyInline--mini')}
+                 <button class="calLink" data-cal-type="override" data-cal-id="${esc(bh.overridesId)}">${esc(oName)}</button>
+               </div>
+             </div>`
+          : `<span class="bhNone">None</span>`;
+        return `
+          <div class="bhRow">
+            <div class="bhCell" data-label="Name">
+              <div class="bhNameBlock">
+                <span class="bhName">${esc(bh.name || 'Unnamed')}</span>
+                <div class="bhIdRow">
+                  <span class="bhId">${esc(bh.id || '—')}</span>
+                  ${copyBtn(bh.id, 'Copy ID', 'copyInline--mini')}
+                </div>
+              </div>
+            </div>
+            <div class="bhCell center" data-label="Timezone">
+              <span class="bhTimezone">${esc(bh.timezone || '—')}</span>
+            </div>
+            <div class="bhCell" data-label="Working Hours">
+              ${renderDayGrid(bh.workingHours)}
+            </div>
+            <div class="bhCell center" data-label="Holiday Calendar">${holidayCell}</div>
+            <div class="bhCell center" data-label="Override Calendar">${overrideCell}</div>
+            <div class="bhCell center" data-label="">
+              <button class="rowBtn viewBtn" data-id="${esc(bh.id)}">View</button>
+            </div>
+          </div>`;
+      }).join('');
+
+      el.innerHTML = `<div class="bhTable">${header}${rows}</div>`;
+
+      bindCopyBtns(el);
+
+      el.querySelectorAll('.viewBtn').forEach(btn => {
+        btn.addEventListener('click', () => openDetail(btn.dataset.id));
+      });
+
+      el.querySelectorAll('.calLink').forEach(btn => {
+        btn.addEventListener('click', () => openCalendarDetail(btn.dataset.calType, btn.dataset.calId));
+      });
+    }
+
+    /* ──────────────────────────────────────────────
+       Load business hours list
+    ────────────────────────────────────────────── */
+    async function loadBusinessHours() {
+      const orgId   = getOrgId();
+      const bearer  = getBearer();
+      if (!orgId || !bearer) {
+        setStatus('Not authenticated — please sign in.');
+        $('bhList').innerHTML = `<div class="bhTable"><div class="bhEmpty">Please sign in to load data.</div></div>`;
+        return;
+      }
+      setStatus('Loading business hours…');
+      $('bhList').innerHTML = `<div class="bhTable"><div class="bhEmpty">Loading…</div></div>`;
+      try {
+        const headers = { 'Authorization': `Bearer ${bearer}`, 'Accept': 'application/json' };
+        const base    = `${API_BASE}/organization/${encodeURIComponent(orgId)}`;
+
+        // Fetch BH list + holiday list + overrides list in parallel
+        const [bhRes, holRes, ovRes] = await Promise.all([
+          fetch(`${base}/v2/business-hours?page=0&pageSize=200`,  { headers }),
+          fetch(`${base}/v2/holiday-list?page=0&pageSize=200`,    { headers }),
+          fetch(`${base}/v2/overrides?page=0&pageSize=200`,       { headers })
+        ]);
+
+        if (!bhRes.ok) throw new Error(`HTTP ${bhRes.status} ${bhRes.statusText}`);
+        const bhData  = await bhRes.json();
+        lastBhList = Array.isArray(bhData.data) ? bhData.data : [];
+
+        // Build lookup maps (failures are silently ignored — names just fall back to IDs)
+        if (holRes.ok) {
+          const holData = await holRes.json();
+          holidayMap = {};
+          (Array.isArray(holData.data) ? holData.data : []).forEach(h => { if (h.id) holidayMap[h.id] = h; });
+        }
+        if (ovRes.ok) {
+          const ovData = await ovRes.json();
+          overrideMap = {};
+          (Array.isArray(ovData.data) ? ovData.data : []).forEach(o => { if (o.id) overrideMap[o.id] = o; });
+        }
+
+        setStatus(`Loaded ${lastBhList.length} business hour schedule${lastBhList.length !== 1 ? 's' : ''}.`);
+        renderTable(lastBhList);
+      } catch (err) {
+        setStatus(`Error: ${err.message}`);
+        $('bhList').innerHTML = `<div class="bhTable"><div class="bhEmpty">Failed to load data. Check your credentials.</div></div>`;
+      }
+    }
+
+    /* ──────────────────────────────────────────────
+       Detail modal
+    ────────────────────────────────────────────── */
+    async function openDetail(id) {
+      const orgId  = getOrgId();
+      const bearer = getBearer();
+      const modal  = $('detailModal');
+      const content = $('detailContent');
+      const title   = $('detailModalTitle');
+
+      // Try to find in local list first
+      let bh = lastBhList.find(b => b.id === id);
+
+      // If not found or we want fresh data, fetch it
+      if (!bh && orgId && bearer) {
+        content.innerHTML = '<div style="padding:16px;color:var(--muted);">Loading…</div>';
+        modal.classList.add('open');
+        document.body.style.overflow = 'hidden';
+        try {
+          const res = await fetch(
+            `${API_BASE}/organization/${encodeURIComponent(orgId)}/v2/business-hours/${encodeURIComponent(id)}`,
+            { headers: { 'Authorization': `Bearer ${bearer}`, 'Accept': 'application/json' } }
+          );
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          bh = await res.json();
+        } catch (err) {
+          content.innerHTML = `<div class="formMsg error">Failed to load details: ${esc(err.message)}</div>`;
+          return;
+        }
+      }
+
+      if (!bh) {
+        content.innerHTML = `<div class="formMsg error">Business hours not found.</div>`;
+        modal.classList.add('open');
+        document.body.style.overflow = 'hidden';
+        return;
+      }
+
+      title.textContent = bh.name || 'Business Hours Detail';
+
+      const map = buildDayMap(bh.workingHours);
+      const detailDayGrid = `
+        <div class="detailGrid">
+          ${DAY_ORDER.map(day => {
+            const entries = map[day] || [];
+            if (entries.length) {
+              const times = entries.map(e => `${e.start || '?'}–${e.end || '?'}`).join('<br>');
+              return `<div class="detailDayCell active"><div class="detailDayName">${day}</div><div class="detailDayTime">${times}</div></div>`;
+            }
+            return `<div class="detailDayCell closed"><div class="detailDayName">${day}</div><div class="detailDayClosed">Closed</div></div>`;
+          }).join('')}
+        </div>`;
+
+      const shiftList = (bh.workingHours || []).length
+        ? `<div class="detailShiftList">
+            ${(bh.workingHours || []).map(sh => `
+              <div class="detailShift">
+                ${sh.name ? `<div class="detailShiftName">${esc(sh.name)}</div>` : ''}
+                <div class="detailShiftDays">${(sh.days||[]).map(d=>`<span class="detailShiftDay">${d}</span>`).join('')}</div>
+                <div class="detailShiftTime">${esc(sh.startTime||'?')} — ${esc(sh.endTime||'?')}</div>
+              </div>`).join('')}
+          </div>`
+        : `<p style="color:var(--muted);font-size:13px;">No shifts defined.</p>`;
+
+      const hObj2 = bh.holidaysId ? (holidayMap[bh.holidaysId] || null) : null;
+      const oObj2 = bh.overridesId ? (overrideMap[bh.overridesId] || null) : null;
+      const hName2 = hObj2 ? (hObj2.name || bh.holidaysId) : (bh.holidaysId || '');
+      const oName2 = oObj2 ? (oObj2.name || bh.overridesId) : (bh.overridesId || '');
+
+      const holidayRow = bh.holidaysId
+        ? `<div class="linkedId">${copyBtn(bh.holidaysId,'Copy holiday calendar ID')}
+             <button class="calLink" data-cal-type="holiday" data-cal-id="${esc(bh.holidaysId)}">${esc(hName2)}</button>
+           </div>`
+        : `<span style="color:var(--muted);font-size:13px;font-style:italic;">None</span>`;
+
+      const overrideRow = bh.overridesId
+        ? `<div class="linkedId">${copyBtn(bh.overridesId,'Copy override calendar ID')}
+             <button class="calLink" data-cal-type="override" data-cal-id="${esc(bh.overridesId)}">${esc(oName2)}</button>
+           </div>`
+        : `<span style="color:var(--muted);font-size:13px;font-style:italic;">None</span>`;
+
+      content.innerHTML = `
+        <div class="detailSection">
+          <div class="detailLabel">ID</div>
+          <div style="display:flex;align-items:center;gap:6px;">${copyBtn(bh.id,'Copy ID')} <span class="detailValue">${esc(bh.id||'—')}</span></div>
+        </div>
+        <div class="detailSection">
+          <div class="detailLabel">Timezone</div>
+          <div class="detailValue">${esc(bh.timezone||'—')}</div>
+        </div>
+        ${bh.description ? `<div class="detailSection"><div class="detailLabel">Description</div><div class="detailValue">${esc(bh.description)}</div></div>` : ''}
+        <div class="detailSection">
+          <div class="detailLabel">Weekly Schedule</div>
+          ${detailDayGrid}
+        </div>
+        <div class="detailSection">
+          <div class="detailLabel">Shifts</div>
+          ${shiftList}
+        </div>
+        <div class="formRow" style="margin-top:14px;">
+          <div class="detailSection">
+            <div class="detailLabel">Holiday Calendar</div>
+            ${holidayRow}
+          </div>
+          <div class="detailSection">
+            <div class="detailLabel">Override Calendar</div>
+            ${overrideRow}
+          </div>
+        </div>
+        <div class="detailSection">
+          <div class="detailLabel" style="cursor:pointer;user-select:none;" id="rawJsonToggle">Raw JSON ▸</div>
+          <div id="rawJsonBlock" style="display:none;"><pre class="rawJson">${esc(JSON.stringify(bh, null, 2))}</pre></div>
+        </div>`;
+
+      bindCopyBtns(content);
+
+      content.querySelectorAll('.calLink').forEach(btn => {
+        btn.addEventListener('click', () => openCalendarDetail(btn.dataset.calType, btn.dataset.calId));
+      });
+
+      $('rawJsonToggle').addEventListener('click', () => {
+        const block = $('rawJsonBlock');
+        const tog   = $('rawJsonToggle');
+        block.style.display = block.style.display === 'none' ? '' : 'none';
+        tog.textContent = block.style.display === 'none' ? 'Raw JSON ▸' : 'Raw JSON ▾';
+      });
+
+      modal.classList.add('open');
+      document.body.style.overflow = 'hidden';
+    }
+
+    /* ──────────────────────────────────────────────
+       Calendar detail modal (holiday or override)
+    ────────────────────────────────────────────── */
+    async function openCalendarDetail(type, id) {
+      const orgId  = getOrgId();
+      const bearer = getBearer();
+      const modal  = $('detailModal');
+      const content = $('detailContent');
+      const title   = $('detailModalTitle');
+
+      content.innerHTML = '<div style="padding:16px;color:var(--muted);">Loading…</div>';
+      modal.classList.add('open');
+      document.body.style.overflow = 'hidden';
+
+      // Check cache first
+      let cal = type === 'holiday' ? (holidayMap[id] || null) : (overrideMap[id] || null);
+
+      // Fetch if not cached or missing detail fields
+      const needsDetail = !cal || (type === 'holiday' ? !cal.holidays : !cal.overrides);
+      if (needsDetail && orgId && bearer) {
+        try {
+          const endpoint = type === 'holiday'
+            ? `${API_BASE}/organization/${encodeURIComponent(orgId)}/holiday-list/${encodeURIComponent(id)}`
+            : `${API_BASE}/organization/${encodeURIComponent(orgId)}/overrides/${encodeURIComponent(id)}`;
+          const res = await fetch(endpoint, {
+            headers: { 'Authorization': `Bearer ${bearer}`, 'Accept': 'application/json' }
+          });
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          cal = await res.json();
+          // Update cache
+          if (type === 'holiday') holidayMap[id] = cal;
+          else overrideMap[id] = cal;
+        } catch (err) {
+          content.innerHTML = `<div class="formMsg error">Failed to load details: ${esc(err.message)}</div>`;
+          return;
+        }
+      }
+
+      if (!cal) {
+        content.innerHTML = `<div class="formMsg error">Calendar not found.</div>`;
+        return;
+      }
+
+      title.textContent = (type === 'holiday' ? 'Holiday Calendar: ' : 'Override Calendar: ') + esc(cal.name || id);
+
+      if (type === 'holiday') {
+        const entries = Array.isArray(cal.holidays) ? cal.holidays : [];
+        const rows = entries.length
+          ? entries.map(e => `
+              <tr>
+                <td style="padding:8px 10px; border-bottom:1px solid var(--border);">${esc(e.name || '—')}</td>
+                <td style="padding:8px 10px; border-bottom:1px solid var(--border);">${esc(e.startDate || '—')}</td>
+                <td style="padding:8px 10px; border-bottom:1px solid var(--border);">${esc(e.endDate || e.startDate || '—')}</td>
+              </tr>`).join('')
+          : `<tr><td colspan="3" style="padding:12px;color:var(--muted);">No holiday entries defined.</td></tr>`;
+
+        content.innerHTML = `
+          <div class="detailSection">
+            <div class="detailLabel">ID</div>
+            <div style="display:flex;align-items:center;gap:6px;">${copyBtn(cal.id,'Copy ID')} <span class="detailValue">${esc(cal.id||'—')}</span></div>
+          </div>
+          ${cal.description ? `<div class="detailSection"><div class="detailLabel">Description</div><div class="detailValue">${esc(cal.description)}</div></div>` : ''}
+          <div class="detailSection">
+            <div class="detailLabel">Holiday Entries (${entries.length})</div>
+            <table style="width:100%;border-collapse:collapse;border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-top:8px;">
+              <thead>
+                <tr style="background:var(--panel);color:var(--accent);font-size:12px;font-weight:700;">
+                  <th style="padding:8px 10px;text-align:left;">Name</th>
+                  <th style="padding:8px 10px;text-align:left;">Start Date</th>
+                  <th style="padding:8px 10px;text-align:left;">End Date</th>
+                </tr>
+              </thead>
+              <tbody>${rows}</tbody>
+            </table>
+          </div>
+          <div class="detailSection">
+            <div class="detailLabel" style="cursor:pointer;user-select:none;" id="rawJsonToggle">Raw JSON ▸</div>
+            <div id="rawJsonBlock" style="display:none;"><pre class="rawJson">${esc(JSON.stringify(cal, null, 2))}</pre></div>
+          </div>`;
+      } else {
+        // Override calendar
+        const entries = Array.isArray(cal.overrides) ? cal.overrides : [];
+        const rows = entries.length
+          ? entries.map(e => `
+              <tr>
+                <td style="padding:8px 10px; border-bottom:1px solid var(--border);">${esc(e.name || '—')}</td>
+                <td style="padding:8px 10px; border-bottom:1px solid var(--border);">${esc(e.startDateTime || '—')}</td>
+                <td style="padding:8px 10px; border-bottom:1px solid var(--border);">${esc(e.endDateTime || '—')}</td>
+                <td style="padding:8px 10px; border-bottom:1px solid var(--border);">
+                  <span style="display:inline-block;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:700;background:${e.workingHours ? 'rgba(16,185,129,.15)' : 'rgba(239,68,68,.12)'};color:${e.workingHours ? '#059669' : '#dc2626'};">
+                    ${e.workingHours ? 'Open' : 'Closed'}
+                  </span>
+                </td>
+              </tr>`).join('')
+          : `<tr><td colspan="4" style="padding:12px;color:var(--muted);">No override entries defined.</td></tr>`;
+
+        content.innerHTML = `
+          <div class="detailSection">
+            <div class="detailLabel">ID</div>
+            <div style="display:flex;align-items:center;gap:6px;">${copyBtn(cal.id,'Copy ID')} <span class="detailValue">${esc(cal.id||'—')}</span></div>
+          </div>
+          ${cal.description ? `<div class="detailSection"><div class="detailLabel">Description</div><div class="detailValue">${esc(cal.description)}</div></div>` : ''}
+          <div class="detailSection">
+            <div class="detailLabel">Override Entries (${entries.length})</div>
+            <table style="width:100%;border-collapse:collapse;border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-top:8px;">
+              <thead>
+                <tr style="background:var(--panel);color:var(--accent);font-size:12px;font-weight:700;">
+                  <th style="padding:8px 10px;text-align:left;">Name</th>
+                  <th style="padding:8px 10px;text-align:left;">Start</th>
+                  <th style="padding:8px 10px;text-align:left;">End</th>
+                  <th style="padding:8px 10px;text-align:left;">Status</th>
+                </tr>
+              </thead>
+              <tbody>${rows}</tbody>
+            </table>
+          </div>
+          <div class="detailSection">
+            <div class="detailLabel" style="cursor:pointer;user-select:none;" id="rawJsonToggle">Raw JSON ▸</div>
+            <div id="rawJsonBlock" style="display:none;"><pre class="rawJson">${esc(JSON.stringify(cal, null, 2))}</pre></div>
+          </div>`;
+      }
+
+      bindCopyBtns(content);
+
+      $('rawJsonToggle').addEventListener('click', () => {
+        const block = $('rawJsonBlock');
+        const tog   = $('rawJsonToggle');
+        block.style.display = block.style.display === 'none' ? '' : 'none';
+        tog.textContent = block.style.display === 'none' ? 'Raw JSON ▸' : 'Raw JSON ▾';
+      });
+    }
+
+    /* ──────────────────────────────────────────────
+       Load holiday calendars for Add form
+    ────────────────────────────────────────────── */
+    async function loadHolidayLists() {
+      const orgId  = getOrgId();
+      const bearer = getBearer();
+      if (!orgId || !bearer) return;
+      const statusEl = $('holidayLoadStatus');
+      const sel      = $('bhHolidaySelect');
+      statusEl.textContent = 'Loading holiday calendars…';
+      try {
+        const res = await fetch(
+          `${API_BASE}/organization/${encodeURIComponent(orgId)}/v2/holiday-list?page=0&pageSize=200`,
+          { headers: { 'Authorization': `Bearer ${bearer}`, 'Accept': 'application/json' } }
+        );
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        holidayList = Array.isArray(data.data) ? data.data : [];
+        sel.innerHTML = `<option value="">None</option>` +
+          holidayList.map(h => `<option value="${esc(h.id)}">${esc(h.name || h.id)}</option>`).join('');
+        statusEl.textContent = holidayList.length
+          ? `${holidayList.length} holiday calendar${holidayList.length !== 1 ? 's' : ''} available.`
+          : 'No holiday calendars found.';
+      } catch (err) {
+        statusEl.textContent = `Could not load holiday calendars: ${err.message}`;
+      }
+    }
+
+    /* ──────────────────────────────────────────────
+       Shift row builder
+    ────────────────────────────────────────────── */
+    function addShiftRow(defaults) {
+      const idx  = shiftIdx++;
+      const days = defaults ? (defaults.days || []) : ['MON','TUE','WED','THU','FRI'];
+      const div  = document.createElement('div');
+      div.className = 'shiftRow';
+      div.innerHTML = `
+        <div>
+          <label style="margin-top:0; font-size:12px;">Shift Name <span style="color:red;">*</span></label>
+          <input class="formInput shiftName" type="text" placeholder="e.g. Morning" value="${esc(defaults && defaults.name ? defaults.name : '')}" />
+        </div>
+        <div>
+          <label style="margin-top:0; font-size:12px;">Days</label>
+          <div class="shiftDays">
+            ${DAY_ORDER.map(d => `
+              <label class="dayCheckLabel">
+                <input type="checkbox" class="dayCheck" value="${d}" ${days.includes(d) ? 'checked' : ''} />
+                <span>${d}</span>
+              </label>`).join('')}
+          </div>
+        </div>
+        <div>
+          <label style="margin-top:0; font-size:12px;">Start</label>
+          <input class="formInput shiftStart" type="time" value="${esc(defaults && defaults.startTime ? defaults.startTime : '08:00')}" />
+        </div>
+        <div>
+          <label style="margin-top:0; font-size:12px;">End</label>
+          <input class="formInput shiftEnd" type="time" value="${esc(defaults && defaults.endTime ? defaults.endTime : '16:59')}" />
+        </div>
+        <div>
+          <button type="button" class="removeShiftBtn" title="Remove shift">✕</button>
+        </div>`;
+      div.querySelector('.removeShiftBtn').addEventListener('click', () => div.remove());
+      $('shiftsContainer').appendChild(div);
+    }
+
+    function collectShifts() {
+      return Array.from($('shiftsContainer').querySelectorAll('.shiftRow')).map(row => ({
+        name:      row.querySelector('.shiftName').value.trim(),
+        days:      Array.from(row.querySelectorAll('.dayCheck:checked')).map(cb => cb.value),
+        startTime: row.querySelector('.shiftStart').value,
+        endTime:   row.querySelector('.shiftEnd').value
+      })).filter(s => s.days.length);
+    }
+
+    /* ──────────────────────────────────────────────
+       Add modal open / close
+    ────────────────────────────────────────────── */
+    let _lastNameForOverride = '';
+
+    function openAddModal() {
+      $('addForm').reset();
+      $('shiftsContainer').innerHTML = '';
+      $('addFormMsg').innerHTML = '';
+      $('overrideNameRow').style.display = 'none';
+      shiftIdx = 0;
+      _lastNameForOverride = '';
+      addShiftRow(null);
+      $('addModal').classList.add('open');
+      document.body.style.overflow = 'hidden';
+      loadHolidayLists();
+    }
+
+    function closeAddModal() {
+      $('addModal').classList.remove('open');
+      document.body.style.overflow = '';
+    }
+
+    function setFormMsg(msg, type = 'error') {
+      $('addFormMsg').innerHTML = msg
+        ? `<div class="formMsg ${type}">${esc(msg)}</div>`
+        : '';
+    }
+
+    /* ──────────────────────────────────────────────
+       Create business hours (form submit)
+    ────────────────────────────────────────────── */
+    async function handleCreate(e) {
+      e.preventDefault();
+      const orgId  = getOrgId();
+      const bearer = getBearer();
+      if (!orgId || !bearer) { setFormMsg('Not authenticated — please sign in.'); return; }
+
+      const name        = $('bhName').value.trim();
+      const timezone    = $('bhTimezone').value;
+      const description = $('bhDescription').value.trim();
+      const holidaysId  = $('bhHolidaySelect').value;
+      const makeOverride = $('createOverrideCheck').checked;
+      const overrideCalName = makeOverride
+        ? ($('overrideCalName').value.trim() || name + ' Override')
+        : '';
+
+      if (!name)     { setFormMsg('Name is required.'); return; }
+      if (!timezone) { setFormMsg('Timezone is required.'); return; }
+
+      const workingHours = collectShifts();
+      const unnamedShift = workingHours.find(s => !s.name);
+      if (unnamedShift) { setFormMsg('All shifts require a name.'); return; }
+      if (!workingHours.length) { setFormMsg('At least one shift with days selected is required.'); return; }
+
+      const btn = $('createBhBtn');
+      btn.disabled = true;
+      btn.textContent = 'Creating…';
+      setFormMsg('');
+
+      try {
+        // Step 1 — Optionally create override calendar
+        let overridesId = '';
+        if (makeOverride) {
+          setFormMsg(`Creating override calendar "${overrideCalName}"…`, 'info');
+
+          // Build today's date placeholder (API requires at least one entry)
+          const today = new Date();
+          const pad   = n => String(n).padStart(2, '0');
+          const todayStr = `${today.getFullYear()}-${pad(today.getMonth()+1)}-${pad(today.getDate())}`;
+
+          const ovRes = await fetch(
+            `${API_BASE}/organization/${encodeURIComponent(orgId)}/overrides`,
+            {
+              method: 'POST',
+              headers: {
+                'Authorization': `Bearer ${bearer}`,
+                'Content-Type':  'application/json',
+                'Accept':        'application/json'
+              },
+              body: JSON.stringify({
+                organizationId: orgId,
+                name:           overrideCalName,
+                description:    `Override calendar for ${name}`,
+                timezone,
+                overrides: [{
+                  name:          'placeholder',
+                  startDateTime: `${todayStr}T00:00`,
+                  endDateTime:   `${todayStr}T23:59`,
+                  workingHours:  false
+                }]
+              })
+            }
+          );
+          if (!ovRes.ok) {
+            const t = await ovRes.text();
+            throw new Error(`Override calendar creation failed (${ovRes.status}): ${t}`);
+          }
+          const ovData = await ovRes.json();
+          overridesId = ovData.id || '';
+          if (!overridesId) throw new Error('Override calendar was created but no ID was returned.');
+        }
+
+        // Step 2 — Create business hours (POST to non-versioned endpoint)
+        setFormMsg(makeOverride ? 'Override calendar created. Creating business hours…' : 'Creating business hours…', 'info');
+        const payload = { organizationId: orgId, name, description, timezone, workingHours };
+        if (holidaysId)  payload.holidaysId  = holidaysId;
+        if (overridesId) payload.overridesId = overridesId;
+
+        const bhRes = await fetch(
+          `${API_BASE}/organization/${encodeURIComponent(orgId)}/business-hours`,
+          {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${bearer}`,
+              'Content-Type':  'application/json',
+              'Accept':        'application/json'
+            },
+            body: JSON.stringify(payload)
+          }
+        );
+        if (!bhRes.ok) {
+          const t = await bhRes.text();
+          throw new Error(`Business hours creation failed (${bhRes.status}): ${t}`);
+        }
+
+        closeAddModal();
+        await loadBusinessHours();
+        setStatus(`Business hours "${name}" created successfully.`);
+      } catch (err) {
+        setFormMsg(err.message);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Create Business Hours';
+      }
+    }
+
+    /* ──────────────────────────────────────────────
+       Event listeners
+    ────────────────────────────────────────────── */
+    // Toolbar
+    $('addBhBtn').addEventListener('click', openAddModal);
+    $('refreshBtn').addEventListener('click', loadBusinessHours);
+
+    // Add modal
+    $('addModalClose').addEventListener('click', closeAddModal);
+    $('addModalCancelBtn').addEventListener('click', closeAddModal);
+    $('addModal').addEventListener('click', e => { if (e.target === $('addModal')) closeAddModal(); });
+    $('addShiftBtn').addEventListener('click', () => addShiftRow(null));
+    $('addForm').addEventListener('submit', handleCreate);
+
+    // Auto-populate override calendar name from bh name
+    $('bhName').addEventListener('input', () => {
+      const n = $('bhName').value.trim();
+      const ov = $('overrideCalName');
+      if (!ov.value || ov.value === _lastNameForOverride + ' Override') {
+        ov.value = n ? n + ' Override' : '';
+      }
+      _lastNameForOverride = n;
+    });
+
+    $('createOverrideCheck').addEventListener('change', () => {
+      const show = $('createOverrideCheck').checked;
+      $('overrideNameRow').style.display = show ? '' : 'none';
+      if (show && !$('overrideCalName').value) {
+        const n = $('bhName').value.trim();
+        $('overrideCalName').value = n ? n + ' Override' : '';
+        _lastNameForOverride = n;
+      }
+    });
+
+    // Detail modal
+    $('detailModalClose').addEventListener('click', () => { $('detailModal').classList.remove('open'); document.body.style.overflow = ''; });
+    $('detailCloseBtn').addEventListener('click',   () => { $('detailModal').classList.remove('open'); document.body.style.overflow = ''; });
+    $('detailModal').addEventListener('click', e => {
+      if (e.target === $('detailModal')) { $('detailModal').classList.remove('open'); document.body.style.overflow = ''; }
+    });
+
+    // Search
+    $('searchInput').addEventListener('input', () => {
+      searchTerm = $('searchInput').value.toLowerCase();
+      renderTable(lastBhList);
+    });
+
+    // Populate header user/org info from localStorage
+    function updateAuthIndicators() {
+      const bearer  = localStorage.getItem('authBearer') || '';
+      const orgName = localStorage.getItem('authOrgName') || localStorage.getItem('authOrg') || '';
+      const user    = localStorage.getItem('authUserName') || '';
+      const nameEl  = document.getElementById('userName');
+      const orgEl   = document.getElementById('userOrg');
+      if (nameEl) nameEl.textContent = bearer ? (user || 'Authenticated') : 'Not authenticated';
+      if (orgEl)  orgEl.textContent  = orgName || '';
+    }
+    updateAuthIndicators();
+
+    // Load on page ready
+    loadBusinessHours();
+  </script>
+</body>
+</html>

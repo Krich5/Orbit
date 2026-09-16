@@ -1,0 +1,225 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="light" />
+  <title>WxCC - EPOCH Time Only</title>
+  <link rel="stylesheet" href="../../assets/css/theme.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/png" href="../../assets/images/WxCC_Icon-192.png" />
+  <style>
+    main { padding:32px 0 80px; }
+    .section-title { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:12px; font-size:15px; letter-spacing:.02em; color:var(--muted); text-transform:uppercase; }
+    .epoch-display { display:grid; gap:12px; grid-template-columns:repeat(auto-fit,minmax(320px,1fr)); }
+    .epoch-row { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:12px 14px; border-radius:12px; background:var(--card); border:1px solid var(--border); }
+    .epoch-label { font-size:14px; color:var(--muted); }
+    .epoch-value { font-variant-numeric:tabular-nums; font-weight:600; font-size:26px; letter-spacing:0.03em; }
+    .range-bar { margin-top:14px; display:flex; flex-wrap:wrap; gap:12px; align-items:flex-end; justify-content:space-between; }
+    .range-group { display:flex; flex-direction:column; gap:8px; }
+    .button-row { display:flex; flex-wrap:wrap; gap:8px; }
+    .fetch-group { display:flex; align-items:flex-end; gap:10px; }
+    button.action { background:linear-gradient(135deg,var(--accentA),var(--accentB)); border:none; color:#ffffff; padding:10px 14px; border-radius:12px; cursor:pointer; font-weight:700; }
+    button.action.secondary { background:var(--input); color:var(--fg); border:1px solid var(--border); }
+    .range-btn.active { background:linear-gradient(135deg,var(--accentA),var(--accentB)) !important; color:#ffffff !important; border:1px solid rgba(8,172,242,0.6) !important; }
+    .copy-btn { background:rgba(8,172,242,0.12); border:1px solid rgba(8,172,242,0.4); color:var(--fg); border-radius:10px; padding:8px 10px; cursor:pointer; font-weight:600; }
+  </style>
+</head>
+<body class="dark-mode">
+  <script>if (localStorage.getItem("tpRailExpanded") === "true") document.body.classList.add("tp-rail-expanded");</script>
+  <api-tools-header basepath="../../"></api-tools-header>
+
+  <main>
+    <div class="wrap wide contentWrap">
+      <section class="card">
+        <div class="pageHeader">
+          <h1>Epoch Time Utility</h1>
+          <p class="lead">Convert timestamps and ranges for reporting queries.</p>
+        </div>
+        <div class="epoch-display">
+          <div class="epoch-row">
+            <div>
+              <div class="epoch-label">FROM</div>
+              <div class="epoch-value" id="fromMs">--</div>
+              <div class="epoch-label" id="fromLocal">--</div>
+            </div>
+            <button class="copy-btn" data-copy="from">Copy</button>
+          </div>
+          <div class="epoch-row">
+            <div>
+              <div class="epoch-label">TO</div>
+              <div class="epoch-value" id="toMs">--</div>
+              <div class="epoch-label" id="toLocal">--</div>
+            </div>
+            <button class="copy-btn" data-copy="to">Copy</button>
+          </div>
+        </div>
+        <div class="range-bar">
+          <div class="range-group">
+            <div class="control-label">Pick a window</div>
+            <div class="button-row compact">
+              <button class="action secondary range-btn" data-range="600000">10m</button>
+              <button class="action secondary range-btn" data-range="3600000">1h</button>
+              <button class="action secondary range-btn" data-range="86400000">24h</button>
+              <button class="action secondary range-btn" data-range="604800000">7d</button>
+              <button class="action secondary" id="customTimeBtn">Custom</button>
+            </div>
+          </div>
+          <div class="fetch-group">
+            <a class="action secondary" href="searchapi.html" style="text-decoration:none; display:inline-flex; align-items:center; gap:6px;">Open Search API</a>
+            <input type="datetime-local" id="customFrom" style="display:none;">
+            <input type="datetime-local" id="customTo" style="display:none;">
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+    <script src="../../assets/js/orbit-config.js"></script>
+    <script src="../../assets/js/components.js"></script>
+    <script src="../../assets/js/theme.js"></script>
+<script>
+    const fromMsEl = document.getElementById('fromMs');
+    const toMsEl = document.getElementById('toMs');
+    const fromLocalEl = document.getElementById('fromLocal');
+    const toLocalEl = document.getElementById('toLocal');
+    const customTimeBtn = document.getElementById('customTimeBtn');
+    const customFrom = document.getElementById('customFrom');
+    const customTo = document.getElementById('customTo');
+
+    const cacheKeyBearer = 'authBearer';
+    const cacheKeyOrg = 'authOrg';
+    const cacheKeyOrgName = 'authOrgName';
+    const cacheKeyUser = 'authUserName';
+    const userNameEl = document.getElementById('userName');
+    const userOrgEl = document.getElementById('userOrg');
+
+    let selectedRangeMs = 600000;
+    let fromMs = null;
+    let toMs = null;
+
+    const formatLocal = (ms, opts = {}) => new Intl.DateTimeFormat(undefined, {
+      year: 'numeric', month: 'short', day: '2-digit',
+      hour: '2-digit', minute: '2-digit', second: '2-digit',
+      fractionalSecondDigits: opts.ms ? 3 : undefined,
+      timeZoneName: 'short'
+    }).format(new Date(ms));
+
+    const highlightRangeButton = () => {
+      document.querySelectorAll('.range-btn').forEach(btn => {
+        const val = Number(btn.dataset.range);
+        const active = val === selectedRangeMs;
+        btn.classList.toggle('active', active);
+        btn.setAttribute('aria-pressed', String(active));
+      });
+    };
+    highlightRangeButton();
+
+    document.querySelectorAll('.range-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const val = Number(btn.dataset.range);
+        if (!Number.isNaN(val)) { selectedRangeMs = val; highlightRangeButton(); refreshEpochWindow(); }
+      });
+    });
+
+    function refreshEpochWindow() {
+      const now = Date.now();
+      toMs = now;
+      fromMs = now - selectedRangeMs;
+      fromMsEl.textContent = fromMs;
+      toMsEl.textContent = toMs;
+      fromLocalEl.textContent = formatLocal(fromMs, { ms:true });
+      toLocalEl.textContent = formatLocal(toMs, { ms:true });
+      const orgName = localStorage.getItem(cacheKeyOrgName) || '';
+      const orgId = localStorage.getItem(cacheKeyOrg) || '';
+      const userName = localStorage.getItem(cacheKeyUser) || '';
+      if (userNameEl) userNameEl.textContent = userName || 'Authenticated';
+      if (userOrgEl) userOrgEl.textContent = orgName || orgId || '';
+    }
+
+    function openCustomPicker() {
+      customFrom.style.display = '';
+      customTo.style.display = '';
+      customTimeBtn.classList.add('active');
+    }
+
+    if (customTimeBtn) {
+      customTimeBtn.addEventListener('click', openCustomPicker);
+    }
+
+    [customFrom, customTo].forEach(inp => {
+      if (!inp) return;
+      inp.addEventListener('change', () => {
+        const fromVal = new Date(customFrom.value);
+        const toVal = new Date(customTo.value);
+        if (!isNaN(fromVal) && !isNaN(toVal) && toVal > fromVal) {
+          fromMs = fromVal.getTime();
+          toMs = toVal.getTime();
+          selectedRangeMs = toMs - fromMs;
+          highlightRangeButton();
+          refreshEpochWindow();
+        }
+      });
+    });
+
+    refreshEpochWindow();
+
+    // Copy behavior with feedback
+    const copyActions = {
+      from: () => String(fromMs ?? ''),
+      to: () => String(toMs ?? '')
+    };
+    const flashCopyState = (btn) => {
+      const original = btn.textContent;
+      btn.textContent = 'Copied';
+      setTimeout(() => (btn.textContent = original), 1500);
+    };
+    document.querySelectorAll('.copy-btn').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        const kind = btn.dataset.copy;
+        const getter = copyActions[kind];
+        if (getter) {
+          const text = getter();
+          try {
+            await navigator.clipboard.writeText(text);
+            flashCopyState(btn);
+          } catch (err) {
+            console.error('Copy failed', err);
+          }
+        }
+      });
+    });
+
+
+    function updateAuthIndicators() {
+      const b = localStorage.getItem('authBearer') || '';
+      const org = localStorage.getItem('authOrgName') || localStorage.getItem('authOrg') || '';
+      const tag = document.getElementById('orgTag');
+      if (tag) tag.textContent = org ? `Org: ${org}` : 'Not authenticated';
+    }
+    updateAuthIndicators();
+
+    const signOutBtn = document.getElementById('signOutBtn');
+    if (signOutBtn) {
+      signOutBtn.addEventListener('click', () => {
+        localStorage.removeItem('authBearer');
+        localStorage.removeItem('authOrg');
+        localStorage.removeItem('authOrgName');
+        localStorage.removeItem('authRefreshToken');
+        localStorage.removeItem('authExpiresAt');
+        window.location.href = '../../index.html';
+      });
+    }
+
+
+    document.addEventListener('click', (event) => {
+    });
+
+    document.addEventListener('keydown', (event) => {
+    });
+  </script>
+
+
+  </body>
+</html>

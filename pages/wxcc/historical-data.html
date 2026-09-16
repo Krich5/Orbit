@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="light" />
+  <title>Historical Data - Orbit</title>
+  <link rel="icon" type="image/png" href="../../assets/images/WxCC_Icon-192.png" />
+  <link rel="stylesheet" href="../../assets/css/theme.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    main { padding: 32px 0 80px; }
+  </style>
+</head>
+<body class="dark-mode api-historical">
+  <script>if (localStorage.getItem("tpRailExpanded") === "true") document.body.classList.add("tp-rail-expanded");</script>
+  <api-tools-header basepath="../../"></api-tools-header>
+  <main>
+    <div class="wrap wide contentWrap">
+      <section class="card">
+      <div class="dashboard-panel-body">
+      <section class="dashboard-intro">
+        <div class="pageHeader dashboard-hero">
+          <h1>Historical Data Snapshot</h1>
+        </div>
+        <div class="snapshot-control-row" aria-label="Historical snapshot controls">
+          <div class="field-stack">
+            <label for="snapshotTimeInput">Snapshot Time</label>
+            <input id="snapshotTimeInput" type="datetime-local" step="60" />
+          </div>
+          <div class="dashboard-filter-group">
+            <span class="dashboard-filter-group__label">Queue Name</span>
+            <div class="filter-dropdown dashboard-filter-dropdown" id="sharedQueueDropdown">
+              <button class="filter-dropdown__toggle dashboard-filter-toggle" id="sharedQueueToggle" type="button" aria-haspopup="true" aria-expanded="false" aria-label="Filter snapshot by queue">
+                <span class="dashboard-filter-toggle__text">All</span>
+                <span class="filter-dropdown__badge">0</span>
+                <span class="filter-dropdown__chevron" aria-hidden="true">▼</span>
+              </button>
+              <div class="filter-dropdown__panel" id="sharedQueuePanel" role="listbox" aria-multiselectable="true">
+                <input class="filter-dropdown__search" type="search" placeholder="Search queues…" id="sharedQueueSearch" autocomplete="off">
+                <div class="filter-dropdown__list" id="sharedQueueList"></div>
+              </div>
+            </div>
+          </div>
+          <div class="dashboard-filter-group">
+            <span class="dashboard-filter-group__label">Managed Teams</span>
+            <div class="filter-dropdown dashboard-filter-dropdown" id="sharedTeamDropdown">
+              <button class="filter-dropdown__toggle dashboard-filter-toggle" id="sharedTeamToggle" type="button" aria-haspopup="true" aria-expanded="false" aria-label="Filter snapshot by team">
+                <span class="dashboard-filter-toggle__text">All</span>
+                <span class="filter-dropdown__badge">0</span>
+                <span class="filter-dropdown__chevron" aria-hidden="true">▼</span>
+              </button>
+              <div class="filter-dropdown__panel" id="sharedTeamPanel" role="listbox" aria-multiselectable="true">
+                <input class="filter-dropdown__search" type="search" placeholder="Search teams…" id="sharedTeamSearch" autocomplete="off">
+                <div class="filter-dropdown__list" id="sharedTeamList"></div>
+              </div>
+            </div>
+          </div>
+          <div class="snapshot-control-actions">
+            <button class="btn" id="snapshotNowBtn" type="button">Set To Now</button>
+            <button class="btn primary" id="analyzeSnapshotBtn" type="button">Analyze Snapshot</button>
+          </div>
+        </div>
+        <div class="dashboard-note">
+          <p id="snapshotStatus">Loading teams, queues, and users…</p>
+        </div>
+        <div class="metric-grid" role="region" aria-label="Historical snapshot KPIs">
+          <article class="metric-card">
+            <span class="metric-label">Calls Waiting</span>
+            <strong class="metric-value" id="metric-waitingCalls">0</strong>
+          </article>
+          <article class="metric-card">
+            <span class="metric-label">Calls Connected</span>
+            <strong class="metric-value" id="metric-connectedCalls">0</strong>
+          </article>
+          <article class="metric-card">
+            <span class="metric-label">Logged In Agents</span>
+            <strong class="metric-value" id="metric-loggedInAgents">0</strong>
+          </article>
+          <article class="metric-card">
+            <span class="metric-label">Available Agents</span>
+            <strong class="metric-value" id="metric-availableAgents">0</strong>
+          </article>
+          <article class="metric-card">
+            <span class="metric-label">Idle Agents</span>
+            <strong class="metric-value" id="metric-idleAgents">0</strong>
+          </article>
+        </div>
+      </section>
+
+      <section class="snapshot-summary-grid" aria-label="Investigation summary">
+        <article class="snapshot-summary-card">
+          <h3>Snapshot Window</h3>
+          <p id="snapshotWindowText">Waiting for a snapshot time.</p>
+        </article>
+        <article class="snapshot-summary-card">
+          <h3>Filters Applied</h3>
+          <div class="snapshot-kv" id="snapshotFilterPills"></div>
+        </article>
+        <article class="snapshot-summary-card">
+          <h3>Investigation Notes</h3>
+          <p id="snapshotNarrative">Choose a timestamp, team, and queue to reconstruct what the contact center was doing at that moment.</p>
+        </article>
+      </section>
+
+      <section class="dashboard-section dashboard-block">
+        <div class="queue-table-wrap">
+          <div class="card-header">
+            <div class="card-header-meta">
+              <h2>Queue Snapshot</h2>
+              <span class="section-count" id="queueCountLabel">—</span>
+            </div>
+          </div>
+          <div class="queue-table-scroll">
+            <table class="queue-table" id="queueTable">
+              <colgroup>
+                <col class="queue-col-name">
+                <col class="queue-col-waiting">
+                <col class="queue-col-connected">
+                <col class="queue-col-avg-wait">
+                <col class="queue-col-handled">
+                <col class="queue-col-abandoned">
+                <col class="queue-col-longest-wait">
+              </colgroup>
+              <thead>
+                <tr>
+                  <th>Queue</th>
+                  <th>Waiting</th>
+                  <th>Connected</th>
+                  <th>Longest Wait</th>
+                  <th>Active Calls</th>
+                  <th>Teams</th>
+                  <th>Unhandled Waiting</th>
+                </tr>
+              </thead>
+              <tbody id="queueTableBody">
+                <tr><td colspan="7" class="realtime-status">Waiting for analysis.</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <section class="dashboard-section dashboard-block">
+        <div class="agent-table-wrap">
+          <div class="card-header">
+            <div class="card-header-meta">
+              <h2>Agent State At Snapshot</h2>
+              <span class="section-count" id="agentCountLabel">—</span>
+            </div>
+          </div>
+          <div class="agent-summary-pills" id="agentSummaryPills">
+            <span class="agent-pill available"><span class="agent-pill__count" id="agentCount-available">0</span> Available</span>
+            <span class="agent-pill connected"><span class="agent-pill__count" id="agentCount-connected">0</span> Connected</span>
+            <span class="agent-pill wrapup"><span class="agent-pill__count" id="agentCount-wrapup">0</span> Wrap-up</span>
+            <span class="agent-pill idle"><span class="agent-pill__count" id="agentCount-idle">0</span> Idle</span>
+          </div>
+          <div class="agent-table-scroll">
+            <table class="agent-state-table" id="agentStateTable">
+              <thead>
+                <tr>
+                  <th>Team</th>
+                  <th>Agent</th>
+                  <th>State</th>
+                  <th>State Duration</th>
+                  <th>Session Start</th>
+                  <th>Idle Code</th>
+                  <th>Handled</th>
+                  <th>RONA</th>
+                </tr>
+              </thead>
+              <tbody id="agentStateBody">
+                <tr><td colspan="8" class="realtime-status">Waiting for analysis.</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <section class="dashboard-section dashboard-block">
+        <div class="queue-table-wrap">
+          <div class="card-header">
+            <div class="card-header-meta">
+              <h2>Calls Active Around Snapshot</h2>
+              <span class="section-count" id="taskCountLabel">—</span>
+            </div>
+          </div>
+          <div class="queue-table-scroll">
+            <table class="queue-table task-table" id="taskTable">
+              <thead>
+                <tr>
+                  <th>Queue</th>
+                  <th>Team</th>
+                  <th>Status</th>
+                  <th>Entered Queue</th>
+                  <th>Age At Snapshot</th>
+                  <th>Assigned Agent</th>
+                </tr>
+              </thead>
+              <tbody id="taskTableBody">
+                <tr><td colspan="6" class="realtime-status">Waiting for analysis.</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+      </div>
+      </section>
+    </div>
+  </main>
+  <script src="../../assets/js/orbit-config.js"></script>
+  <script src="../../assets/js/components.js"></script>
+  <script src="../../assets/js/theme.js"></script>
+  <script src="../../assets/js/historical-data-page.js"></script>
+</body>
+</html>

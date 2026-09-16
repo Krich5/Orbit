@@ -1,0 +1,16 @@
+{
+  "name": "orbit-proxy",
+  "version": "1.0.0",
+  "private": true,
+  "description": "CORS relay for Orbit's WxCC API calls, deployed to Railway.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "express": "^4.19.2"
+  }
+}

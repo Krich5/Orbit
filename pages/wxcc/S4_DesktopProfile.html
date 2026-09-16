@@ -1,0 +1,2258 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="light" />
+  <title>WxCC Wizard - Desktop Profiles</title>
+  <link rel="icon" type="image/png" href="../../assets/images/WxCC_Icon-192.png" />
+  <link rel="stylesheet" href="../../assets/css/theme.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    main {
+      padding: 32px 0 64px;
+      width: 100%;
+      margin: 0 auto;
+      display: flex;
+      justify-content: flex-start;
+      align-items: flex-start;
+    }
+    .wizard-card {
+      width: 100%;
+      background: var(--panel);
+      border: 1px solid rgba(255,255,255, 0.08);
+      border-radius: 36px;
+      padding: 28px 32px;
+      box-shadow: 0 30px 60px rgba(0,0,0,0.35);
+      margin: 0 auto;
+    }
+    .wizard-title {
+      margin: 0 0 8px;
+      font-size: clamp(2.75rem, 3vw, 3.6rem);
+      font-weight: 700;
+      color: var(--fg);
+    }
+    .step-label {
+      margin: 0 0 12px;
+      font-size: 1rem;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: var(--muted);
+      font-weight: 600;
+    }
+    .step-label.form-heading {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--fg);
+      letter-spacing: 0.4em;
+    }
+    body.dark-mode .step-label.form-heading {
+      color: #fff;
+    }
+    .wizard-subtitle {
+      margin: 0 0 28px;
+      font-size: 1rem;
+      color: var(--muted);
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+    }
+    .progress-bar {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 32px;
+    }
+    .progress-step {
+      flex: 1;
+      height: 6px;
+      background: #d4d4d4;
+      border-radius: 3px;
+    }
+    body.dark-mode .progress-step {
+      background: rgba(255,255,255,0.18);
+    }
+    .progress-step.complete {
+      background: linear-gradient(135deg, #2196f3, #1976d2);
+    }
+    .progress-step.active {
+      background: linear-gradient(135deg, #22c55e, #10b981);
+    }
+    body.dark-mode .progress-step.complete {
+      background: linear-gradient(135deg, #2196f3, #1976d2);
+    }
+    body.dark-mode .progress-step.active {
+      background: linear-gradient(135deg, #22c55e, #10b981);
+    }
+    .form-panel {
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 26px;
+      padding: 32px 40px;
+      background: rgba(255,255,255,0.02);
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.03);
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      width: 100%;
+    }
+    body:not(.dark-mode) .form-panel {
+      border-color: rgba(0, 0, 0, 0.12);
+      background: rgba(255, 255, 255, 0.94);
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.12), inset 0 0 0 1px rgba(255, 255, 255, 0.25);
+    }
+    .form-panel form {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      width: 100%;
+    }
+    
+    /* Section styling */
+    .form-section {
+      margin-bottom: 24px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+    .form-section:last-of-type {
+      border-bottom: none;
+      margin-bottom: 0;
+      padding-bottom: 0;
+    }
+    .section-label {
+      margin: 0 0 14px;
+      font-size: 0.85rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--muted);
+      font-weight: 600;
+    }
+    
+    /* General card grid */
+    .general-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+    }
+    .general-card {
+      border-radius: 28px;
+      border: 1px solid var(--border);
+      padding: 20px;
+      background: var(--card);
+      box-shadow: 0 20px 45px rgba(0, 0, 0, 0.35);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      min-height: 140px;
+    }
+    body:not(.dark-mode) .general-card {
+      border-color: rgba(0, 0, 0, 0.12);
+      box-shadow: 0 18px 40px rgba(0, 0, 0, 0.12);
+    }
+    .general-card-heading {
+      font-size: 0.85rem;
+      letter-spacing: 0.35em;
+      text-transform: uppercase;
+      font-weight: 600;
+      color: var(--muted);
+    }
+    .general-card-body {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+    .general-card-state {
+      font-size: 1rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      font-weight: 500;
+      color: var(--fg);
+    }
+    .toggle-pill {
+      width: 38px;
+      height: 38px;
+      border-radius: 12px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      cursor: pointer;
+    }
+    .toggle-pill input[type="checkbox"] {
+      position: absolute;
+      opacity: 0;
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      cursor: pointer;
+    }
+    .toggle-pill .checkmark {
+      width: 24px;
+      height: 24px;
+      border-radius: 6px;
+      border: 1px solid rgba(255, 255, 255, 0.5);
+      background: transparent;
+      transition: all 0.2s ease;
+    }
+    .toggle-pill input[type="checkbox"]:checked + .checkmark {
+      background: linear-gradient(135deg, #2196f3, #1976d2);
+      border-color: #1976d2;
+      box-shadow: 0 10px 20px rgba(33, 150, 243, 0.4);
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath fill='%23fff' d='M7.629 14.566l-3.3-3.3a1 1 0 01.03-1.417 1 1 0 011.413.031l1.927 1.927L14.27 6.434a1 1 0 011.415-.03 1 1 0 01-.03 1.417z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: center;
+    }
+    .radio-pills-inline {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: flex-start;
+    }
+    .radio-pill-compact {
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      padding: 6px 14px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      font-size: 0.75rem;
+      background: var(--input);
+      white-space: normal;
+      line-height: 1.2;
+      overflow-wrap: anywhere;
+    }
+    body:not(.dark-mode) .radio-pill-compact {
+      border-color: rgba(0, 0, 0, 0.15);
+      background: rgba(255, 255, 255, 0.9);
+    }
+    .radio-pill-compact input {
+      margin: 0;
+      width: 14px;
+      height: 14px;
+    }
+    .wrap-duration-field {
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      padding: 12px 14px;
+      background: var(--input);
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    body:not(.dark-mode) .wrap-duration-field {
+      background: rgba(255, 255, 255, 0.94);
+    }
+    .wrap-duration-label {
+      font-size: 0.7rem;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .wrap-duration-field input[type="number"] {
+      border: 0;
+      border-radius: 12px;
+      padding: 8px 12px;
+      font-size: 1rem;
+      background: transparent;
+      color: var(--fg);
+      width: 100%;
+    }
+    .agent-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 12px;
+    }
+    .checkbox-control {
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      padding: 12px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--card);
+      font-size: 0.85rem;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      font-weight: 600;
+      line-height: 1.2;
+    }
+    body:not(.dark-mode) .checkbox-control {
+      background: rgba(255, 255, 255, 0.95);
+    }
+    .checkbox-control input[type="checkbox"] {
+      width: 24px;
+      height: 24px;
+      accent-color: #1d4ed8;
+      cursor: pointer;
+    }
+    .agent-validation-card {
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 16px;
+      background: var(--card);
+      box-shadow: 0 12px 24px rgba(0, 0, 0, 0.18);
+      margin-top: 12px;
+    }
+    .agent-validation-card .radio-group {
+      gap: 10px;
+    }
+    
+    /* Grid layouts */
+    .field-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 16px;
+      margin-bottom: 12px;
+    }
+    .field-grid--compact {
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 14px;
+    }
+    .field-grid--wide {
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    }
+    .checkbox-search {
+      width: 100%; border-radius: 12px; border: 1px solid var(--border);
+      background: var(--input); color: var(--fg); padding: 8px 12px;
+      font-size: 0.82rem; font-family: inherit; margin-bottom: 8px; box-sizing: border-box;
+    }
+    .checkbox-stack {
+      max-height: 220px;
+      overflow-y: auto;
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      background: var(--card);
+      padding: 14px;
+      margin-top: 6px;
+      display: flex;
+      flex-wrap: wrap;
+      align-content: flex-start;
+      gap: 10px;
+    }
+    .checkbox-option {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 6px 14px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: rgba(255, 255, 255, 0.4);
+      cursor: pointer;
+      font-size: 0.85rem;
+      text-transform: none;
+      flex: 1 1 150px;
+      min-width: 130px;
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+      transition: all 0.2s ease;
+      gap: 4px;
+      white-space: normal;
+      line-height: 1.2;
+      overflow-wrap: anywhere;
+      word-break: break-word;
+      min-height: 52px;
+    }
+    .checkbox-option .code-label {
+      flex: 1;
+      text-align: center;
+      font-weight: 600;
+    }
+    .checkbox-option input {
+      display: none;
+    }
+    .checkbox-option.active {
+      background: linear-gradient(135deg, rgba(21, 157, 216, 0.15), rgba(21, 157, 216, 0.4));
+      border-color: rgba(21, 157, 216, 0.8);
+      color: var(--accent-blue);
+      box-shadow: 0 10px 20px rgba(21, 157, 216, 0.25);
+    }
+    .checkbox-option.default-code {
+      border-color: rgba(249, 115, 22, 0.8);
+      box-shadow: 0 10px 25px rgba(249, 115, 22, 0.25);
+    }
+    .default-badge {
+      font-size: 0.55rem;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: rgba(249, 115, 22, 0.9);
+      border: 1px solid rgba(249, 115, 22, 0.4);
+      border-radius: 999px;
+      padding: 2px 6px;
+    }
+    
+    /* Field groups */
+    .field-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .field-group span,
+    .field-group label {
+      font-size: 0.8rem;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: var(--muted);
+      min-height: 38px;
+      line-height: 1.2;
+      font-weight: 500;
+    }
+    .field-group input,
+    .field-group select,
+    .field-group textarea {
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      background: var(--input);
+      color: var(--fg);
+      padding: 12px 14px;
+      font-size: 1rem;
+      font-family: inherit;
+    }
+    .field-group select[multiple] {
+      min-height: 120px;
+    }
+    
+    .code-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 16px;
+      margin-top: 12px;
+    }
+    .code-panel {
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 18px 20px;
+      background: var(--card);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      min-height: 220px;
+      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.08);
+      color: var(--fg);
+    }
+    .panel-card {
+      border: 1px solid var(--border);
+      border-radius: 28px;
+      background: var(--card);
+      padding: 20px 26px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.08);
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+    .code-panel-title {
+      font-size: 0.85rem;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: var(--muted);
+      font-weight: 600;
+    }
+    .code-panel .radio-group {
+      gap: 8px;
+    }
+    .top-section-grid {
+      grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+      align-items: start;
+      margin-top: 0;
+    }
+    /* Plain (unboxed) group wrapper — a label followed directly by its
+       .top-setting-card items, matching the "Webex App" section-label
+       pattern instead of nesting a .code-panel box around boxed cards. */
+    .form-subsection {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .top-card-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
+      align-items: stretch;
+    }
+    .top-setting-card {
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 18px 20px;
+      background: rgba(255,255,255,0.03);
+      min-height: 132px;
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.03);
+    }
+    body.dark-mode .top-setting-card {
+      background: rgba(15, 23, 42, 0.55);
+      border-color: rgba(255,255,255,0.14);
+    }
+    body:not(.dark-mode) .top-setting-card {
+      background: rgba(255,255,255,0.92);
+      border-color: rgba(0,0,0,0.12);
+    }
+    .top-setting-card {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .top-setting-body {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex: 1;
+    }
+    .top-setting-state {
+      font-size: 0.98rem;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      font-weight: 600;
+      color: var(--fg);
+      line-height: 1.2;
+    }
+    .stack-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .stack-panel > .code-panel,
+    .stack-panel > .queue-selection,
+    .stack-panel > .team-selection {
+      width: 100%;
+      min-width: 0;
+    }
+    .nested-code-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 16px;
+    }
+    .nested-code-grid .code-panel {
+      min-height: 0;
+    }
+    .compact-panel {
+      max-width: 460px;
+      width: 100%;
+      justify-self: start;
+      min-height: 0;
+    }
+    .full-width-toggle {
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 14px 16px;
+      background: var(--card);
+      width: 100%;
+      box-sizing: border-box;
+    }
+    body.dark-mode .full-width-toggle {
+      background: rgba(12, 12, 12, 0.75);
+      border-color: rgba(255, 255, 255, 0.14);
+    }
+    .toggle-control {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      width: 100%;
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--fg);
+    }
+    .toggle-control label {
+      flex: 1;
+      min-width: 0;
+      line-height: 1.3;
+      overflow-wrap: anywhere;
+      word-break: break-word;
+    }
+    .toggle-control input[type="checkbox"] {
+      width: 22px;
+      height: 22px;
+      flex: 0 0 auto;
+      accent-color: #1d4ed8;
+      cursor: pointer;
+    }
+    .panel-select {
+      width: 100%;
+      border-radius: 18px;
+      border: 1px solid var(--border);
+      background: var(--input);
+      color: var(--fg);
+      padding: 14px 16px;
+      font-size: 1rem;
+      font-family: inherit;
+      appearance: none;
+      -webkit-appearance: none;
+      background-image: linear-gradient(45deg, transparent 50%, var(--muted) 50%), linear-gradient(135deg, var(--muted) 50%, transparent 50%);
+      background-position: calc(100% - 22px) calc(50% - 3px), calc(100% - 16px) calc(50% - 3px);
+      background-size: 6px 6px, 6px 6px;
+      background-repeat: no-repeat;
+    }
+    .selection-summary {
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 14px;
+      margin-top: 8px;
+      background: var(--card);
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
+      color: var(--fg);
+    }
+    .selection-header {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.75rem;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: var(--muted);
+      font-weight: 600;
+    }
+    .selection-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .selection-pill {
+      border-radius: 999px;
+      padding: 6px 12px;
+      background: rgba(255, 255, 255, 0.08);
+      font-size: 0.85rem;
+      white-space: normal;
+      line-height: 1.25;
+      overflow-wrap: anywhere;
+      word-break: break-word;
+    }
+    .selection-empty {
+      font-size: 0.8rem;
+      color: rgba(255, 255, 255, 0.7);
+    }
+    body.dark-mode .code-panel,
+    body.dark-mode .selection-summary {
+      background: rgba(12, 12, 12, 0.75);
+      border-color: rgba(255, 255, 255, 0.14);
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.75);
+      color: var(--fg);
+    }
+    body.dark-mode .selection-summary {
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.15);
+    }
+    
+    /* Radio button groups */
+    .radio-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .radio-option {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 14px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: var(--input);
+      cursor: pointer;
+      font-size: 0.85rem;
+      color: var(--fg);
+      transition: all 0.2s;
+      white-space: normal;
+      line-height: 1.2;
+      overflow-wrap: anywhere;
+    }
+    .radio-option:hover {
+      border-color: rgba(33,150,243,0.5);
+    }
+    .radio-option input[type="radio"] {
+      margin: 0;
+      cursor: pointer;
+    }
+    
+    /* Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 11px 24px;
+      border-radius: 14px;
+      font-weight: 700;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      border: none;
+      white-space: normal;
+      line-height: 1.2;
+      text-align: center;
+    }
+    .btn.primary {
+      background: linear-gradient(135deg, #2196f3, #1976d2);
+      color: #fff;
+      border: 1px solid #1976d2;
+    }
+    .btn.primary:hover {
+      background: linear-gradient(135deg, #1976d2, #1565c0);
+      box-shadow: 0 4px 12px rgba(33,150,243,0.4);
+    }
+    .btn.secondary {
+      border: 1px solid rgba(255,255,255,0.25);
+      background: rgba(255,255,255,0.08);
+      color: var(--fg);
+    }
+    body.dark-mode .btn.secondary {
+      color: #fff;
+    }
+    .btn.secondary:hover {
+      background: rgba(255,255,255,0.12);
+    }
+    .button-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      margin-top: 24px;
+      padding-top: 20px;
+      border-top: 1px solid rgba(255,255,255,0.06);
+    }
+    .button-row .btn {
+      min-width: 140px;
+    }
+    
+    /* Status messages */
+    .statusMessage {
+      margin-top: 16px;
+      padding: 12px 16px;
+      border-radius: 12px;
+      text-align: center;
+      font-size: 0.95rem;
+      font-weight: 600;
+      display: none;
+    }
+    .statusMessage.success {
+      background: linear-gradient(135deg, #10b981, #22c55e);
+      color: #fff;
+      border: 1px solid #22c55e;
+      display: block;
+    }
+    .statusMessage.error {
+      background: #f87171;
+      color: #1f2937;
+      border: 1px solid #f87171;
+      display: block;
+    }
+    
+    .hidden {
+      display: none !important;
+    }
+
+    /* ── Creation progress panel (same style as S3 flow builder) ── */
+    .pf-progress-wrap {
+      display: flex; flex-direction: column; gap: 22px;
+      max-width: 520px; margin: 0 auto; width: 100%; padding: 8px 0 4px;
+    }
+    .pf-progress-heading { display: flex; flex-direction: column; gap: 5px; }
+    .pf-progress-title { font-size: 1.3rem; font-weight: 700; color: var(--fg); }
+    body.dark-mode .pf-progress-title { color: #fff; }
+    .pf-progress-meta { font-size: 0.82rem; color: var(--muted); letter-spacing: 0.06em; }
+    .pf-bar-track { background: rgba(255,255,255,0.08); border-radius: 99px; height: 8px; overflow: hidden; }
+    body:not(.dark-mode) .pf-bar-track { background: rgba(0,0,0,0.1); }
+    .pf-bar-fill { height: 100%; background: linear-gradient(135deg,#2196f3,#22c55e); border-radius: 99px; transition: width 0.5s ease; width: 0%; }
+    .pf-steps-list { display: flex; flex-direction: column; gap: 12px; }
+    .pf-step-item { display: flex; align-items: center; gap: 12px; font-size: 0.9rem; opacity: 0.5; transition: opacity 0.2s; }
+    .pf-step-active, .pf-step-done, .pf-step-error { opacity: 1; }
+    .pf-step-icon { font-size: 1.1rem; width: 22px; text-align: center; flex-shrink: 0; }
+    .pf-step-label { font-weight: 600; color: var(--fg); }
+    .pf-step-detail { color: var(--muted); font-size: 0.82rem; margin-left: 4px; }
+    .pf-step-active .pf-step-icon  { color: #2196f3; }
+    .pf-step-done   .pf-step-icon  { color: #22c55e; }
+    .pf-step-error  .pf-step-icon  { color: #f87171; }
+    .pf-error-text  { color: #f87171; font-size: 0.88rem; margin: 0; }
+    .pf-progress-actions { display: flex; flex-direction: column; gap: 12px; }
+    
+    @media (max-width: 768px) {
+      .wizard-card {
+        padding: 24px 20px;
+      }
+      .form-panel {
+        padding: 20px 24px;
+      }
+      .field-grid,
+      .field-grid--compact,
+      .field-grid--wide,
+      .general-compact-grid,
+      .top-section-grid,
+      .top-card-grid {
+        grid-template-columns: 1fr;
+      }
+      .button-row {
+        flex-direction: column;
+      }
+      .toggle-control {
+        align-items: flex-start;
+      }
+    }
+  </style>
+</head>
+<body class="dark-mode">
+  <script>if (localStorage.getItem("tpRailExpanded") === "true") document.body.classList.add("tp-rail-expanded");</script>
+  <api-tools-header basepath="../../"></api-tools-header>
+
+  <main>
+    <div class="wrap wide contentWrap">
+      <section class="wizard-card">
+        <h1 class="wizard-title">Contact Center Setup Wizard</h1>
+        <p class="wizard-subtitle">Step 4 of 5 · Desktop Profiles</p>
+        
+        <div class="progress-bar">
+          <div class="progress-step complete"></div>
+          <div class="progress-step complete"></div>
+          <div class="progress-step complete"></div>
+          <div class="progress-step active"></div>
+          <div class="progress-step"></div>
+        </div>
+
+        <div class="form-panel">
+          <!-- ── Form content (hidden while progress is showing) ── -->
+          <div id="profileFormContent">
+          <div class="step-label form-heading">Step 4 · Desktop Profiles</div>
+
+          <form id="desktopForm" novalidate>
+
+            <!-- General & Agent Desktop Login Type - Side by Side -->
+            <div class="form-section">
+              <div class="code-grid top-section-grid">
+                <div class="form-subsection">
+                  <div class="section-label">General</div>
+                  <div class="top-card-grid">
+                    <article class="top-setting-card">
+                      <div class="code-panel-title">Screen Pop</div>
+                      <div class="top-setting-body">
+                        <span class="top-setting-state" id="screenPopStateLabel">Disabled</span>
+                        <label class="toggle-pill">
+                          <input type="checkbox" id="screenPopToggle">
+                          <span class="checkmark"></span>
+                        </label>
+                      </div>
+                    </article>
+                    <article class="top-setting-card">
+                      <div class="code-panel-title">Auto Answer</div>
+                      <div class="top-setting-body">
+                        <span class="top-setting-state" id="autoAnswerStateLabel">Disabled</span>
+                        <label class="toggle-pill">
+                          <input type="checkbox" id="autoAnswerToggle">
+                          <span class="checkmark"></span>
+                        </label>
+                      </div>
+                    </article>
+                    <article class="top-setting-card">
+                      <div class="code-panel-title">Wrap Up Mode</div>
+                      <div class="radio-pills-inline wrap-mode-pills">
+                        <label class="radio-pill-compact">
+                          <input type="radio" name="wrapMode" value="MANUAL" checked>
+                          Manual
+                        </label>
+                        <label class="radio-pill-compact">
+                          <input type="radio" name="wrapMode" value="AUTO">
+                          Auto
+                        </label>
+                      </div>
+                      <div class="wrap-duration-field hidden" id="wrapDurationItem">
+                        <label class="wrap-duration-label">Duration (seconds)</label>
+                        <input type="number" id="wrapDurationInput" min="0" placeholder="10">
+                      </div>
+                    </article>
+                  </div>
+                </div>
+
+                <div class="form-subsection">
+                  <div class="section-label">Agent Desktop Login Type</div>
+                  <div class="top-card-grid">
+                    <article class="top-setting-card">
+                      <div class="code-panel-title">Agent DN</div>
+                      <div class="top-setting-body">
+                        <span class="top-setting-state" id="voiceAgentDnStateLabel">Disabled</span>
+                        <label class="toggle-pill">
+                          <input type="checkbox" id="voiceAgentDn">
+                          <span class="checkmark"></span>
+                        </label>
+                      </div>
+                    </article>
+                    <article class="top-setting-card">
+                      <div class="code-panel-title">Extension</div>
+                      <div class="top-setting-body">
+                        <span class="top-setting-state" id="voiceExtensionStateLabel">Disabled</span>
+                        <label class="toggle-pill">
+                          <input type="checkbox" id="voiceExtension">
+                          <span class="checkmark"></span>
+                        </label>
+                      </div>
+                    </article>
+                    <article class="top-setting-card">
+                      <div class="code-panel-title">Desktop</div>
+                      <div class="top-setting-body">
+                        <span class="top-setting-state" id="voiceBrowserStateLabel">Enabled</span>
+                        <label class="toggle-pill">
+                          <input type="checkbox" id="voiceBrowser" checked>
+                          <span class="checkmark"></span>
+                        </label>
+                      </div>
+                    </article>
+                  </div>
+                  <div class="agent-validation-card hidden" id="agentDnValidationItem">
+                    <div class="field-group">
+                      <label>Agent DN Validation</label>
+                      <div class="radio-group">
+                        <label class="radio-option">
+                          <input type="radio" name="dnValidation" value="NONE" checked>
+                          Unrestricted
+                        </label>
+                        <label class="radio-option">
+                          <input type="radio" name="dnValidation" value="PROVISIONED_VALUE">
+                          Provisioned
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+        <!-- Webex App -->
+        <div class="form-section">
+          <div class="section-label">Webex App</div>
+          <div class="agent-grid">
+            <label class="checkbox-control">
+              <span>Display User Details</span>
+              <input type="checkbox" id="webexUserDetailsToggle">
+            </label>
+            <label class="checkbox-control">
+              <span>Sync State</span>
+              <input type="checkbox" id="webexSyncToggle">
+            </label>
+          </div>
+        </div>
+
+            <!-- Wrap-up & Idle Codes -->
+            <div class="form-section">
+              <div class="section-label">Wrap-up & Idle Codes</div>
+              <div class="code-grid">
+                <div class="code-panel">
+                  <div class="code-panel-title">Wrap-up Codes</div>
+                  <div class="radio-group">
+                    <label class="radio-option">
+                      <input type="radio" name="wrapAccess" value="ALL" checked>
+                      All
+                    </label>
+                    <label class="radio-option">
+                      <input type="radio" name="wrapAccess" value="SPECIFIC">
+                      Specific
+                    </label>
+                  </div>
+                  <div class="code-select hidden" id="wrapCodesGroup">
+                    <label>Select wrap-up codes</label>
+                    <div id="wrapCodesContainer" class="checkbox-stack"></div>
+                  </div>
+                  <div class="selection-summary hidden" id="wrapSelectionSummary">
+                    <div class="selection-header">
+                      <span>Selected</span>
+                      <span id="wrapSelectionCount">0 selected</span>
+                    </div>
+                    <div class="selection-pills" id="wrapSelectionPills"></div>
+                  </div>
+                </div>
+                <div class="code-panel">
+                  <div class="code-panel-title">Idle Codes</div>
+                  <div class="radio-group">
+                    <label class="radio-option">
+                      <input type="radio" name="idleAccess" value="ALL" checked>
+                      All
+                    </label>
+                    <label class="radio-option">
+                      <input type="radio" name="idleAccess" value="SPECIFIC">
+                      Specific
+                    </label>
+                  </div>
+                  <div class="code-select hidden" id="idleCodesGroup">
+                    <label>Select idle codes</label>
+                    <div id="idleCodesContainer" class="checkbox-stack"></div>
+                  </div>
+                  <div class="selection-summary hidden" id="idleSelectionSummary">
+                    <div class="selection-header">
+                      <span>Selected</span>
+                      <span id="idleSelectionCount">0 selected</span>
+                    </div>
+                    <div class="selection-pills" id="idleSelectionPills"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Consult & Transfer -->
+            <div class="form-section">
+              <div class="section-label">Consult & Transfer</div>
+              <div class="stack-panel">
+                <div class="code-panel">
+                  <div class="code-panel-title">Access Mode</div>
+                  <div class="radio-pills-inline">
+                    <label class="radio-pill-compact">
+                      <input type="radio" name="consultAccess" value="ALL" checked>
+                      All
+                    </label>
+                    <label class="radio-pill-compact">
+                      <input type="radio" name="consultAccess" value="NONE">
+                      None
+                    </label>
+                    <label class="radio-pill-compact">
+                      <input type="radio" name="consultAccess" value="SPECIFIC">
+                      Specific
+                    </label>
+                  </div>
+                  <div class="toggle-control" style="margin-top: 12px;">
+                    <label>Consult to Queue</label>
+                    <input type="checkbox" id="consultToQueueToggle">
+                  </div>
+                  <div class="nested-code-grid hidden" id="consultTargetsGroup" style="margin-top: 12px;">
+                    <div class="form-subsection">
+                      <div class="code-panel-title">Channel Targets</div>
+                      <div id="consultChannelsContainer" class="checkbox-stack"></div>
+                      <div class="selection-summary hidden" id="consultChannelSummary">
+                        <div class="selection-header">
+                          <span>Selected</span>
+                          <span id="consultChannelCount">0 selected</span>
+                        </div>
+                        <div class="selection-pills" id="consultChannelPills"></div>
+                      </div>
+                    </div>
+                    <div class="form-subsection">
+                      <div class="code-panel-title">Queue Targets</div>
+                      <div id="consultQueuesContainer" class="checkbox-stack"></div>
+                      <div class="selection-summary hidden" id="consultQueueSummary">
+                        <div class="selection-header">
+                          <span>Selected</span>
+                          <span id="consultQueueCount">0 selected</span>
+                        </div>
+                        <div class="selection-pills" id="consultQueuePills"></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!-- Buddy Teams -->
+            <div class="form-section">
+              <div class="section-label">Buddy Teams</div>
+              <div class="stack-panel">
+                <div class="code-panel">
+                  <div class="code-panel-title">Access Mode</div>
+                  <div class="radio-pills-inline">
+                    <label class="radio-pill-compact">
+                      <input type="radio" name="buddyAccess" value="ALL" checked>
+                      All
+                    </label>
+                    <label class="radio-pill-compact">
+                      <input type="radio" name="buddyAccess" value="NONE">
+                      None
+                    </label>
+                    <label class="radio-pill-compact">
+                      <input type="radio" name="buddyAccess" value="SPECIFIC">
+                      Specific
+                    </label>
+                  </div>
+                  <div class="form-subsection hidden" id="buddyTeamsGroup" style="margin-top: 12px;">
+                    <div class="code-panel-title">Select Teams</div>
+                    <div id="buddyTeamsContainer" class="checkbox-stack"></div>
+                    <div class="selection-summary hidden" id="buddySelectionSummary">
+                      <div class="selection-header">
+                        <span>Selected</span>
+                        <span id="buddySelectionCount">0 selected</span>
+                      </div>
+                      <div class="selection-pills" id="buddySelectionPills"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+
+            <!-- Dialing & Directory -->
+            <div class="form-section">
+              <div class="section-label">Dialing & Directory</div>
+              <div class="code-grid">
+                <div class="code-panel compact-panel">
+                  <div class="code-panel-title">Outdial Entry Point</div>
+                  <select id="outdialEntryPointSelect" class="panel-select">
+                    <option value="" disabled selected>Select entry point</option>
+                  </select>
+                </div>
+                <div class="code-panel">
+                  <div class="code-panel-title">Dial Plans</div>
+                  <div id="dialPlanContainer" class="checkbox-stack"></div>
+                  <div class="selection-summary hidden" id="dialPlanSummary">
+                    <div class="selection-header">
+                      <span>Selected</span>
+                      <span id="dialPlanCount">0 selected</span>
+                    </div>
+                    <div class="selection-pills" id="dialPlanPills"></div>
+                  </div>
+                </div>
+              </div>
+              <div class="code-grid" style="margin-top: 12px;">
+                <div class="code-panel compact-panel">
+                  <div class="code-panel-title">Address Book</div>
+                  <div class="toggle-control" style="margin-top: 6px;">
+                    <label>Auto-create Address Book</label>
+                    <input type="checkbox" id="addressBookToggle">
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Statistics -->
+            <div class="form-section">
+              <div class="section-label">Statistics</div>
+              <div class="code-grid">
+                <div class="code-panel">
+                  <div class="code-panel-title">Queue Statistics</div>
+                  <div class="full-width-toggle" style="margin-bottom: 12px;">
+                    <div class="toggle-control">
+                      <label>Agent Statistics</label>
+                      <input type="checkbox" id="agentStatsToggle" checked>
+                    </div>
+                  </div>
+                  <div class="radio-pills-inline">
+                    <label class="radio-pill-compact">
+                      <input type="radio" name="queueStatsAccess" value="ALL" checked>
+                      All
+                    </label>
+                    <label class="radio-pill-compact">
+                      <input type="radio" name="queueStatsAccess" value="NONE">
+                      None
+                    </label>
+                    <label class="radio-pill-compact">
+                      <input type="radio" name="queueStatsAccess" value="SPECIFIC">
+                      Specific
+                    </label>
+                  </div>
+                  <div class="queue-selection hidden" id="queueStatsGroup">
+                    <div id="queueStatsContainer" class="checkbox-stack"></div>
+                    <div class="selection-summary hidden" id="queueStatsSummary">
+                      <div class="selection-header">
+                        <span>Selected</span>
+                        <span id="queueStatsCount">0 selected</span>
+                      </div>
+                      <div class="selection-pills" id="queueStatsPills"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="code-grid" style="margin-top: 12px;">
+                <div class="code-panel">
+                  <div class="code-panel-title">Team Statistics</div>
+                  <div class="full-width-toggle" style="margin-bottom: 12px;">
+                    <div class="toggle-control">
+                      <label>Logged-in Team Statistics</label>
+                      <input type="checkbox" id="loggedTeamToggle" checked>
+                    </div>
+                  </div>
+                  <div class="radio-pills-inline">
+                    <label class="radio-pill-compact">
+                      <input type="radio" name="teamStatsAccess" value="ALL" checked>
+                      All
+                    </label>
+                    <label class="radio-pill-compact">
+                      <input type="radio" name="teamStatsAccess" value="NONE">
+                      None
+                    </label>
+                    <label class="radio-pill-compact">
+                      <input type="radio" name="teamStatsAccess" value="SPECIFIC">
+                      Specific
+                    </label>
+                  </div>
+                  <div class="team-selection hidden" id="teamStatsGroup">
+                    <div id="teamStatsContainer" class="checkbox-stack"></div>
+                    <div class="selection-summary hidden" id="teamStatsSummary">
+                      <div class="selection-header">
+                        <span>Selected</span>
+                        <span id="teamStatsCount">0 selected</span>
+                      </div>
+                      <div class="selection-pills" id="teamStatsPills"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="button-row">
+              <button type="button" class="btn secondary" id="prevBtn">Previous</button>
+              <button type="button" class="btn primary" id="saveAndContinueBtn">Save & Continue</button>
+            </div>
+            <p id="desktopStatus" class="statusMessage"></p>
+          </form>
+          </div><!-- /#profileFormContent -->
+
+          <!-- ── Creation progress (replaces form while API calls run) ── -->
+          <div id="profileProgressPanel" class="hidden">
+            <div class="pf-progress-wrap">
+              <div class="pf-progress-heading">
+                <div class="pf-progress-title">Creating desktop profile</div>
+                <div class="pf-progress-meta" id="profileProgressMeta">Preparing…</div>
+              </div>
+              <div class="pf-bar-track"><div class="pf-bar-fill" id="profileBarFill"></div></div>
+              <div class="pf-steps-list" id="profileStepsList"></div>
+              <div class="pf-progress-actions hidden" id="profileProgressActions">
+                <p class="pf-error-text" id="profileErrorText"></p>
+                <button type="button" class="btn secondary" id="profileBackFromProgressBtn">← Back to form</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  
+  <script src="../../assets/js/orbit-config.js"></script>
+
+  
+  <script src="../../assets/js/components.js"></script>
+
+  
+  <script src="../../assets/js/theme.js"></script>
+  <script>
+    const WIZARD_STATE_KEY = 'wxcc_wizard_state';
+
+    function getWizardState() {
+      try {
+        return JSON.parse(localStorage.getItem(WIZARD_STATE_KEY) || '{}');
+      } catch {
+        return {};
+      }
+    }
+
+    function saveWizardState(updates) {
+      const snapshot = getWizardState();
+      Object.assign(snapshot, updates);
+      localStorage.setItem(WIZARD_STATE_KEY, JSON.stringify(snapshot));
+    }
+
+    const state = getWizardState();
+
+    const cacheKeyBearer = 'authBearer';
+    const cacheKeyOrg = 'authOrg';
+    const cacheKeyOrgName = 'authOrgName';
+    const cacheKeyUser = 'authUserName';
+
+    const authToken = (localStorage.getItem(cacheKeyBearer) || '').trim();
+
+    function decodeOrgId(raw) {
+      if (!raw) return '';
+      if (/^[0-9a-fA-F-]{30,}$/.test(raw)) return raw;
+      if (/^Y2lz/i.test(raw)) {
+        try {
+          const padded = raw.replace(/-/g, '+').replace(/_/g, '/').padEnd(Math.ceil(raw.length / 4) * 4, '=');
+          const decoded = atob(padded);
+          const parts = decoded.split('/');
+          return parts[parts.length - 1] || decoded;
+        } catch {
+          return raw;
+        }
+      }
+      const orgPathIdx = raw.toLowerCase().indexOf('organization/');
+      if (orgPathIdx !== -1) {
+        const candidate = raw.slice(orgPathIdx + 'organization/'.length);
+        if (candidate) return candidate;
+      }
+      return raw;
+    }
+
+    function resolveOrgId() {
+      const storedId = (localStorage.getItem('authOrgId') || '').trim();
+      if (storedId) return decodeOrgId(storedId) || storedId;
+      const raw = (localStorage.getItem(cacheKeyOrg) || '').trim();
+      if (raw) return decodeOrgId(raw) || raw;
+      return '';
+    }
+
+    const ORG_ID = resolveOrgId();
+    const BASE_URL = `https://api.wxcc-us1.cisco.com/organization/${encodeURIComponent(ORG_ID)}`;
+
+    const endpoints = {
+      auxiliaryCodes: `${BASE_URL}/v2/auxiliary-code`,
+      entryPoints: `${BASE_URL}/v2/entry-point`,
+      queues: `${BASE_URL}/v3/contact-service-queue`,
+      dialPlans: `${BASE_URL}/v2/dial-plan`,
+      teams: `${BASE_URL}/v2/team`,
+      addressBook: `${BASE_URL}/v3/address-book`,
+      desktopProfiles: `${BASE_URL}/agent-profile`
+    };
+
+    const fetchHeaders = {
+      Accept: 'application/json',
+      ...(authToken && { Authorization: `Bearer ${authToken}` })
+    };
+
+    const desktopStatus = document.getElementById('desktopStatus');
+    const screenPopToggle = document.getElementById('screenPopToggle');
+    const autoAnswerToggle = document.getElementById('autoAnswerToggle');
+    const screenPopStateLabel = document.getElementById('screenPopStateLabel');
+    const autoAnswerStateLabel = document.getElementById('autoAnswerStateLabel');
+    const wrapDurationItem = document.getElementById('wrapDurationItem');
+    const wrapDurationInput = document.getElementById('wrapDurationInput');
+    const wrapCodesGroup = document.getElementById('wrapCodesGroup');
+    const wrapCodesContainer = document.getElementById('wrapCodesContainer');
+    const wrapSelectionSummary = document.getElementById('wrapSelectionSummary');
+    const wrapSelectionPills = document.getElementById('wrapSelectionPills');
+    const wrapSelectionCount = document.getElementById('wrapSelectionCount');
+    const idleCodesGroup = document.getElementById('idleCodesGroup');
+    const idleCodesContainer = document.getElementById('idleCodesContainer');
+    const idleSelectionSummary = document.getElementById('idleSelectionSummary');
+    const idleSelectionPills = document.getElementById('idleSelectionPills');
+    const idleSelectionCount = document.getElementById('idleSelectionCount');
+    const consultTargetsGroup = document.getElementById('consultTargetsGroup');
+    const consultChannelsContainer = document.getElementById('consultChannelsContainer');
+    const consultQueuesContainer = document.getElementById('consultQueuesContainer');
+    const consultChannelSummary = document.getElementById('consultChannelSummary');
+    const consultChannelCount = document.getElementById('consultChannelCount');
+    const consultChannelPills = document.getElementById('consultChannelPills');
+    const consultQueueSummary = document.getElementById('consultQueueSummary');
+    const consultQueueCount = document.getElementById('consultQueueCount');
+    const consultQueuePills = document.getElementById('consultQueuePills');
+    const consultToQueueToggle = document.getElementById('consultToQueueToggle');
+    const buddyTeamsGroup = document.getElementById('buddyTeamsGroup');
+    const buddyTeamsContainer = document.getElementById('buddyTeamsContainer');
+    const buddySelectionSummary = document.getElementById('buddySelectionSummary');
+    const buddySelectionCount = document.getElementById('buddySelectionCount');
+    const buddySelectionPills = document.getElementById('buddySelectionPills');
+    const webexUserDetailsToggle = document.getElementById('webexUserDetailsToggle');
+    const webexSyncToggle = document.getElementById('webexSyncToggle');
+    const outdialEntryPointSelect = document.getElementById('outdialEntryPointSelect');
+    const addressBookToggle = document.getElementById('addressBookToggle');
+    const dialPlanContainer = document.getElementById('dialPlanContainer');
+    const dialPlanSummary = document.getElementById('dialPlanSummary');
+    const dialPlanCount = document.getElementById('dialPlanCount');
+    const dialPlanPills = document.getElementById('dialPlanPills');
+    const voiceAgentDn = document.getElementById('voiceAgentDn');
+    const voiceExtension = document.getElementById('voiceExtension');
+    const voiceBrowser = document.getElementById('voiceBrowser');
+    const voiceAgentDnStateLabel = document.getElementById('voiceAgentDnStateLabel');
+    const voiceExtensionStateLabel = document.getElementById('voiceExtensionStateLabel');
+    const voiceBrowserStateLabel = document.getElementById('voiceBrowserStateLabel');
+    const agentDnValidationItem = document.getElementById('agentDnValidationItem');
+    const agentStatsToggle = document.getElementById('agentStatsToggle');
+    const queueStatsGroup = document.getElementById('queueStatsGroup');
+    const queueStatsContainer = document.getElementById('queueStatsContainer');
+    const queueStatsSummary = document.getElementById('queueStatsSummary');
+    const queueStatsCount = document.getElementById('queueStatsCount');
+    const queueStatsPills = document.getElementById('queueStatsPills');
+    const loggedTeamToggle = document.getElementById('loggedTeamToggle');
+    const teamStatsGroup = document.getElementById('teamStatsGroup');
+    const teamStatsContainer = document.getElementById('teamStatsContainer');
+    const teamStatsSummary = document.getElementById('teamStatsSummary');
+    const teamStatsCount = document.getElementById('teamStatsCount');
+    const teamStatsPills = document.getElementById('teamStatsPills');
+    const saveAndContinueBtn = document.getElementById('saveAndContinueBtn');
+    const prevBtn = document.getElementById('prevBtn');
+
+    const wrapAccessRadios = Array.from(document.querySelectorAll('input[name="wrapAccess"]'));
+    const idleAccessRadios = Array.from(document.querySelectorAll('input[name="idleAccess"]'));
+    const consultAccessRadios = Array.from(document.querySelectorAll('input[name="consultAccess"]'));
+    const buddyAccessRadios = Array.from(document.querySelectorAll('input[name="buddyAccess"]'));
+    const wrapModeRadios = Array.from(document.querySelectorAll('input[name="wrapMode"]'));
+    const queueStatsRadios = Array.from(document.querySelectorAll('input[name="queueStatsAccess"]'));
+    const teamStatsRadios = Array.from(document.querySelectorAll('input[name="teamStatsAccess"]'));
+    const dnValidationRadios = Array.from(document.querySelectorAll('input[name="dnValidation"]'));
+
+    let wrapUpCodes = [];
+    let idleCodes = [];
+    let entryPoints = [];
+    let queueList = [];
+    let dialPlans = [];
+    let teams = [];
+    let consultChannelOptions = [];
+    let savedForm = state.desktopProfileForm || {};
+    let isSaving = false;
+
+    function setStatus(element, text = '', type = '') {
+      if (!element) return;
+      element.textContent = text;
+      element.className = 'statusMessage';
+      if (type) element.classList.add(type);
+      element.style.display = text ? 'block' : 'none';
+    }
+
+    function toggleElement(element, show) {
+      if (!element) return;
+      element.classList.toggle('hidden', !show);
+    }
+
+    function updateToggleStateLabel(toggle, label) {
+      if (!toggle || !label) return;
+      label.textContent = toggle.checked ? 'Enabled' : 'Disabled';
+    }
+
+    function refreshGeneralToggleLabels() {
+      updateToggleStateLabel(screenPopToggle, screenPopStateLabel);
+      updateToggleStateLabel(autoAnswerToggle, autoAnswerStateLabel);
+    }
+
+    function refreshLoginToggleLabels() {
+      updateToggleStateLabel(voiceAgentDn, voiceAgentDnStateLabel);
+      updateToggleStateLabel(voiceExtension, voiceExtensionStateLabel);
+      updateToggleStateLabel(voiceBrowser, voiceBrowserStateLabel);
+    }
+
+    function getRadioValue(name) {
+      const selected = document.querySelector(`input[name="${name}"]:checked`);
+      return selected?.value;
+    }
+
+    function setRadioValue(name, value) {
+      if (!value) return;
+      const option = document.querySelector(`input[name="${name}"][value="${value}"]`);
+      if (option) option.checked = true;
+    }
+
+    function populateSelect(selectEl, items, placeholder) {
+      if (!selectEl) return;
+      selectEl.innerHTML = '';
+      const placeholderOption = document.createElement('option');
+      placeholderOption.value = '';
+      placeholderOption.textContent = placeholder || 'Select an option';
+      placeholderOption.disabled = true;
+      placeholderOption.selected = true;
+      selectEl.appendChild(placeholderOption);
+      items.forEach((item) => {
+        const option = document.createElement('option');
+        option.value = item.id;
+        option.textContent = item.name || item.id;
+        selectEl.appendChild(option);
+      });
+    }
+
+    function updatePillState(container) {
+      if (!container) return;
+      container.querySelectorAll('.checkbox-option').forEach((label) => {
+        const input = label.querySelector('input[type=checkbox]');
+        if (input) {
+          label.classList.toggle('active', input.checked);
+        }
+      });
+    }
+
+    function ensureDefaults(container, items) {
+      if (!container || !items?.length) return;
+      items.forEach((item) => {
+        if (item.defaultCode) {
+          const input = container.querySelector(`input[value="${item.id}"]`);
+          if (input) input.checked = true;
+        }
+      });
+      updatePillState(container);
+    }
+
+    function renderCheckboxList(container, items, selected = [], onChange) {
+      if (!container) return;
+      const renderItems = [...items].sort((a, b) => (a.name || a.id || '').localeCompare(b.name || b.id || ''));
+      const selectedSet = new Set(selected || []);
+      container.innerHTML = '';
+      renderItems.forEach((item) => {
+        const label = document.createElement('label');
+        label.className = 'checkbox-option';
+        const input = document.createElement('input');
+        input.type = 'checkbox';
+        input.value = item.id;
+        const shouldSelect = selectedSet.has(item.id) || Boolean(item.defaultCode);
+        input.checked = shouldSelect;
+        if (item.defaultCode) {
+          input.disabled = true;
+          label.classList.add('default-code');
+          label.dataset.default = 'true';
+        }
+        const handleChange = () => {
+          updatePillState(container);
+          if (onChange) onChange();
+        };
+        input.addEventListener('change', handleChange);
+        label.appendChild(input);
+        const span = document.createElement('span');
+        span.className = 'code-label';
+        span.textContent = item.name || item.id;
+        label.appendChild(span);
+        if (item.defaultCode) {
+          const badge = document.createElement('span');
+          badge.className = 'default-badge';
+          badge.textContent = 'Default';
+          label.appendChild(badge);
+        }
+        container.appendChild(label);
+      });
+      updatePillState(container);
+    }
+
+    function getLabelForId(list, id) {
+      const match = (list || []).find((item) => item.id === id);
+      return match ? (match.name || match.id) : id;
+    }
+
+    function getDefaultSelections(items = [], saved = [], includeDefaults = false) {
+      const selection = new Set(saved || []);
+      if (includeDefaults) {
+        items.forEach((item) => {
+          if (item.defaultCode) {
+            selection.add(item.id);
+          }
+        });
+      }
+      return Array.from(selection);
+    }
+
+    function renderSelectionSummary(summaryEl, countEl, pillsEl, optionsList, selectedIds, isActive) {
+      if (!summaryEl || !countEl || !pillsEl) return;
+      if (!isActive) {
+        summaryEl.classList.add('hidden');
+        return;
+      }
+      summaryEl.classList.remove('hidden');
+      const ids = selectedIds || [];
+      const names = ids.map((id) => getLabelForId(optionsList, id));
+      countEl.textContent = ids.length + ' selected';
+      pillsEl.innerHTML = '';
+      if (!names.length) {
+        const empty = document.createElement('span');
+        empty.className = 'selection-empty';
+        empty.textContent = 'No selections yet';
+        pillsEl.appendChild(empty);
+        return;
+      }
+      names.forEach((label) => {
+        const pill = document.createElement('span');
+        pill.className = 'selection-pill';
+        pill.textContent = label;
+        pillsEl.appendChild(pill);
+      });
+    }
+
+    function updateWrapSelectionSummary() {
+      const selected = getCheckboxSelection(wrapCodesContainer);
+      renderSelectionSummary(
+        wrapSelectionSummary,
+        wrapSelectionCount,
+        wrapSelectionPills,
+        wrapUpCodes,
+        selected,
+        getRadioValue('wrapAccess') === 'SPECIFIC'
+      );
+    }
+
+    function updateIdleSelectionSummary() {
+      const selected = getCheckboxSelection(idleCodesContainer);
+      renderSelectionSummary(
+        idleSelectionSummary,
+        idleSelectionCount,
+        idleSelectionPills,
+        idleCodes,
+        selected,
+        getRadioValue('idleAccess') === 'SPECIFIC'
+      );
+    }
+
+    function getCheckboxSelection(container) {
+      if (!container) return [];
+      return Array.from(container.querySelectorAll('input[type="checkbox"]:checked')).map((input) => input.value);
+    }
+
+    function setCheckboxSelection(container, values = []) {
+      if (!container) return;
+      const valueSet = new Set(values || []);
+      container.querySelectorAll('input[type="checkbox"]').forEach((input) => {
+        input.checked = valueSet.has(input.value);
+      });
+      updatePillState(container);
+    }
+
+    async function fetchJson(url) {
+      const response = await fetch(url, { headers: fetchHeaders });
+      if (!response.ok) {
+        const message = `Request failed (${response.status})`;
+        throw new Error(message);
+      }
+      const payload = await response.json().catch(() => null);
+      if (!payload) return [];
+      if (Array.isArray(payload)) return payload;
+      if (Array.isArray(payload.data)) return payload.data;
+      return [];
+    }
+
+    function assert(condition, message) {
+      if (!condition) throw new Error(message);
+    }
+
+    function handleWrapAccessChange() {
+      const value = getRadioValue('wrapAccess') || 'ALL';
+      toggleElement(wrapCodesGroup, value === 'SPECIFIC');
+      if (value === 'SPECIFIC') {
+        ensureDefaults(wrapCodesContainer, wrapUpCodes);
+      }
+      updateWrapSelectionSummary();
+    }
+
+    function handleIdleAccessChange() {
+      const value = getRadioValue('idleAccess') || 'ALL';
+      toggleElement(idleCodesGroup, value === 'SPECIFIC');
+      if (value === 'SPECIFIC') {
+        ensureDefaults(idleCodesContainer, idleCodes);
+      }
+      updateIdleSelectionSummary();
+    }
+
+    function updateConsultChannelSummary() {
+      const selected = getCheckboxSelection(consultChannelsContainer);
+      renderSelectionSummary(
+        consultChannelSummary,
+        consultChannelCount,
+        consultChannelPills,
+        consultChannelOptions,
+        selected,
+        getRadioValue('consultAccess') === 'SPECIFIC'
+      );
+    }
+
+    function updateConsultQueueSummary() {
+      const selected = getCheckboxSelection(consultQueuesContainer);
+      renderSelectionSummary(
+        consultQueueSummary,
+        consultQueueCount,
+        consultQueuePills,
+        queueList,
+        selected,
+        getRadioValue('consultAccess') === 'SPECIFIC'
+      );
+    }
+
+    function updateBuddySelectionSummary() {
+      const selected = getCheckboxSelection(buddyTeamsContainer);
+      renderSelectionSummary(
+        buddySelectionSummary,
+        buddySelectionCount,
+        buddySelectionPills,
+        teams,
+        selected,
+        getRadioValue('buddyAccess') === 'SPECIFIC'
+      );
+    }
+
+    function updateDialPlanSummary() {
+      const selected = getCheckboxSelection(dialPlanContainer);
+      renderSelectionSummary(
+        dialPlanSummary,
+        dialPlanCount,
+        dialPlanPills,
+        dialPlans,
+        selected,
+        true
+      );
+    }
+
+    function updateQueueStatsSummary() {
+      const selected = getCheckboxSelection(queueStatsContainer);
+      renderSelectionSummary(
+        queueStatsSummary,
+        queueStatsCount,
+        queueStatsPills,
+        queueList,
+        selected,
+        getRadioValue('queueStatsAccess') === 'SPECIFIC'
+      );
+    }
+
+    function updateTeamStatsSummary() {
+      const selected = getCheckboxSelection(teamStatsContainer);
+      renderSelectionSummary(
+        teamStatsSummary,
+        teamStatsCount,
+        teamStatsPills,
+        teams,
+        selected,
+        getRadioValue('teamStatsAccess') === 'SPECIFIC'
+      );
+    }
+
+    function handleConsultAccessChange() {
+      const value = getRadioValue('consultAccess') || 'ALL';
+      toggleElement(consultTargetsGroup, value === 'SPECIFIC');
+      updateConsultChannelSummary();
+      updateConsultQueueSummary();
+    }
+
+    function handleBuddyAccessChange() {
+      const value = getRadioValue('buddyAccess') || 'ALL';
+      toggleElement(buddyTeamsGroup, value === 'SPECIFIC');
+      updateBuddySelectionSummary();
+    }
+
+    function handleWrapModeChange() {
+      const value = getRadioValue('wrapMode') || 'MANUAL';
+      const isAuto = value === 'AUTO';
+      toggleElement(wrapDurationItem, isAuto);
+      if (wrapDurationInput) {
+        wrapDurationInput.disabled = !isAuto;
+      }
+    }
+
+    function handleVoiceOptionsChange() {
+      const showValidation = (voiceAgentDn?.checked || false) || (voiceExtension?.checked || false);
+      toggleElement(agentDnValidationItem, showValidation);
+      refreshLoginToggleLabels();
+    }
+
+    function handleQueueStatsAccessChange() {
+      const value = getRadioValue('queueStatsAccess') || 'ALL';
+      toggleElement(queueStatsGroup, value === 'SPECIFIC');
+      updateQueueStatsSummary();
+    }
+
+    function handleTeamStatsAccessChange() {
+      const value = getRadioValue('teamStatsAccess') || 'ALL';
+      toggleElement(teamStatsGroup, value === 'SPECIFIC');
+      updateTeamStatsSummary();
+    }
+
+    function handleAddressBookToggleChange() {}
+
+    function determineProfileBaseName() {
+      const candidate = localStorage.getItem('wizardTeamName')
+        || state.latestCreatedTeam?.name
+        || state.latestTeam?.name
+        || state.team?.name
+        || savedForm.profileBaseName
+        || 'Team';
+      return candidate.trim() || 'Team';
+    }
+
+    function determineTeamName() {
+      const candidate = localStorage.getItem('wizardTeamName')
+        || state.latestCreatedTeam?.name || state.latestTeam?.name || state.team?.name
+        || savedForm.profileBaseName || 'Team';
+      return candidate.trim() || 'Team';
+    }
+
+    function formatProfileName(baseName) {
+      const sanitized = (baseName || 'Team').trim().replace(/\s+/g, '_');
+      return `${sanitized || 'Team'}_Profile`;
+    }
+
+    function gatherFormState(profileBaseName) {
+      return {
+        screenPopup: screenPopToggle?.checked,
+        autoAnswer: autoAnswerToggle?.checked,
+        wrapMode: getRadioValue('wrapMode'),
+        wrapDuration: wrapDurationInput?.value?.trim() || '',
+        wrapAccess: getRadioValue('wrapAccess'),
+        wrapUpCodes: getCheckboxSelection(wrapCodesContainer),
+        idleAccess: getRadioValue('idleAccess'),
+        idleCodes: getCheckboxSelection(idleCodesContainer),
+        consultAccess: getRadioValue('consultAccess'),
+        consultChannels: getCheckboxSelection(consultChannelsContainer),
+        consultQueues: getCheckboxSelection(consultQueuesContainer),
+        consultToQueue: consultToQueueToggle?.checked,
+        buddyAccess: getRadioValue('buddyAccess'),
+        buddyTeams: getCheckboxSelection(buddyTeamsContainer),
+        webexUserDetails: webexUserDetailsToggle?.checked,
+        webexSync: webexSyncToggle?.checked,
+        outdialEntryPointId: outdialEntryPointSelect?.value || '',
+        addressBookEnabled: addressBookToggle?.checked,
+        dialPlanIds: getCheckboxSelection(dialPlanContainer),
+        voiceAgentDn: voiceAgentDn?.checked,
+        voiceExtension: voiceExtension?.checked,
+        voiceBrowser: voiceBrowser?.checked,
+        agentDnValidation: getRadioValue('dnValidation'),
+        agentStats: agentStatsToggle?.checked,
+        queueStatsAccess: getRadioValue('queueStatsAccess'),
+        queueStatsQueues: getCheckboxSelection(queueStatsContainer),
+        loggedTeamStats: loggedTeamToggle?.checked,
+        teamStatsAccess: getRadioValue('teamStatsAccess'),
+        teamStatsTeams: getCheckboxSelection(teamStatsContainer),
+        profileBaseName: profileBaseName
+      };
+    }
+
+    function buildPayload(profileBaseName) {
+      const screenPopup = screenPopToggle?.checked || false;
+      const autoAnswer = autoAnswerToggle?.checked || false;
+      const wrapModeValue = getRadioValue('wrapMode') || 'MANUAL';
+      const autoWrapUp = wrapModeValue === 'AUTO';
+      const wrapDurationValue = wrapDurationInput?.value?.trim() || '';
+      let autoWrapAfterSeconds;
+      if (autoWrapUp) {
+        assert(wrapDurationValue !== '', 'Wrap-up duration is required when Auto is selected.');
+        autoWrapAfterSeconds = Number(wrapDurationValue);
+        assert(!Number.isNaN(autoWrapAfterSeconds), 'Wrap-up duration must be a number.');
+      }
+
+      const wrapAccessValue = getRadioValue('wrapAccess') || 'ALL';
+      const wrapCodes = wrapAccessValue === 'SPECIFIC' ? getCheckboxSelection(wrapCodesContainer) : [];
+      if (wrapAccessValue === 'SPECIFIC') {
+        assert(wrapCodes.length, 'Select at least one wrap-up code.');
+      }
+
+      const idleAccessValue = getRadioValue('idleAccess') || 'ALL';
+      const idleCodeSelection = idleAccessValue === 'SPECIFIC' ? getCheckboxSelection(idleCodesContainer) : [];
+      if (idleAccessValue === 'SPECIFIC') {
+        assert(idleCodeSelection.length, 'Select at least one idle code.');
+      }
+
+      const consultAccessValue = getRadioValue('consultAccess') || 'ALL';
+      const channelTargets = consultAccessValue === 'SPECIFIC' ? getCheckboxSelection(consultChannelsContainer) : [];
+      const queueTargets = consultAccessValue === 'SPECIFIC' ? getCheckboxSelection(consultQueuesContainer) : [];
+      if (consultAccessValue === 'SPECIFIC') {
+        assert(channelTargets.length || queueTargets.length, 'Select consult channels or queues when Specific is chosen.');
+      }
+
+      const buddyAccessValue = getRadioValue('buddyAccess') || 'ALL';
+      const buddySelection = buddyAccessValue === 'SPECIFIC' ? getCheckboxSelection(buddyTeamsContainer) : [];
+      if (buddyAccessValue === 'SPECIFIC') {
+        assert(buddySelection.length, 'Select at least one buddy team.');
+      }
+
+      const loginVoiceOptions = [];
+      if (voiceAgentDn?.checked) loginVoiceOptions.push('AGENT_DN');
+      if (voiceExtension?.checked) loginVoiceOptions.push('EXTENSION');
+      if (voiceBrowser?.checked) loginVoiceOptions.push('BROWSER');
+      assert(loginVoiceOptions.length, 'At least one voice channel option is required.');
+
+      const needValidation = (voiceAgentDn?.checked || false) || (voiceExtension?.checked || false);
+      const agentDnValidation = needValidation ? (getRadioValue('dnValidation') || 'NONE') : 'NONE';
+
+      const queueStatsAccessValue = getRadioValue('queueStatsAccess') || 'ALL';
+      const queueStatsSelection = queueStatsAccessValue === 'SPECIFIC' ? getCheckboxSelection(queueStatsContainer) : [];
+      if (queueStatsAccessValue === 'SPECIFIC') {
+        assert(queueStatsSelection.length, 'Select at least one queue for statistics.');
+      }
+
+      const teamStatsAccessValue = getRadioValue('teamStatsAccess') || 'ALL';
+      const teamStatsSelection = teamStatsAccessValue === 'SPECIFIC' ? getCheckboxSelection(teamStatsContainer) : [];
+      if (teamStatsAccessValue === 'SPECIFIC') {
+        assert(teamStatsSelection.length, 'Select at least one team for statistics.');
+      }
+
+      const outdialEntryPointId = outdialEntryPointSelect?.value;
+      assert(outdialEntryPointId, 'Select an outdial entry point.');
+
+      const dialPlanSelection = getCheckboxSelection(dialPlanContainer);
+      assert(dialPlanSelection.length, 'Select at least one dial plan.');
+
+      const baseName = formatProfileName(profileBaseName);
+      const payload = {
+        name: baseName,
+        description: baseName,
+        parentType: 'ORGANIZATION',
+        screenPopup,
+        lastAgentRouting: false,
+        autoWrapUp,
+        autoAnswer,
+        agentAvailableAfterOutdial: false,
+        allowAutoWrapUpExtension: false,
+        accessWrapUpCode: wrapAccessValue,
+        wrapUpCodes: wrapCodes,
+        accessIdleCode: idleAccessValue,
+        idleCodes: idleCodeSelection,
+        accessQueue: consultAccessValue,
+        queues: consultAccessValue === 'SPECIFIC' ? queueTargets : [],
+        accessEntryPoint: consultAccessValue,
+        entryPoints: consultAccessValue === 'SPECIFIC' ? channelTargets : [],
+        accessBuddyTeam: buddyAccessValue,
+        buddyTeams: buddyAccessValue === 'SPECIFIC' ? buddySelection : [],
+        consultToQueue: consultToQueueToggle?.checked || false,
+        outdialEnabled: true,
+        outdialEntryPointId,
+        dialPlanEnabled: true,
+        dialPlans: dialPlanSelection,
+        agentDNValidation: agentDnValidation,
+        loginVoiceOptions,
+        viewableStatistics: {
+          agentStats: agentStatsToggle?.checked || false,
+          accessQueueStats: queueStatsAccessValue,
+          contactServiceQueues: queueStatsAccessValue === 'SPECIFIC' ? queueStatsSelection : [],
+          loggedInTeamStats: loggedTeamToggle?.checked || false,
+          accessTeamStats: teamStatsAccessValue,
+          teams: teamStatsAccessValue === 'SPECIFIC' ? teamStatsSelection : []
+        },
+        active: true,
+        stateSynchronizationMS: true,
+        showUserDetailsWebex: webexUserDetailsToggle?.checked || false,
+        stateSynchronizationWebex: webexSyncToggle?.checked || false
+      };
+      if (autoWrapUp) {
+        payload.autoWrapAfterSeconds = autoWrapAfterSeconds;
+      }
+      return { payload, profileBaseName };
+    }
+
+    async function createAddressBook(name) {
+      const payload = {
+        name: name || 'Desktop Profile Address Book',
+        description: 'Created by Orbit',
+        parentType: 'ORGANIZATION'
+      };
+      const response = await fetch(endpoints.addressBook, {
+        method: 'POST',
+        headers: {
+          ...fetchHeaders,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(data?.message || `Address book request failed (${response.status})`);
+      }
+      return data?.id;
+    }
+
+    /* ── Profile creation progress helpers ─────────────────────── */
+    function profileShowProgress() {
+      document.getElementById('profileFormContent')?.classList.add('hidden');
+      document.getElementById('profileProgressPanel')?.classList.remove('hidden');
+    }
+    function profileHideProgress() {
+      document.getElementById('profileProgressPanel')?.classList.add('hidden');
+      document.getElementById('profileProgressActions')?.classList.add('hidden');
+      document.getElementById('profileFormContent')?.classList.remove('hidden');
+      const bar = document.getElementById('profileBarFill');
+      if (bar) { bar.style.width = '0%'; bar.style.background = ''; }
+    }
+    function profileInitSteps(steps) {
+      const list = document.getElementById('profileStepsList');
+      const bar  = document.getElementById('profileBarFill');
+      if (list) list.innerHTML = '';
+      if (bar)  bar.style.width = '0%';
+      steps.forEach(({ id, label }) => {
+        const el = document.createElement('div');
+        el.className = 'pf-step-item';
+        el.id = `pf_step_${id}`;
+        el.innerHTML = `<span class="pf-step-icon">○</span><span class="pf-step-label">${label}</span><span class="pf-step-detail"></span>`;
+        list?.appendChild(el);
+      });
+    }
+    function profileSetStep(id, state, detail = '') {
+      const el   = document.getElementById(`pf_step_${id}`);
+      const list = document.getElementById('profileStepsList');
+      const bar  = document.getElementById('profileBarFill');
+      if (!el || !list) return;
+      const icons = { pending: '○', active: '⟳', done: '✓', error: '✗' };
+      el.querySelector('.pf-step-icon').textContent   = icons[state] || '○';
+      el.querySelector('.pf-step-detail').textContent = detail;
+      el.className = `pf-step-item pf-step-${state}`;
+      const all  = list.querySelectorAll('.pf-step-item');
+      const done = list.querySelectorAll('.pf-step-done, .pf-step-error').length;
+      if (bar) bar.style.width = `${Math.round((done / all.length) * 100)}%`;
+      const meta = document.getElementById('profileProgressMeta');
+      const label = el.querySelector('.pf-step-label')?.textContent || '';
+      if (meta && state === 'active') meta.textContent = label || detail || 'Working…';
+    }
+    function profileShowError(msg) {
+      const actions = document.getElementById('profileProgressActions');
+      const errText = document.getElementById('profileErrorText');
+      const bar     = document.getElementById('profileBarFill');
+      if (actions) actions.classList.remove('hidden');
+      if (errText)  errText.textContent = msg;
+      if (bar)      bar.style.background = 'linear-gradient(135deg,#f87171,#ef4444)';
+    }
+    document.getElementById('profileBackFromProgressBtn')?.addEventListener('click', () => {
+      profileHideProgress();
+      isSaving = false;
+      saveAndContinueBtn.disabled = false;
+    });
+
+    async function handleSaveAndContinue() {
+      if (isSaving) return;
+      isSaving = true;
+      saveAndContinueBtn.disabled = true;
+
+      const profileBaseName = determineProfileBaseName();
+      let payload;
+      try {
+        ({ payload } = buildPayload(profileBaseName));
+      } catch (validationError) {
+        setStatus(desktopStatus, validationError.message || 'Please fix the form errors.', 'error');
+        isSaving = false;
+        saveAndContinueBtn.disabled = false;
+        return;
+      }
+
+      /* Build step list based on what we're doing */
+      const steps = [];
+      if (addressBookToggle?.checked) steps.push({ id: 'book', label: 'Create address book' });
+      steps.push({ id: 'profile', label: 'Create desktop profile' });
+
+      profileInitSteps(steps);
+      profileShowProgress();
+
+      try {
+        if (addressBookToggle?.checked) {
+          profileSetStep('book', 'active');
+          const bookName = determineTeamName();
+          const addressBookId = await createAddressBook(bookName);
+          if (addressBookId) payload.addressBookId = addressBookId;
+          profileSetStep('book', 'done', bookName);
+        }
+
+        profileSetStep('profile', 'active');
+        const profileResponse = await fetch(endpoints.desktopProfiles, {
+          method: 'POST',
+          headers: { ...fetchHeaders, 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const profileData = await profileResponse.json().catch(() => ({}));
+        if (!profileResponse.ok) {
+          const detail = profileData?.error?.message?.[0]?.description
+            || profileData?.error?.reason
+            || profileData?.message
+            || `HTTP ${profileResponse.status}`;
+          throw new Error(detail);
+        }
+        profileSetStep('profile', 'done', profileData?.name || payload.name);
+
+        const formState = gatherFormState(profileBaseName);
+        savedForm = formState;
+        saveWizardState({
+          latestDesktopProfileId:   profileData?.id   || '',
+          latestDesktopProfileName: profileData?.name || payload.name,
+          desktopProfileForm: formState,
+          step4Complete: true
+        });
+
+        document.getElementById('profileProgressMeta').textContent = 'All done! Redirecting…';
+        setTimeout(() => { window.location.href = 'S5_Users.html'; }, 1400);
+      } catch (error) {
+        profileShowError(error.message || 'Unable to create desktop profile.');
+        isSaving = false;
+        saveAndContinueBtn.disabled = false;
+      }
+    }
+
+    function restoreSimpleFields(formState = {}) {
+      if ('screenPopup' in formState && screenPopToggle) screenPopToggle.checked = formState.screenPopup;
+      if ('autoAnswer' in formState && autoAnswerToggle) autoAnswerToggle.checked = formState.autoAnswer;
+      if (formState.wrapMode) setRadioValue('wrapMode', formState.wrapMode);
+      if (formState.wrapDuration && wrapDurationInput) wrapDurationInput.value = formState.wrapDuration;
+      if (formState.wrapAccess) setRadioValue('wrapAccess', formState.wrapAccess);
+      if (formState.idleAccess) setRadioValue('idleAccess', formState.idleAccess);
+      if (formState.consultAccess) setRadioValue('consultAccess', formState.consultAccess);
+      if (formState.buddyAccess) setRadioValue('buddyAccess', formState.buddyAccess);
+      if (formState.consultToQueue !== undefined && consultToQueueToggle) consultToQueueToggle.checked = formState.consultToQueue;
+      if (formState.webexUserDetails !== undefined && webexUserDetailsToggle) webexUserDetailsToggle.checked = formState.webexUserDetails;
+      if (formState.webexSync !== undefined && webexSyncToggle) webexSyncToggle.checked = formState.webexSync;
+      if (formState.addressBookEnabled !== undefined && addressBookToggle) addressBookToggle.checked = formState.addressBookEnabled;
+      if (formState.outdialEntryPointId && outdialEntryPointSelect) outdialEntryPointSelect.value = formState.outdialEntryPointId;
+      if (formState.dialPlanIds && dialPlanContainer) setCheckboxSelection(dialPlanContainer, formState.dialPlanIds);
+      if (formState.voiceAgentDn !== undefined && voiceAgentDn) voiceAgentDn.checked = formState.voiceAgentDn;
+      if (formState.voiceExtension !== undefined && voiceExtension) voiceExtension.checked = formState.voiceExtension;
+      if (formState.voiceBrowser !== undefined && voiceBrowser) voiceBrowser.checked = formState.voiceBrowser;
+      if (formState.agentStats !== undefined && agentStatsToggle) agentStatsToggle.checked = formState.agentStats;
+      if (formState.loggedTeamStats !== undefined && loggedTeamToggle) loggedTeamToggle.checked = formState.loggedTeamStats;
+      if (formState.queueStatsAccess) setRadioValue('queueStatsAccess', formState.queueStatsAccess);
+      if (formState.teamStatsAccess) setRadioValue('teamStatsAccess', formState.teamStatsAccess);
+      if (formState.agentDnValidation) setRadioValue('dnValidation', formState.agentDnValidation);
+    }
+
+    async function hydrateAuxiliaryCodes() {
+      try {
+        const payload = await fetchJson(endpoints.auxiliaryCodes);
+        wrapUpCodes = payload.filter((code) => code.workTypeCode === 'WRAP_UP_CODE');
+        idleCodes = payload.filter((code) => code.workTypeCode === 'IDLE_CODE');
+        const wrapInitial = getDefaultSelections(wrapUpCodes, savedForm.wrapUpCodes, true);
+        const idleInitial = getDefaultSelections(idleCodes, savedForm.idleCodes, true);
+        renderCheckboxList(wrapCodesContainer, wrapUpCodes, wrapInitial, updateWrapSelectionSummary);
+        updateWrapSelectionSummary();
+        renderCheckboxList(idleCodesContainer, idleCodes, idleInitial, updateIdleSelectionSummary);
+        updateIdleSelectionSummary();
+      } catch (error) {
+        console.warn('Unable to load auxiliary codes.', error);
+      }
+    }
+
+    async function hydrateEntryPoints() {
+      try {
+        const payload = await fetchJson(endpoints.entryPoints);
+        entryPoints = Array.isArray(payload) ? payload : [];
+        const consultChannels = entryPoints.filter((ep) => ep.entryPointType !== 'OUTBOUND');
+        const outboundEntries = entryPoints.filter((ep) => ep.entryPointType === 'OUTBOUND');
+        consultChannelOptions = consultChannels;
+        renderCheckboxList(consultChannelsContainer, consultChannels, savedForm.consultChannels || [], updateConsultChannelSummary);
+        if (outdialEntryPointSelect) populateSelect(outdialEntryPointSelect, outboundEntries, 'Select entry point');
+        if (savedForm.outdialEntryPointId && outdialEntryPointSelect) {
+          const match = outboundEntries.find((entry) => entry.id === savedForm.outdialEntryPointId);
+          if (match) outdialEntryPointSelect.value = match.id;
+        }
+        /* Auto-select wizard entry point in Consult Channel Targets on first visit */
+        if (!savedForm.consultAccess && state.latestChannel?.id) {
+          const cb = consultChannelsContainer.querySelector(`input[value="${state.latestChannel.id}"]`);
+          if (cb) { cb.checked = true; updatePillState(consultChannelsContainer); }
+          setRadioValue('consultAccess', 'SPECIFIC');
+          handleConsultAccessChange();
+        }
+        updateConsultChannelSummary();
+        updateConsultQueueSummary();
+      } catch (error) {
+        console.warn('Unable to load entry points.', error);
+      }
+    }
+
+    async function hydrateQueues() {
+      try {
+        const payload = await fetchJson(endpoints.queues);
+        queueList = Array.isArray(payload) ? payload : [];
+        renderCheckboxList(consultQueuesContainer, queueList, savedForm.consultQueues || [], updateConsultQueueSummary);
+        renderCheckboxList(queueStatsContainer, queueList, savedForm.queueStatsQueues || [], updateQueueStatsSummary);
+        /* Auto-select wizard queue in Consult Queue Targets on first visit */
+        if (!savedForm.consultAccess && state.latestCreatedQueue?.id) {
+          const cb = consultQueuesContainer.querySelector(`input[value="${state.latestCreatedQueue.id}"]`);
+          if (cb) { cb.checked = true; updatePillState(consultQueuesContainer); }
+          if (getRadioValue('consultAccess') !== 'SPECIFIC') {
+            setRadioValue('consultAccess', 'SPECIFIC');
+            handleConsultAccessChange();
+          }
+        }
+        /* Auto-select wizard queue in Queue Statistics on first visit */
+        if (!savedForm.queueStatsAccess && state.latestCreatedQueue?.id) {
+          const cb = queueStatsContainer.querySelector(`input[value="${state.latestCreatedQueue.id}"]`);
+          if (cb) { cb.checked = true; updatePillState(queueStatsContainer); }
+          setRadioValue('queueStatsAccess', 'SPECIFIC');
+          handleQueueStatsAccessChange();
+        }
+        updateConsultQueueSummary();
+        updateQueueStatsSummary();
+      } catch (error) {
+        console.warn('Unable to load queues.', error);
+      }
+    }
+
+    async function hydrateDialPlans() {
+      try {
+        const payload = await fetchJson(endpoints.dialPlans);
+        dialPlans = Array.isArray(payload) ? payload : [];
+        renderCheckboxList(dialPlanContainer, dialPlans, savedForm.dialPlanIds || [], updateDialPlanSummary);
+        updateDialPlanSummary();
+      } catch (error) {
+        console.warn('Unable to load dial plans.', error);
+      }
+    }
+
+    async function hydrateTeams() {
+      try {
+        const payload = await fetchJson(endpoints.teams);
+        teams = Array.isArray(payload) ? payload : [];
+        renderCheckboxList(buddyTeamsContainer, teams, savedForm.buddyTeams || [], updateBuddySelectionSummary);
+        renderCheckboxList(teamStatsContainer, teams, savedForm.teamStatsTeams || [], updateTeamStatsSummary);
+        const defaultTeamId = localStorage.getItem('wizardTeamId') || state.latestCreatedTeam?.id || '';
+        /* Auto-select wizard team for Buddy Teams on first visit */
+        if (!savedForm.buddyAccess && defaultTeamId) {
+          const buddyCb = buddyTeamsContainer.querySelector(`input[value="${defaultTeamId}"]`);
+          if (buddyCb) { buddyCb.checked = true; updatePillState(buddyTeamsContainer); }
+          setRadioValue('buddyAccess', 'SPECIFIC');
+          handleBuddyAccessChange();
+        }
+        /* Auto-select wizard team for Team Statistics on first visit */
+        if (!savedForm.teamStatsAccess && defaultTeamId) {
+          const statsCb = teamStatsContainer.querySelector(`input[value="${defaultTeamId}"]`);
+          if (statsCb) { statsCb.checked = true; updatePillState(teamStatsContainer); }
+          setRadioValue('teamStatsAccess', 'SPECIFIC');
+          handleTeamStatsAccessChange();
+        }
+        updateBuddySelectionSummary();
+        updateTeamStatsSummary();
+      } catch (error) {
+        console.warn('Unable to load teams.', error);
+      }
+    }
+
+    function attachEventListeners() {
+      wrapAccessRadios.forEach((radio) => radio.addEventListener('change', handleWrapAccessChange));
+      idleAccessRadios.forEach((radio) => radio.addEventListener('change', handleIdleAccessChange));
+      consultAccessRadios.forEach((radio) => radio.addEventListener('change', handleConsultAccessChange));
+      buddyAccessRadios.forEach((radio) => radio.addEventListener('change', handleBuddyAccessChange));
+      wrapModeRadios.forEach((radio) => radio.addEventListener('change', handleWrapModeChange));
+      queueStatsRadios.forEach((radio) => radio.addEventListener('change', handleQueueStatsAccessChange));
+      teamStatsRadios.forEach((radio) => radio.addEventListener('change', handleTeamStatsAccessChange));
+      dnValidationRadios.forEach((radio) => radio.addEventListener('change', () => {}));
+      screenPopToggle?.addEventListener('change', refreshGeneralToggleLabels);
+      autoAnswerToggle?.addEventListener('change', refreshGeneralToggleLabels);
+      [voiceAgentDn, voiceExtension, voiceBrowser].forEach((checkbox) => checkbox?.addEventListener('change', handleVoiceOptionsChange));
+      if (addressBookToggle) addressBookToggle.addEventListener('change', handleAddressBookToggleChange);
+      if (saveAndContinueBtn) saveAndContinueBtn.addEventListener('click', handleSaveAndContinue);
+      if (prevBtn) prevBtn.addEventListener('click', () => window.location.href = 'S3_Channels.html');
+    }
+
+    function addSearchFilters() {
+      const containers = [
+        wrapCodesContainer, idleCodesContainer,
+        consultChannelsContainer, consultQueuesContainer,
+        buddyTeamsContainer, dialPlanContainer,
+        queueStatsContainer, teamStatsContainer
+      ];
+      containers.forEach(container => {
+        if (!container) return;
+        const existing = container.parentElement?.querySelector('.checkbox-search');
+        if (existing) return;
+        const input = document.createElement('input');
+        input.type = 'search';
+        input.className = 'checkbox-search';
+        input.placeholder = 'Filter…';
+        container.parentElement.insertBefore(input, container);
+        input.addEventListener('input', () => {
+          const q = input.value.toLowerCase();
+          container.querySelectorAll('.checkbox-option').forEach(label => {
+            label.style.display = !q || (label.textContent || '').toLowerCase().includes(q) ? '' : 'none';
+          });
+        });
+      });
+    }
+
+    async function init() {
+      attachEventListeners();
+      restoreSimpleFields(savedForm);
+      refreshGeneralToggleLabels();
+      handleWrapAccessChange();
+      handleIdleAccessChange();
+      handleConsultAccessChange();
+      handleBuddyAccessChange();
+      handleWrapModeChange();
+      handleVoiceOptionsChange();
+      handleQueueStatsAccessChange();
+      handleTeamStatsAccessChange();
+      handleAddressBookToggleChange();
+
+      await Promise.all([
+        hydrateAuxiliaryCodes(),
+        hydrateEntryPoints(),
+        hydrateQueues(),
+        hydrateDialPlans(),
+        hydrateTeams()
+      ]);
+
+      addSearchFilters();
+    }
+
+    init().catch((error) => {
+      console.error('Desktop profile initialization failed', error);
+      setStatus(desktopStatus, 'Failed to load desktop profile lookups. Refresh the page.', 'error');
+    });
+
+    function updateAuthIndicators() {
+      const token = (localStorage.getItem(cacheKeyBearer) || '').trim();
+      const orgName = localStorage.getItem(cacheKeyOrgName) || localStorage.getItem(cacheKeyOrg) || '';
+      const userName = localStorage.getItem(cacheKeyUser) || '';
+      const userNameEl = document.getElementById('userName');
+      const userOrgEl = document.getElementById('userOrg');
+      if (userNameEl) userNameEl.textContent = token ? (userName || 'Signed in') : 'Not authenticated';
+      if (userOrgEl) userOrgEl.textContent = token ? orgName : '';
+    }
+
+    updateAuthIndicators();
+
+    const signOutBtn = document.getElementById('signOutBtn');
+    if (signOutBtn) {
+      signOutBtn.addEventListener('click', () => {
+        ['authBearer','authOrg','authOrgName','authOrgId','authUserName','authRefreshToken','authExpiresAt','authLoginMethod','authScopes'].forEach((key) => localStorage.removeItem(key));
+        window.location.href = '../../index.html';
+      });
+    }
+
+
+
+  </script>
+
+</body>
+</html>

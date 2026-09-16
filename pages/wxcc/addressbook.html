@@ -1,0 +1,2039 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="light" />
+  <title>WxCC — Address Book</title>
+  <link rel="stylesheet" href="../../assets/css/theme.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/png" href="../../assets/images/WxCC_Icon-192.png" />
+  <style>
+    .btn.secondary[aria-pressed="true"] { background:linear-gradient(135deg,var(--accentA),var(--accentB)); color:#ffffff; border:none; }
+    .authLink.authed { background:linear-gradient(135deg,var(--accentA),var(--accentB)); color:#ffffff; border:none; }
+    main { padding:32px 0 80px; }
+    label { display:block; font-size:13px; color:var(--muted); margin:8px 0 6px; }
+    input { width:100%; border-radius:12px; border:1px solid var(--border); background:var(--input); color:var(--fg); padding:10px 12px; font-size:14px; }
+    .actionsRow { display:flex; gap:10px; flex-wrap:wrap; margin-top:10px; align-items:center; }
+    .infoBox { margin-top:10px; padding:10px 12px; border:1px solid var(--border); border-radius:12px; background:var(--card); }
+    table.entries { width:100%; border-collapse:collapse; border:1px solid var(--border); border-radius:12px; overflow:hidden; background:var(--input); }
+    table.entries th, table.entries td { padding:8px 10px; border-bottom:1px solid var(--border); border-right:1px solid var(--border); }
+    table.entries th:last-child, table.entries td:last-child { border-right:none; }
+    table.entries tr:last-child td { border-bottom:none; }
+    table.entries th { text-align:left; font-weight:700; color:var(--accent); font-size:12px; background:var(--panel); }
+    table.entries input { width:100%; background:transparent; border:none; color:var(--fg); outline:none; padding:4px 6px; font-size:14px; }
+    .copy-fab { background:transparent; border:none; border-radius:6px; width:32px; height:32px; min-width:32px; display:inline-flex; align-items:center; justify-content:center; color:var(--muted); cursor:pointer; }
+    .response { background:var(--input); border:1px solid var(--border); border-radius:10px; padding:12px; color:var(--fg); font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,'Liberation Mono',monospace; white-space:pre-wrap; min-height:120px; }
+    .authFab { position:fixed; right:20px; bottom:20px; z-index:999; }
+    .successModalOverlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 10000;
+      padding: 16px;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+    .successModalOverlay.show {
+      opacity: 1;
+    }
+    .successCard {
+      width: 100%;
+      max-width: 420px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 32px 24px 24px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25);
+      text-align: center;
+      transform: scale(0.9);
+      transition: transform 0.3s ease;
+    }
+    .successModalOverlay.show .successCard {
+      transform: scale(1);
+    }
+    .successIcon {
+      margin: 0 auto 16px;
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #159DD8, #159DD8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #ffffff;
+    }
+    .successCard h2 {
+      margin: 0 0 12px;
+      font-size: 1.5rem;
+      color: var(--fg);
+    }
+    .successMsg {
+      margin: 0 0 8px;
+      font-size: 1.05rem;
+      color: var(--fg);
+      line-height: 1.5;
+    }
+    .warningMsg {
+      margin: 8px 0;
+      font-size: 0.9rem;
+      color: #fbbf24;
+      line-height: 1.4;
+    }
+    .successId {
+      margin: 16px 0 20px;
+      padding: 10px 14px;
+      background: rgba(0, 0, 0, 0.25);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 10px;
+      font-family: ui-monospace, monospace;
+      font-size: 13px;
+      color: #92a0b8;
+    }
+    .successCard .btn {
+      width: 100%;
+      justify-content: center;
+      padding: 12px;
+      font-size: 15px;
+    }
+    .bookItem {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+      cursor: pointer;
+      transition: background 0.2s;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+    }
+    .bookItem:hover {
+      background: rgba(255,255,255,0.05);
+    }
+    .bookItem:last-child {
+      border-bottom: none;
+    }
+    .bookItem.selected {
+      background: linear-gradient(135deg, rgba(34,211,238,0.2), rgba(59,130,246,0.2));
+      border-left: 3px solid var(--accentA);
+    }
+    .hiddenStatus{display:none;}
+    .bookName {
+      font-weight: 700;
+      color: var(--fg);
+      margin-bottom: 4px;
+    }
+    .bookMeta{display:flex;flex-direction:column;gap:2px;}
+    .bookActions{display:flex;align-items:center;gap:6px;}
+    .iconBtn{
+      background:rgba(255,255,255,.06);
+      border:1px solid var(--border);
+      color:var(--muted);
+      border-radius:10px;
+      padding:6px 8px;
+      cursor:pointer;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      transition:background .15s ease, color .15s ease, border-color .15s ease;
+    }
+    .iconBtn:hover{background:rgba(255,255,255,.1);color:var(--fg);border-color:rgba(255,255,255,.2);}
+    .inputWarn{border-color:#f87171 !important; box-shadow:0 0 0 3px rgba(248,113,113,.25) !important;}
+    .fieldWrap{position:relative;display:flex;align-items:center;}
+    .warnIcon{
+      position:absolute;
+      right:8px;
+      font-size:14px;
+      color:#fbbf24;
+      display:none;
+      pointer-events:none;
+    }
+    .fieldWrap.invalid .warnIcon{display:block;}
+    .fieldWrap.invalid input{padding-right:26px;}
+    .bookDesc {
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .entries tr.existing {
+      background: rgba(59,130,246,0.05);
+    }
+    .entries tr.modified {
+      background: rgba(251,191,36,0.15);
+      border-left: 3px solid #fbbf24;
+    }
+    .createHeader{display:flex;justify-content:flex-end;align-items:center;margin-bottom:6px;}
+    .cancelCreateBtn{background:transparent;border:1px solid #ef4444;color:#ef4444;border-radius:10px;width:32px;height:32px;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;}
+    .entriesToolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:8px 0 10px;}
+    .entriesToolbar .toolbarGroup{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+    .entriesToolbar input{max-width:280px;}
+    .entriesHint{font-size:12px;color:var(--muted);margin:-4px 0 8px;}
+    .entriesToolbar .pagerControls{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);}
+    .entriesToolbar .pageSizeSelect{border:1px solid var(--border);border-radius:10px;background:var(--input);color:var(--fg);padding:4px 8px;}
+    .entriesToolbar .pageBtn{border:1px solid var(--border);background:transparent;color:var(--fg);padding:4px 10px;border-radius:10px;cursor:pointer;}
+    .entriesToolbar .pageBtn:disabled{opacity:.5;cursor:not-allowed;}
+    .sortBtn{
+      background:transparent;
+      border:none;
+      color:inherit;
+      font:inherit;
+      padding:0;
+      cursor:pointer;
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+    }
+    .sortIcon{font-size:11px;color:var(--muted);}
+    .sortActive .sortIcon{color:var(--accent);}
+    .tp-header-inner{position:relative;}
+    .headerJobStatus{
+      position:absolute;
+      left:50%;
+      transform:translateX(-50%);
+      background:rgba(15,23,42,0.85);
+      border:1px solid rgba(255,255,255,0.12);
+      color:#e9edf5;
+      padding:6px 12px;
+      border-radius:999px;
+      display:none;
+      align-items:center;
+      gap:10px;
+      font-size:12px;
+      box-shadow:0 8px 20px rgba(0,0,0,0.25);
+    }
+    .headerJobStatus.show{display:flex;}
+    .headerJobStatus .miniSpin{
+      width:10px;height:10px;border-radius:50%;
+      border:2px solid rgba(255,255,255,0.4);
+      border-top-color:#159DD8;
+      animation:spin 1s linear infinite;
+    }
+    .headerJobStatus button{
+      background:transparent;
+      border:1px solid rgba(255,255,255,0.2);
+      color:#e9edf5;
+      padding:2px 8px;
+      border-radius:999px;
+      font-size:11px;
+      cursor:pointer;
+    }
+    .progressSpinner{
+      width:44px;height:44px;border-radius:50%;
+      border:4px solid rgba(255,255,255,0.2);
+      border-top-color:#159DD8;
+      animation:spin 1s linear infinite;
+      margin:0 auto 14px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body class="dark-mode">
+  <script>if (localStorage.getItem("tpRailExpanded") === "true") document.body.classList.add("tp-rail-expanded");</script>
+  <api-tools-header basepath="../../"></api-tools-header>
+
+  <main>
+    <div class="wrap wide contentWrap">
+      <section class="card">
+        <div class="pageHeader">
+          <h1>Address Book</h1>
+          <p class="lead">Search and manage address book entries.</p>
+        </div>
+          <div class="status" style="margin-bottom:12px;">Choose an option to get started</div>
+
+          <div class="actionsRow" style="margin-top:0; justify-content:flex-start;">
+            <button class="btn secondary" id="modeCreate" aria-pressed="false">Create new</button>
+          </div>
+
+          <div id="createFields" style="display:none;">
+            <div class="createHeader">
+              <button class="cancelCreateBtn" id="cancelCreateBtn" title="Cancel" aria-label="Cancel create">✕</button>
+            </div>
+            <label for="addrName">Address book name</label>
+            <div style="display:flex; gap:8px; align-items:center;">
+              <input id="addrName" type="text" placeholder="Team AB" />
+              <button class="btn primary" id="createBtn" style="padding:9px 20px; min-width:70px;">Add</button>
+            </div>
+
+            <div style="margin-top:16px;">
+              <table class="entries" id="entriesTableCreate"></table>
+            </div>
+          </div>
+
+          <div id="modifyFields" style="display:none; margin-top:16px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+              <label style="margin:0;">Select an address book to modify</label>
+            </div>
+            
+            <input type="text" id="searchBooks" placeholder="Search address books..." style="margin-bottom:12px;" />
+            
+            <div id="addressBookList" style="max-height:300px; overflow-y:auto; border:1px solid var(--border); border-radius:12px; background:var(--input); margin-bottom:16px;">
+              <div style="padding:20px; text-align:center; color:var(--muted);">Loading address books...</div>
+            </div>
+
+            <div id="modifyEntriesSection" style="display:none;">
+              <div style="display:flex; gap:8px; align-items:center; margin-bottom:8px; flex-wrap:wrap;">
+                <button class="btn secondary" id="selectAllBtn" style="padding:6px 12px; font-size:13px;">Select all</button>
+                <button class="btn secondary" id="clearSelectionBtn" style="padding:6px 12px; font-size:13px;" disabled>Clear selection</button>
+                <button class="btn danger" id="deleteSelectedBtn" style="padding:6px 12px; font-size:13px;" disabled>Delete selected</button>
+              </div>
+              <div class="entriesToolbar">
+                <input type="text" id="searchEntries" placeholder="Search entries..." />
+                <span class="spacer"></span>
+                <div class="pagerControls">
+                  <label>
+                    Show
+                    <select id="entryPageSize" class="pageSizeSelect">
+                      <option value="25" selected>25</option>
+                      <option value="50">50</option>
+                      <option value="100">100</option>
+                      <option value="all">ALL</option>
+                    </select>
+                  </label>
+                  <button class="pageBtn" id="entryPrevPage" type="button">Prev</button>
+                  <span id="entryPageInfo">1/1</span>
+                  <button class="pageBtn" id="entryNextPage" type="button">Next</button>
+                </div>
+              </div>
+              <div id="modifyEntriesHint" class="entriesHint"></div>
+              <table class="entries" id="entriesTableModify"></table>
+              <div style="display:flex; justify-content:flex-end; align-items:center; margin-top:12px; gap:8px;">
+                <button class="btn primary" id="updateEntriesBtn">Update</button>
+              </div>
+            </div>
+          </div>
+
+          <span class="status hiddenStatus" id="status"></span>
+
+          <div id="createdInfo" class="infoBox" style="display:none;">
+            <div style="font-weight:700; margin-bottom:4px;">Address book selected</div>
+            <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+              <span id="createdName" style="font-weight:700;"></span>
+              <span id="createdId" style="color:var(--muted);"></span>
+              <button class="copy-fab" data-copy-target="createdId" title="Copy ID" aria-label="Copy ID">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <rect x="9" y="9" width="13" height="13" rx="2"></rect>
+                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                </svg>
+              </button>
+            </div>
+          </div>
+      </section>
+    </div>
+  </main>
+
+    <script src="../../assets/js/orbit-config.js"></script>
+
+    <script src="../../assets/js/components.js"></script>
+
+    <script src="../../assets/js/theme.js"></script>
+<script>
+    const addrNameEl = document.getElementById('addrName');
+    const statusEl = document.getElementById('status');
+    const createBtn = document.getElementById('createBtn');
+    const entriesTableCreate = document.getElementById('entriesTableCreate');
+    const entriesTableModify = document.getElementById('entriesTableModify');
+    const addEntryRowCreateBtn = document.getElementById('addEntryRowCreate');
+    const clearEntryRowsCreateBtn = document.getElementById('clearEntryRowsCreate');
+    const addEntryRowModifyBtn = document.getElementById('addEntryRowModify');
+    const clearEntryRowsModifyBtn = document.getElementById('clearEntryRowsModify');
+    const updateEntriesBtn = document.getElementById('updateEntriesBtn');
+    const createdInfo = document.getElementById('createdInfo');
+    const createdNameEl = document.getElementById('createdName');
+    const createdIdEl = document.getElementById('createdId');
+    const modifyEntriesSection = document.getElementById('modifyEntriesSection');
+    const modifyEntriesHint = document.getElementById('modifyEntriesHint');
+    const searchEntries = document.getElementById('searchEntries');
+    const entryPageSizeSelect = document.getElementById('entryPageSize');
+    const entryPrevPageBtn = document.getElementById('entryPrevPage');
+    const entryNextPageBtn = document.getElementById('entryNextPage');
+    const entryPageInfo = document.getElementById('entryPageInfo');
+    const parseEntryPageSizeValue = (value) => {
+      if (value === 'all') return 'all';
+      const num = Number(value);
+      return Number.isFinite(num) && num > 0 ? num : 25;
+    };
+    const headerJobStatus = document.getElementById('headerJobStatus');
+    const headerJobText = document.getElementById('headerJobText');
+    const headerJobViewBtn = document.getElementById('headerJobViewBtn');
+    const userNameEl = document.getElementById('userName');
+    const userOrgEl = document.getElementById('userOrg');
+
+    const cacheKeyBearer = 'authBearer';
+    const cacheKeyOrg = 'authOrg';
+    const cacheKeyOrgName = 'authOrgName';
+    const cacheKeyUser = 'authUserName';
+    const signOutBtn = document.getElementById('signOutBtn');
+    let lastDigitWarn = 0;
+
+    let lastCreatedId = '';
+    let lastCreatedName = '';
+    let entryRowsCreate = Array.from({length:4}, () => ({ name:'', number:'' }));
+    let entryRowsModify = [];
+    let entrySearchQuery = '';
+    let entrySortKey = '';
+    let entrySortDir = 'asc';
+    let entryPageSize = parseEntryPageSizeValue(entryPageSizeSelect?.value);
+    let entryPage = 1;
+    let entriesBaseHint = '';
+    let lastFailureReport = [];
+    let progressModal = null;
+    let progressState = { title: '', message: '', allowBackground: false, background: false };
+
+    // Parse org ID from base64 or extract from path
+    function getOrgIdValue() {
+      const cached = localStorage.getItem('authOrgId') || '';
+      if (cached) {
+        if (/^Y2lz/i.test(cached)) {
+          try {
+            const padded = cached.replace(/-/g, '+').replace(/_/g, '/').padEnd(Math.ceil(cached.length / 4) * 4, '=');
+            const decoded = atob(padded);
+            console.log('Decoded base64:', decoded);
+            const parts = decoded.split('/');
+            console.log('Split parts:', parts);
+            const result = parts[parts.length - 1] || decoded;
+            console.log('Extracted org ID:', result);
+            localStorage.setItem('authOrgId', result);
+            return result;
+          } catch (e) {
+            console.error('Failed to decode base64:', e);
+            return cached;
+          }
+        }
+        const orgPathIdx = cached.toLowerCase().indexOf('organization/');
+        if (orgPathIdx !== -1) {
+          const candidate = cached.slice(orgPathIdx + 'organization/'.length);
+          if (candidate) {
+            localStorage.setItem('authOrgId', candidate);
+            return candidate;
+          }
+        }
+        return cached;
+      }
+      const raw = localStorage.getItem(cacheKeyOrg) || '';
+      console.log('Raw org ID from storage:', raw);
+      
+      if (!raw) return '';
+      
+      // Check if it's base64 encoded (starts with Y2lz which is base64 for "cis")
+      if (/^Y2lz/i.test(raw)) {
+        try {
+          const padded = raw.replace(/-/g, '+').replace(/_/g, '/').padEnd(Math.ceil(raw.length / 4) * 4, '=');
+          const decoded = atob(padded);
+          console.log('Decoded base64:', decoded);
+          const parts = decoded.split('/');
+          console.log('Split parts:', parts);
+          const result = parts[parts.length - 1] || decoded;
+          console.log('Extracted org ID:', result);
+          return result;
+        } catch (e) {
+          console.error('Failed to decode base64:', e);
+          return raw;
+        }
+      }
+      
+      // Check if it contains "organization/" path
+      const orgPathIdx = raw.toLowerCase().indexOf('organization/');
+      if (orgPathIdx !== -1) {
+        const candidate = raw.slice(orgPathIdx + 'organization/'.length);
+        console.log('Extracted from path:', candidate);
+        return candidate || raw;
+      }
+      
+      console.log('Using raw org ID:', raw);
+      return raw;
+    }
+
+    const copyButtons = document.querySelectorAll('[data-copy-target]');
+    copyButtons.forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        const targetId = btn.getAttribute('data-copy-target');
+        const target = document.getElementById(targetId);
+        if (!target) return;
+        const text = target.value !== undefined ? target.value : target.textContent || '';
+        const original = btn.innerHTML;
+        try {
+          await navigator.clipboard.writeText(text);
+          btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"></path></svg>';
+          setTimeout(() => (btn.innerHTML = original), 900);
+        } catch (err) {
+          console.error('Copy failed', err);
+        }
+      });
+    });
+
+    const renderEntriesCreate = () => {
+      if (!entriesTableCreate) return;
+      if (!entryRowsCreate.length) entryRowsCreate = [{ name:'', number:'' }];
+      const header = `<thead><tr><th style="width:48%;">Name</th><th style="width:38%;">Number</th><th style="width:14%;">Actions</th></tr></thead>`;
+      const body = `<tbody>${entryRowsCreate.map((r,idx)=>`
+        <tr>
+          <td>
+            <div class="fieldWrap ${r.name && !isValidName(r.name) ? 'invalid' : ''}">
+              <input data-idx="${idx}" data-key="name" value="${r.name || ''}" />
+              <span class="warnIcon" title="Only letters, numbers, space, dot, underscore, and hyphen are allowed.">⚠</span>
+            </div>
+          </td>
+          <td><input data-idx="${idx}" data-key="number" inputmode="numeric" pattern="\\d*" value="${r.number || ''}" /></td>
+          <td>
+            <div style="display:flex; gap:6px; justify-content:flex-start;">
+              <button class="btn secondary" data-add-after="${idx}" style="padding:6px 10px;">+</button>
+              <button class="btn secondary" data-del="${idx}" style="padding:6px 10px;">✕</button>
+            </div>
+          </td>
+        </tr>`).join('')}</tbody>`;
+      entriesTableCreate.innerHTML = header + body;
+      
+      entriesTableCreate.querySelectorAll('input[data-idx]').forEach(inp=>{
+        inp.addEventListener('input', (e)=>{
+          const i = Number(e.target.getAttribute('data-idx'));
+          const key = e.target.getAttribute('data-key');
+          let val = e.target.value;
+          if (key === 'number') {
+            val = enforceDigits(e.target);
+          } else if (key === 'name') {
+            applyNameValidation(e.target);
+          }
+          entryRowsCreate[i][key] = val;
+        });
+        
+        // Add paste handler
+        inp.addEventListener('paste', (e)=>{
+          e.preventDefault();
+          const pasteData = e.clipboardData.getData('text');
+          const startIdx = Number(e.target.getAttribute('data-idx'));
+          const startKey = e.target.getAttribute('data-key');
+          
+          // Split by newlines first (rows)
+          const rows = pasteData.split(/\r?\n/).filter(r => r.trim());
+          
+          // Process each row
+          rows.forEach((row, rowOffset) => {
+            const cells = row.split('\t');
+            const currentRowIdx = startIdx + rowOffset;
+            
+            // Ensure we have enough rows
+            while (entryRowsCreate.length <= currentRowIdx) {
+              entryRowsCreate.push({name:'', number:''});
+            }
+            
+            // If pasting in name column
+            if (startKey === 'name') {
+              if (cells[0]) entryRowsCreate[currentRowIdx].name = cells[0].trim();
+              if (cells[1]) entryRowsCreate[currentRowIdx].number = cells[1].trim();
+            } 
+            // If pasting in number column
+            else if (startKey === 'number') {
+              if (cells[0]) entryRowsCreate[currentRowIdx].number = cells[0].trim();
+            }
+          });
+          
+          renderEntriesCreate();
+        });
+      });
+      
+      entriesTableCreate.querySelectorAll('button[data-del]').forEach(btn=>{
+        btn.addEventListener('click', (e)=>{
+          const i = Number(e.target.getAttribute('data-del'));
+          if (entryRowsCreate.length > 1) {
+            entryRowsCreate.splice(i,1);
+          } else {
+            entryRowsCreate[0] = { name:'', number:'' };
+          }
+          renderEntriesCreate();
+        });
+      });
+
+      entriesTableCreate.querySelectorAll('button[data-add-after]').forEach(btn=>{
+        btn.addEventListener('click', (e)=>{
+          const i = Number(e.target.getAttribute('data-add-after'));
+          entryRowsCreate.splice(i+1, 0, { name:'', number:'' });
+          renderEntriesCreate();
+        });
+      });
+    };
+
+    const getFilteredSortedIndices = () => {
+      const indices = entryRowsModify.map((_, i) => i);
+      const query = entrySearchQuery.trim().toLowerCase();
+      let filtered = indices;
+      if (query) {
+        filtered = indices.filter(i => {
+          const row = entryRowsModify[i] || {};
+          return (row.name || '').toLowerCase().includes(query) ||
+                 (row.number || '').toLowerCase().includes(query);
+        });
+      }
+      if (entrySortKey) {
+        const dir = entrySortDir === 'desc' ? -1 : 1;
+        filtered = filtered.slice().sort((a, b) => {
+          const avRaw = (entryRowsModify[a]?.[entrySortKey] || '').toString().trim();
+          const bvRaw = (entryRowsModify[b]?.[entrySortKey] || '').toString().trim();
+          const aEmpty = avRaw.length === 0;
+          const bEmpty = bvRaw.length === 0;
+          if (aEmpty && bEmpty) return 0;
+          if (aEmpty && !bEmpty) return 1;
+          if (!aEmpty && bEmpty) return -1;
+          const av = avRaw.toLowerCase();
+          const bv = bvRaw.toLowerCase();
+          if (av < bv) return -1 * dir;
+          if (av > bv) return 1 * dir;
+          return 0;
+        });
+      }
+      return filtered;
+    };
+
+    const paginateIndices = (indices) => {
+      const showAll = entryPageSize === 'all';
+      const totalPages = showAll ? 1 : Math.max(1, Math.ceil(indices.length / entryPageSize));
+      if (entryPage > totalPages) entryPage = totalPages;
+      if (entryPage < 1) entryPage = 1;
+      const start = showAll ? 0 : (entryPage - 1) * entryPageSize;
+      const pageItems = showAll ? indices.slice() : indices.slice(start, start + entryPageSize);
+      if (entryPageInfo) entryPageInfo.textContent = `${entryPage}/${totalPages}`;
+      if (entryPrevPageBtn) entryPrevPageBtn.disabled = entryPage <= 1;
+      if (entryNextPageBtn) entryNextPageBtn.disabled = entryPage >= totalPages;
+      return pageItems;
+    };
+
+    const updateEntriesHint = (visibleCount, totalCount) => {
+      const parts = [];
+      if (entriesBaseHint) parts.push(entriesBaseHint);
+      if (totalCount > 0) parts.push(`${visibleCount} of ${totalCount} shown`);
+      if (entrySearchQuery.trim()) parts.push(`Filter: "${entrySearchQuery.trim()}"`);
+      if (entrySortKey) parts.push(`Sorted by ${entrySortKey} (${entrySortDir})`);
+      modifyEntriesHint.textContent = parts.join(' • ');
+    };
+
+    const renderEntriesModify = () => {
+      if (!entriesTableModify) return;
+      if (!entryRowsModify.length) entryRowsModify = [{ name:'', number:'', id: null }];
+      const nameActive = entrySortKey === 'name';
+      const numberActive = entrySortKey === 'number';
+      const nameArrow = nameActive ? (entrySortDir === 'asc' ? '▲' : '▼') : '↕';
+      const numberArrow = numberActive ? (entrySortDir === 'asc' ? '▲' : '▼') : '↕';
+      const header = `<thead><tr>
+        <th style="width:6%; text-align:center;"><input type="checkbox" id="selectAllToggle"></th>
+        <th style="width:50%;">
+          <button class="sortBtn ${nameActive ? 'sortActive' : ''}" id="sortNameBtn" type="button">
+            Name <span class="sortIcon">${nameArrow}</span>
+          </button>
+        </th>
+        <th style="width:34%;">
+          <button class="sortBtn ${numberActive ? 'sortActive' : ''}" id="sortNumberBtn" type="button">
+            Number <span class="sortIcon">${numberArrow}</span>
+          </button>
+        </th>
+        <th style="width:10%;">Actions</th>
+      </tr></thead>`;
+      const viewIndices = getFilteredSortedIndices();
+      const pageIndices = paginateIndices(viewIndices);
+      if (viewIndices.length === 0) {
+        entriesTableModify.innerHTML = header + `<tbody><tr><td colspan="4" style="text-align:center; color:var(--muted); padding:18px;">No matching entries</td></tr></tbody>`;
+        updateEntriesHint(0, entryRowsModify.length);
+        return;
+      }
+      const body = `<tbody>${pageIndices.map((idx)=>{
+        const r = entryRowsModify[idx];
+        const isExisting = !!r.id;
+        const isModified = r.id && r.originalValues && (r.name !== r.originalValues.name || r.number !== r.originalValues.number);
+        const rowClass = isModified ? 'modified' : (isExisting ? 'existing' : '');
+        const title = isModified ? 'Modified - will be updated' : (isExisting ? 'Existing entry' : 'New entry - will be added');
+        return `
+        <tr class="${rowClass}" title="${title}">
+          <td style="text-align:center;"><input type="checkbox" data-select-idx="${idx}" ${r.selected ? 'checked' : ''}></td>
+          <td>
+            <div class="fieldWrap ${r.name && !isValidName(r.name) ? 'invalid' : ''}">
+              <input data-idx="${idx}" data-key="name" data-entry-id="${r.id || ''}" value="${r.name || ''}" />
+              <span class="warnIcon" title="Only letters, numbers, space, dot, underscore, and hyphen are allowed.">⚠</span>
+            </div>
+          </td>
+          <td><input data-idx="${idx}" data-key="number" data-entry-id="${r.id || ''}" inputmode="numeric" pattern="\\d*" value="${r.number || ''}" /></td>
+          <td>
+            <div style="display:flex; gap:6px; justify-content:flex-start;">
+              <button class="btn secondary" data-add-after-mod="${idx}" style="padding:6px 10px;">+</button>
+              <button class="btn secondary" data-del-mod="${idx}" style="padding:6px 10px;">✕</button>
+            </div>
+          </td>
+        </tr>`;
+      }).join('')}</tbody>`;
+      entriesTableModify.innerHTML = header + body;
+      updateEntriesHint(viewIndices.length, entryRowsModify.length);
+      
+      entriesTableModify.querySelectorAll('input[data-idx]').forEach(inp=>{
+        inp.addEventListener('input', (e)=>{
+          const i = Number(e.target.getAttribute('data-idx'));
+          const key = e.target.getAttribute('data-key');
+          const entryId = e.target.getAttribute('data-entry-id');
+          
+          // Store original values on first edit
+          if (entryId && !entryRowsModify[i].originalValues) {
+            entryRowsModify[i].originalValues = {
+              name: entryRowsModify[i].name,
+              number: entryRowsModify[i].number
+            };
+          }
+          
+          let val = e.target.value;
+          if (key === 'number') {
+            val = enforceDigits(e.target);
+          } else if (key === 'name') {
+            applyNameValidation(e.target);
+          }
+          entryRowsModify[i][key] = val;
+          
+          // Preserve the ID if it exists
+          if (entryId) {
+            entryRowsModify[i].id = entryId;
+          }
+          
+          // Update the row class without full re-render
+          const row = e.target.closest('tr');
+          if (entryId && entryRowsModify[i].originalValues) {
+            const isModified = entryRowsModify[i].name !== entryRowsModify[i].originalValues.name || 
+                              entryRowsModify[i].number !== entryRowsModify[i].originalValues.number;
+          if (isModified) {
+            row.classList.add('modified');
+            row.classList.remove('existing');
+            row.title = 'Modified - will be updated';
+            } else {
+              row.classList.remove('modified');
+              row.classList.add('existing');
+              row.title = 'Existing entry';
+            }
+          }
+        });
+        
+        // Add paste handler
+        inp.addEventListener('paste', (e)=>{
+          e.preventDefault();
+          const pasteData = e.clipboardData.getData('text');
+          const startIdx = Number(e.target.getAttribute('data-idx'));
+          const startKey = e.target.getAttribute('data-key');
+          
+          const rows = pasteData.split(/\r?\n/).filter(r => r.trim());
+          
+          rows.forEach((row, rowOffset) => {
+            const cells = row.split('\t');
+            const currentRowIdx = startIdx + rowOffset;
+            
+            while (entryRowsModify.length <= currentRowIdx) {
+              entryRowsModify.push({name:'', number:'', id: null});
+            }
+            
+            if (startKey === 'name') {
+              if (cells[0]) entryRowsModify[currentRowIdx].name = cells[0].trim();
+              if (cells[1]) entryRowsModify[currentRowIdx].number = cells[1].trim();
+            } else if (startKey === 'number') {
+              if (cells[0]) entryRowsModify[currentRowIdx].number = cells[0].trim();
+            }
+          });
+          
+          renderEntriesModify();
+        });
+      });
+
+      const sortNameBtn = document.getElementById('sortNameBtn');
+      const sortNumberBtn = document.getElementById('sortNumberBtn');
+      if (sortNameBtn) {
+        sortNameBtn.addEventListener('click', () => {
+          entrySortDir = entrySortKey === 'name' && entrySortDir === 'asc' ? 'desc' : 'asc';
+          entrySortKey = 'name';
+          entryPage = 1;
+          renderEntriesModify();
+        });
+      }
+      if (sortNumberBtn) {
+        sortNumberBtn.addEventListener('click', () => {
+          entrySortDir = entrySortKey === 'number' && entrySortDir === 'asc' ? 'desc' : 'asc';
+          entrySortKey = 'number';
+          entryPage = 1;
+          renderEntriesModify();
+        });
+      }
+
+      // Selection toggles
+      const selectAllToggle = document.getElementById('selectAllToggle');
+      if (selectAllToggle) {
+        const total = pageIndices.length;
+        const selectedCount = pageIndices.filter(i => entryRowsModify[i].selected).length;
+        selectAllToggle.checked = total > 0 && selectedCount === total;
+        selectAllToggle.indeterminate = selectedCount > 0 && selectedCount < total;
+        selectAllToggle.addEventListener('change', (e)=>{
+          const checked = e.target.checked;
+          pageIndices.forEach(i => { entryRowsModify[i].selected = checked; });
+          renderEntriesModify();
+          updateSelectionButtons();
+        });
+      }
+
+      entriesTableModify.querySelectorAll('input[type="checkbox"][data-select-idx]').forEach(box=>{
+        box.addEventListener('change',(e)=>{
+          const idx = Number(e.target.getAttribute('data-select-idx'));
+          if (!Number.isNaN(idx) && entryRowsModify[idx]) {
+            entryRowsModify[idx].selected = e.target.checked;
+          }
+          updateSelectionButtons();
+        });
+      });
+      
+      entriesTableModify.querySelectorAll('button[data-add-after-mod]').forEach(btn=>{
+        btn.addEventListener('click',(e)=>{
+          const i = Number(e.target.getAttribute('data-add-after-mod'));
+          entryRowsModify.splice(i+1,0,{ name:'', number:'', id:null });
+          renderEntriesModify();
+        });
+      });
+
+      entriesTableModify.querySelectorAll('button[data-del-mod]').forEach(btn=>{
+        btn.addEventListener('click', async (e)=>{
+          const i = Number(e.target.getAttribute('data-del-mod'));
+          const entry = entryRowsModify[i];
+          if (entry?.id) {
+            await deleteEntryByIndex(i);
+          } else {
+            if (entryRowsModify.length > 1) {
+              entryRowsModify.splice(i,1);
+            } else {
+              entryRowsModify[0] = { name:'', number:'', id:null };
+            }
+            renderEntriesModify();
+          }
+        });
+      });
+    };
+
+    async function deleteEntryByIndex(idx, silent = false) {
+      const entry = entryRowsModify[idx];
+      if (!entry) return;
+
+      // If no ID, just drop locally
+      if (!entry.id) {
+        entryRowsModify.splice(idx, 1);
+        renderEntriesModify();
+        if (!silent) showActionModal('Removed', 'Row removed from the list.', { variant:'danger' });
+        return;
+      }
+
+      const bearer = (localStorage.getItem(cacheKeyBearer) || '').trim();
+      const orgId = getOrgIdValue();
+      if (!bearer || !orgId || !lastCreatedId) {
+        if (!silent) showActionModal('Not signed in', 'Missing token or org. Please authenticate.', { variant:'danger' });
+        return;
+      }
+
+      const url = `${BASE_URL}/organization/${encodeURIComponent(orgId)}/address-book/${encodeURIComponent(lastCreatedId)}/entry/${encodeURIComponent(entry.id)}`;
+      try {
+        if (!silent) {
+          openProgressModal('Working', `Deleting "${entry.name || 'entry'}"...`);
+        }
+        const res = await fetch(url, { method:'DELETE', headers:{ Authorization:`Bearer ${bearer}` } });
+        if (res.ok) {
+          entryRowsModify.splice(idx, 1);
+          renderEntriesModify();
+          if (!silent) showActionModal('Deleted', `"${entry.name || 'Entry'}" was removed.`, { variant:'danger' });
+        } else {
+          const errorText = await res.text();
+          console.error('Delete failed:', errorText);
+          if (!silent) showActionModal('Delete failed', errorText || 'Unable to delete entry.', { variant:'danger' });
+        }
+      } catch (err) {
+        console.error('Delete error:', err);
+        if (!silent) showActionModal('Delete failed', err.message || 'Error deleting entry.', { variant:'danger' });
+      } finally {
+        if (!silent) closeProgressModal();
+      }
+    }
+
+    renderEntriesCreate();
+    renderEntriesModify();
+
+    if (addEntryRowCreateBtn) addEntryRowCreateBtn.addEventListener('click', ()=>{ entryRowsCreate.push({name:'', number:''}); renderEntriesCreate(); });
+    if (clearEntryRowsCreateBtn) clearEntryRowsCreateBtn.addEventListener('click', ()=>{ entryRowsCreate = Array.from({length:4}, () => ({name:'', number:''})); renderEntriesCreate(); });
+    if (addEntryRowModifyBtn) addEntryRowModifyBtn.addEventListener('click', ()=>{ entryRowsModify.push({name:'', number:''}); renderEntriesModify(); });
+    if (clearEntryRowsModifyBtn) clearEntryRowsModifyBtn.addEventListener('click', ()=>{ entryRowsModify = Array.from({length:4}, () => ({name:'', number:''})); renderEntriesModify(); });
+    const deleteSelectedBtn = document.getElementById('deleteSelectedBtn');
+    const selectAllBtn = document.getElementById('selectAllBtn');
+    const clearSelectionBtn = document.getElementById('clearSelectionBtn');
+    function updateSelectionButtons() {
+      const anySelected = entryRowsModify.some(r => r.selected);
+      if (clearSelectionBtn) clearSelectionBtn.disabled = !anySelected;
+      if (deleteSelectedBtn) deleteSelectedBtn.disabled = !anySelected;
+    }
+
+    if (selectAllBtn) {
+      selectAllBtn.addEventListener('click', ()=>{
+        entryRowsModify.forEach(r => { r.selected = true; });
+        renderEntriesModify();
+        updateSelectionButtons();
+      });
+    }
+    if (clearSelectionBtn) {
+      clearSelectionBtn.addEventListener('click', ()=>{
+        entryRowsModify.forEach(r => { r.selected = false; });
+        renderEntriesModify();
+        updateSelectionButtons();
+      });
+    }
+    if (deleteSelectedBtn) {
+      deleteSelectedBtn.addEventListener('click', async ()=>{
+        const bearer = (localStorage.getItem(cacheKeyBearer) || '').trim();
+        const orgId = getOrgIdValue();
+        if (!bearer || !orgId || !lastCreatedId) {
+          showActionModal('Not signed in', 'Missing token or org. Please authenticate.', { variant:'danger' });
+          return;
+        }
+
+        const selected = entryRowsModify.filter(e => e.selected);
+        if (!selected.length) {
+          showActionModal('No entries selected', 'Select entries to delete.', { variant:'danger' });
+          return;
+        }
+
+        let success = 0;
+        let fail = 0;
+
+        // Delete API-backed entries sequentially, drop local-only rows
+        openProgressModal('Working', `Deleting ${selected.length} entr${selected.length===1?'y':'ies'}…`, { allowBackground: true });
+        for (const entry of selected) {
+          if (!entry.id) {
+            entry._delete = true;
+            success++;
+            continue;
+          }
+          const url = `${BASE_URL}/organization/${encodeURIComponent(orgId)}/address-book/${encodeURIComponent(lastCreatedId)}/entry/${encodeURIComponent(entry.id)}`;
+          try {
+            const res = await fetch(url, { method:'DELETE', headers:{ Authorization:`Bearer ${bearer}` } });
+            if (res.ok) {
+              entry._delete = true;
+              success++;
+            } else {
+              fail++;
+            }
+          } catch (_) {
+            fail++;
+          }
+        }
+        closeProgressModal();
+
+        entryRowsModify = entryRowsModify.filter(e => !e._delete);
+        renderEntriesModify();
+
+        const title = fail ? 'Delete finished' : 'Deleted';
+        const msg = fail
+          ? `${success} deleted, ${fail} failed.`
+          : `${success} entr${success === 1 ? 'y' : 'ies'} deleted.`;
+        showActionModal(title, msg, { variant: fail ? 'danger' : 'success' });
+      });
+    }
+
+    const modeCreateBtn = document.getElementById('modeCreate');
+    const modeModifyBtn = document.getElementById('modeModify');
+    const cancelCreateBtn = document.getElementById('cancelCreateBtn');
+    const createFields = document.getElementById('createFields');
+    const modifyFields = document.getElementById('modifyFields');
+    const addressBookList = document.getElementById('addressBookList');
+    const searchBooks = document.getElementById('searchBooks');
+    const refreshListBtn = null;
+    const BASE_URL = 'https://api.wxcc-us1.cisco.com';
+
+    let mode = '';
+    let allAddressBooks = [];
+    let selectedBook = null;
+
+    async function fetchAddressBooks() {
+      const bearer = (localStorage.getItem(cacheKeyBearer) || '').trim();
+      const orgId = getOrgIdValue();
+      
+      if (!bearer || !orgId) {
+        addressBookList.innerHTML = '<div style="padding:20px; text-align:center; color:var(--muted);">Please authenticate first</div>';
+        return;
+      }
+      
+      addressBookList.innerHTML = '<div style="padding:20px; text-align:center; color:var(--muted);">Loading address books...</div>';
+      
+      const url = `${BASE_URL}/organization/${encodeURIComponent(orgId)}/v3/address-book`;
+      
+      try {
+        const res = await fetch(url, {
+          method: 'GET',
+          headers: { Authorization: `Bearer ${bearer}` }
+        });
+        
+        if (!res.ok) {
+          addressBookList.innerHTML = `<div style="padding:20px; text-align:center; color:#ef4444;">Error loading address books (${res.status})</div>`;
+          return;
+        }
+        
+        const data = await res.json();
+        allAddressBooks = data.data || [];
+        
+        if (allAddressBooks.length === 0) {
+          addressBookList.innerHTML = '<div style="padding:20px; text-align:center; color:var(--muted);">No address books found</div>';
+          return;
+        }
+        
+        renderAddressBookList(allAddressBooks);
+        
+      } catch (err) {
+        console.error('Error fetching address books:', err);
+        addressBookList.innerHTML = `<div style="padding:20px; text-align:center; color:#ef4444;">Network error: ${err.message}</div>`;
+      }
+    }
+    
+    function renderAddressBookList(books) {
+      if (!books.length) {
+        addressBookList.innerHTML = '<div style="padding:20px; text-align:center; color:var(--muted);">No address books match your search</div>';
+        return;
+      }
+      
+      addressBookList.innerHTML = books.map(book => `
+        <div class="bookItem" data-book-id="${book.id}">
+          <div class="bookMeta">
+            <div class="bookName">${book.name}</div>
+            <div class="bookDesc">${book.description || 'No description'} • ${book.createdTime ? ('Created ' + new Date(book.createdTime).toLocaleDateString()) : ''}</div>
+          </div>
+          <div class="bookActions">
+            <button class="iconBtn deleteBookBtn" data-book-id="${book.id}" title="Delete address book">🗑</button>
+          </div>
+        </div>
+      `).join('');
+      
+      // Add click handlers
+      addressBookList.querySelectorAll('.bookItem').forEach(item => {
+        item.addEventListener('click', () => {
+          const bookId = item.getAttribute('data-book-id');
+          selectAddressBook(bookId);
+        });
+      });
+      // Delete handlers
+      addressBookList.querySelectorAll('.deleteBookBtn').forEach(btn=>{
+        btn.addEventListener('click', async (e)=>{
+          e.stopPropagation();
+          const bookId = btn.getAttribute('data-book-id');
+          const book = allAddressBooks.find(b => b.id === bookId);
+          await deleteAddressBook(book);
+        });
+      });
+    }
+    
+    async function selectAddressBook(bookId) {
+      const book = allAddressBooks.find(b => b.id === bookId);
+      if (!book) return;
+      
+      selectedBook = book;
+      lastCreatedId = book.id;
+      lastCreatedName = book.name;
+      
+      // Update UI
+      addressBookList.querySelectorAll('.bookItem').forEach(item => {
+        item.classList.toggle('selected', item.getAttribute('data-book-id') === bookId);
+      });
+      
+      // Load entries for this address book
+      await loadAddressBookEntries(bookId);
+    }
+
+    async function deleteAddressBook(book) {
+      if (!book) return;
+      const bearer = (localStorage.getItem(cacheKeyBearer) || '').trim();
+      const orgId = getOrgIdValue();
+      if (!bearer || !orgId) {
+        showActionModal('Not signed in', 'Missing token or org. Please authenticate.', { variant:'danger' });
+        return;
+      }
+
+      const confirmed = await confirmAction('Delete address book?', `Delete "${book.name}"? This cannot be undone.`, { variant:'danger' });
+      if (!confirmed) return;
+
+      const url = `${BASE_URL}/organization/${encodeURIComponent(orgId)}/v3/address-book/${encodeURIComponent(book.id)}`;
+      try {
+        openProgressModal('Working', `Deleting "${book.name}"…`);
+        const res = await fetch(url, { method:'DELETE', headers:{ Authorization:`Bearer ${bearer}` } });
+        if (res.ok) {
+          allAddressBooks = allAddressBooks.filter(b => b.id !== book.id);
+          if (selectedBook && selectedBook.id === book.id) {
+            selectedBook = null;
+            lastCreatedId = '';
+            lastCreatedName = '';
+            entryRowsModify = [];
+            if (modifyEntriesSection) modifyEntriesSection.style.display = 'none';
+            renderEntriesModify();
+          }
+          renderAddressBookList(allAddressBooks);
+          showActionModal('Deleted', `"${book.name}" was deleted.`, { variant:'danger' });
+        } else {
+          const errText = await res.text();
+          showActionModal('Delete failed', errText || 'Unable to delete address book.', { variant:'danger' });
+        }
+      } catch (err) {
+        showActionModal('Delete failed', err.message || 'Error deleting address book.', { variant:'danger' });
+      } finally {
+        closeProgressModal();
+      }
+    }
+    
+    async function fetchAllAddressBookEntries(bookId) {
+      const bearer = (localStorage.getItem(cacheKeyBearer) || '').trim();
+      const orgId = getOrgIdValue();
+
+      const pageSize = 100;
+      let page = 0;
+      let allEntries = [];
+      let totalPages = null;
+      let guard = 0;
+
+      try {
+        while (true) {
+          const url = `${BASE_URL}/organization/${encodeURIComponent(orgId)}/v2/address-book/${encodeURIComponent(bookId)}/entry?page=${page}&pageSize=${pageSize}`;
+          const res = await fetch(url, {
+            method: 'GET',
+            headers: { Authorization: `Bearer ${bearer}` }
+          });
+
+          const data = await res.json();
+          if (!res.ok) {
+            return { ok: false, status: res.status, message: data?.message || 'Failed to load entries' };
+          }
+
+          let entries = [];
+          if (Array.isArray(data?.data)) {
+            entries = data.data;
+          } else if (Array.isArray(data?.entries)) {
+            entries = data.entries;
+          } else if (Array.isArray(data?.items)) {
+            entries = data.items;
+          } else if (Array.isArray(data)) {
+            entries = data;
+          }
+
+          allEntries = allEntries.concat(entries);
+
+          const meta = data?.meta || data?.pageInfo || data?.page || {};
+          if (typeof meta.totalPages === 'number') totalPages = meta.totalPages;
+
+          if (totalPages !== null) {
+            if (page + 1 >= totalPages) break;
+          } else if (entries.length < pageSize) {
+            break;
+          }
+
+          page += 1;
+          guard += 1;
+          if (guard > 200) break;
+        }
+
+        return { ok: true, entries: allEntries };
+      } catch (err) {
+        return { ok: false, status: 0, message: err.message || String(err) };
+      }
+    }
+
+    async function loadAddressBookEntries(bookId) {
+      modifyEntriesSection.style.display = 'block';
+      modifyEntriesHint.textContent = 'Loading entries...';
+
+      const result = await fetchAllAddressBookEntries(bookId);
+      if (!result.ok) {
+        modifyEntriesHint.textContent = `Error loading entries (${result.status || 'network'})`;
+        statusEl.textContent = `Error: ${result.message || 'Failed to load entries'}`;
+        return;
+      }
+
+      const entries = result.entries || [];
+      // Populate the entries table
+      entryRowsModify = entries.map(e => ({ name: e.name, number: e.number, id: e.id }));
+
+      // Add some empty rows for new entries
+      for (let i = 0; i < 4; i++) {
+        entryRowsModify.push({ name: '', number: '', id: null });
+      }
+
+      entrySearchQuery = '';
+      entrySortKey = '';
+      entrySortDir = 'asc';
+      entryPage = 1;
+      entryPageSize = parseEntryPageSizeValue(entryPageSizeSelect?.value);
+      entriesBaseHint = `${entries.length} existing entries loaded. Add more or modify existing.`;
+      if (searchEntries) searchEntries.value = '';
+      renderEntriesModify();
+      statusEl.textContent = `Loaded ${entries.length} entries from "${selectedBook.name}"`;
+    }
+
+    // Search functionality
+    if (searchBooks) {
+      searchBooks.addEventListener('input', (e) => {
+        const query = e.target.value.toLowerCase();
+        const filtered = allAddressBooks.filter(book => 
+          book.name.toLowerCase().includes(query) || 
+          (book.description && book.description.toLowerCase().includes(query))
+        );
+        renderAddressBookList(filtered);
+      });
+    }
+
+    if (searchEntries) {
+      searchEntries.addEventListener('input', (e) => {
+        entrySearchQuery = e.target.value || '';
+        entryPage = 1;
+        renderEntriesModify();
+      });
+    }
+    if (entryPageSizeSelect) {
+      entryPageSizeSelect.addEventListener('change', (e) => {
+        entryPageSize = parseEntryPageSizeValue(e.target.value);
+        entryPage = 1;
+        renderEntriesModify();
+      });
+    }
+    if (entryPrevPageBtn) {
+      entryPrevPageBtn.addEventListener('click', () => {
+        entryPage = Math.max(1, entryPage - 1);
+        renderEntriesModify();
+      });
+    }
+    if (entryNextPageBtn) {
+      entryNextPageBtn.addEventListener('click', () => {
+        entryPage += 1;
+        renderEntriesModify();
+      });
+    }
+    
+    // Refresh button
+    if (refreshListBtn) {
+      refreshListBtn.addEventListener('click', fetchAddressBooks);
+    }
+
+    function setMode(next) {
+      mode = next;
+      if (modeCreateBtn) modeCreateBtn.setAttribute('aria-pressed', next === 'create' ? 'true' : 'false');
+      if (modeModifyBtn) modeModifyBtn.setAttribute('aria-pressed', next === 'modify' ? 'true' : 'false');
+      if (createFields) createFields.style.display = next === 'create' ? 'block' : 'none';
+      if (modifyFields) modifyFields.style.display = next === 'modify' ? 'block' : 'none';
+      if (next === 'create') {
+        lastCreatedId = '';
+        lastCreatedName = '';
+        selectedBook = null;
+        createdInfo.style.display = 'none';
+        if (modifyEntriesSection) modifyEntriesSection.style.display = 'none';
+        statusEl.textContent = '';
+      } else if (next === 'modify') {
+        lastCreatedId = '';
+        lastCreatedName = '';
+        selectedBook = null;
+        createdInfo.style.display = 'none';
+        if (modifyEntriesSection) modifyEntriesSection.style.display = 'none';
+        statusEl.textContent = '';
+        // Load address books
+        fetchAddressBooks();
+      } else {
+        createdInfo.style.display = 'none';
+        if (modifyEntriesSection) modifyEntriesSection.style.display = 'none';
+        statusEl.textContent = '';
+      }
+    }
+    setMode('modify');
+
+    modeCreateBtn?.addEventListener('click', () => setMode('create'));
+    modeModifyBtn?.addEventListener('click', () => setMode('modify'));
+    cancelCreateBtn?.addEventListener('click', () => setMode('modify'));
+
+    createBtn.addEventListener('click', async () => {
+      const clickId = Date.now();
+      console.log(`=== CREATE BUTTON CLICKED (${clickId}) ===`);
+      
+      // Prevent double clicks
+      if (createBtn.disabled) {
+        console.log('Button already disabled, ignoring click');
+        return;
+      }
+      createBtn.disabled = true;
+      
+      const bearer = (localStorage.getItem(cacheKeyBearer) || '').trim();
+      const orgId = getOrgIdValue(); // Use the parsed org ID
+      if (!bearer || !orgId) { 
+        statusEl.textContent = 'Missing bearer token or Org ID — click Authenticate.'; 
+        createBtn.disabled = false;
+        return; 
+      }
+      if (mode !== 'create') { 
+        statusEl.textContent = 'Switch to create mode to make a new address book.'; 
+        createBtn.disabled = false;
+        return; 
+      }
+      const name = (addrNameEl?.value || '').trim();
+      if (!name) { 
+        statusEl.textContent = 'Enter an address book name.'; 
+        createBtn.disabled = false;
+        return; 
+      }
+
+      // According to documentation, parent_type is required
+      openProgressModal('Working', 'Creating address book…', { allowBackground: true });
+      const url = `${BASE_URL}/organization/${encodeURIComponent(orgId)}/address-book`;
+      const body = { 
+        name: name,
+        parentType: 'ORGANIZATION',
+        description: 'Added from API Tool'
+      };
+      statusEl.textContent = 'Creating address book…';
+      
+      console.log('Request URL:', url);
+      console.log('Request Body:', body);
+      console.log('OrgId (parsed):', orgId);
+      
+      try {
+        const res = await fetch(url, { method:'POST', headers:{ Authorization:`Bearer ${bearer}`, 'Content-Type':'application/json' }, body: JSON.stringify(body) });
+        const text = await res.text();
+        let id = '';
+        let parsed = null;
+        
+        console.log('Response Status:', res.status);
+        console.log('Response Headers:', [...res.headers.entries()]);
+        console.log('Response Body:', text);
+        
+        try { 
+          parsed = JSON.parse(text); 
+          id = parsed.id || parsed.addressBookId || parsed.data?.id || parsed.data?.addressBookId || ''; 
+        } catch (e) {
+          console.error('Failed to parse response:', e);
+        }
+        
+        if (!res.ok) { 
+          statusEl.textContent = `Create error (${res.status})`;
+          closeProgressModal();
+          
+          // Show detailed error in alert
+          let errorMsg = `Error creating address book (${res.status})\n\n`;
+          errorMsg += `URL: ${url}\n\n`;
+          if (parsed) {
+            errorMsg += `Error Code: ${parsed.error?.key || parsed.error || ''}\n`;
+            errorMsg += `Reason: ${parsed.error?.reason || ''}\n`;
+            errorMsg += `Message: ${parsed.message || ''}\n`;
+            errorMsg += `Description: ${parsed.error?.description || parsed.description || ''}\n\n`;
+          }
+          errorMsg += `Full Response:\n${text}\n\n`;
+          errorMsg += `Check browser console (F12) for more details`;
+          
+          alert(errorMsg);
+          console.error('Create failed:', {url, body, status: res.status, response: text});
+          return; 
+        }
+        
+        if (!id) {
+          statusEl.textContent = 'Address book created but no ID returned';
+          closeProgressModal();
+          alert(`Address book may have been created but no ID was returned.\n\nResponse: ${text}`);
+          console.warn('No ID in response:', text);
+          return;
+        }
+        
+        lastCreatedId = id;
+        lastCreatedName = name;
+        console.log('Address book created with ID:', id);
+        
+        // Now add entries if any exist - require BOTH name and number to be filled
+        console.log('=== ENTRY PROCESSING START ===');
+        console.log('Raw entryRowsCreate array:', JSON.stringify(entryRowsCreate));
+        console.log('entryRowsCreate length:', entryRowsCreate.length);
+        
+        const rows = (entryRowsCreate || []).filter(r => r.name && r.name.trim() && r.number && r.number.trim());
+        const invalidCreate = rows.filter(r => !isValidName(r.name));
+        if (invalidCreate.length) {
+          closeProgressModal();
+          showActionModal(
+            'Invalid names',
+            'Names must be alphanumeric and may include spaces, dot, underscore, or hyphen.',
+            { variant:'danger' }
+          );
+          renderEntriesCreate();
+          return;
+        }
+        console.log('Filtered entry rows:', rows);
+        console.log('Total rows to add:', rows.length);
+        
+        if (rows.length > 500) {
+          closeProgressModal();
+          showActionModal(
+            'Upload limit',
+            'Limit is 500 entries per upload. Please split into smaller batches.',
+            { variant:'danger' }
+          );
+          return;
+        }
+
+        if (rows.length > 0 && id) {
+          statusEl.textContent = `Adding ${rows.length} entr${rows.length===1?'y':'ies'}…`;
+          updateProgressModal(`Adding ${rows.length} entr${rows.length===1?'y':'ies'}…`);
+          const entryUrl = `${BASE_URL}/organization/${encodeURIComponent(orgId)}/address-book/${encodeURIComponent(id)}/entry`;
+          
+          console.log('Adding entries URL:', entryUrl);
+          console.log('Number of entries:', rows.length);
+          
+          let successCount = 0;
+          let failCount = 0;
+          const failures = [];
+          
+          // Send entries one at a time
+          for (let i = 0; i < rows.length; i++) {
+            const entry = { 
+              name: rows[i].name, 
+              number: rows[i].number 
+            };
+            updateProgressModal(`Adding entry ${i + 1} of ${rows.length}…`);
+            
+            console.log(`=== Sending entry ${i+1}/${rows.length} ===`);
+            console.log('Entry object:', entry);
+            console.log('Entry JSON:', JSON.stringify(entry));
+            console.log('API URL:', entryUrl);
+            console.log('Full fetch call:', {
+              url: entryUrl,
+              method: 'POST',
+              headers: { Authorization: `Bearer ${bearer}`, 'Content-Type': 'application/json' },
+              body: JSON.stringify(entry)
+            });
+            
+            try {
+              const entryRes = await fetch(entryUrl, { 
+                method:'POST', 
+                headers:{ Authorization:`Bearer ${bearer}`, 'Content-Type':'application/json' }, 
+                body: JSON.stringify(entry) 
+              });
+              const entryText = await entryRes.text();
+              
+              console.log(`Entry ${i+1} response status:`, entryRes.status);
+              console.log(`Entry ${i+1} response body:`, entryText);
+              
+              if (entryRes.ok) {
+                successCount++;
+              } else {
+                failCount++;
+                failures.push({
+                  row: i + 1,
+                  name: entry.name,
+                  number: entry.number,
+                  stage: 'create-entry',
+                  status: entryRes.status,
+                  response: entryText
+                });
+                console.error(`Failed to add entry ${i+1}:`, entryText);
+              }
+            } catch (err) {
+              failCount++;
+              failures.push({
+                row: i + 1,
+                name: entry.name,
+                number: entry.number,
+                stage: 'create-entry',
+                status: 'NETWORK_ERROR',
+                response: err.message || String(err)
+              });
+              console.error(`Error adding entry ${i+1}:`, err);
+            }
+          }
+          console.log('=== ALL ENTRIES SENT ===');
+          console.log('Success count:', successCount);
+          console.log('Fail count:', failCount);
+          
+          if (failCount === 0) {
+            statusEl.textContent = `Address book "${name}" created with ${successCount} entr${successCount===1?'y':'ies'}`;
+            closeProgressModal();
+            showSuccessModal(name, successCount, id);
+          } else if (successCount > 0) {
+            statusEl.textContent = `Address book created with ${successCount} entries (${failCount} failed)`;
+            closeProgressModal();
+            showResultModal(
+              'Completed with errors',
+              `"${name}" created with ${successCount} entr${successCount===1?'y':'ies'}.`,
+              {
+                variant: 'danger',
+                warning: `${failCount} entries failed to add.`,
+                failures,
+                filenamePrefix: `address-book-${name.replace(/\s+/g,'-').toLowerCase()}`
+              }
+            );
+          } else {
+            statusEl.textContent = `Address book created, but all ${failCount} entries failed`;
+            closeProgressModal();
+            alert(`Address book created (ID: ${id})\n\nBut all ${failCount} entries failed to add. Check console for details.`);
+          }
+        } else {
+          statusEl.textContent = `Address book "${name}" created (no entries added)`;
+          closeProgressModal();
+          showSuccessModal(name, 0, id);
+        }
+        
+        // Reset the form
+        if (addrNameEl) addrNameEl.value = '';
+        entryRowsCreate = Array.from({length:4}, () => ({name:'', number:''}));
+        renderEntriesCreate();
+        
+        console.log('Form reset complete');
+        
+      } catch (err) {
+        statusEl.textContent = 'Network error';
+        closeProgressModal();
+        alert(`Network error: ${String(err)}`);
+        console.error('Network error:', err);
+      } finally {
+        createBtn.disabled = false;
+      }
+    });
+
+    if (updateEntriesBtn) {
+      updateEntriesBtn.addEventListener('click', async () => {
+        const bearer = (localStorage.getItem(cacheKeyBearer) || '').trim();
+        const orgId = getOrgIdValue();
+        if (!bearer || !orgId) { 
+          alert('Missing authentication. Please authenticate first.');
+          statusEl.textContent = 'Missing bearer token or Org ID'; 
+          return; 
+        }
+        if (!lastCreatedId) { 
+          alert('Please select an address book first');
+          statusEl.textContent = 'Select an address book first'; 
+          return; 
+        }
+        
+        console.log('=== UPDATE ENTRIES CLICKED ===');
+        console.log('Raw entryRowsModify:', entryRowsModify);
+        
+        // Separate existing entries from new entries
+        const existingEntries = entryRowsModify.filter(r => r.id && r.name && r.name.trim() && r.number && r.number.trim() && r.originalValues &&
+          (r.name !== r.originalValues.name || r.number !== r.originalValues.number));
+        const newEntries = entryRowsModify.filter(r => !r.id && r.name && r.name.trim() && r.number && r.number.trim());
+        
+        console.log('Existing entries to update:', existingEntries);
+        console.log('New entries to add:', newEntries);
+        
+        const invalidExisting = existingEntries.filter(r => !isValidName(r.name));
+        const invalidNew = newEntries.filter(r => !isValidName(r.name));
+        if (invalidExisting.length || invalidNew.length) {
+          showActionModal(
+            'Invalid names',
+            'Names must be alphanumeric and may include spaces, dot, underscore, or hyphen.',
+            { variant:'danger' }
+          );
+          renderEntriesModify();
+          return;
+        }
+
+        if (existingEntries.length === 0 && newEntries.length === 0) { 
+          alert('No new entries to add. Fill in the empty rows to add new entries.');
+          statusEl.textContent = 'No changes to make.'; 
+          return; 
+        }
+        
+        const totalToProcess = existingEntries.length + newEntries.length;
+        if (totalToProcess > 500) {
+          showActionModal(
+            'Upload limit',
+            'Limit is 500 entries per upload. Please split into smaller batches.',
+            { variant:'danger' }
+          );
+          return;
+        }
+        statusEl.textContent = `Processing ${totalToProcess} entr${totalToProcess===1?'y':'ies'}…`;
+        modifyEntriesHint.textContent = 'Updating entries...';
+        openProgressModal('Working', `Processing ${totalToProcess} entr${totalToProcess===1?'y':'ies'}…`, { allowBackground: true });
+        
+        let successCount = 0;
+        let failCount = 0;
+        let updatedCount = 0;
+        let addedCount = 0;
+        const failures = [];
+        
+        // Process EXISTING entries (PUT)
+        for (let i = 0; i < existingEntries.length; i++) {
+          const entry = { 
+            id: existingEntries[i].id,
+            name: existingEntries[i].name, 
+            number: existingEntries[i].number 
+          };
+          const url = `${BASE_URL}/organization/${encodeURIComponent(orgId)}/address-book/${encodeURIComponent(lastCreatedId)}/entry/${encodeURIComponent(existingEntries[i].id)}`;
+          updateProgressModal(`Updating ${i + 1} of ${totalToProcess}…`);
+          
+          console.log(`PUT existing entry ${i+1}/${existingEntries.length}:`, entry);
+          console.log('URL:', url);
+          
+          try {
+            const entryRes = await fetch(url, { 
+              method: 'PUT', 
+              headers: { Authorization: `Bearer ${bearer}`, 'Content-Type': 'application/json' }, 
+              body: JSON.stringify(entry) 
+            });
+            
+            const responseText = await entryRes.text();
+            console.log(`Existing entry ${i+1} response status:`, entryRes.status);
+            console.log(`Existing entry ${i+1} response body:`, responseText);
+            
+            if (entryRes.ok) {
+              successCount++;
+              updatedCount++;
+            } else {
+              failCount++;
+              failures.push({
+                row: i + 1,
+                name: entry.name,
+                number: entry.number,
+                stage: 'update-entry',
+                status: entryRes.status,
+                response: responseText
+              });
+              console.error(`Existing entry ${i+1} failed:`, responseText);
+            }
+          } catch (err) {
+            failCount++;
+            failures.push({
+              row: i + 1,
+              name: entry.name,
+              number: entry.number,
+              stage: 'update-entry',
+              status: 'NETWORK_ERROR',
+              response: err.message || String(err)
+            });
+            console.error('Error updating existing entry:', err);
+          }
+        }
+        
+        // Process NEW entries (POST)
+        for (let i = 0; i < newEntries.length; i++) {
+          const entry = { name: newEntries[i].name, number: newEntries[i].number };
+          const url = `${BASE_URL}/organization/${encodeURIComponent(orgId)}/address-book/${encodeURIComponent(lastCreatedId)}/entry`;
+          updateProgressModal(`Adding ${existingEntries.length + i + 1} of ${totalToProcess}…`);
+          
+          console.log(`POST new entry ${i+1}/${newEntries.length}:`, entry);
+          console.log('URL:', url);
+          
+          try {
+            const entryRes = await fetch(url, { 
+              method: 'POST', 
+              headers: { Authorization: `Bearer ${bearer}`, 'Content-Type': 'application/json' }, 
+              body: JSON.stringify(entry) 
+            });
+            
+            const responseText = await entryRes.text();
+            console.log(`New entry ${i+1} response status:`, entryRes.status);
+            console.log(`New entry ${i+1} response body:`, responseText);
+            
+            if (entryRes.ok) {
+              successCount++;
+              addedCount++;
+            } else {
+              failCount++;
+              failures.push({
+                row: existingEntries.length + i + 1,
+                name: entry.name,
+                number: entry.number,
+                stage: 'add-entry',
+                status: entryRes.status,
+                response: responseText
+              });
+              console.error(`New entry ${i+1} failed:`, responseText);
+            }
+          } catch (err) {
+            failCount++;
+            failures.push({
+              row: existingEntries.length + i + 1,
+              name: entry.name,
+              number: entry.number,
+              stage: 'add-entry',
+              status: 'NETWORK_ERROR',
+              response: err.message || String(err)
+            });
+            console.error('Error adding new entry:', err);
+          }
+        }
+        
+        if (failCount === 0 && successCount > 0) {
+          let message = '';
+          if (addedCount > 0 && updatedCount > 0) {
+            message = `Added ${addedCount} and updated ${updatedCount} entries`;
+            statusEl.textContent = message;
+          } else if (addedCount > 0) {
+            message = `Added ${addedCount} new entries`;
+            statusEl.textContent = message;
+          } else if (updatedCount > 0) {
+            message = `Updated ${updatedCount} entries`;
+            statusEl.textContent = message;
+          }
+          modifyEntriesHint.textContent = `Successfully processed ${successCount} entries`;
+          closeProgressModal();
+          showSuccessModal(selectedBook.name, addedCount > 0 ? addedCount : updatedCount);
+          // Reload entries to see the updates
+          await loadAddressBookEntries(lastCreatedId);
+        } else if (successCount > 0) {
+          statusEl.textContent = `Processed ${successCount} entries (${failCount} failed)`;
+          modifyEntriesHint.textContent = `${successCount} succeeded, ${failCount} failed`;
+          closeProgressModal();
+          showResultModal(
+            'Processed with errors',
+            `Processed ${successCount} entr${successCount===1?'y':'ies'} (${addedCount} added, ${updatedCount} updated).`,
+            {
+              variant:'danger',
+              warning: `${failCount} failed.`,
+              failures,
+              filenamePrefix: `address-book-${selectedBook?.name ? selectedBook.name.replace(/\s+/g,'-').toLowerCase() : 'errors'}`
+            }
+          );
+        } else {
+          statusEl.textContent = `All ${failCount} entries failed`;
+          modifyEntriesHint.textContent = `Failed to process entries`;
+          closeProgressModal();
+          showActionModal(
+            'Update failed',
+            `Failed to process entries. Check console for error details.`,
+            { variant:'danger' }
+          );
+        }
+      });
+    }
+
+
+    function updateAuthIndicators() {
+      const b = localStorage.getItem(cacheKeyBearer) || '';
+      const org = localStorage.getItem(cacheKeyOrgName) || localStorage.getItem(cacheKeyOrg) || '';
+      const userName = localStorage.getItem(cacheKeyUser) || '';
+      if (userNameEl) userNameEl.textContent = b ? (userName || 'Authenticated') : 'Not authenticated';
+      if (userOrgEl) userOrgEl.textContent = org || '';
+    }
+    updateAuthIndicators();
+
+    if (signOutBtn) {
+      signOutBtn.addEventListener('click', () => {
+        localStorage.removeItem(cacheKeyBearer);
+        localStorage.removeItem(cacheKeyOrg);
+        localStorage.removeItem(cacheKeyOrgName);
+        localStorage.removeItem('authRefreshToken');
+        localStorage.removeItem('authExpiresAt');
+        window.location.href = '../../index.html';
+      });
+    }
+
+
+    document.addEventListener('click', (event) => {
+    });
+
+    document.addEventListener('keydown', (event) => {
+    });
+
+    // Success Modal
+    function openProgressModal(title, message, opts = {}) {
+      const existing = document.getElementById('progressModal');
+      if (existing) existing.remove();
+
+      const modal = document.createElement('div');
+      modal.id = 'progressModal';
+      modal.className = 'successModalOverlay';
+      progressState = { title, message, allowBackground: !!opts.allowBackground, background: false };
+      modal.innerHTML = `
+        <div class="successCard">
+          <div class="progressSpinner"></div>
+          <h2>${title}</h2>
+          <p class="successMsg" id="progressMessage">${message}</p>
+          ${opts.allowBackground ? `<button class="btn secondary" id="progressBackgroundBtn">Run in background</button>` : ''}
+        </div>
+      `;
+      document.body.appendChild(modal);
+      setTimeout(() => modal.classList.add('show'), 10);
+      progressModal = modal;
+
+      if (opts.allowBackground) {
+        const bgBtn = modal.querySelector('#progressBackgroundBtn');
+        if (bgBtn) {
+          bgBtn.addEventListener('click', () => {
+            minimizeProgressModal();
+          });
+        }
+      }
+    }
+
+    function updateProgressModal(message) {
+      progressState.message = message;
+      if (progressModal) {
+        const msgEl = progressModal.querySelector('#progressMessage');
+        if (msgEl) msgEl.textContent = message;
+      }
+      if (headerJobText) headerJobText.textContent = message;
+    }
+
+    function minimizeProgressModal() {
+      if (!progressModal) return;
+      progressState.background = true;
+      closeProgressModal(true);
+      if (headerJobStatus) headerJobStatus.classList.add('show');
+      if (headerJobText) headerJobText.textContent = progressState.message || progressState.title || 'Working…';
+    }
+
+    function closeProgressModal(keepBackground = false) {
+      if (progressModal) {
+        const modal = progressModal;
+        progressModal = null;
+        modal.classList.remove('show');
+        setTimeout(() => modal.remove(), 250);
+      }
+      if (!keepBackground) {
+        progressState.background = false;
+        if (headerJobStatus) headerJobStatus.classList.remove('show');
+      }
+    }
+
+    function downloadFailureReport(failures, filenamePrefix = 'address-book-errors') {
+      if (!failures || !failures.length) return;
+      const headers = ['row', 'name', 'number', 'stage', 'status', 'response'];
+      const escapeCsv = (value) => {
+        const str = String(value ?? '');
+        return `"${str.replace(/"/g, '""')}"`;
+      };
+      const lines = [
+        headers.join(','),
+        ...failures.map(f => [
+          f.row,
+          escapeCsv(f.name),
+          escapeCsv(f.number),
+          escapeCsv(f.stage),
+          escapeCsv(f.status),
+          escapeCsv(f.response)
+        ].join(','))
+      ];
+      const blob = new Blob([lines.join('\n')], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${filenamePrefix}-${new Date().toISOString().slice(0,10)}.csv`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+    }
+
+    function showResultModal(title, message, opts = {}) {
+      const overlayId = 'resultModal';
+      const existing = document.getElementById(overlayId);
+      if (existing) existing.remove();
+
+      const variant = opts.variant || 'success';
+      const warningMsg = opts.warning || '';
+      const failures = Array.isArray(opts.failures) ? opts.failures : [];
+      lastFailureReport = failures;
+
+      const gradient = variant === 'danger'
+        ? 'linear-gradient(135deg, #ef4444, #dc2626)'
+        : 'linear-gradient(135deg, #159DD8, #159DD8)';
+
+      const modal = document.createElement('div');
+      modal.id = overlayId;
+      modal.className = 'successModalOverlay';
+      modal.innerHTML = `
+        <div class="successCard">
+          <div class="successIcon" style="background:${gradient};">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+              <polyline points="22 4 12 14.01 9 11.01"></polyline>
+            </svg>
+          </div>
+          <h2>${title}</h2>
+          <p class="successMsg">${message}</p>
+          ${warningMsg ? `<p class="warningMsg">${warningMsg}</p>` : ''}
+          ${failures.length ? `<button class="btn secondary" id="downloadFailuresBtn" style="margin-bottom:8px;">Download error report</button>` : ''}
+          <button class="btn primary" id="resultOkBtn">OK</button>
+        </div>
+      `;
+      document.body.appendChild(modal);
+      setTimeout(() => modal.classList.add('show'), 10);
+
+      const closeModal = () => {
+        modal.classList.remove('show');
+        setTimeout(() => modal.remove(), 300);
+      };
+      modal.querySelector('#resultOkBtn').addEventListener('click', closeModal);
+      modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+      if (failures.length) {
+        modal.querySelector('#downloadFailuresBtn').addEventListener('click', () => {
+          downloadFailureReport(failures, opts.filenamePrefix || 'address-book-errors');
+        });
+      }
+    }
+
+    function showSuccessModal(bookName, entryCount, bookId, warningMsg) {
+      // Remove any existing success modal
+      const existing = document.getElementById('successModal');
+      if (existing) existing.remove();
+
+      const modal = document.createElement('div');
+      modal.id = 'successModal';
+      modal.className = 'successModalOverlay';
+      
+      let message = `"${bookName}" has been created`;
+      if (entryCount > 0) {
+        message += ` with ${entryCount} entr${entryCount === 1 ? 'y' : 'ies'}`;
+      }
+      
+      modal.innerHTML = `
+        <div class="successCard">
+          <div class="successIcon">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+              <polyline points="22 4 12 14.01 9 11.01"></polyline>
+            </svg>
+          </div>
+          <h2>Success!</h2>
+          <p class="successMsg">${message}</p>
+          ${warningMsg ? `<p class="warningMsg">${warningMsg}</p>` : ''}
+          <button class="btn primary" id="successOkBtn">OK</button>
+        </div>
+      `;
+      
+      document.body.appendChild(modal);
+      
+      // Trigger animation
+      setTimeout(() => modal.classList.add('show'), 10);
+      
+      // Close handlers
+      const okBtn = modal.querySelector('#successOkBtn');
+      const closeModal = () => {
+        modal.classList.remove('show');
+        setTimeout(() => modal.remove(), 300);
+      };
+      
+      okBtn.addEventListener('click', closeModal);
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) closeModal();
+      });
+    }
+
+    // Generic action modal (reuse styles for delete, etc.)
+    function showActionModal(title, message, opts = {}) {
+      const variant = opts.variant || 'success';
+      const overlayId = 'actionModal';
+      const existing = document.getElementById(overlayId);
+      if (existing) existing.remove();
+
+      const gradient = variant === 'danger'
+        ? 'linear-gradient(135deg, #ef4444, #dc2626)'
+        : 'linear-gradient(135deg, #159DD8, #159DD8)';
+
+      const modal = document.createElement('div');
+      modal.id = overlayId;
+      modal.className = 'successModalOverlay';
+      modal.innerHTML = `
+        <div class="successCard">
+          <div class="successIcon" style="background:${gradient};">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+              <polyline points="22 4 12 14.01 9 11.01"></polyline>
+            </svg>
+          </div>
+          <h2>${title}</h2>
+          <p class="successMsg">${message}</p>
+          <button class="btn primary" id="actionOkBtn">OK</button>
+        </div>
+      `;
+
+      document.body.appendChild(modal);
+      setTimeout(() => modal.classList.add('show'), 10);
+
+      const closeModal = () => {
+        modal.classList.remove('show');
+        setTimeout(() => modal.remove(), 300);
+      };
+      modal.querySelector('#actionOkBtn').addEventListener('click', closeModal);
+      modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+      window.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); }, { once:true });
+    }
+
+    function warnDigits() {
+      const now = Date.now();
+      if (now - lastDigitWarn < 2000) return;
+      lastDigitWarn = now;
+      showActionModal('Numbers only', 'The Number field accepts digits only. Non-numeric characters were removed.', { variant:'danger' });
+    }
+
+    function isValidName(name) {
+      if (!name) return true;
+      return /^[A-Za-z0-9 ._-]+$/.test(name);
+    }
+
+    function applyNameValidation(inputEl) {
+      const value = inputEl.value || '';
+      const wrap = inputEl.closest('.fieldWrap');
+      if (!wrap) return true;
+      const ok = isValidName(value);
+      wrap.classList.toggle('invalid', !ok);
+      return ok;
+    }
+
+    function enforceDigits(inputEl) {
+      const raw = inputEl.value || '';
+      const cleaned = raw.replace(/\D+/g, '');
+      if (cleaned !== raw) {
+        inputEl.value = cleaned;
+        inputEl.classList.add('inputWarn');
+        warnDigits();
+        setTimeout(()=>inputEl.classList.remove('inputWarn'), 1500);
+      }
+      return cleaned;
+    }
+
+    // Confirmation modal that returns a promise<boolean>
+    function confirmAction(title, message, opts = {}) {
+      return new Promise((resolve) => {
+        const variant = opts.variant || 'danger';
+        const overlayId = 'confirmModal';
+        const existing = document.getElementById(overlayId);
+        if (existing) existing.remove();
+
+        const gradient = variant === 'danger'
+          ? 'linear-gradient(135deg, #ef4444, #dc2626)'
+          : 'linear-gradient(135deg, #159DD8, #159DD8)';
+
+        const modal = document.createElement('div');
+        modal.id = overlayId;
+        modal.className = 'successModalOverlay';
+        modal.innerHTML = `
+          <div class="successCard">
+            <div class="successIcon" style="background:${gradient};">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                <polyline points="22 4 12 14.01 9 11.01"></polyline>
+              </svg>
+            </div>
+            <h2>${title}</h2>
+            <p class="successMsg">${message}</p>
+            <div style="display:flex; gap:10px; justify-content:center; margin-top:12px;">
+              <button class="btn secondary" id="confirmCancelBtn">Cancel</button>
+              <button class="btn danger" id="confirmOkBtn">Delete</button>
+            </div>
+          </div>
+        `;
+        document.body.appendChild(modal);
+        setTimeout(() => modal.classList.add('show'), 10);
+
+        const closeModal = (result) => {
+          modal.classList.remove('show');
+          setTimeout(() => modal.remove(), 300);
+          resolve(result);
+        };
+
+        modal.querySelector('#confirmOkBtn').addEventListener('click', () => closeModal(true));
+        modal.querySelector('#confirmCancelBtn').addEventListener('click', () => closeModal(false));
+        modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(false); });
+        window.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(false); }, { once:true });
+      });
+    }
+
+    if (headerJobViewBtn) {
+      headerJobViewBtn.addEventListener('click', () => {
+        if (!progressState.title) return;
+        openProgressModal(progressState.title, progressState.message || 'Working…', { allowBackground: progressState.allowBackground });
+        if (headerJobStatus) headerJobStatus.classList.remove('show');
+      });
+    }
+  </script>
+
+
+  </body>
+</html>

@@ -1,0 +1,556 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="light" />
+  <title>WxCC - Functions</title>
+  <link rel="stylesheet" href="../../assets/css/theme.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/png" href="../../assets/images/WxCC_Icon-192.png" />
+  <style>
+    main { padding:32px 0 80px; display:flex; justify-content:flex-start; }
+    .layout { display:grid; grid-template-columns:minmax(340px, 460px) minmax(0, 1fr); gap:16px; align-items:start; }
+    .panelHeader { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; margin-bottom:14px; }
+    .panelTitle { margin:0; font-size:18px; font-weight:700; color:var(--fg); }
+    .panelSub { margin:4px 0 0; color:var(--muted); font-size:13px; line-height:1.5; }
+    .toolbar { display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom:12px; }
+    .toolbar .searchInput { flex:1; min-width:220px; }
+    .statusLine { font-size:13px; color:var(--muted); min-height:20px; margin-top:8px; }
+    .statusLine.error { color:#dc2626; }
+    .statusLine.success { color:#059669; }
+    .listWrap { border:1px solid var(--border); border-radius:16px; overflow:hidden; background:var(--panel); min-height:520px; }
+    .listMeta { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:12px 14px; border-bottom:1px solid var(--border); background:rgba(8,172,242,.06); }
+    .functionList { display:flex; flex-direction:column; }
+    .functionBtn { appearance:none; border:none; background:var(--card); color:inherit; text-align:left; width:100%; padding:14px 16px; border-top:1px solid var(--border); cursor:pointer; display:flex; flex-direction:column; gap:8px; }
+    .functionBtn:first-child { border-top:none; }
+    .functionBtn:hover { background:rgba(8,172,242,.06); }
+    .functionBtn.active { background:rgba(8,172,242,.12); box-shadow:inset 3px 0 0 var(--accent); }
+    .functionTop { display:flex; align-items:center; justify-content:space-between; gap:10px; }
+    .functionName { font-weight:700; color:var(--fg); font-size:14px; }
+    .functionId { color:var(--muted); font-size:12px; word-break:break-all; }
+    .functionMeta { display:flex; flex-wrap:wrap; gap:6px; }
+    .tag { display:inline-flex; align-items:center; padding:4px 8px; border-radius:999px; background:var(--input); border:1px solid var(--border); font-size:11px; color:var(--muted); }
+    .tag.status-published { color:#047857; border-color:rgba(16,185,129,.35); background:rgba(16,185,129,.1); }
+    .tag.status-draft { color:#b45309; border-color:rgba(245,158,11,.35); background:rgba(245,158,11,.12); }
+    .emptyState { padding:22px 16px; color:var(--muted); font-size:14px; }
+    .detailIntro { min-height:520px; display:flex; align-items:center; justify-content:center; text-align:center; color:var(--muted); border:1px dashed var(--border); border-radius:16px; padding:24px; background:var(--panel); }
+    .detailGrid { display:grid; grid-template-columns:repeat(4, minmax(0, 1fr)); gap:12px; margin-bottom:14px; }
+    .metaCard { border:1px solid var(--border); border-radius:14px; padding:12px 14px; background:var(--panel); min-width:0; }
+    .metaLabel { font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); margin-bottom:6px; }
+    .metaValue { color:var(--fg); font-weight:700; font-size:14px; overflow-wrap:anywhere; }
+    .metaSub { color:var(--muted); font-size:12px; margin-top:4px; overflow-wrap:anywhere; }
+    .editorCard { border:1px solid var(--border); border-radius:16px; overflow:hidden; background:var(--panel); }
+    .editorToolbar { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:12px 14px; border-bottom:1px solid var(--border); flex-wrap:wrap; }
+    .editorActions { display:flex; gap:8px; flex-wrap:wrap; }
+    .codeEditor { width:100%; min-height:520px; border:none; resize:vertical; padding:16px; background:var(--input); color:var(--text); font-size:14px; line-height:1.5; font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace; }
+    .codeEditor:focus { outline:2px solid rgba(59,130,246,.25); outline-offset:-2px; }
+    .splitDetail { display:grid; grid-template-columns:minmax(0, 1fr) minmax(280px, 340px); gap:14px; margin-top:14px; }
+    .infoBlock { border:1px solid var(--border); border-radius:14px; background:var(--panel); padding:14px; }
+    .infoBlock h3 { margin:0 0 10px; font-size:13px; color:var(--accent); text-transform:uppercase; letter-spacing:.06em; }
+    .kvList { display:flex; flex-direction:column; gap:10px; }
+    .kvRow { border:1px solid var(--border); border-radius:12px; background:var(--card); padding:10px 12px; }
+    .kvName { font-weight:700; color:var(--fg); font-size:13px; }
+    .kvMeta { color:var(--muted); font-size:12px; margin-top:3px; }
+    .monoBlock { white-space:pre-wrap; word-break:break-word; font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace; font-size:12px; color:var(--fg); background:var(--card); border:1px solid var(--border); border-radius:12px; padding:12px; min-height:72px; }
+    body.dark-mode .functionBtn { background:#0f1c38; }
+    body.dark-mode .functionBtn:hover { background:rgba(8,172,242,.12); }
+    body.dark-mode .functionBtn.active { background:rgba(8,172,242,.18); }
+    body.dark-mode .kvRow, body.dark-mode .monoBlock { background:#0f1c38; }
+    @media (max-width: 1180px) {
+      .layout { grid-template-columns:1fr; }
+      .detailGrid { grid-template-columns:repeat(2, minmax(0, 1fr)); }
+      .splitDetail { grid-template-columns:1fr; }
+    }
+    @media (max-width: 700px) {
+      .detailGrid { grid-template-columns:1fr; }
+    }
+  </style>
+</head>
+<body class="dark-mode">
+  <script>if (localStorage.getItem("tpRailExpanded") === "true") document.body.classList.add("tp-rail-expanded");</script>
+  <api-tools-header basepath="../../"></api-tools-header>
+
+  <main>
+    <div class="wrap wide contentWrap">
+      <section class="card" style="margin-bottom:16px;">
+        <div class="pageHeader">
+          <h1>Functions</h1>
+          <p class="lead">Browse hidden Function Store entries, open the exposed function code, edit it, and save it back through the BFF endpoint.</p>
+        </div>
+        <div class="toolbar">
+          <input id="searchInput" class="searchInput" type="text" placeholder="Search by name, id, runtime, status, or author..." />
+          <button class="btn" id="refreshBtn" type="button">Refresh</button>
+          <a class="btn" href="functionbuilder.html">Function Builder</a>
+        </div>
+        <div id="pageStatus" class="statusLine"></div>
+      </section>
+
+      <div class="layout">
+        <section class="card">
+          <div class="panelHeader">
+            <div>
+              <h2 class="panelTitle">Function List</h2>
+              <p class="panelSub">Loaded from `fn-store`. Selecting a row loads `fnCode` plus metadata from the BFF.</p>
+            </div>
+          </div>
+          <div class="listWrap">
+            <div class="listMeta">
+              <span class="pill" id="functionCountPill">0 functions</span>
+              <span class="muted" id="selectionHint">Pick a function to edit</span>
+            </div>
+            <div id="functionList" class="functionList"></div>
+          </div>
+        </section>
+
+        <section class="card">
+          <div class="panelHeader">
+            <div>
+              <h2 class="panelTitle">Function Editor</h2>
+              <p class="panelSub">This starts with simple source editing. Save posts the selected function metadata plus the edited `sourceCode`.</p>
+            </div>
+          </div>
+          <div id="detailRoot">
+            <div class="detailIntro">Select a function from the left to load its code and metadata.</div>
+          </div>
+        </section>
+      </div>
+
+    </div>
+  </main>
+
+  <script src="../../assets/js/orbit-config.js"></script>
+
+  <script src="../../assets/js/components.js"></script>
+
+  <script src="../../assets/js/theme.js"></script>
+  <script>
+    const FUNCTIONS_PROXY_URL = window.ORBIT_PROXY_BASE + '/functions';
+
+    const state = {
+      functions: [],
+      filteredFunctions: [],
+      selectedId: '',
+      selectedSummary: null,
+      selectedDetail: null,
+      originalCode: '',
+      isDirty: false,
+      isLoadingList: false,
+      isLoadingDetail: false,
+      isSaving: false
+    };
+
+    const els = {
+      functionList: document.getElementById('functionList'),
+      functionCountPill: document.getElementById('functionCountPill'),
+      selectionHint: document.getElementById('selectionHint'),
+      searchInput: document.getElementById('searchInput'),
+      refreshBtn: document.getElementById('refreshBtn'),
+      pageStatus: document.getElementById('pageStatus'),
+      detailRoot: document.getElementById('detailRoot')
+    };
+
+    function $(id) { return document.getElementById(id); }
+
+    function decodeOrgId(raw) {
+      if (!raw) return '';
+      if (/^[0-9a-fA-F-]{30,}$/.test(raw)) return raw;
+      if (/^Y2lz/i.test(raw)) {
+        try {
+          const padded = raw.replace(/-/g, '+').replace(/_/g, '/').padEnd(Math.ceil(raw.length / 4) * 4, '=');
+          const decoded = atob(padded);
+          const parts = decoded.split('/');
+          return parts[parts.length - 1] || decoded;
+        } catch {
+          return raw;
+        }
+      }
+      const idx = raw.toLowerCase().indexOf('organization/');
+      return idx >= 0 ? raw.slice(idx + 'organization/'.length) : raw;
+    }
+
+    function getBearer() {
+      return (localStorage.getItem('authBearer') || '').replace(/^Bearer\s+/i, '').trim();
+    }
+
+    function getOrgId() {
+      const stored = localStorage.getItem('authOrgId') || '';
+      if (stored) return decodeOrgId(stored);
+      return decodeOrgId(localStorage.getItem('authOrg') || '');
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? '').replace(/[&<>"']/g, (char) => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;'
+      }[char]));
+    }
+
+    function formatDate(value) {
+      if (!value) return 'Unknown';
+      const date = new Date(value);
+      if (Number.isNaN(date.getTime())) return value;
+      return new Intl.DateTimeFormat(undefined, {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit'
+      }).format(date);
+    }
+
+    function setPageStatus(message, type) {
+      els.pageStatus.textContent = message || '';
+      els.pageStatus.className = 'statusLine' + (type ? ` ${type}` : '');
+    }
+
+    function updateAuthIndicators() {
+      const bearer = getBearer();
+      const orgName = localStorage.getItem('authOrgName') || localStorage.getItem('authOrg') || '';
+      const user = localStorage.getItem('authUserName') || '';
+      const nameEl = document.getElementById('userName');
+      const orgEl = document.getElementById('userOrg');
+      if (nameEl) nameEl.textContent = bearer ? (user || 'Authenticated') : 'Not authenticated';
+      if (orgEl) orgEl.textContent = orgName || '';
+    }
+
+    function ensureAuth() {
+      const bearer = getBearer();
+      const orgId = getOrgId();
+      if (!bearer || !orgId) {
+        setPageStatus('A Webex bearer token and org are required before using Functions.', 'error');
+        return null;
+      }
+      return { bearer, orgId };
+    }
+
+    function getCurrentVersionRecord(metadata) {
+      const versions = metadata?.versions || {};
+      const preferred = metadata?.tagVersionMap?.Latest || metadata?.tagVersionMap?.Live || '';
+      if (preferred && versions[preferred]) return { versionId: preferred, version: versions[preferred] };
+      const keys = Object.keys(versions).filter((key) => key !== '-1').sort((a, b) => Number(b) - Number(a));
+      const versionId = keys[0] || '-1';
+      return { versionId, version: versions[versionId] || versions['-1'] || {} };
+    }
+
+    function filterFunctions() {
+      const term = (els.searchInput.value || '').trim().toLowerCase();
+      state.filteredFunctions = !term
+        ? [...state.functions]
+        : state.functions.filter((item) => {
+            const haystack = [
+              item.name,
+              item.id,
+              item.language,
+              item.selectedRuntime,
+              item.status,
+              item.createdBy,
+              item.lastModifiedBy
+            ].join(' ').toLowerCase();
+            return haystack.includes(term);
+          });
+      renderFunctionList();
+    }
+
+    function renderFunctionList() {
+      const items = state.filteredFunctions;
+      els.functionCountPill.textContent = `${items.length} function${items.length === 1 ? '' : 's'}`;
+      if (!items.length) {
+        els.functionList.innerHTML = `<div class="emptyState">${state.functions.length ? 'No functions match your search.' : 'No functions loaded yet.'}</div>`;
+        return;
+      }
+      els.functionList.innerHTML = items.map((item) => {
+        const active = item.id === state.selectedId ? ' active' : '';
+        const statusClass = `status-${String(item.status || '').toLowerCase()}`;
+        return `
+          <button class="functionBtn${active}" type="button" data-function-id="${escapeHtml(item.id)}">
+            <div class="functionTop">
+              <span class="functionName">${escapeHtml(item.name || 'Unnamed function')}</span>
+              <span class="tag ${statusClass}">${escapeHtml(item.status || 'Unknown')}</span>
+            </div>
+            <div class="functionId">${escapeHtml(item.id || '')}</div>
+            <div class="functionMeta">
+              <span class="tag">${escapeHtml(item.language || 'n/a')}</span>
+              <span class="tag">${escapeHtml(item.selectedRuntime || 'runtime n/a')}</span>
+              <span class="tag">${escapeHtml(`Timeout ${item.timeoutInSec ?? '?'}s`)}</span>
+            </div>
+          </button>
+        `;
+      }).join('');
+    }
+
+    function renderDetail() {
+      const detail = state.selectedDetail;
+      if (!detail) {
+        els.detailRoot.innerHTML = `<div class="detailIntro">Select a function from the left to load its code and metadata.</div>`;
+        return;
+      }
+
+      const metadata = detail.fnMetadata || {};
+      const versionInfo = getCurrentVersionRecord(metadata);
+      const inputs = Array.isArray(versionInfo.version?.inputs) ? versionInfo.version.inputs : [];
+      const outputs = versionInfo.version?.outputs || '';
+      const code = detail.fnCode || '';
+      const selected = state.selectedSummary || {};
+
+      els.detailRoot.innerHTML = `
+        <div class="detailGrid">
+          <div class="metaCard">
+            <div class="metaLabel">Function</div>
+            <div class="metaValue">${escapeHtml(metadata.name || selected.name || 'Unnamed function')}</div>
+            <div class="metaSub">${escapeHtml(metadata.id || selected.id || '')}</div>
+          </div>
+          <div class="metaCard">
+            <div class="metaLabel">Runtime</div>
+            <div class="metaValue">${escapeHtml(metadata.selectedRuntime || selected.selectedRuntime || 'Unknown')}</div>
+            <div class="metaSub">${escapeHtml((metadata.language || selected.language || '').toUpperCase())}</div>
+          </div>
+          <div class="metaCard">
+            <div class="metaLabel">Version</div>
+            <div class="metaValue">${escapeHtml(versionInfo.versionId)}</div>
+            <div class="metaSub">Latest tag: ${escapeHtml(metadata.tagVersionMap?.Latest || 'n/a')}</div>
+          </div>
+          <div class="metaCard">
+            <div class="metaLabel">Last Modified</div>
+            <div class="metaValue">${escapeHtml(formatDate(metadata.lastModifiedDate || selected.lastModifiedDate))}</div>
+            <div class="metaSub">${escapeHtml(metadata.lastModifiedBy || selected.lastModifiedBy || 'Unknown')}</div>
+          </div>
+        </div>
+
+        <div class="editorCard">
+          <div class="editorToolbar">
+            <div>
+              <div class="panelTitle" style="font-size:15px;">Source Code</div>
+              <div class="panelSub" id="editorSubtext">Editing \`fnCode\` from the hidden Functions endpoint.</div>
+            </div>
+            <div class="editorActions">
+              <button class="btn" id="revertBtn" type="button"${state.isDirty ? '' : ' disabled'}>Revert</button>
+              <button class="btn primary" id="saveBtn" type="button"${state.isSaving ? ' disabled' : ''}>Save</button>
+            </div>
+          </div>
+          <textarea id="codeEditor" class="codeEditor" spellcheck="false">${escapeHtml(code)}</textarea>
+        </div>
+
+        <div class="splitDetail">
+          <div class="infoBlock">
+            <h3>Inputs</h3>
+            <div class="kvList">
+              ${inputs.length ? inputs.map((input) => `
+                <div class="kvRow">
+                  <div class="kvName">${escapeHtml(input.name || 'Unnamed input')}</div>
+                  <div class="kvMeta">${escapeHtml(input.dataType || 'Unknown type')} | Default: ${escapeHtml(input.defaultValue || '')}</div>
+                  <div class="kvMeta">${escapeHtml(input.description || 'No description')}</div>
+                </div>
+              `).join('') : '<div class="monoBlock">No input definitions returned for the selected version.</div>'}
+            </div>
+          </div>
+          <div class="infoBlock">
+            <h3>Outputs</h3>
+            <div class="monoBlock">${escapeHtml(outputs || 'No output definition returned.')}</div>
+          </div>
+        </div>
+        <div class="statusLine" id="detailStatus"></div>
+      `;
+
+      const editor = $('codeEditor');
+      const saveBtn = $('saveBtn');
+      const revertBtn = $('revertBtn');
+
+      editor.addEventListener('input', () => {
+        state.isDirty = editor.value !== state.originalCode;
+        if (saveBtn) saveBtn.disabled = state.isSaving;
+        if (revertBtn) revertBtn.disabled = !state.isDirty;
+        const detailStatus = $('detailStatus');
+        if (detailStatus) {
+          detailStatus.textContent = state.isDirty ? 'Unsaved changes.' : '';
+          detailStatus.className = 'statusLine';
+        }
+      });
+
+      saveBtn?.addEventListener('click', saveCurrentFunction);
+      revertBtn?.addEventListener('click', () => {
+        editor.value = state.originalCode;
+        state.isDirty = false;
+        renderDetail();
+      });
+    }
+
+    async function fetchJson(url, options = {}) {
+      const response = await fetch(url, options);
+      if (!response.ok) {
+        const text = await response.text().catch(() => '');
+        throw new Error(text || `Request failed: ${response.status}`);
+      }
+      return response.json();
+    }
+
+    async function callFunctionsProxy(payload) {
+      const auth = ensureAuth();
+      if (!auth) throw new Error('Missing bearer token or org id.');
+      return fetchJson(FUNCTIONS_PROXY_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json'
+        },
+        body: JSON.stringify({
+          ...payload,
+          orgId: auth.orgId,
+          bearer: auth.bearer
+        })
+      });
+    }
+
+    async function loadFunctions(selectId) {
+      if (!ensureAuth() || state.isLoadingList) return;
+      state.isLoadingList = true;
+      els.refreshBtn.disabled = true;
+      setPageStatus('Loading functions from fn-store…');
+      try {
+        const payload = await callFunctionsProxy({ action: 'list' });
+        state.functions = Array.isArray(payload?.data) ? payload.data : [];
+        state.functions.sort((a, b) => String(a.name || '').localeCompare(String(b.name || '')));
+        filterFunctions();
+        setPageStatus(`Loaded ${state.functions.length} function${state.functions.length === 1 ? '' : 's'}.`, 'success');
+
+        const nextId = selectId || state.selectedId || state.functions[0]?.id || '';
+        if (nextId) {
+          const stillExists = state.functions.find((item) => item.id === nextId);
+          if (stillExists) await selectFunction(nextId, { skipDirtyPrompt: true });
+        } else {
+          state.selectedId = '';
+          state.selectedSummary = null;
+          state.selectedDetail = null;
+          state.originalCode = '';
+          state.isDirty = false;
+          renderDetail();
+        }
+      } catch (error) {
+        setPageStatus(`Unable to load functions. ${error.message}`, 'error');
+      } finally {
+        state.isLoadingList = false;
+        els.refreshBtn.disabled = false;
+      }
+    }
+
+    async function selectFunction(id, options = {}) {
+      if (!id) return;
+      if (state.isDirty && !options.skipDirtyPrompt) {
+        const proceed = window.confirm('You have unsaved changes. Discard them and load another function?');
+        if (!proceed) return;
+      }
+      if (!ensureAuth() || state.isLoadingDetail) return;
+
+      state.selectedId = id;
+      state.selectedSummary = state.functions.find((item) => item.id === id) || null;
+      state.selectedDetail = null;
+      state.originalCode = '';
+      state.isDirty = false;
+      renderFunctionList();
+      els.selectionHint.textContent = state.selectedSummary?.name || 'Loading…';
+      els.detailRoot.innerHTML = `<div class="detailIntro">Loading function code and metadata…</div>`;
+      state.isLoadingDetail = true;
+      setPageStatus(`Loading ${state.selectedSummary?.name || id}…`);
+
+      try {
+        const payload = await callFunctionsProxy({ action: 'detail', id });
+        state.selectedDetail = payload?.[0]?.result?.data || null;
+        state.originalCode = state.selectedDetail?.fnCode || '';
+        state.isDirty = false;
+        renderDetail();
+        setPageStatus(`Loaded ${state.selectedSummary?.name || id}.`, 'success');
+      } catch (error) {
+        state.selectedDetail = null;
+        renderDetail();
+        setPageStatus(`Unable to load function detail. ${error.message}`, 'error');
+      } finally {
+        state.isLoadingDetail = false;
+      }
+    }
+
+    async function saveCurrentFunction() {
+      if (state.isSaving || !state.selectedDetail) return;
+      const auth = ensureAuth();
+      if (!auth) return;
+
+      const editor = $('codeEditor');
+      const detailStatus = $('detailStatus');
+      const metadata = state.selectedDetail.fnMetadata || {};
+      const versionInfo = getCurrentVersionRecord(metadata);
+      const sourceCode = editor?.value ?? '';
+
+      state.isSaving = true;
+      if ($('saveBtn')) $('saveBtn').disabled = true;
+      if (detailStatus) {
+        detailStatus.textContent = 'Saving function…';
+        detailStatus.className = 'statusLine';
+      }
+      setPageStatus(`Saving ${metadata.name || state.selectedId}…`);
+
+      const payload = {
+        0: {
+          fnId: metadata.id || state.selectedId,
+          orgId: auth.orgId,
+          name: metadata.name || state.selectedSummary?.name || '',
+          inputs: Array.isArray(versionInfo.version?.inputs) ? versionInfo.version.inputs : [],
+          outputs: versionInfo.version?.outputs || '',
+          language: metadata.language || state.selectedSummary?.language || '',
+          description: metadata.description || '',
+          runtime: versionInfo.version?.selectedRuntime || metadata.selectedRuntime || state.selectedSummary?.selectedRuntime || '',
+          sourceCode
+        }
+      };
+
+      try {
+        await callFunctionsProxy({ action: 'save', payload });
+        state.originalCode = sourceCode;
+        state.isDirty = false;
+        if (detailStatus) {
+          detailStatus.textContent = 'Saved.';
+          detailStatus.className = 'statusLine success';
+        }
+        setPageStatus(`Saved ${metadata.name || state.selectedId}.`, 'success');
+        await loadFunctions(state.selectedId);
+      } catch (error) {
+        if (detailStatus) {
+          detailStatus.textContent = `Save failed. ${error.message}`;
+          detailStatus.className = 'statusLine error';
+        }
+        setPageStatus(`Save failed. ${error.message}`, 'error');
+      } finally {
+        state.isSaving = false;
+        if ($('saveBtn')) $('saveBtn').disabled = false;
+      }
+    }
+
+    els.searchInput.addEventListener('input', filterFunctions);
+    els.refreshBtn.addEventListener('click', () => loadFunctions(state.selectedId));
+    els.functionList.addEventListener('click', (event) => {
+      const button = event.target.closest('[data-function-id]');
+      if (!button) return;
+      selectFunction(button.dataset.functionId);
+    });
+
+    function initHeaderMenus() {
+      document.addEventListener('click', () => closeAll());
+      document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeAll(); });
+
+      if (signOutBtn) {
+        signOutBtn.addEventListener('click', () => {
+          ['authBearer','authOrg','authOrgName','authUserName','authRefreshToken','authExpiresAt','authLoginMethod','authOrgId'].forEach((k) => localStorage.removeItem(k));
+          window.location.href = '../../index.html';
+        });
+      }
+    }
+
+    updateAuthIndicators();
+    initHeaderMenus();
+    loadFunctions();
+  </script>
+</body>
+</html>

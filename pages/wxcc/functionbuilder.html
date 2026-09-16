@@ -1,0 +1,521 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="light" />
+  <title>WxCC - Function Builder</title>
+  <link rel="stylesheet" href="../../assets/css/theme.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/png" href="../../assets/images/WxCC_Icon-192.png" />
+  <style>
+    main { padding:32px 0 80px; display:flex; justify-content:flex-start; }
+    .layout { display:grid; grid-template-columns:minmax(360px, 480px) minmax(0, 1fr); gap:16px; align-items:start; }
+    .panelHeader { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; margin-bottom:14px; }
+    .panelTitle { margin:0; font-size:18px; font-weight:700; color:var(--fg); }
+    .panelSub { margin:4px 0 0; color:var(--muted); font-size:13px; line-height:1.5; }
+    .toolbar { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+    .editorCard { border:1px solid var(--border); border-radius:16px; overflow:hidden; background:var(--panel); }
+    .editorToolbar { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:12px 14px; border-bottom:1px solid var(--border); flex-wrap:wrap; }
+    .editorActions { display:flex; gap:8px; flex-wrap:wrap; }
+    @media (max-width: 1180px) {
+      .layout { grid-template-columns:1fr; }
+    }
+
+    /* ── Function Builder ──────────────────────────────────────────────────── */
+    .fb-mono { font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace; }
+    #fb-input-var-row {
+      display:flex; align-items:center; gap:10px;
+      padding:12px 14px; border:1px solid var(--border); border-radius:14px;
+      background:var(--panel); margin-bottom:12px;
+    }
+    #fb-input-var-label {
+      font-size:11px; font-weight:700; letter-spacing:.08em;
+      text-transform:uppercase; color:var(--muted); flex-shrink:0;
+    }
+    #fb-input-var {
+      background:var(--input); border:1px solid var(--border);
+      border-radius:12px; padding:8px 12px; color:var(--fg);
+      font-size:13px; outline:none; flex:1; min-width:0;
+    }
+    #fb-input-var:focus { border-color:var(--accent); }
+    #fb-table-scroll { border:1px solid var(--border); border-radius:14px; overflow:auto; background:var(--panel); max-height:600px; }
+    #fb-table-scroll::-webkit-scrollbar { width:6px; height:6px; }
+    #fb-table-scroll::-webkit-scrollbar-thumb { background:var(--border); border-radius:3px; }
+    #fb-lookup-table { border-collapse:collapse; font-size:13px; min-width:100%; }
+    #fb-lookup-table thead tr { background:var(--input); }
+    #fb-lookup-table tbody tr:hover td { background:rgba(104,208,255,.06); }
+    #fb-lookup-table th, #fb-lookup-table td { border:1px solid var(--border); }
+    #fb-lookup-table th { font-weight:700; color:var(--fg); }
+    .fb-th-input-fixed { padding:9px 10px; font-size:11px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); white-space:nowrap; width:130px; }
+    .fb-th-var { min-width:130px; }
+    .fb-th-var-inner { display:flex; align-items:center; gap:4px; padding:5px 5px 5px 10px; }
+    .fb-col-name-input { background:transparent; border:none; color:var(--accent); font-size:12px; font-weight:600; outline:none; width:100%; min-width:60px; }
+    .fb-col-name-input::placeholder { color:var(--accent); opacity:.4; }
+    .fb-col-del-btn { flex-shrink:0; background:none; border:none; color:var(--muted); cursor:pointer; font-size:13px; padding:2px 4px; line-height:1; opacity:.6; }
+    .fb-col-del-btn:hover { color:#f87171; opacity:1; }
+    .fb-th-add-col { width:36px; text-align:center; }
+    .fb-add-col-btn { background:none; border:none; color:var(--muted); cursor:pointer; font-size:20px; line-height:1; padding:4px 8px; width:100%; opacity:.6; }
+    .fb-add-col-btn:hover { color:var(--accent); opacity:1; }
+    .fb-td-del { width:56px; text-align:center; white-space:nowrap; }
+    .fb-row-copy-btn, .fb-row-del-btn { background:none; border:none; cursor:pointer; font-size:13px; padding:4px 5px; line-height:1; opacity:.6; }
+    .fb-row-copy-btn { color:var(--muted); }
+    .fb-row-copy-btn:hover, .fb-row-copy-btn.ok { color:var(--accent); opacity:1; }
+    .fb-row-del-btn { color:var(--muted); }
+    .fb-row-del-btn:hover { color:#f87171; opacity:1; }
+    .fb-tr-add-row td { padding:0; border-top:1px dashed var(--border); border-bottom:none; border-left:none; border-right:none; }
+    .fb-add-row-btn { display:block; width:100%; text-align:right; background:none; border:none; color:var(--muted); font-size:12px; font-weight:600; font-family:inherit; cursor:pointer; padding:9px 14px; transition:color .15s; }
+    .fb-add-row-btn:hover { color:var(--accent); }
+    .fb-cell-input { display:block; width:100%; background:transparent; border:none; color:var(--fg); font-size:12px; outline:none; padding:8px 8px; }
+    .fb-cell-input::placeholder { color:var(--muted); opacity:.5; }
+    .fb-cell-input:focus { background:var(--input); }
+    .fb-td-input-val .fb-cell-input { color:var(--accentA); }
+    #fb-code-output {
+      min-height:360px; max-height:600px; overflow:auto; padding:16px;
+      background:var(--input); color:var(--text); font-size:12.5px; line-height:1.75; white-space:pre;
+    }
+    #fb-code-output::-webkit-scrollbar { width:6px; }
+    #fb-code-output::-webkit-scrollbar-thumb { background:var(--border); border-radius:3px; }
+    .py-kw   { color:#f472b6; }
+    .py-fn   { color:var(--accentA); }
+    .py-str  { color:#4ade80; }
+    .py-var  { color:#fbbf24; }
+    .py-key  { color:var(--text); }
+    .py-val  { color:#4ade80; }
+    .py-null { color:var(--muted); }
+    .py-muted { color:var(--muted); }
+    #fb-test-section { border-top:1px solid var(--border); }
+    #fb-test-header { display:flex; align-items:center; padding:10px 14px; cursor:pointer; user-select:none; }
+    .fb-test-header-title { font-size:11px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); }
+    .fb-test-caret { margin-left:auto; font-size:10px; color:var(--muted); }
+    #fb-test-body { display:grid; grid-template-columns:1fr 1fr; gap:14px; padding:0 14px 14px; }
+    #fb-test-body.collapsed { display:none; }
+    #fb-test-inputs-pane, #fb-test-result-pane { display:flex; flex-direction:column; gap:8px; min-height:0; }
+    .fb-test-col-label { font-size:10px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); flex-shrink:0; }
+    #fb-test-var-row { display:flex; align-items:center; gap:8px; flex-shrink:0; }
+    #fb-test-var-name { font-size:12px; font-weight:600; color:var(--accent); }
+    .fb-test-type-badge { font-size:10px; color:var(--muted); letter-spacing:.03em; }
+    #fb-test-input {
+      resize:vertical; min-height:70px; background:var(--input); border:1px solid var(--border);
+      border-radius:12px; padding:8px 10px; color:var(--fg); font-size:12px; outline:none;
+    }
+    #fb-test-input:focus { border-color:var(--accent); }
+    #fb-test-result-output {
+      flex:1; min-height:70px; max-height:220px; overflow:auto; padding:10px;
+      background:var(--input); border:1px solid var(--border); border-radius:12px;
+      font-size:12px; line-height:1.8;
+    }
+    #fb-test-result-output::-webkit-scrollbar { width:4px; }
+    #fb-test-result-output::-webkit-scrollbar-thumb { background:var(--border); border-radius:2px; }
+    .fb-test-empty { color:var(--muted); font-size:12px; }
+    .fb-test-res-row { display:block; white-space:pre; }
+    .fb-test-data-row { cursor:pointer; border-radius:4px; padding:0 3px; transition:background .1s; }
+    .fb-test-data-row:hover { background:rgba(104,208,255,.1); }
+    .fb-test-data-row.selected { background:rgba(104,208,255,.14) !important; }
+    #fb-test-path-box {
+      display:flex; align-items:center; gap:8px; padding:6px 10px;
+      background:rgba(104,208,255,.08); border:1px solid rgba(104,208,255,.3); border-radius:10px;
+    }
+    #fb-test-path-box.hidden { display:none; }
+    #fb-test-path-text { flex:1; font-size:12px; color:var(--accent); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    @media (max-width: 900px) {
+      #fb-test-body { grid-template-columns:1fr; }
+    }
+  </style>
+</head>
+<body class="dark-mode">
+  <script>if (localStorage.getItem("tpRailExpanded") === "true") document.body.classList.add("tp-rail-expanded");</script>
+  <api-tools-header basepath="../../"></api-tools-header>
+
+  <main>
+    <div class="wrap wide contentWrap">
+      <section class="card" style="margin-bottom:16px;">
+        <div class="pageHeader">
+          <h1>Function Builder</h1>
+          <p class="lead">Generate a lookup-table Python function from an input variable and a set of key/value rows, then copy it into a Function Store entry.</p>
+        </div>
+        <div class="toolbar">
+          <a class="btn" href="functions.html">&larr; Functions</a>
+        </div>
+      </section>
+
+      <div class="layout">
+        <section class="card">
+          <div class="panelHeader">
+            <div>
+              <h2 class="panelTitle">Lookup Table</h2>
+              <p class="panelSub">Set the input variable, then add columns and rows for each input &rarr; output mapping.</p>
+            </div>
+          </div>
+          <div id="fb-input-var-row">
+            <span id="fb-input-var-label">Input Variable</span>
+            <input id="fb-input-var" class="fb-mono" type="text" placeholder="str_DNIS" spellcheck="false" oninput="fbGenerate_fb()" />
+          </div>
+          <div id="fb-table-scroll">
+            <table id="fb-lookup-table">
+              <thead id="fb-t-head"></thead>
+              <tbody id="fb-t-body"></tbody>
+              <tfoot id="fb-t-foot"></tfoot>
+            </table>
+          </div>
+        </section>
+
+        <section class="card">
+          <div class="panelHeader">
+            <div>
+              <h2 class="panelTitle">Generated Code</h2>
+              <p class="panelSub">Copy this into the function's source, or test it below.</p>
+            </div>
+          </div>
+          <div class="editorCard">
+            <div class="editorToolbar">
+              <div class="panelSub">Python &mdash; lookup table handler</div>
+              <div class="editorActions">
+                <button class="btn primary" id="fb-copy-btn" onclick="fbCopyCode()">Copy</button>
+              </div>
+            </div>
+            <div id="fb-code-output" class="fb-mono"></div>
+            <div id="fb-test-section">
+              <div id="fb-test-header" onclick="fbToggleTest()">
+                <span class="fb-test-header-title">Test</span>
+                <span class="fb-test-caret" id="fb-test-caret">&#9650;</span>
+              </div>
+              <div id="fb-test-body">
+                <div id="fb-test-inputs-pane">
+                  <div class="fb-test-col-label">Inputs</div>
+                  <div id="fb-test-var-row">
+                    <span id="fb-test-var-name" class="fb-mono">str_DNIS</span>
+                    <span class="fb-test-type-badge">STRING</span>
+                  </div>
+                  <textarea id="fb-test-input" class="fb-mono" placeholder="Enter test value&#8230;" spellcheck="false"></textarea>
+                  <button class="btn primary" id="fb-test-btn" onclick="fbRunTest()">Test</button>
+                </div>
+                <div id="fb-test-result-pane">
+                  <div class="fb-test-col-label">Result</div>
+                  <div id="fb-test-result-output" class="fb-mono"><span class="fb-test-empty">Run a test to see results</span></div>
+                  <div id="fb-test-path-box" class="hidden">
+                    <span id="fb-test-path-text" class="fb-mono"></span>
+                    <button class="btn sm" id="fb-test-path-copy-btn" onclick="fbCopySelectedPath()">Copy</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+
+    </div>
+  </main>
+
+  <script src="../../assets/js/orbit-config.js"></script>
+
+  <script src="../../assets/js/components.js"></script>
+
+  <script src="../../assets/js/theme.js"></script>
+  <script>
+    function initHeaderMenus() {
+      document.addEventListener('click', () => closeAll());
+      document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeAll(); });
+
+      if (signOutBtn) {
+        signOutBtn.addEventListener('click', () => {
+          ['authBearer','authOrg','authOrgName','authUserName','authRefreshToken','authExpiresAt','authLoginMethod','authOrgId'].forEach((k) => localStorage.removeItem(k));
+          window.location.href = '../../index.html';
+        });
+      }
+    }
+
+    function updateAuthIndicators() {
+      const bearer = (localStorage.getItem('authBearer') || '').trim();
+      const orgName = localStorage.getItem('authOrgName') || localStorage.getItem('authOrg') || '';
+      const user = localStorage.getItem('authUserName') || '';
+      const nameEl = document.getElementById('userName');
+      const orgEl = document.getElementById('userOrg');
+      if (nameEl) nameEl.textContent = bearer ? (user || 'Authenticated') : 'Not authenticated';
+      if (orgEl) orgEl.textContent = orgName || '';
+    }
+
+    updateAuthIndicators();
+    initHeaderMenus();
+
+    // ── Function Builder ────────────────────────────────────────────────────
+    let fbCols = ['Var1', 'Var2'];
+    let fbRows = [
+      { input: 'input1', vals: ['value', 'value'] },
+      { input: 'input2', vals: ['value', 'value'] },
+    ];
+    let fbRawCode = '';
+    let fbTestOpen = true;
+
+    function fbEsc(s) {
+      return String(s)
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;').replace(/'/g, '&#x27;');
+    }
+
+    function fbAddColumn() {
+      fbCols.push('Var' + (fbCols.length + 1));
+      fbRows.forEach(r => r.vals.push(''));
+      fbRenderTable(); fbGenerate_fb();
+    }
+
+    function fbDeleteColumn(i) {
+      if (fbCols.length <= 1) return;
+      fbCols.splice(i, 1);
+      fbRows.forEach(r => r.vals.splice(i, 1));
+      fbRenderTable(); fbGenerate_fb();
+    }
+
+    function fbAddRow() {
+      fbRows.push({ input: '', vals: fbCols.map(() => '') });
+      fbRenderTable(); fbGenerate_fb();
+    }
+
+    function fbDeleteRow(i) {
+      if (fbRows.length <= 1) return;
+      fbRows.splice(i, 1);
+      fbRenderTable(); fbGenerate_fb();
+    }
+
+    function fbRenderTable() {
+      const thead = document.getElementById('fb-t-head');
+      const tbody = document.getElementById('fb-t-body');
+      const tfoot = document.getElementById('fb-t-foot');
+      const totalCols = fbCols.length + 3;
+
+      thead.innerHTML = `<tr>
+        <th class="fb-th-input-fixed">Input</th>
+        ${fbCols.map((c, i) => `
+          <th class="fb-th-var">
+            <div class="fb-th-var-inner">
+              <input class="fb-col-name-input fb-mono" value="${fbEsc(c)}" placeholder="Var${i+1}"
+                oninput="fbCols[${i}]=this.value;fbGenerate_fb()">
+              ${fbCols.length > 1
+                ? `<button class="fb-col-del-btn" onclick="fbDeleteColumn(${i})" title="Remove column">✕</button>`
+                : ''}
+            </div>
+          </th>`).join('')}
+        <th class="fb-th-add-col">
+          <button class="fb-add-col-btn" onclick="fbAddColumn()" title="Add column">+</button>
+        </th>
+        <th class="fb-td-del"></th>
+      </tr>`;
+
+      tbody.innerHTML = fbRows.map((row, ri) => `
+        <tr>
+          <td class="fb-td-input-val">
+            <input class="fb-cell-input fb-mono" data-ri="${ri}" data-ci="-1" value="${fbEsc(row.input)}" placeholder="input${ri+1}"
+              oninput="fbRows[${ri}].input=this.value;fbGenerate_fb()">
+          </td>
+          ${fbCols.map((_, ci) => `
+            <td>
+              <input class="fb-cell-input fb-mono" data-ri="${ri}" data-ci="${ci}" value="${fbEsc(row.vals[ci]||'')}" placeholder="value"
+                oninput="fbRows[${ri}].vals[${ci}]=this.value;fbGenerate_fb()">
+            </td>`).join('')}
+          <td></td>
+          <td class="fb-td-del">
+            <button class="fb-row-copy-btn" id="fb-row-copy-${ri}" onclick="fbCopyRow(${ri})" title="Copy row">⎘</button>
+            ${fbRows.length > 1
+              ? `<button class="fb-row-del-btn" onclick="fbDeleteRow(${ri})" title="Remove row">✕</button>`
+              : ''}
+          </td>
+        </tr>`).join('');
+
+      tfoot.innerHTML = `<tr class="fb-tr-add-row">
+        <td colspan="${totalCols}">
+          <button class="fb-add-row-btn" onclick="fbAddRow()">+ Add Row</button>
+        </td>
+      </tr>`;
+    }
+
+    function fbGenerate_fb() {
+      const inputVar   = (document.getElementById('fb-input-var')?.value || '').trim() || 'str_DNIS';
+      const lookupName = inputVar.replace(/^(str|int|bool|dec|date)_/i, '').toLowerCase() + '_lookup';
+      const colNames   = fbCols.map(c => c.trim() || 'Var');
+
+      const entries = fbRows.map(row => {
+        const pairs = colNames.map((col, i) => `"${col}": "${row.vals[i] || ''}"`).join(', ');
+        return `        "${row.input || ''}": {${pairs}}`;
+      }).join(',\n');
+
+      const nullPairs = colNames.map(col => `"${col}": "Null"`).join(', ');
+
+      fbRawCode = [
+        `from models import Request, Response`,
+        ``,
+        `def handle(request: Request, response: Response):`,
+        ``,
+        `    ${inputVar} = request.data['inputs']['${inputVar}']`,
+        ``,
+        `    ${lookupName} = {`,
+        entries + `,`,
+        `    }`,
+        ``,
+        `    if ${inputVar} in ${lookupName}:`,
+        `        response.data = ${lookupName}[${inputVar}]`,
+        `    else:`,
+        `        response.data = {${nullPairs}}`,
+        ``,
+        `    return response`,
+      ].join('\n');
+
+      const lines = fbRawCode.split('\n');
+      document.getElementById('fb-code-output').innerHTML =
+        lines.map(line => fbHighlightLine(line, inputVar, lookupName)).join('\n');
+
+      const tn = document.getElementById('fb-test-var-name');
+      if (tn) tn.textContent = inputVar;
+    }
+
+    function fbHighlightLine(line, inputVar, lookupName) {
+      let s = fbEsc(line);
+      if (s.startsWith('from ') || s.startsWith('import ')) {
+        return s.replace(/^(from|import)/, '<span class="py-kw">$1</span>')
+                .replace(/(Request|Response)/g, '<span class="py-fn">$1</span>');
+      }
+      if (/^\s*def /.test(s)) {
+        return s.replace(/def/, '<span class="py-kw">def</span>')
+                .replace(/handle/, '<span class="py-fn">handle</span>')
+                .replace(/(request|response): (Request|Response)/g,
+                  '<span class="py-var">$1</span>: <span class="py-fn">$2</span>');
+      }
+      if (/^\s*(if|else):/.test(s)) {
+        return s.replace(/(if|else)/, '<span class="py-kw">$1</span>')
+                .replace(new RegExp(fbEsc(inputVar), 'g'), `<span class="py-var">${fbEsc(inputVar)}</span>`)
+                .replace(new RegExp(fbEsc(lookupName), 'g'), `<span class="py-fn">${fbEsc(lookupName)}</span>`);
+      }
+      if (/^\s*return /.test(s)) return s.replace(/return/, '<span class="py-kw">return</span>');
+      if (s.includes(`${fbEsc(inputVar)} = request`)) {
+        return s.replace(new RegExp(fbEsc(inputVar)), `<span class="py-var">${fbEsc(inputVar)}</span>`)
+                .replace(/request/, '<span class="py-var">request</span>')
+                .replace(/&#x27;inputs&#x27;/, `<span class="py-str">'inputs'</span>`)
+                .replace(new RegExp(`&#x27;${fbEsc(inputVar)}&#x27;`), `<span class="py-str">'${fbEsc(inputVar)}'</span>`);
+      }
+      if (s.includes(`${fbEsc(lookupName)} = {`)) {
+        return s.replace(new RegExp(fbEsc(lookupName)), `<span class="py-fn">${fbEsc(lookupName)}</span>`);
+      }
+      if (s.includes('response.data')) {
+        return s.replace(/response/, '<span class="py-var">response</span>')
+                .replace(new RegExp(fbEsc(lookupName), 'g'), `<span class="py-fn">${fbEsc(lookupName)}</span>`)
+                .replace(new RegExp(fbEsc(inputVar), 'g'), `<span class="py-var">${fbEsc(inputVar)}</span>`);
+      }
+      if (/^\s+&quot;.+&quot;: \{/.test(s)) {
+        return s.replace(/^(\s+)(&quot;[^&]+&quot;)(: )(\{)/, '$1<span class="py-str">$2</span>$3$4')
+                .replace(/&quot;([^&]+)&quot;: &quot;([^&]*)&quot;/g,
+                  '<span class="py-key">&quot;$1&quot;</span>: <span class="py-val">&quot;$2&quot;</span>');
+      }
+      if (/Null/.test(s)) {
+        return s.replace(/&quot;Null&quot;/g, '<span class="py-null">&quot;Null&quot;</span>');
+      }
+      return s;
+    }
+
+    function fbCopyCode() {
+      navigator.clipboard.writeText(fbRawCode).then(() => {
+        const btn = document.getElementById('fb-copy-btn');
+        btn.textContent = 'Copied!';
+        setTimeout(() => { btn.textContent = 'Copy'; }, 1500);
+      });
+    }
+
+    function fbCopyRow(ri) {
+      const row = fbRows[ri];
+      const colNames = fbCols.map(c => c.trim() || 'Var');
+      const pairs = colNames.map((col, i) => `"${col}": "${row.vals[i] || ''}"`).join(', ');
+      navigator.clipboard.writeText(`"${row.input || ''}": {${pairs}}`).then(() => {
+        const btn = document.getElementById('fb-row-copy-' + ri);
+        if (btn) { btn.classList.add('ok'); setTimeout(() => btn.classList.remove('ok'), 1200); }
+      });
+    }
+
+    document.getElementById('fb-lookup-table').addEventListener('paste', function(e) {
+      const target = e.target;
+      if (!target.classList.contains('fb-cell-input')) return;
+      const text = (e.clipboardData || window.clipboardData).getData('text');
+      if (!text.includes('\t') && !text.includes('\n') && !text.includes('\r')) return;
+      e.preventDefault();
+      const startRi = parseInt(target.dataset.ri);
+      const startCi = parseInt(target.dataset.ci);
+      const pastedRows = text.split(/\r?\n|\r/).filter(r => r.length > 0);
+      while (fbRows.length < startRi + pastedRows.length)
+        fbRows.push({ input: '', vals: fbCols.map(() => '') });
+      pastedRows.forEach((rowText, rowOffset) => {
+        const cells = rowText.split('\t');
+        const ri = startRi + rowOffset;
+        cells.forEach((cellVal, colOffset) => {
+          const ci = startCi + colOffset;
+          if (ci === -1) { fbRows[ri].input = cellVal.trim(); }
+          else if (ci >= 0) {
+            while (fbCols.length <= ci) {
+              fbCols.push('Var' + (fbCols.length + 1));
+              fbRows.forEach(r => { while (r.vals.length <= ci) r.vals.push(''); });
+            }
+            fbRows[ri].vals[ci] = cellVal.trim();
+          }
+        });
+      });
+      fbRenderTable(); fbGenerate_fb();
+    });
+
+    function fbToggleTest() {
+      fbTestOpen = !fbTestOpen;
+      document.getElementById('fb-test-body').classList.toggle('collapsed', !fbTestOpen);
+      document.getElementById('fb-test-caret').innerHTML = fbTestOpen ? '&#9650;' : '&#9660;';
+    }
+
+    function fbRunTest() {
+      document.getElementById('fb-test-path-box').classList.add('hidden');
+      document.querySelectorAll('.fb-test-data-row').forEach(r => r.classList.remove('selected'));
+      const inputVar = (document.getElementById('fb-input-var')?.value || '').trim() || 'str_DNIS';
+      const testVal  = document.getElementById('fb-test-input').value.trim();
+      const colNames = fbCols.map(c => c.trim() || 'Var');
+      const match    = fbRows.find(r => r.input === testVal);
+      const data = {};
+      colNames.forEach((col, i) => { data[col] = match ? (match.vals[i] ?? '') : 'Null'; });
+      fbRenderTestResult({ statusCode: 200, data }, colNames);
+    }
+
+    function fbRenderTestResult(result, colNames) {
+      const out = document.getElementById('fb-test-result-output');
+      const dataRows = colNames.map((col, i) => {
+        const path  = '$.data.' + col;
+        const comma = i < colNames.length - 1 ? ',' : '';
+        return `<span class="fb-test-res-row">    <span class="fb-test-data-row" data-path="${fbEsc(path)}" onclick="fbCopyTestPath(this,'${fbEsc(path)}')">&quot;<span class="py-key">${fbEsc(col)}</span>&quot;: &quot;<span class="py-str">${fbEsc(result.data[col])}</span>&quot;</span>${comma}</span>`;
+      }).join('\n');
+      out.innerHTML = [
+        `<span class="fb-test-res-row py-muted">{</span>`,
+        `<span class="fb-test-res-row">  &quot;<span class="py-key">statusCode</span>&quot;: <span class="py-val">${result.statusCode}</span>,</span>`,
+        `<span class="fb-test-res-row">  &quot;<span class="py-key">data</span>&quot;: {</span>`,
+        dataRows,
+        `<span class="fb-test-res-row">  },</span>`,
+        `<span class="fb-test-res-row">  &quot;<span class="py-key">errorMessage</span>&quot;: <span class="py-str">&quot;&quot;</span>,</span>`,
+        `<span class="fb-test-res-row">  &quot;<span class="py-key">timeTakenInMilliseconds</span>&quot;: <span class="py-val">0</span></span>`,
+        `<span class="fb-test-res-row py-muted">}</span>`,
+      ].join('\n');
+    }
+
+    function fbCopyTestPath(el, path) {
+      document.querySelectorAll('.fb-test-data-row').forEach(r => r.classList.remove('selected'));
+      el.classList.add('selected');
+      document.getElementById('fb-test-path-text').textContent = path;
+      document.getElementById('fb-test-path-box').classList.remove('hidden');
+      const btn = document.getElementById('fb-test-path-copy-btn');
+      btn.textContent = 'Copy'; btn.classList.remove('copied');
+    }
+
+    function fbCopySelectedPath() {
+      const path = document.getElementById('fb-test-path-text').textContent;
+      navigator.clipboard.writeText(path).then(() => {
+        const btn = document.getElementById('fb-test-path-copy-btn');
+        btn.textContent = 'Copied!';
+        setTimeout(() => { btn.textContent = 'Copy'; }, 1500);
+      });
+    }
+
+    fbRenderTable();
+    fbGenerate_fb();
+  </script>
+</body>
+</html>

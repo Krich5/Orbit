@@ -1,0 +1,2262 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="light" />
+  <title>WxCC Wizard - Channels</title>
+  <link rel="icon" type="image/png" href="../../assets/images/WxCC_Icon-192.png" />
+  <link rel="stylesheet" href="../../assets/css/theme.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    main {
+      padding: 32px 0 64px;
+      width: 100%;
+      margin: 0 auto;
+      display: flex;
+      justify-content: flex-start;
+      align-items: flex-start;
+    }
+    .wizard-card {
+      width: 100%;
+      background: var(--panel);
+      border: 1px solid rgba(255,255,255, 0.08);
+      border-radius: 36px;
+      padding: 28px 32px;
+      box-shadow: 0 30px 60px rgba(0,0,0,0.35);
+      margin: 0 auto;
+    }
+    .wizard-title {
+      margin: 0 0 8px;
+      font-size: clamp(2.75rem, 3vw, 3.6rem);
+      font-weight: 700;
+      color: var(--fg);
+    }
+    .step-label {
+      margin: 0 0 12px;
+      font-size: 1rem;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: var(--muted);
+      font-weight: 600;
+    }
+    .step-label.form-heading {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--fg);
+      letter-spacing: 0.4em;
+    }
+    body.dark-mode .step-label.form-heading {
+      color: #fff;
+    }
+    .wizard-subtitle {
+      margin: 0 0 28px;
+      font-size: 1rem;
+      color: var(--muted);
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+    }
+    .progress-bar {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 32px;
+    }
+    .progress-step {
+      flex: 1;
+      height: 6px;
+      background: #d4d4d4;
+      border-radius: 3px;
+    }
+    body.dark-mode .progress-step {
+      background: rgba(255,255,255,0.18);
+    }
+    .progress-step.complete {
+      background: linear-gradient(135deg, #2196f3, #1976d2);
+    }
+    .progress-step.active {
+      background: linear-gradient(135deg, #22c55e, #10b981);
+    }
+    .wizard-stage { display: none; }
+    .wizard-stage.active { display: flex; justify-content: center; }
+    .form-panel {
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 26px;
+      padding: 32px 40px;
+      background: rgba(255,255,255,0.02);
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.03);
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      width: 100%;
+    }
+    body:not(.dark-mode) .form-panel {
+      border-color: rgba(0, 0, 0, 0.12);
+      background: rgba(255, 255, 255, 0.94);
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.12), inset 0 0 0 1px rgba(255, 255, 255, 0.25);
+    }
+    .form-section {
+      margin-bottom: 8px;
+      padding-bottom: 24px;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+    body:not(.dark-mode) .form-section {
+      border-bottom-color: rgba(0,0,0,0.07);
+    }
+    .form-section:last-of-type {
+      border-bottom: none;
+      margin-bottom: 0;
+      padding-bottom: 0;
+    }
+    /* Two-column section layout: sidebar label | fields */
+    .section-row {
+      display: grid;
+      grid-template-columns: 220px 1fr;
+      gap: 32px;
+      align-items: start;
+    }
+    .section-sidebar {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--fg);
+      padding-top: 10px;
+    }
+    body.dark-mode .section-sidebar {
+      color: #fff;
+    }
+    .section-fields {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      min-width: 0;
+    }
+    .field-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .field-group label,
+    .field-group > span {
+      font-size: 0.78rem;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: var(--muted);
+      font-weight: 600;
+    }
+    .field-group input,
+    .field-group select,
+    .field-group textarea {
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      background: var(--input);
+      color: var(--fg);
+      padding: 12px 14px;
+      font-size: 1rem;
+      font-family: inherit;
+    }
+    .field-group textarea {
+      min-height: 80px;
+      resize: vertical;
+    }
+    .field-row {
+      display: grid;
+      gap: 16px;
+    }
+    .field-row > * { min-width: 0; }
+    .field-row--2 { grid-template-columns: 1fr 1fr; }
+    .field-row--3 { grid-template-columns: 1fr 1fr 1fr; }
+    .inline-unit {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .inline-unit span {
+      font-size: 0.85rem;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+    .inline-unit input {
+      width: 100px;
+      flex-shrink: 0;
+    }
+    .hint-text {
+      font-size: 0.8rem;
+      color: var(--muted);
+      line-height: 1.5;
+      margin-top: 2px;
+    }
+    .required-star {
+      color: #f87171;
+      margin-left: 2px;
+    }
+    /* Phone numbers table */
+    .phone-desc {
+      font-size: 0.88rem;
+      color: var(--muted);
+      line-height: 1.6;
+      margin-bottom: 12px;
+    }
+    .phone-table-wrap {
+      width: 100%;
+      overflow-x: auto;
+    }
+    .phone-table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      min-width: 680px;
+    }
+    .phone-table thead th {
+      font-size: 0.72rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--muted);
+      font-weight: 600;
+      padding: 0 8px 10px;
+      text-align: left;
+    }
+    .phone-table thead th.col-andor {
+      text-align: center;
+      color: transparent;
+    }
+    .phone-row td {
+      padding: 4px 6px;
+      vertical-align: top;
+    }
+    .phone-row td.col-andor {
+      text-align: center;
+      font-size: 0.78rem;
+      color: var(--muted);
+      padding-top: 14px;
+      vertical-align: middle;
+    }
+    .phone-row td input,
+    .phone-row td select {
+      width: 100%;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: var(--input);
+      color: var(--fg);
+      padding: 10px 12px;
+      font-size: 0.9rem;
+      font-family: inherit;
+    }
+    .phone-field-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+    .phone-field-error {
+      font-size: 0.72rem;
+      color: #f87171;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .phone-actions {
+      display: flex;
+      gap: 5px;
+      align-items: center;
+      padding-top: 6px;
+    }
+    .btn-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 30px;
+      height: 30px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--input);
+      cursor: pointer;
+      font-size: 0.9rem;
+      transition: all 0.15s;
+      color: var(--fg);
+    }
+    .btn-icon:hover { background: rgba(33,150,243,0.15); border-color: rgba(33,150,243,0.5); }
+    .btn-icon.remove:hover { background: rgba(248,113,113,0.15); border-color: rgba(248,113,113,0.5); }
+    .add-more-btn {
+      margin-top: 10px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 16px;
+      border-radius: 20px;
+      border: 1px solid var(--border);
+      background: var(--input);
+      cursor: pointer;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--fg);
+      transition: all 0.15s;
+    }
+    .add-more-btn:hover { border-color: rgba(33,150,243,0.5); background: rgba(33,150,243,0.08); }
+    /* Status & buttons */
+    .statusMessage {
+      margin-top: 4px;
+      padding: 12px 16px;
+      border-radius: 12px;
+      text-align: center;
+      font-size: 0.95rem;
+      font-weight: 600;
+      display: none;
+    }
+    .statusMessage.success {
+      background: linear-gradient(135deg, #10b981, #22c55e);
+      color: #fff;
+      border: 1px solid #22c55e;
+      display: block;
+    }
+    .statusMessage.error {
+      background: #f87171;
+      color: #1f2937;
+      border: 1px solid #f87171;
+      display: block;
+    }
+    .statusMessage.info {
+      background: rgba(33,150,243,0.15);
+      color: var(--fg);
+      border: 1px solid rgba(33,150,243,0.4);
+      display: block;
+    }
+    .hidden { display: none !important; }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 11px 24px;
+      border-radius: 14px;
+      font-weight: 700;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      border: none;
+    }
+    .btn.primary {
+      background: linear-gradient(135deg, #2196f3, #1976d2);
+      color: #fff;
+      border: 1px solid #1976d2;
+    }
+    .btn.primary:hover {
+      background: linear-gradient(135deg, #1976d2, #1565c0);
+      box-shadow: 0 4px 12px rgba(33,150,243,0.4);
+    }
+    .btn.primary:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+    .btn.secondary {
+      border: 1px solid rgba(255,255,255,0.25);
+      background: rgba(255,255,255,0.08);
+      color: var(--fg);
+    }
+    body.dark-mode .btn.secondary { color: #fff; }
+    .btn.secondary:hover { background: rgba(255,255,255,0.12); }
+    .button-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-top: 20px;
+      padding-top: 20px;
+      border-top: 1px solid rgba(255,255,255,0.06);
+    }
+    body:not(.dark-mode) .button-row { border-top-color: rgba(0,0,0,0.07); }
+    .button-row .btn { min-width: 140px; }
+    .button-row--right { justify-content: flex-end; }
+    .button-group { display: flex; gap: 10px; align-items: center; }
+    /* Success stage */
+    .stage-status { display: none !important; }
+    .stage-status.active {
+      display: flex !important;
+      justify-content: center;
+    }
+    .stage-status.active .form-panel {
+      align-items: center;
+      padding: 40px 48px;
+    }
+    .status-card {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      align-items: center;
+      justify-content: center;
+      min-height: 280px;
+      text-align: center;
+      padding: 24px 12px 18px;
+      width: min(560px, 100%);
+    }
+    .status-card strong {
+      font-size: clamp(2.8rem, 3.2vw, 3.6rem);
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+    .status-card .status-meta {
+      font-size: 0.88rem;
+      text-transform: uppercase;
+      letter-spacing: 0.3em;
+      color: var(--muted);
+      line-height: 1.7;
+    }
+    .status-actions {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-top: 8px;
+    }
+    /* Override flow settings placeholder */
+    .no-overrides {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      padding: 20px;
+      border: 1px dashed var(--border);
+      border-radius: 14px;
+      color: var(--muted);
+      font-size: 0.85rem;
+      text-align: center;
+    }
+    .no-overrides svg { opacity: 0.4; }
+    /* Routing flow row: Flow select | Version label | Create Flow button */
+    .flow-row-layout {
+      display: flex;
+      align-items: flex-end;
+      gap: 12px;
+    }
+    .bh-preset-btn {
+      padding: 8px 16px;
+      border-radius: 20px;
+      border: 1px solid var(--border);
+      background: var(--input);
+      color: var(--fg);
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+      font-family: inherit;
+    }
+    .bh-preset-btn:hover { border-color: rgba(33,150,243,0.5); background: rgba(33,150,243,0.08); }
+    .bh-preset-btn.selected { border-color: #2196f3; background: rgba(33,150,243,0.12); color: #2196f3; }
+    #fspAddShiftBtn { margin-top: 0; align-self: center; }
+    /* Full-page flow creation stage */
+    .flow-full-stepper {
+      display: flex; align-items: center; gap: 0;
+      margin-bottom: 24px; padding-bottom: 20px;
+      border-bottom: 1px solid rgba(255,255,255,0.07);
+    }
+    body:not(.dark-mode) .flow-full-stepper { border-bottom-color: rgba(0,0,0,0.08); }
+    .flow-full-panel { display: flex; flex-direction: column; gap: 20px; }
+    .flow-full-panel.hidden { display: none !important; }
+    .template-pick-layout {
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      gap: 20px;
+      align-items: start;
+    }
+    .template-pick-layout .flow-template-grid { grid-template-columns: 1fr; }
+    .template-preview-pane {
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      background: var(--input);
+      overflow: hidden;
+      min-height: 200px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .template-preview-pane img { width: 100%; height: auto; display: block; }
+    body.dark-mode .preview-img--light { display: none; }
+    body:not(.dark-mode) .preview-img--dark { display: none; }
+    /* ─── BH builder: shift rows ─── */
+    .bh-shifts-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 8px; }
+    .bh-shift-row {
+      display: flex; align-items: center; gap: 10px; flex-wrap: nowrap;
+      background: rgba(255,255,255,0.03); border: 1px solid var(--border);
+      border-radius: 12px; padding: 10px 14px; width: 100%;
+    }
+    body:not(.dark-mode) .bh-shift-row { background: rgba(0,0,0,0.02); }
+    .bh-shift-name { flex: 1 1 180px; min-width: 0; font-size: 0.85rem; }
+    .bh-day-pills { display: flex; gap: 5px; flex-shrink: 0; }
+    .bh-day-pill {
+      padding: 6px 12px; border-radius: 8px; font-size: 0.8rem; font-weight: 600;
+      letter-spacing: 0.04em; border: 1px solid var(--border);
+      background: transparent; color: var(--muted); cursor: pointer; transition: all 0.12s;
+    }
+    .bh-day-pill:hover { border-color: rgba(33,150,243,0.5); color: var(--fg); }
+    .bh-day-pill.active { border-color: #2196f3; background: rgba(33,150,243,0.15); color: #2196f3; font-weight: 700; }
+    .bh-shift-time { width: 110px; flex-shrink: 0; font-size: 0.85rem; }
+    .btn-icon.clone:hover { background: rgba(34,197,94,0.15); border-color: rgba(34,197,94,0.5); color: #22c55e; }
+    /* ─── Flow review panel ─── */
+    .fsp-review-grid { display: flex; flex-direction: column; gap: 14px; }
+    .fsp-review-section {
+      border: 1px solid var(--border); border-radius: 14px;
+      padding: 16px 20px; background: rgba(255,255,255,0.02);
+    }
+    body.dark-mode .fsp-review-section { background: rgba(255,255,255,0.025); }
+    .fsp-review-section-title {
+      font-size: 0.78rem; letter-spacing: 0.22em; text-transform: uppercase;
+      color: var(--muted); font-weight: 700; margin: 0 0 12px;
+    }
+    .fsp-review-row {
+      display: flex; gap: 16px; padding: 5px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.05); align-items: flex-start;
+    }
+    .fsp-review-row:last-child { border-bottom: none; }
+    body:not(.dark-mode) .fsp-review-row { border-bottom-color: rgba(0,0,0,0.06); }
+    .fsp-review-label { font-size: 0.8rem; color: var(--muted); min-width: 170px; flex-shrink: 0; padding-top: 1px; }
+    .fsp-review-value { font-size: 0.9rem; color: var(--fg); font-weight: 500; line-height: 1.5; }
+    .bh-time-sep { color: var(--muted); font-size: 0.82rem; white-space: nowrap; }
+    /* ─── Checkbox row ─── */
+    .checkbox-label { display: flex; align-items: center; gap: 10px; cursor: pointer; font-size: 0.88rem; color: var(--fg); }
+    .checkbox-label input[type="checkbox"] { width: 16px; height: 16px; cursor: pointer; accent-color: #2196f3; flex-shrink: 0; }
+    /* ─── Override details box ─── */
+    .bh-override-box {
+      border: 1px solid rgba(33,150,243,0.25); border-radius: 12px;
+      background: rgba(33,150,243,0.04); padding: 12px 14px;
+      display: flex; flex-direction: column; gap: 10px;
+    }
+    body:not(.dark-mode) .bh-override-box { background: rgba(33,150,243,0.03); }
+
+    /* Flow template modal */
+    .flow-modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.65);
+      backdrop-filter: blur(4px);
+      z-index: 9999;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+    .flow-modal-overlay.open { display: flex; }
+    .flow-modal-dialog {
+      width: min(860px, 100%);
+      background: var(--panel);
+      border-radius: 26px;
+      border: 1px solid rgba(255,255,255,0.1);
+      box-shadow: 0 40px 80px rgba(0,0,0,0.5);
+      display: flex;
+      flex-direction: column;
+      max-height: 88vh;
+      overflow: hidden;
+    }
+    body:not(.dark-mode) .flow-modal-dialog {
+      border-color: rgba(0,0,0,0.1);
+      box-shadow: 0 40px 80px rgba(0,0,0,0.2);
+    }
+    .flow-modal-stepper {
+      display: flex;
+      align-items: center;
+      padding: 20px 28px 16px;
+      border-bottom: 1px solid rgba(255,255,255,0.07);
+      gap: 0;
+      flex-shrink: 0;
+    }
+    body:not(.dark-mode) .flow-modal-stepper { border-bottom-color: rgba(0,0,0,0.08); }
+    .flow-step-item {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+    .flow-step-item.active { color: var(--fg); }
+    .flow-step-circle {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      border: 2px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
+      font-weight: 700;
+      flex-shrink: 0;
+      transition: all 0.2s;
+    }
+    .flow-step-item.active .flow-step-circle { border-color: #2196f3; background: rgba(33,150,243,0.15); color: #2196f3; }
+    .flow-step-item.done .flow-step-circle { border-color: #22c55e; background: rgba(34,197,94,0.15); color: #22c55e; }
+    .flow-step-connector { flex: 1; height: 2px; background: var(--border); margin: 0 14px; max-width: 100px; }
+    .flow-modal-close-btn {
+      margin-left: auto;
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      border: 1px solid var(--border);
+      background: var(--input);
+      color: var(--fg);
+      font-size: 0.9rem;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.15s;
+      flex-shrink: 0;
+    }
+    .flow-modal-close-btn:hover { background: rgba(248,113,113,0.15); border-color: rgba(248,113,113,0.5); color: #f87171; }
+    .flow-step-panel { display: flex; flex-direction: column; flex: 1; overflow: hidden; min-height: 0; }
+    .flow-step-panel.hidden { display: none; }
+    .flow-modal-body {
+      padding: 22px 28px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      flex: 1;
+      overflow-y: auto;
+    }
+    .flow-modal-title { font-size: 1.15rem; font-weight: 700; color: var(--fg); margin: 0; }
+    .flow-modal-subtitle { font-size: 0.84rem; color: var(--muted); margin: -8px 0 0; }
+    .flow-search-input {
+      width: 100%; padding: 10px 14px 10px 38px;
+      border-radius: 12px; border: 1px solid var(--border);
+      background: var(--input); color: var(--fg);
+      font-size: 0.92rem; font-family: inherit; box-sizing: border-box;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='15' height='15' fill='%23888' viewBox='0 0 16 16'%3E%3Cpath d='M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.099zM6.5 12a5.5 5.5 0 1 1 0-11 5.5 5.5 0 0 1 0 11z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: 12px center;
+    }
+    .flow-template-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+    .flow-template-card {
+      position: relative;
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      background: var(--input);
+      padding: 16px;
+      cursor: pointer; text-align: left;
+      transition: all 0.18s;
+      display: flex; flex-direction: column; gap: 5px;
+    }
+    .flow-template-card:hover { border-color: rgba(33,150,243,0.45); background: rgba(33,150,243,0.06); }
+    .flow-template-card.selected { border-color: rgba(33,150,243,0.7); background: rgba(33,150,243,0.1); }
+    .flow-card-radio {
+      position: absolute; top: 12px; right: 12px;
+      width: 15px; height: 15px; border-radius: 50%;
+      border: 2px solid var(--border); transition: all 0.15s;
+    }
+    .flow-template-card.selected .flow-card-radio { border-color: #2196f3; background: #2196f3; box-shadow: inset 0 0 0 3px var(--panel); }
+    .flow-card-badge { font-size: 0.68rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: #22c55e; margin-bottom: 2px; }
+    .flow-card-title { font-size: 0.9rem; font-weight: 700; color: var(--fg); padding-right: 18px; line-height: 1.3; }
+    .flow-card-by { font-size: 0.72rem; color: var(--muted); }
+    .flow-card-desc { font-size: 0.76rem; color: var(--muted); line-height: 1.5; margin-top: 4px; }
+    .flow-modal-footer {
+      display: flex; justify-content: flex-end; gap: 10px;
+      padding: 14px 28px 20px;
+      border-top: 1px solid rgba(255,255,255,0.07);
+      flex-shrink: 0;
+    }
+    body:not(.dark-mode) .flow-modal-footer { border-top-color: rgba(0,0,0,0.08); }
+    #flowCreateStatus { margin: 0; }
+
+    /* ─── Flow creation progress panel ─── */
+    .fsp-progress-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 22px;
+      max-width: 520px;
+      margin: 0 auto;
+      width: 100%;
+      padding: 8px 0 4px;
+    }
+    .fsp-progress-heading { display: flex; flex-direction: column; gap: 5px; }
+    .fsp-progress-title {
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: var(--fg);
+    }
+    body.dark-mode .fsp-progress-title { color: #fff; }
+    .fsp-progress-meta {
+      font-size: 0.82rem;
+      color: var(--muted);
+      letter-spacing: 0.06em;
+    }
+    .fsp-bar-track {
+      height: 6px;
+      border-radius: 3px;
+      background: rgba(255,255,255,0.1);
+      overflow: hidden;
+    }
+    body:not(.dark-mode) .fsp-bar-track { background: rgba(0,0,0,0.08); }
+    .fsp-bar-fill {
+      height: 100%;
+      border-radius: 3px;
+      background: linear-gradient(90deg, #2196f3, #22c55e);
+      width: 0%;
+      transition: width 0.45s ease;
+    }
+    .fsp-steps-list { display: flex; flex-direction: column; gap: 8px; }
+    .fsp-step {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 11px 16px;
+      border-radius: 12px;
+      border: 1px solid transparent;
+      transition: all 0.2s;
+    }
+    .fsp-step--pending { opacity: 0.38; }
+    .fsp-step--active {
+      border-color: rgba(33,150,243,0.28);
+      background: rgba(33,150,243,0.06);
+    }
+    .fsp-step--done {
+      border-color: rgba(34,197,94,0.22);
+      background: rgba(34,197,94,0.05);
+    }
+    .fsp-step--error {
+      border-color: rgba(248,113,113,0.3);
+      background: rgba(248,113,113,0.06);
+    }
+    .fsp-step-icon {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      font-size: 0.75rem;
+      font-weight: 700;
+      border: 2px solid transparent;
+      transition: all 0.2s;
+    }
+    .fsp-step--pending .fsp-step-icon { border-color: var(--border); }
+    .fsp-step--active .fsp-step-icon { border-color: #2196f3; color: #2196f3; }
+    .fsp-step--done .fsp-step-icon { border-color: #22c55e; background: rgba(34,197,94,0.15); color: #22c55e; }
+    .fsp-step--error .fsp-step-icon { border-color: #f87171; background: rgba(248,113,113,0.12); color: #f87171; }
+    .fsp-step-body { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+    .fsp-step-label {
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: var(--fg);
+    }
+    .fsp-step--pending .fsp-step-label { color: var(--muted); }
+    .fsp-step--active .fsp-step-label { color: #2196f3; }
+    .fsp-step--done .fsp-step-label { color: #22c55e; }
+    .fsp-step--error .fsp-step-label { color: #f87171; }
+    .fsp-step-detail { font-size: 0.74rem; color: var(--muted); }
+    .fsp-progress-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .fsp-error-text {
+      font-size: 0.84rem;
+      color: #f87171;
+      background: rgba(248,113,113,0.07);
+      border: 1px solid rgba(248,113,113,0.22);
+      border-radius: 10px;
+      padding: 10px 14px;
+      line-height: 1.55;
+      margin: 0;
+    }
+    @keyframes fsp-spin { to { transform: rotate(360deg); } }
+    .fsp-spin {
+      display: block;
+      width: 11px;
+      height: 11px;
+      border: 2px solid rgba(33,150,243,0.25);
+      border-top-color: #2196f3;
+      border-radius: 50%;
+      animation: fsp-spin 0.65s linear infinite;
+    }
+
+    @media (max-width: 900px) {
+      .section-row {
+        grid-template-columns: 1fr;
+        gap: 12px;
+      }
+      .section-sidebar { padding-top: 0; }
+      .field-row--2, .field-row--3 { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 768px) {
+      .wizard-card { padding: 24px 20px; }
+      .form-panel { padding: 20px 24px; }
+      .button-row { flex-direction: column; }
+    }
+    /* TTS textareas */
+    .tts-input {
+      width: 100%;
+      min-height: 80px;
+      resize: vertical;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: var(--input);
+      color: var(--fg);
+      padding: 10px 14px;
+      font-size: 0.9rem;
+      font-family: inherit;
+      line-height: 1.5;
+      box-sizing: border-box;
+    }
+    .tts-input:focus { outline: none; border-color: rgba(33,150,243,0.5); box-shadow: 0 0 0 3px rgba(33,150,243,0.1); }
+    /* Auto-flow info pill */
+    .auto-flow-pill {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 16px; border-radius: 12px;
+      background: rgba(34,197,94,0.07);
+      border: 1px solid rgba(34,197,94,0.25);
+      margin-bottom: 16px;
+    }
+    .auto-flow-pill.hidden { display: none; }
+    .auto-flow-icon { font-size: 0.9rem; color: #22c55e; flex-shrink: 0; }
+    .auto-flow-text { flex: 1; font-size: 0.84rem; color: var(--fg); }
+    .auto-flow-label { color: var(--muted); font-size: 0.75rem; letter-spacing: 0.12em; text-transform: uppercase; display: block; margin-bottom: 1px; }
+    .auto-flow-name { font-weight: 600; }
+    .auto-flow-tag { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.12em; padding: 3px 8px; border-radius: 6px; background: rgba(34,197,94,0.15); color: #22c55e; border: 1px solid rgba(34,197,94,0.3); flex-shrink: 0; }
+    /* Simplified phone number cards */
+    .phone-rows-wrap { display: flex; flex-direction: column; gap: 10px; margin-bottom: 12px; }
+    .phone-card-row {
+      position: relative;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.09);
+      border-radius: 14px;
+      padding: 14px 18px 14px 18px;
+    }
+    .phone-card-remove-top {
+      position: absolute;
+      top: 10px;
+      right: 12px;
+    }
+    .phone-card-inner { display: flex; align-items: flex-end; gap: 14px; padding-right: 28px; }
+    .phone-card-inner .field-group { flex: 1; margin: 0; }
+    .phone-card-inner .field-group.ext { flex: 0 0 140px; }
+  </style>
+</head>
+<body class="dark-mode">
+  <script>if (localStorage.getItem("tpRailExpanded") === "true") document.body.classList.add("tp-rail-expanded");</script>
+  <api-tools-header basepath="../../"></api-tools-header>
+
+  <main>
+    <div class="wrap wide contentWrap">
+      <section class="wizard-card">
+        <h1 class="wizard-title">Contact Center Setup Wizard</h1>
+        <p class="wizard-subtitle">Step 3 of 5 · Flows &amp; Channels</p>
+        <div class="progress-bar">
+          <div class="progress-step complete"></div>
+          <div class="progress-step complete"></div>
+          <div class="progress-step active"></div>
+          <div class="progress-step"></div>
+          <div class="progress-step"></div>
+        </div>
+
+        <!-- ===== Stage: Flow Creation ===== -->
+        <div id="stageFlow" class="wizard-stage active">
+          <div class="form-panel" style="width:100%;">
+            <div class="step-label form-heading">Step 3 · Create a Flow</div>
+
+            <!-- Flow creation stepper -->
+            <div class="flow-full-stepper">
+              <div class="flow-step-item active" id="fspInd1">
+                <div class="flow-step-circle">1</div>
+                <span>Template</span>
+              </div>
+              <div class="flow-step-connector"></div>
+              <div class="flow-step-item" id="fspInd2">
+                <div class="flow-step-circle">2</div>
+                <span>Flow name</span>
+              </div>
+              <div class="flow-step-connector"></div>
+              <div class="flow-step-item" id="fspInd3">
+                <div class="flow-step-circle">3</div>
+                <span>Business hours</span>
+              </div>
+              <div class="flow-step-connector"></div>
+              <div class="flow-step-item" id="fspInd4">
+                <div class="flow-step-circle">4</div>
+                <span>TTS messages</span>
+              </div>
+              <div class="flow-step-connector"></div>
+              <div class="flow-step-item" id="fspInd5">
+                <div class="flow-step-circle">5</div>
+                <span>Review</span>
+              </div>
+            </div>
+
+            <!-- Panel 1: Template selection with preview -->
+            <div id="fspPanel1" class="flow-full-panel">
+              <p style="margin:0; color:var(--muted); font-size:0.9rem;">Choose a prebuilt flow template to get started quickly.</p>
+              <div class="template-pick-layout">
+                <div class="flow-template-grid" id="fspTemplateGrid">
+                  <button type="button" class="flow-template-card"
+                    data-template="agent_team"
+                    data-preview-dark="../../assets/images/Wizard/Flow_Example_Team_Agent_dark.png"
+                    data-preview-light="../../assets/images/Wizard/Flow_Example_Team_Agent_light.png">
+                    <div class="flow-card-radio"></div>
+                    <span class="flow-card-badge">📞 Voice</span>
+                    <span class="flow-card-title">Simple Call Flow</span>
+                    <span class="flow-card-desc">Inbound voice flow with business hours, queue contact, agent availability check, and hold music.</span>
+                  </button>
+                  <button type="button" class="flow-template-card" disabled
+                    style="opacity:0.45; cursor:not-allowed;">
+                    <div class="flow-card-radio"></div>
+                    <span class="flow-card-badge">📞 Voice</span>
+                    <span class="flow-card-title">Simple Call Flow with Menu</span>
+                    <span class="flow-card-desc">Inbound voice flow with an IVR menu, business hours, queue contact, and hold music.</span>
+                    <span class="flow-card-by" style="margin-top:auto; padding-top:8px;">Coming soon</span>
+                  </button>
+                </div>
+                <div class="template-preview-pane" id="fspPreviewPane">
+                  <span style="color:var(--muted); font-size:0.82rem;">Select a template to preview</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Panel 2: Flow name -->
+            <div id="fspPanel2" class="flow-full-panel hidden">
+
+              <div class="field-group" style="max-width:480px;">
+                <label for="fspFlowName">Flow name <span class="required-star">*</span></label>
+                <input id="fspFlowName" type="text" placeholder="e.g. Inbound_Main_Flow" autocomplete="off">
+              </div>
+            </div>
+
+            <!-- Panel 3: Business hours creation -->
+            <div id="fspPanel3" class="flow-full-panel hidden">
+              <p style="margin:0; color:var(--muted); font-size:0.9rem;">Create a new business hours schedule and wire it into the flow.</p>
+
+              <!-- Name + Timezone -->
+              <div class="field-row field-row--2" style="max-width:720px;">
+                <div class="field-group">
+                  <label for="fspBhName">Schedule name <span class="required-star">*</span></label>
+                  <input id="fspBhName" type="text" placeholder="e.g. Main Office Hours" autocomplete="off">
+                </div>
+                <div class="field-group">
+                  <label for="fspBhTimezone">Timezone <span class="required-star">*</span></label>
+                  <select id="fspBhTimezone">
+                    <option value="America/Denver" selected>America/Denver (Mountain)</option>
+                    <option value="America/New_York">America/New_York (Eastern)</option>
+                    <option value="America/Chicago">America/Chicago (Central)</option>
+                    <option value="America/Los_Angeles">America/Los_Angeles (Pacific)</option>
+                    <option value="America/Phoenix">America/Phoenix (AZ, no DST)</option>
+                    <option value="America/Anchorage">America/Anchorage (Alaska)</option>
+                    <option value="Pacific/Honolulu">Pacific/Honolulu (Hawaii)</option>
+                    <option value="UTC">UTC</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- Working hours -->
+              <div class="field-group">
+                <label>Working hours</label>
+                <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:12px;">
+                  <button type="button" class="bh-preset-btn" data-preset="247">24 / 7</button>
+                  <button type="button" class="bh-preset-btn" data-preset="mf85">Mon–Fri 8–5</button>
+                  <button type="button" class="bh-preset-btn" data-preset="mf95">Mon–Fri 9–5</button>
+                  <button type="button" class="add-more-btn" id="fspAddShiftBtn" style="margin-left:4px; margin-top:0;">+ Add shift</button>
+                </div>
+                <div id="fspShiftsList" class="bh-shifts-list"></div>
+              </div>
+
+              <!-- Holiday list -->
+              <div class="field-group" style="max-width:480px;">
+                <label for="fspHolidayList">Holiday list</label>
+                <select id="fspHolidayList">
+                  <option value="">Loading…</option>
+                </select>
+              </div>
+
+              <!-- Override -->
+              <div class="field-group">
+                <label class="checkbox-label">
+                  <input type="checkbox" id="fspCreateOverride">
+                  <span>Create an override schedule</span>
+                </label>
+              </div>
+              <div id="fspOverrideBox" class="bh-override-box hidden">
+                <div class="field-row field-row--3">
+                  <div class="field-group">
+                    <label for="fspOverrideName">Override schedule name <span class="required-star">*</span></label>
+                    <input id="fspOverrideName" type="text" placeholder="e.g. Main Office Hours Override" autocomplete="off">
+                  </div>
+                  <div class="field-group">
+                    <label for="fspOverrideStart">Start date / time</label>
+                    <input id="fspOverrideStart" type="datetime-local">
+                  </div>
+                  <div class="field-group">
+                    <label for="fspOverrideEnd">End date / time</label>
+                    <input id="fspOverrideEnd" type="datetime-local">
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Panel 4: TTS messages -->
+            <div id="fspPanel4" class="flow-full-panel hidden">
+              <p style="margin:0; color:var(--muted); font-size:0.9rem;">These messages will be read aloud to callers via Cisco Cloud Text-to-Speech.</p>
+              <div class="field-row field-row--2">
+                <div class="field-group">
+                  <label for="fspWelcome">Welcome message <span class="required-star">*</span></label>
+                  <textarea id="fspWelcome" class="tts-input" placeholder="Thank you for calling…" autocomplete="off"></textarea>
+                </div>
+                <div class="field-group">
+                  <label for="fspHoliday">Holiday message <span class="required-star">*</span></label>
+                  <textarea id="fspHoliday" class="tts-input" placeholder="We are closed for the holiday…" autocomplete="off"></textarea>
+                </div>
+                <div class="field-group">
+                  <label for="fspOverride">Override message <span class="required-star">*</span></label>
+                  <textarea id="fspOverride" class="tts-input" placeholder="We are temporarily closed…" autocomplete="off"></textarea>
+                </div>
+                <div class="field-group">
+                  <label for="fspClosed">Closed message <span class="required-star">*</span></label>
+                  <textarea id="fspClosed" class="tts-input" placeholder="Our office is currently closed…" autocomplete="off"></textarea>
+                </div>
+                <div class="field-group">
+                  <label for="fspQueueMsg">Queue / hold message <span class="required-star">*</span></label>
+                  <textarea id="fspQueueMsg" class="tts-input" placeholder="Please hold, an agent will be with you…" autocomplete="off"></textarea>
+                </div>
+                <div class="field-group">
+                  <label for="fspNoAgents">No agents message <span class="required-star">*</span></label>
+                  <textarea id="fspNoAgents" class="tts-input" placeholder="No agents are currently available…" autocomplete="off"></textarea>
+                </div>
+              </div>
+            </div>
+
+            <!-- Panel 5: Review -->
+            <div id="fspPanel5" class="flow-full-panel hidden">
+              <p style="margin:0; color:var(--muted); font-size:0.9rem;">Review everything below before hitting <strong style="color:var(--fg);">Save &amp; Build</strong>. Nothing is sent to the API until you confirm.</p>
+              <div class="fsp-review-grid" id="fspReviewGrid">
+                <!-- populated by fspPopulateReview() -->
+              </div>
+            </div>
+
+            <!-- Panel: Creation progress (shown while API calls run) -->
+            <div id="fspProgressPanel" class="flow-full-panel hidden">
+              <div class="fsp-progress-wrap">
+                <div class="fsp-progress-heading">
+                  <div class="fsp-progress-title">Creating your flow</div>
+                  <div class="fsp-progress-meta" id="fspProgressMeta">Preparing…</div>
+                </div>
+                <div class="fsp-bar-track"><div class="fsp-bar-fill" id="fspBarFill"></div></div>
+                <div class="fsp-steps-list" id="fspStepsList"></div>
+                <div class="fsp-progress-actions hidden" id="fspProgressActions">
+                  <p class="fsp-error-text" id="fspErrorText"></p>
+                  <button type="button" class="btn secondary" id="fspBackFromProgressBtn">← Back to form</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Status + Navigation -->
+            <p id="flowCreateStatus" class="statusMessage hidden"></p>
+            <div class="button-row">
+              <button type="button" class="btn secondary" id="flowPrevBtn">Start Over</button>
+              <div class="button-group">
+                <button type="button" class="btn secondary" id="flowSkipBtn">Skip →</button>
+                <button type="button" class="btn primary" id="flowNextBtn">Next →</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ===== Stage: Form ===== -->
+        <div id="stageForm" class="wizard-stage">
+          <div class="form-panel">
+
+            <!-- ─── EP form fields (hidden while progress is showing) ─── -->
+            <div id="epFormContent">
+              <div class="step-label form-heading">Step 3 · Entry Point</div>
+
+              <!-- ─── Entry Point ─── -->
+              <div class="form-section">
+                <div class="step-label form-heading" style="margin-bottom:18px;">Entry Point</div>
+                <div class="field-group">
+                  <label for="epName">Name <span class="required-star">*</span></label>
+                  <input id="epName" type="text" placeholder="Enter a name" autocomplete="off">
+                </div>
+                <select id="epChannelType" class="hidden" aria-hidden="true">
+                  <option value="TELEPHONY_INBOUND" selected>Inbound Telephony</option>
+                  <option value="TELEPHONY_OUTBOUND">Outbound Telephony</option>
+                  <option value="EMAIL">Email</option>
+                  <option value="CHAT">Chat</option>
+                  <option value="SOCIAL_CHANNEL">Social Channel</option>
+                </select>
+              </div>
+
+              <!-- Hidden EP settings carried silently from wizard state -->
+              <input id="epSlt" type="hidden" value="30">
+              <select id="epTimezone" class="hidden" aria-hidden="true">
+                <option value="America/Denver" selected>America/Denver</option>
+              </select>
+              <select id="epMusicOnHold" class="hidden" aria-hidden="true">
+                <option value="">—</option>
+              </select>
+              <div id="autoFlowInfo" class="hidden" aria-hidden="true">
+                <span id="autoFlowName"></span>
+              </div>
+
+              <!-- ─── Phone Number (TELEPHONY only) ─── -->
+              <div id="phoneSection" class="form-section">
+                <div class="step-label form-heading" style="margin-bottom:18px;">Phone Number</div>
+                <div id="phoneRowsWrap" class="phone-rows-wrap"></div>
+                <button type="button" class="add-more-btn" id="addPhoneRowBtn">+ Add number</button>
+              </div>
+            </div>
+
+            <!-- ─── EP creation progress (replaces form while API calls run) ─── -->
+            <div id="epProgressPanel" class="flow-full-panel hidden">
+              <div class="fsp-progress-wrap">
+                <div class="fsp-progress-heading">
+                  <div class="fsp-progress-title">Creating your entry point</div>
+                  <div class="fsp-progress-meta" id="epProgressMeta">Preparing…</div>
+                </div>
+                <div class="fsp-bar-track"><div class="fsp-bar-fill" id="epBarFill"></div></div>
+                <div class="fsp-steps-list" id="epStepsList"></div>
+                <div class="fsp-progress-actions hidden" id="epProgressActions">
+                  <p class="fsp-error-text" id="epErrorText"></p>
+                  <button type="button" class="btn secondary" id="epBackFromProgressBtn">← Back to form</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- ─── Status + Buttons ─── -->
+            <p id="channelStatus" class="statusMessage hidden"></p>
+            <div class="button-row" id="epButtonRow">
+              <button type="button" class="btn secondary" id="prevBtn">← Previous</button>
+              <div class="button-group">
+                <button type="button" class="btn secondary" id="skipBtn">Skip →</button>
+                <button type="button" class="btn primary" id="createEpBtn">Create Entry Point</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ===== Stage: Success ===== -->
+        <div id="stageSuccess" class="wizard-stage stage-status">
+          <div class="form-panel">
+            <div class="status-card">
+              <strong>Channel Created</strong>
+              <div class="status-meta" id="successMeta">Entry point ready</div>
+              <div class="status-actions">
+                <button type="button" class="btn secondary" id="addAnotherBtn">Create Another Channel</button>
+                <button type="button" class="btn primary" id="continueBtn">Save &amp; Continue → Desktop Profiles</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </section>
+    </div>
+  </main>
+
+  <script src="../../assets/js/orbit-config.js"></script>
+
+  <script src="../../assets/js/components.js"></script>
+
+  <script src="../../assets/js/theme.js"></script>
+  <script>
+    /* ─────────────── Wizard state helpers ─────────────── */
+    const WIZARD_STATE_KEY = 'wxcc_wizard_state';
+    function getWizardState() {
+      try { return JSON.parse(localStorage.getItem(WIZARD_STATE_KEY) || '{}'); } catch { return {}; }
+    }
+    function saveWizardState(updates) {
+      const s = getWizardState();
+      Object.assign(s, updates);
+      localStorage.setItem(WIZARD_STATE_KEY, JSON.stringify(s));
+    }
+
+    /* ─────────────── Auth / org setup ─────────────── */
+    const authToken = (localStorage.getItem('authBearer') || '').trim();
+
+    function decodeOrgId(raw) {
+      if (!raw) return '';
+      if (/^[0-9a-fA-F-]{30,}$/.test(raw)) return raw;
+      if (/^Y2lz/i.test(raw)) {
+        try {
+          const padded = raw.replace(/-/g, '+').replace(/_/g, '/').padEnd(Math.ceil(raw.length / 4) * 4, '=');
+          const parts = atob(padded).split('/');
+          return parts[parts.length - 1] || atob(padded);
+        } catch { return raw; }
+      }
+      const idx = raw.toLowerCase().indexOf('organization/');
+      if (idx !== -1) return raw.slice(idx + 'organization/'.length) || raw;
+      return raw;
+    }
+
+    function resolveOrgId() {
+      const stored = (localStorage.getItem('authOrgId') || '').trim();
+      if (stored) return decodeOrgId(stored) || stored;
+      const raw = (localStorage.getItem('authOrg') || '').trim();
+      if (raw) return decodeOrgId(raw) || raw;
+      return '';
+    }
+
+    const ORG_ID     = resolveOrgId();
+    const RAW_ORG_ID = (localStorage.getItem('authOrgId') || localStorage.getItem('authOrg') || '').trim();
+    const BASE_URL   = `https://api.wxcc-us1.cisco.com/organization/${encodeURIComponent(ORG_ID)}`;
+    const FETCH_HEADERS = Object.assign(
+      { Accept: 'application/json' },
+      authToken ? { Authorization: `Bearer ${authToken}` } : {}
+    );
+
+    async function fetchList(url) {
+      try {
+        const r = await fetch(url, { headers: FETCH_HEADERS });
+        if (!r.ok) return null;
+        const body = await r.json();
+        return Array.isArray(body) ? body : (body?.data ?? null);
+      } catch { return null; }
+    }
+
+    /* ─────────────── Fallbacks ─────────────── */
+    const fallbackAudio = [];
+    const fallbackLocations = [];
+    const FALLBACK_REGION_ID = '';
+
+    /* ─────────────── Dropdown data ─────────────── */
+    const FLOW_STORE_PROJECT = '5e5c9ad6d61f870d6d778c1b';
+    const FLOW_PROXY = window.ORBIT_PROXY_BASE + '/flows';
+    const WXC_BASE = 'https://webexapis.com';
+
+    function flowProxyUrl(orgId, projectId) {
+      const target = `https://api.wxcc-us1.cisco.com/flow-store/${encodeURIComponent(orgId)}/project/${encodeURIComponent(projectId)}/flows?page=0&pageSize=500&size=500`;
+      return `${FLOW_PROXY}?url=${encodeURIComponent(target)}`;
+    }
+
+    let flows            = [];
+    let audioFiles       = [];
+    let locations        = [];
+    let locationRegionMap = {}; // decoded locationId → regionId
+
+    function populateSelect(selectEl, items, valueKey, labelKey) {
+      if (!selectEl) return;
+      const cur = selectEl.value;
+      while (selectEl.options.length > 1) selectEl.remove(1);
+      items.forEach((item) => {
+        const opt = new Option(item[labelKey] || item[valueKey], item[valueKey]);
+        selectEl.add(opt);
+      });
+      if (cur) selectEl.value = cur;
+    }
+
+    /* ─────────────── Webex Calling location & number fetchers ─────────────── */
+
+    /* Decode a Webex base64 ID (ciscospark://us/TYPE/UUID) → plain UUID */
+    function decodeWebexId(raw) { return decodeOrgId(raw); }
+
+    async function fetchWxcLocations() {
+      try {
+        const params = new URLSearchParams({ max: '1000' });
+        if (RAW_ORG_ID) params.set('orgId', RAW_ORG_ID);
+        const r = await fetch(`${WXC_BASE}/v1/telephony/config/locations?${params}`, { headers: FETCH_HEADERS });
+        if (!r.ok) return [];
+        const body = await r.json();
+        return body?.locations ?? [];
+      } catch { return []; }
+    }
+
+    async function fetchWxcNumbersForLocation(locationId) {
+      try {
+        const params = new URLSearchParams({ max: '1000' });
+        if (RAW_ORG_ID) params.set('orgId', RAW_ORG_ID);
+        if (locationId) params.set('locationId', locationId);
+        const r = await fetch(`${WXC_BASE}/v1/telephony/config/numbers?${params}`, { headers: FETCH_HEADERS });
+        if (!r.ok) return [];
+        const body = await r.json();
+        return (body?.phoneNumbers ?? []).filter((n) => n.phoneNumber && !n.owner);
+      } catch { return []; }
+    }
+
+    /* Build a map of decoded locationId → regionId by reading existing dial-number entries */
+    async function fetchDialNumberRegionMap() {
+      try {
+        const r = await fetch(`${BASE_URL}/dial-number`, { headers: FETCH_HEADERS });
+        if (!r.ok) return {};
+        const body = await r.json();
+        const entries = Array.isArray(body) ? body : (body?.data ?? []);
+        const map = {};
+        entries.forEach((e) => {
+          if (e.location && e.regionId) map[e.location] = e.regionId;
+        });
+        return map;
+      } catch { return {}; }
+    }
+
+    async function loadDropdowns() {
+      const [rawAudio, rawLoc, regionMap] = await Promise.all([
+        fetchList(`${BASE_URL}/v2/audio-file`),
+        fetchWxcLocations(),
+        fetchDialNumberRegionMap()
+      ]);
+
+      audioFiles        = (rawAudio && rawAudio.length) ? rawAudio : fallbackAudio;
+      locations         = (rawLoc   && rawLoc.length)   ? rawLoc   : fallbackLocations;
+      locationRegionMap = regionMap;
+
+      /* Auto-select the MOH from queue creation */
+      const savedMohId = getWizardState().latestMusicOnHoldId || '';
+      const mohSel = document.getElementById('epMusicOnHold');
+      if (mohSel) {
+        populateSelect(mohSel, audioFiles, 'id', 'name');
+        mohSel.value = savedMohId || (audioFiles[0]?.id ?? '');
+      }
+
+      /* Add the first phone row now that locations are loaded */
+      if (document.getElementById('phoneRowsWrap')?.children.length === 0) addPhoneRow();
+    }
+
+    /* ─────────────── Auto-flow info pill ─────────────── */
+    function seedAutoFlowInfo(flowId, flowName) {
+      const pill   = document.getElementById('autoFlowInfo');
+      const nameEl = document.getElementById('autoFlowName');
+      if (!pill) return;
+      if (flowId && flowName) {
+        if (nameEl) nameEl.textContent = flowName;
+        pill.classList.remove('hidden');
+      } else {
+        pill.classList.add('hidden');
+      }
+    }
+
+    /* ─────────────── Phone rows (simplified: location → number cascade) ─────────────── */
+    let phoneRowCounter = 0;
+    const phoneRowsWrap = document.getElementById('phoneRowsWrap');
+
+    function renderLocationOptions() {
+      return locations.map((l) => `<option value="${l.id}">${l.name || l.id}</option>`).join('');
+    }
+
+    function wirePhoneRow(card) {
+      const locSel  = card.querySelector('.phone-loc-select');
+      const numSel  = card.querySelector('.phone-num-select');
+
+      /* Seed location options */
+      locSel.innerHTML = '<option value="">Loading…</option>';
+      if (locations.length) {
+        locSel.innerHTML = '<option value="">Select location</option>' + renderLocationOptions();
+        if (locations.length === 1) locSel.value = locations[0].id;
+      }
+
+      /* Load numbers when location changes */
+      async function loadNumbers() {
+        const locId = locSel.value;
+        numSel.innerHTML = '<option value="">Loading…</option>';
+        numSel.disabled = true;
+        const nums = await fetchWxcNumbersForLocation(locId);
+        numSel.disabled = false;
+        if (!nums.length) {
+          numSel.innerHTML = '<option value="">No numbers found</option>';
+          return;
+        }
+        numSel.innerHTML = '<option value="">Select a number</option>' +
+          nums.map((n) => `<option value="${n.phoneNumber}">${n.phoneNumber}</option>`).join('');
+      }
+
+      locSel.addEventListener('change', loadNumbers);
+      if (locSel.value) loadNumbers();
+
+      card.querySelector('.phone-remove-btn').addEventListener('click', () => card.remove());
+    }
+
+    function addPhoneRow() {
+      const rowId = ++phoneRowCounter;
+      const card  = document.createElement('div');
+      card.className = 'phone-card-row';
+      card.dataset.rowId = rowId;
+      card.innerHTML = `
+        <button type="button" class="btn-icon remove phone-remove-btn phone-card-remove-top" title="Remove">×</button>
+        <div class="phone-card-inner">
+          <div class="field-group">
+            <label>Location</label>
+            <select class="phone-loc-select"></select>
+          </div>
+          <div class="field-group">
+            <label>Phone Number</label>
+            <select class="phone-num-select" disabled><option value="">Select location first</option></select>
+          </div>
+          <div class="field-group ext">
+            <label>Extension</label>
+            <input type="text" class="phone-ext-input" placeholder="e.g. 1001" autocomplete="off" inputmode="numeric" maxlength="10">
+          </div>
+        </div>`;
+      phoneRowsWrap.appendChild(card);
+      wirePhoneRow(card);
+    }
+
+    document.getElementById('addPhoneRowBtn').addEventListener('click', () => addPhoneRow());
+
+    function collectPhoneRows() {
+      const rows = [];
+      phoneRowsWrap.querySelectorAll('.phone-card-row').forEach((card) => {
+        const locId = card.querySelector('.phone-loc-select')?.value || '';
+        const pstn  = card.querySelector('.phone-num-select')?.value?.trim() || '';
+        const ext   = card.querySelector('.phone-ext-input')?.value?.trim() || '';
+        if (pstn && locId) rows.push({ pstn, locationBase64Id: locId, locationId: decodeWebexId(locId), extension: ext });
+      });
+      return rows;
+    }
+
+    /* ─────────────── Status helper ─────────────── */
+    const channelStatus = document.getElementById('channelStatus');
+    function setStatus(text, type = '') {
+      if (!channelStatus) return;
+      channelStatus.textContent = text;
+      channelStatus.className = `statusMessage${type ? ' ' + type : ''}`;
+    }
+
+    /* ─────────────── Stage switching ─────────────── */
+    const stageFlow    = document.getElementById('stageFlow');
+    const stageForm    = document.getElementById('stageForm');
+    const stageSuccess = document.getElementById('stageSuccess');
+    function showStage(target) {
+      [stageFlow, stageForm, stageSuccess].forEach((s) => s?.classList.remove('active'));
+      target?.classList.add('active');
+    }
+
+    /* ─────────────── API calls ─────────────── */
+    async function apiPost(path, payload) {
+      const r = await fetch(`${BASE_URL}${path}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+          Authorization: `Bearer ${authToken}`
+        },
+        body: JSON.stringify(payload)
+      });
+      const body = await r.json().catch(() => ({}));
+      if (!r.ok) {
+        const detail = body?.error?.message?.[0]?.description
+                    || body?.error?.reason
+                    || body?.message
+                    || r.statusText
+                    || `HTTP ${r.status}`;
+        throw new Error(detail);
+      }
+      return body;
+    }
+
+    /* ─────────────── Build entry-point payload ─────────────── */
+    function buildEntryPointPayload() {
+      const name      = document.getElementById('epName')?.value?.trim() || '';
+      const wizState  = getWizardState();
+      const slt       = parseInt(wizState.latestSlt || '30', 10);
+      const timezone  = wizState.latestTimezone || 'America/Denver';
+      const flowId    = wizState.latestCreatedFlow?.id || '';
+      const mohId     = document.getElementById('epMusicOnHold')?.value || wizState.latestMusicOnHoldId || '';
+
+      const payload = {
+        name,
+        description: name,
+        channelType: 'TELEPHONY',
+        entryPointType: 'INBOUND',
+        serviceLevelThreshold: isNaN(slt) ? 30 : slt,
+        timezone,
+        maximumActiveContacts: 0,
+        active: true
+      };
+
+      if (flowId)  payload.flowId       = flowId;
+      if (mohId)   payload.musicOnHoldId = mohId;
+      if (flowId)  payload.flowTagId    = 'Live';
+
+      return payload;
+    }
+
+    /* ─────────────── EP progress panel helpers ─────────────── */
+    let isCreating = false;
+    const createEpBtn = document.getElementById('createEpBtn');
+
+    function epShowProgress() {
+      document.getElementById('epFormContent')?.classList.add('hidden');
+      document.getElementById('epButtonRow')?.classList.add('hidden');
+      document.getElementById('channelStatus')?.classList.add('hidden');
+      document.getElementById('epProgressPanel')?.classList.remove('hidden');
+    }
+
+    function epHideProgress() {
+      document.getElementById('epProgressPanel')?.classList.add('hidden');
+      document.getElementById('epFormContent')?.classList.remove('hidden');
+      document.getElementById('epButtonRow')?.classList.remove('hidden');
+    }
+
+    function epInitSteps(steps) {
+      const list = document.getElementById('epStepsList');
+      const bar  = document.getElementById('epBarFill');
+      if (list) list.innerHTML = '';
+      if (bar)  bar.style.width = '0%';
+      steps.forEach(({ id, label }) => {
+        const el = document.createElement('div');
+        el.className = 'fsp-step-item';
+        el.id = `ep_step_${id}`;
+        el.innerHTML = `<span class="fsp-step-icon">○</span><span class="fsp-step-label">${label}</span><span class="fsp-step-detail"></span>`;
+        list?.appendChild(el);
+      });
+    }
+
+    function epSetStep(id, state, detail = '') {
+      const el   = document.getElementById(`ep_step_${id}`);
+      const list = document.getElementById('epStepsList');
+      const bar  = document.getElementById('epBarFill');
+      if (!el || !list) return;
+      const icons = { pending: '○', active: '⟳', done: '✓', error: '✗' };
+      el.querySelector('.fsp-step-icon').textContent  = icons[state] || '○';
+      el.querySelector('.fsp-step-detail').textContent = detail;
+      el.className = `fsp-step-item fsp-step-${state}`;
+      const all  = list.querySelectorAll('.fsp-step-item');
+      const done = list.querySelectorAll('.fsp-step-done, .fsp-step-error').length;
+      if (bar) bar.style.width = `${Math.round((done / all.length) * 100)}%`;
+      const meta  = document.getElementById('epProgressMeta');
+      const label = el.querySelector('.fsp-step-label')?.textContent || '';
+      if (meta && state === 'active') meta.textContent = label || detail || 'Working…';
+    }
+
+    function epShowError(msg) {
+      const actions  = document.getElementById('epProgressActions');
+      const errText  = document.getElementById('epErrorText');
+      const bar      = document.getElementById('epBarFill');
+      if (actions) actions.classList.remove('hidden');
+      if (errText)  errText.textContent = msg;
+      if (bar)      bar.style.background = 'linear-gradient(135deg,#f87171,#ef4444)';
+    }
+
+    document.getElementById('epBackFromProgressBtn')?.addEventListener('click', () => {
+      document.getElementById('epProgressActions')?.classList.add('hidden');
+      const bar = document.getElementById('epBarFill');
+      if (bar) { bar.style.width = '0%'; bar.style.background = ''; }
+      epHideProgress();
+      isCreating = false;
+      createEpBtn.disabled = false;
+    });
+
+    /* ─────────────── Create handler ─────────────── */
+    async function handleCreate() {
+      if (isCreating) return;
+      const name = document.getElementById('epName')?.value?.trim() || '';
+      if (!name) { setStatus('Channel name is required.', 'error'); return; }
+
+      isCreating = true;
+      createEpBtn.disabled = true;
+
+      const phoneRows = collectPhoneRows();
+      const steps = [
+        { id: 'ep',    label: 'Create entry point' },
+        ...phoneRows.map((_, i) => ({ id: `num_${i}`, label: `Assign phone number ${i + 1}` }))
+      ];
+
+      epInitSteps(steps);
+      epShowProgress();
+
+      try {
+        epSetStep('ep', 'active');
+        const epPayload = buildEntryPointPayload();
+        const epResult  = await apiPost('/entry-point', epPayload);
+        const epId      = epResult?.id || '';
+        const epName    = epResult?.name || name;
+        epSetStep('ep', 'done', epName);
+
+        saveWizardState({
+          latestChannel: { id: epId, name: epName },
+          step3Complete: true
+        });
+
+        let mappingErrors = 0;
+        for (let i = 0; i < phoneRows.length; i++) {
+          const row    = phoneRows[i];
+          const stepId = `num_${i}`;
+          epSetStep(stepId, 'active');
+          const pstn     = row.pstn.startsWith('+') ? row.pstn.replace(/\s/g, '') : '+' + row.pstn.replace(/\s/g, '');
+          const digits   = pstn.replace(/^\+/, '');
+          const regionId = locationRegionMap[row.locationId] || FALLBACK_REGION_ID;
+          try {
+            await apiPost('/dial-number', {
+              entryPointId: epId, entryPointName: epName,
+              location: row.locationId, regionId,
+              dialledNumber: pstn, dialledNumberDigits: digits,
+              ...(row.extension ? { extension: row.extension } : {})
+            });
+            epSetStep(stepId, 'done', pstn);
+          } catch (err) {
+            mappingErrors++;
+            epSetStep(stepId, 'error', err.message);
+            console.warn('Dial-number mapping failed:', err.message);
+          }
+        }
+
+        document.getElementById('epProgressMeta').textContent =
+          mappingErrors ? `Done with ${mappingErrors} number error(s) — continuing…` : 'All done! Redirecting…';
+        document.getElementById('epBarFill').style.width = '100%';
+
+        setTimeout(() => { window.location.href = 'S4_DesktopProfile.html'; }, 1200);
+
+      } catch (error) {
+        epSetStep('ep', 'error', error.message);
+        epShowError(error.message || 'Entry point creation failed.');
+        isCreating = false;
+        createEpBtn.disabled = false;
+      }
+    }
+
+    createEpBtn?.addEventListener('click', handleCreate);
+
+    /* ─────────────── Skip / prev / continue ─────────────── */
+    document.getElementById('prevBtn')?.addEventListener('click', () => {
+      showStage(stageFlow);
+    });
+
+    document.getElementById('skipBtn')?.addEventListener('click', () => {
+      saveWizardState({ channelForm: { name: document.getElementById('epName')?.value?.trim() }, step3Skipped: true });
+      window.location.href = 'S4_DesktopProfile.html';
+    });
+
+    document.getElementById('addAnotherBtn')?.addEventListener('click', () => {
+      document.getElementById('epName').value = '';
+      phoneRowsWrap.innerHTML = '';
+      phoneRowCounter = 0;
+      addPhoneRow();
+      setStatus('');
+      showStage(stageForm);
+    });
+
+    document.getElementById('continueBtn')?.addEventListener('click', () => {
+      window.location.href = 'S4_DesktopProfile.html';
+    });
+
+    /* ─────────────── Restore saved state ─────────────── */
+    function restoreForm() {
+      const wizState = getWizardState();
+
+      /* Pre-fill name with EP_ + team name */
+      const teamName = localStorage.getItem('wizardTeamName') || wizState.teamName || '';
+      const nameEl   = document.getElementById('epName');
+      if (nameEl && !nameEl.value) {
+        nameEl.value = teamName ? `EP_${teamName}` : '';
+        nameEl.placeholder = teamName ? `EP_${teamName}` : 'e.g. EP_Support';
+      }
+
+      /* SLT carried silently from latestSlt — keep hidden input in sync */
+      const sltEl = document.getElementById('epSlt');
+      if (sltEl && wizState.latestSlt) sltEl.value = wizState.latestSlt;
+
+      /* Show auto-flow pill */
+      const flow = wizState.latestCreatedFlow;
+      if (flow?.id) seedAutoFlowInfo(flow.id, flow.name);
+    }
+
+    /* ─────────────── Auth UI ─────────────── */
+    function updateAuthIndicators() {
+      const token   = authToken;
+      const orgName = localStorage.getItem('authOrgName') || localStorage.getItem('authOrg') || '';
+      const userName = localStorage.getItem('authUserName') || '';
+      const userNameEl = document.getElementById('userName');
+      const userOrgEl  = document.getElementById('userOrg');
+      if (userNameEl) userNameEl.textContent = token ? (userName || 'Signed in') : 'Not authenticated';
+      if (userOrgEl)  userOrgEl.textContent  = token ? orgName : '';
+    }
+
+    const signOutBtn = document.getElementById('signOutBtn');
+    if (signOutBtn) {
+      signOutBtn.addEventListener('click', () => {
+        ['authBearer','authOrg','authOrgName','authOrgId','authUserName','authRefreshToken','authExpiresAt','authLoginMethod','authScopes']
+          .forEach((k) => localStorage.removeItem(k));
+        window.location.href = '../../index.html';
+      });
+    }
+
+    /* ─────────────── Flow template loader ─────────────── */
+    const FLOW_TEMPLATE_URLS = {
+      agent_team: '../../assets/templates/API_Tools_Skills_to_Queue_Template.json'
+    };
+    const templateCache = {};
+    async function loadFlowTemplate(key) {
+      if (templateCache[key]) return templateCache[key];
+      const r = await fetch(FLOW_TEMPLATE_URLS[key]);
+      if (!r.ok) throw new Error(`Could not load template file: HTTP ${r.status}`);
+      templateCache[key] = await r.json();
+      return templateCache[key];
+    }
+
+
+    /* ─────────────── Full-page flow creation ─────────────── */
+
+    const flowCreateStatus = document.getElementById('flowCreateStatus');
+    const flowNextBtn      = document.getElementById('flowNextBtn');
+    const flowPrevBtn      = document.getElementById('flowPrevBtn');
+    const flowSkipBtn      = document.getElementById('flowSkipBtn');
+
+    let fspCurrentStep      = 1;
+    let fspSelectedTemplate = '';
+    let fspDetectedQueue    = { id: '', name: '' };
+    let fspCreatedBh        = { id: '', name: '' };
+
+    function setFlowStatus(text, type = '') {
+      if (!flowCreateStatus) return;
+      flowCreateStatus.textContent = text;
+      flowCreateStatus.className = `statusMessage${type ? ' ' + type : ''}`;
+    }
+
+    function fspGoToStep(n) {
+      /* Always hide progress panel and restore nav when navigating wizard steps */
+      document.getElementById('fspProgressPanel')?.classList.add('hidden');
+      flowPrevBtn?.classList.remove('hidden');
+      flowSkipBtn?.classList.remove('hidden');
+      flowNextBtn?.classList.remove('hidden');
+      for (let i = 1; i <= 5; i++) {
+        const panel = document.getElementById(`fspPanel${i}`);
+        const ind   = document.getElementById(`fspInd${i}`);
+        if (panel) panel.classList.toggle('hidden', i !== n);
+        if (ind) {
+          ind.classList.remove('active', 'done');
+          if (i === n)    ind.classList.add('active');
+          else if (i < n) ind.classList.add('done');
+        }
+      }
+      fspCurrentStep = n;
+      setFlowStatus('', '');
+      if (flowNextBtn) flowNextBtn.textContent = n === 5 ? 'Save & Build →' : 'Next →';
+      if (flowPrevBtn) flowPrevBtn.textContent = n === 1 ? 'Start Over' : '← Back';
+      /* Side effects on step entry */
+      if (n === 5) { fspPopulateReview(); }
+      if (n === 3) {
+        fspLoadHolidayLists();
+        /* Pre-fill BH timezone from whatever was saved last (or entry point default) */
+        const savedTz = getWizardState().latestTimezone || document.getElementById('epTimezone')?.value || 'America/Denver';
+        const bhTzEl = document.getElementById('fspBhTimezone');
+        if (bhTzEl) bhTzEl.value = savedTz;
+        /* Pre-fill BH name with team name */
+        const bhNameEl = document.getElementById('fspBhName');
+        if (bhNameEl && !bhNameEl.value) {
+          const teamName = localStorage.getItem('wizardTeamName') || getWizardState().teamName || '';
+          bhNameEl.value = teamName;
+        }
+      }
+      if (n === 2) {
+        const flowNameEl = document.getElementById('fspFlowName');
+        if (flowNameEl && !flowNameEl.value) {
+          const teamName = localStorage.getItem('wizardTeamName') || getWizardState().teamName || '';
+          flowNameEl.value = teamName ? `${teamName}_Inbound` : '';
+        }
+      }
+    }
+
+    /* ─────────────── Flow creation progress UI ─────────────── */
+    let fspProgressSteps = [];
+
+    function fspShowProgressPanel(withOverride) {
+      fspProgressSteps = [
+        { id: 'template', label: 'Load template',            state: 'pending', detail: '' },
+        ...(withOverride ? [{ id: 'override', label: 'Create override schedule', state: 'pending', detail: '' }] : []),
+        { id: 'bh',       label: 'Create business hours',    state: 'pending', detail: '' },
+        { id: 'import',   label: 'Import flow',              state: 'pending', detail: '' },
+        { id: 'publish',  label: 'Publish flow (Live)',       state: 'pending', detail: '' },
+      ];
+      for (let i = 1; i <= 5; i++) document.getElementById(`fspPanel${i}`)?.classList.add('hidden');
+      document.getElementById('fspProgressPanel')?.classList.remove('hidden');
+      flowPrevBtn?.classList.add('hidden');
+      flowSkipBtn?.classList.add('hidden');
+      flowNextBtn?.classList.add('hidden');
+      document.getElementById('fspProgressActions')?.classList.add('hidden');
+      const meta = document.getElementById('fspProgressMeta');
+      if (meta) meta.textContent = 'Preparing…';
+      fspRenderSteps();
+      fspUpdateBar();
+    }
+
+    function fspSetStep(id, state, detail = '') {
+      const step = fspProgressSteps.find((s) => s.id === id);
+      if (step) { step.state = state; step.detail = detail; }
+      fspRenderSteps();
+      fspUpdateBar();
+      const meta = document.getElementById('fspProgressMeta');
+      if (!meta) return;
+      if (state === 'active') {
+        const labels = { template: 'Loading template…', override: 'Creating override schedule…', bh: 'Creating business hours…', import: 'Importing flow…', publish: 'Publishing flow…' };
+        meta.textContent = labels[id] || '';
+      } else if (state === 'done' && fspProgressSteps.every((s) => s.state === 'done')) {
+        meta.textContent = 'All done!';
+      }
+    }
+
+    function fspRenderSteps() {
+      const list = document.getElementById('fspStepsList');
+      if (!list) return;
+      list.innerHTML = fspProgressSteps.map((step) => {
+        let icon = '';
+        if (step.state === 'done')   icon = '<svg width="13" height="10" viewBox="0 0 13 10" fill="none"><path d="M1.5 5L5 8.5L11.5 1.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+        else if (step.state === 'active') icon = '<span class="fsp-spin"></span>';
+        else if (step.state === 'error')  icon = '✕';
+        return `
+          <div class="fsp-step fsp-step--${step.state}">
+            <div class="fsp-step-icon">${icon}</div>
+            <div class="fsp-step-body">
+              <span class="fsp-step-label">${step.label}</span>
+              ${step.detail ? `<span class="fsp-step-detail">${step.detail}</span>` : ''}
+            </div>
+          </div>`;
+      }).join('');
+    }
+
+    function fspUpdateBar() {
+      const fill = document.getElementById('fspBarFill');
+      if (!fill) return;
+      const total = fspProgressSteps.length;
+      const done  = fspProgressSteps.filter((s) => s.state === 'done').length;
+      fill.style.width = total ? `${Math.round((done / total) * 100)}%` : '0%';
+    }
+
+    function fspProgressError(message) {
+      const active = fspProgressSteps.find((s) => s.state === 'active');
+      if (active) { active.state = 'error'; active.detail = message; }
+      fspRenderSteps();
+      fspUpdateBar();
+      const meta = document.getElementById('fspProgressMeta');
+      if (meta) meta.textContent = 'Something went wrong';
+      const errText = document.getElementById('fspErrorText');
+      if (errText) errText.textContent = message;
+      document.getElementById('fspProgressActions')?.classList.remove('hidden');
+    }
+
+    document.getElementById('fspBackFromProgressBtn')?.addEventListener('click', () => fspGoToStep(4));
+
+    async function fspLoadQueue() {
+      const state = getWizardState();
+      // First choice: the queue S2 just created in this wizard run
+      const latest = state.latestCreatedQueue;
+      if (latest?.id) {
+        fspDetectedQueue = { id: latest.id, name: latest.name || '' };
+        return;
+      }
+      // Second choice: assignment-flow queue saved by S2
+      const plans = state.flowSkillPlans || [];
+      const lastPlan = plans.length ? plans[plans.length - 1] : null;
+      if (lastPlan?.queueId) {
+        fspDetectedQueue = { id: lastPlan.queueId, name: lastPlan.queueName || '' };
+        return;
+      }
+      // Final fallback: fetch from API, skip outbound queues
+      const apiQs     = await fetchList(`${BASE_URL}/v2/contact-service-queue?page=0&pageSize=200`);
+      const queueList = (apiQs || []).map((q) => ({ id: q.id, name: q.name })).filter((q) => q.id);
+      const inbound   = queueList.filter((q) => !/outdial/i.test(q.name));
+      fspDetectedQueue = (inbound.length ? inbound[0] : queueList[0]) || { id: '', name: '' };
+    }
+
+    function escapeTts(str) {
+      // JSON.stringify handles every control character (newlines, tabs, etc.)
+      // per the JSON spec, not just backslash/quote - strip the wrapping quotes
+      // since this gets spliced back into an already-serialized JSON string.
+      return JSON.stringify(str || '').slice(1, -1);
+    }
+
+    function buildFlowPayload(template, name, queueId, queueName, bhId, bhName, tts) {
+      let json = JSON.stringify(template);
+      json = json.replace(/5c3896e1-2ecc-4c84-ae93-be3bdab836a1/g, ORG_ID);
+      json = json.replace(/83c8ed2e-5de1-40de-8e3b-ee3980a5e4cd/g, queueId);
+      json = json.replace(/Q_Kenley - SBR - Queue/g, () => escapeTts(queueName));
+      if (bhId) {
+        json = json.replace(/8e6781a5-46e3-4434-86ee-e8a15d3ca514/g, bhId);
+        json = json.replace(/Kenley Business Hours/g, () => escapeTts(bhName));
+      }
+      if (tts) {
+        json = json.replace(/Enter Welcome TTS/g,           () => escapeTts(tts.welcome));
+        json = json.replace(/Enter Holiday TTS/g,           () => escapeTts(tts.holiday));
+        json = json.replace(/Enter Override TTS/g,          () => escapeTts(tts.override));
+        json = json.replace(/Enter Closed TTS/g,            () => escapeTts(tts.closed));
+        json = json.replace(/Enter Queue Message TTS/g,     () => escapeTts(tts.queue));
+        json = json.replace(/Enter No Agents Message TTS/g, () => escapeTts(tts.noAgents));
+      }
+      const payload = JSON.parse(json);
+      payload.name = name;
+      payload.description = name;
+      // Generate a fresh 24-char hex ID so each wizard run creates a distinct flow
+      payload.id = Array.from(crypto.getRandomValues(new Uint8Array(12)))
+        .map((b) => b.toString(16).padStart(2, '0')).join('');
+      // The template file is a full export of an existing flow, so it carries that
+      // flow's own identity/audit trail (flowId, createdBy, timestamps, validation
+      // results from its source org). Importing as a brand-new flow shouldn't
+      // resubmit any of that — stale/foreign values here are a likely reason
+      // flows:import starts rejecting a previously-working template.
+      delete payload.flowId;
+      delete payload.createdBy;
+      delete payload.createdDate;
+      delete payload.lastModifiedBy;
+      delete payload.lastModifiedDate;
+      delete payload.validationResults;
+      return payload;
+    }
+
+    async function publishFlow(flowId) {
+      const ciscoUrl = `https://api.wxcc-us1.cisco.com/flow-store/${encodeURIComponent(ORG_ID)}/project/${encodeURIComponent(FLOW_STORE_PROJECT)}/flows/${encodeURIComponent(flowId)}:publish`;
+      const proxyUrl = `${FLOW_PROXY}?url=${encodeURIComponent(ciscoUrl)}&format=json`;
+      const r = await fetch(proxyUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+          Authorization: `Bearer ${authToken}`
+        },
+        body: JSON.stringify({ comment: 'Published via Orbit', tagIds: ['Live'] })
+      });
+      const body = await r.json().catch(() => ({}));
+      if (!r.ok) throw new Error(body?.message || body?.error?.reason || r.statusText || `HTTP ${r.status}`);
+      return body;
+    }
+
+    async function importFlowFromTemplate(payload) {
+      const ciscoUrl = `https://api.wxcc-us1.cisco.com/flow-store/${encodeURIComponent(ORG_ID)}/project/${encodeURIComponent(FLOW_STORE_PROJECT)}/flows:import?overwrite=yes&flowType=FLOW`;
+      const proxyUrl = `${FLOW_PROXY}?url=${encodeURIComponent(ciscoUrl)}`;
+      const r = await fetch(proxyUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+          Authorization: `Bearer ${authToken}`
+        },
+        body: JSON.stringify(payload)
+      });
+      const body = await r.json().catch(() => ({}));
+      if (!r.ok) throw new Error(body?.message || body?.error?.reason || r.statusText || `HTTP ${r.status}`);
+      return body;
+    }
+
+    function buildBhPayload(name, timezone, workingHours, holidaysId, overridesId) {
+      const payload = { name, description: name, timezone, workingHours };
+      if (holidaysId)  payload.holidaysId  = holidaysId;
+      if (overridesId) payload.overridesId = overridesId;
+      return payload;
+    }
+
+    async function createBusinessHours(payload) {
+      /* Try v2 first, then without version prefix */
+      for (const path of ['/v2/business-hours', '/business-hours']) {
+        try {
+          const result = await apiPost(path, payload);
+          return result;
+        } catch (err) {
+          if (err.message.includes('405') || err.message.toLowerCase().includes('not allowed')) continue;
+          throw err;
+        }
+      }
+      throw new Error('Business hours creation not supported by this API (HTTP 405 on all endpoints)');
+    }
+
+    /* Template card clicks — update preview pane */
+    document.getElementById('fspTemplateGrid')?.querySelectorAll('.flow-template-card').forEach((card) => {
+      card.addEventListener('click', () => {
+        document.getElementById('fspTemplateGrid').querySelectorAll('.flow-template-card').forEach((c) => c.classList.remove('selected'));
+        card.classList.add('selected');
+        fspSelectedTemplate = card.dataset.template || '';
+        const pane    = document.getElementById('fspPreviewPane');
+        const isDark  = document.body.classList.contains('dark-mode');
+        const src     = isDark ? card.dataset.previewDark : card.dataset.previewLight;
+        if (pane && src) {
+          pane.innerHTML = `<img src="${src}" class="${isDark ? 'preview-img--dark' : 'preview-img--light'}" alt="Flow preview">`;
+        }
+      });
+    });
+
+    /* Auto-select the first enabled template on load */
+    const firstEnabledCard = document.querySelector('#fspTemplateGrid .flow-template-card:not([disabled])');
+    if (firstEnabledCard) firstEnabledCard.click();
+
+    /* ─── BH builder helpers ─── */
+    const FSP_DAYS = ['MON','TUE','WED','THU','FRI','SAT','SUN'];
+    const FSP_DAY_LABELS = { MON:'Mon', TUE:'Tue', WED:'Wed', THU:'Thu', FRI:'Fri', SAT:'Sat', SUN:'Sun' };
+
+    function fspClearShifts() {
+      const list = document.getElementById('fspShiftsList');
+      if (list) list.innerHTML = '';
+      document.getElementById('fspPanel3')?.querySelectorAll('.bh-preset-btn').forEach((b) => b.classList.remove('selected'));
+    }
+
+    function fspAddShiftRow(name = 'Business Hours', days = [], startTime = '08:00', endTime = '16:59') {
+      const list = document.getElementById('fspShiftsList');
+      if (!list) return;
+      const row = document.createElement('div');
+      row.className = 'bh-shift-row';
+      row.innerHTML = `
+        <input type="text" class="bh-shift-name" placeholder="Shift name" value="${name}" autocomplete="off">
+        <div class="bh-day-pills">
+          ${FSP_DAYS.map((d) => `<button type="button" class="bh-day-pill${days.includes(d) ? ' active' : ''}" data-day="${d}">${FSP_DAY_LABELS[d]}</button>`).join('')}
+        </div>
+        <input type="time" class="bh-shift-time" value="${startTime}">
+        <span class="bh-time-sep">to</span>
+        <input type="time" class="bh-shift-time" value="${endTime}">
+        <button type="button" class="btn-icon clone bh-shift-clone" title="Duplicate shift">+</button>
+        <button type="button" class="btn-icon remove bh-shift-remove" title="Remove shift">×</button>`;
+      row.querySelectorAll('.bh-day-pill').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          btn.classList.toggle('active');
+          document.getElementById('fspPanel3').querySelectorAll('.bh-preset-btn').forEach((b) => b.classList.remove('selected'));
+        });
+      });
+      row.querySelector('.bh-shift-clone').addEventListener('click', () => {
+        const cloneName  = row.querySelector('.bh-shift-name')?.value || 'Business Hours';
+        const cloneDays  = Array.from(row.querySelectorAll('.bh-day-pill.active')).map((b) => b.dataset.day);
+        const cloneTimes = row.querySelectorAll('.bh-shift-time');
+        fspAddShiftRow(cloneName, cloneDays, cloneTimes[0]?.value || '08:00', cloneTimes[1]?.value || '17:00');
+      });
+      row.querySelector('.bh-shift-remove').addEventListener('click', () => row.remove());
+      list.appendChild(row);
+    }
+
+    function fspGetShifts() {
+      const shifts = [];
+      document.querySelectorAll('#fspShiftsList .bh-shift-row').forEach((row) => {
+        const name      = row.querySelector('.bh-shift-name')?.value?.trim() || 'Business Hours';
+        const days      = Array.from(row.querySelectorAll('.bh-day-pill.active')).map((b) => b.dataset.day);
+        const times     = row.querySelectorAll('.bh-shift-time');
+        const startTime = times[0]?.value || '08:00';
+        const endTime   = times[1]?.value || '17:00';
+        if (days.length) shifts.push({ name, days, startTime, endTime });
+      });
+      return shifts;
+    }
+
+    /* ── Review panel populator ────────────────────────────────── */
+    function fspPopulateReview() {
+      const grid = document.getElementById('fspReviewGrid');
+      if (!grid) return;
+
+      const flowName     = document.getElementById('fspFlowName')?.value?.trim()    || '—';
+      const bhName       = document.getElementById('fspBhName')?.value?.trim()      || '—';
+      const bhTz         = document.getElementById('fspBhTimezone')?.value          || '—';
+      const welcome      = document.getElementById('fspWelcome')?.value?.trim()     || '—';
+      const holiday      = document.getElementById('fspHoliday')?.value?.trim()     || '—';
+      const overrideMsg  = document.getElementById('fspOverride')?.value?.trim()    || '—';
+      const closed       = document.getElementById('fspClosed')?.value?.trim()      || '—';
+      const queueMsg     = document.getElementById('fspQueueMsg')?.value?.trim()    || '—';
+      const noAgents     = document.getElementById('fspNoAgents')?.value?.trim()    || '—';
+      const hasOverride  = document.getElementById('fspCreateOverride')?.checked    || false;
+      const shifts       = fspGetShifts();
+      const holVal       = document.getElementById('fspHolidayList')?.value         || '';
+      const holText      = document.getElementById('fspHolidayList')?.selectedOptions?.[0]?.text || 'None';
+
+      const shiftsHtml = shifts.length
+        ? shifts.map((s) => `${s.name}: ${s.days.join(', ')} ${s.startTime}–${s.endTime}`).join('<br>')
+        : '<em style="color:var(--muted)">No shifts defined</em>';
+
+      grid.innerHTML = `
+        <div class="fsp-review-section">
+          <div class="fsp-review-section-title">Flow</div>
+          <div class="fsp-review-row"><span class="fsp-review-label">Flow name</span><span class="fsp-review-value">${flowName}</span></div>
+          <div class="fsp-review-row"><span class="fsp-review-label">Template</span><span class="fsp-review-value">Simple Call Flow</span></div>
+        </div>
+        <div class="fsp-review-section">
+          <div class="fsp-review-section-title">Business Hours</div>
+          <div class="fsp-review-row"><span class="fsp-review-label">Schedule name</span><span class="fsp-review-value">${bhName}</span></div>
+          <div class="fsp-review-row"><span class="fsp-review-label">Timezone</span><span class="fsp-review-value">${bhTz}</span></div>
+          <div class="fsp-review-row"><span class="fsp-review-label">Working shifts</span><span class="fsp-review-value">${shiftsHtml}</span></div>
+          <div class="fsp-review-row"><span class="fsp-review-label">Holiday list</span><span class="fsp-review-value">${holText}</span></div>
+          <div class="fsp-review-row"><span class="fsp-review-label">Override schedule</span><span class="fsp-review-value">${hasOverride ? 'Yes — will be created' : 'No'}</span></div>
+        </div>
+        <div class="fsp-review-section">
+          <div class="fsp-review-section-title">TTS Messages</div>
+          <div class="fsp-review-row"><span class="fsp-review-label">Welcome</span><span class="fsp-review-value">${welcome}</span></div>
+          <div class="fsp-review-row"><span class="fsp-review-label">Holiday</span><span class="fsp-review-value">${holiday}</span></div>
+          <div class="fsp-review-row"><span class="fsp-review-label">Override</span><span class="fsp-review-value">${overrideMsg}</span></div>
+          <div class="fsp-review-row"><span class="fsp-review-label">Closed</span><span class="fsp-review-value">${closed}</span></div>
+          <div class="fsp-review-row"><span class="fsp-review-label">Queue / hold</span><span class="fsp-review-value">${queueMsg}</span></div>
+          <div class="fsp-review-row"><span class="fsp-review-label">No agents</span><span class="fsp-review-value">${noAgents}</span></div>
+        </div>`;
+    }
+
+    /* Preset buttons */
+    document.getElementById('fspPanel3')?.querySelectorAll('.bh-preset-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        document.getElementById('fspPanel3').querySelectorAll('.bh-preset-btn').forEach((b) => b.classList.remove('selected'));
+        btn.classList.add('selected');
+        fspClearShifts();
+        btn.classList.add('selected');
+        const p = btn.dataset.preset;
+        if (p === '247') {
+          fspAddShiftRow('All Hours', ['MON','TUE','WED','THU','FRI','SAT','SUN'], '00:00', '23:59');
+        } else if (p === 'mf85') {
+          fspAddShiftRow('Business Hours', ['MON','TUE','WED','THU','FRI'], '08:00', '16:59');
+        } else if (p === 'mf95') {
+          fspAddShiftRow('Business Hours', ['MON','TUE','WED','THU','FRI'], '09:00', '16:59');
+        }
+      });
+    });
+
+    /* Add shift button */
+    document.getElementById('fspAddShiftBtn')?.addEventListener('click', () => {
+      document.getElementById('fspPanel3').querySelectorAll('.bh-preset-btn').forEach((b) => b.classList.remove('selected'));
+      fspAddShiftRow();
+    });
+
+    /* Holiday list loader */
+    async function fspLoadHolidayLists() {
+      const sel = document.getElementById('fspHolidayList');
+      if (!sel) return;
+      sel.innerHTML = '<option value="">Loading…</option>';
+      const data = await fetchList(`${BASE_URL}/v2/holiday-list?page=0&pageSize=100`);
+      sel.innerHTML = '<option value="">None (no holiday list)</option>';
+      (data || []).forEach((hl) => {
+        sel.add(new Option(hl.name, hl.id));
+      });
+    }
+
+    /* Override checkbox */
+    document.getElementById('fspCreateOverride')?.addEventListener('change', (e) => {
+      const box = document.getElementById('fspOverrideBox');
+      box?.classList.toggle('hidden', !e.target.checked);
+      if (e.target.checked) {
+        /* Pre-fill dates: today → tomorrow */
+        const now   = new Date();
+        const tom   = new Date(now); tom.setDate(tom.getDate() + 1);
+        const fmt   = (d) => d.toISOString().slice(0, 16); // "YYYY-MM-DDTHH:MM"
+        const startEl = document.getElementById('fspOverrideStart');
+        const endEl   = document.getElementById('fspOverrideEnd');
+        if (startEl && !startEl.value) startEl.value = fmt(now).slice(0, 11) + '00:00';
+        if (endEl   && !endEl.value)   endEl.value   = fmt(tom).slice(0, 11) + '23:59';
+        /* Pre-fill override name from BH name */
+        const bhName = document.getElementById('fspBhName')?.value?.trim() || '';
+        const ovName = document.getElementById('fspOverrideName');
+        if (ovName && !ovName.value && bhName) ovName.value = bhName;
+      }
+    });
+
+    /* Skip → go directly to entry point form (no flow created) */
+    flowSkipBtn?.addEventListener('click', () => showStage(stageForm));
+
+    /* Prev / Start Over button */
+    flowPrevBtn?.addEventListener('click', () => {
+      if (fspCurrentStep === 1) {
+        if (!confirm('Start over? This will reset all wizard progress and return you to Step 1.')) return;
+        localStorage.removeItem('wxcc_wizard_state');
+        localStorage.removeItem('wizardTeamName');
+        localStorage.removeItem('wizardTeamId');
+        window.location.href = 'S1_Teams.html';
+      } else {
+        fspGoToStep(fspCurrentStep - 1);
+      }
+    });
+
+    /* Next / Create Flow button */
+    flowNextBtn?.addEventListener('click', async () => {
+      if (fspCurrentStep === 1) {
+        if (!fspSelectedTemplate) { setFlowStatus('Please select a template.', 'error'); return; }
+        fspGoToStep(2);
+        document.getElementById('fspFlowName')?.focus();
+        fspLoadQueue();
+        return;
+      }
+
+      if (fspCurrentStep === 2) {
+        const name = document.getElementById('fspFlowName')?.value?.trim() || '';
+        if (!name) { document.getElementById('fspFlowName')?.focus(); setFlowStatus('Flow name is required.', 'error'); return; }
+        fspGoToStep(3);
+        return;
+      }
+
+      if (fspCurrentStep === 3) {
+        const bhName = document.getElementById('fspBhName')?.value?.trim() || '';
+        if (!bhName) { document.getElementById('fspBhName')?.focus(); setFlowStatus('Schedule name is required.', 'error'); return; }
+        fspGoToStep(4);
+        return;
+      }
+
+      /* Step 4: Validate TTS then go to review */
+      if (fspCurrentStep === 4) {
+        const welcome  = document.getElementById('fspWelcome')?.value?.trim()  || '';
+        const holiday  = document.getElementById('fspHoliday')?.value?.trim()  || '';
+        const closed   = document.getElementById('fspClosed')?.value?.trim()   || '';
+        const queueMsg = document.getElementById('fspQueueMsg')?.value?.trim() || '';
+        if (!welcome)  { document.getElementById('fspWelcome')?.focus();  setFlowStatus('Welcome message is required.', 'error'); return; }
+        if (!holiday)  { document.getElementById('fspHoliday')?.focus();  setFlowStatus('Holiday message is required.', 'error'); return; }
+        if (!closed)   { document.getElementById('fspClosed')?.focus();   setFlowStatus('Closed message is required.', 'error'); return; }
+        if (!queueMsg) { document.getElementById('fspQueueMsg')?.focus(); setFlowStatus('Queue message is required.', 'error'); return; }
+        fspGoToStep(5);
+        return;
+      }
+
+      /* Step 5: Create flow */
+      if (fspCurrentStep === 5) {
+        const flowName       = document.getElementById('fspFlowName')?.value?.trim() || '';
+        const bhName         = document.getElementById('fspBhName')?.value?.trim() || '';
+        const bhTz           = document.getElementById('fspBhTimezone')?.value || 'America/Denver';
+        const welcome        = document.getElementById('fspWelcome')?.value?.trim() || '';
+        const holiday        = document.getElementById('fspHoliday')?.value?.trim() || '';
+        const override       = document.getElementById('fspOverride')?.value?.trim() || '';
+        const closed         = document.getElementById('fspClosed')?.value?.trim() || '';
+        const queueMsg       = document.getElementById('fspQueueMsg')?.value?.trim() || '';
+        const noAgents       = document.getElementById('fspNoAgents')?.value?.trim() || '';
+        const shifts         = fspGetShifts();
+        const holidaysId     = document.getElementById('fspHolidayList')?.value || '';
+        const createOverride = document.getElementById('fspCreateOverride')?.checked || false;
+
+        if (!flowName)            { setFlowStatus('Flow name is required.', 'error'); return; }
+        if (!fspDetectedQueue.id) { setFlowStatus('No queue found — create a queue in Step 2 first.', 'error'); return; }
+        if (!shifts.length)       { setFlowStatus('Add at least one working hours shift in Step 3.', 'error'); return; }
+
+        flowNextBtn.disabled = true;
+        /* Persist timezone so entry point can use it without asking again */
+        saveWizardState({ latestTimezone: bhTz });
+        document.getElementById('epTimezone').value = bhTz;
+        fspShowProgressPanel(createOverride);
+
+        try {
+          fspSetStep('template', 'active');
+          const template = await loadFlowTemplate(fspSelectedTemplate);
+          fspSetStep('template', 'done', 'Template loaded');
+
+          let overridesId = '';
+          if (createOverride) {
+            fspSetStep('override', 'active');
+            const ovName  = document.getElementById('fspOverrideName')?.value?.trim() || bhName;
+            const ovStart = document.getElementById('fspOverrideStart')?.value || '';
+            const ovEnd   = document.getElementById('fspOverrideEnd')?.value || '';
+            if (!ovName) throw new Error('Override schedule name is required.');
+            const ovResult = await apiPost('/overrides', {
+              name: ovName,
+              description: ovName,
+              timezone: bhTz,
+              overrides: [{ name: 'Placeholder', startDateTime: ovStart, endDateTime: ovEnd, workingHours: false }]
+            });
+            overridesId = ovResult?.id || '';
+            fspSetStep('override', 'done', ovName);
+          }
+
+          fspSetStep('bh', 'active');
+          const bhPayload = buildBhPayload(bhName, bhTz, shifts, holidaysId, overridesId);
+          const bhResult  = await createBusinessHours(bhPayload);
+          fspCreatedBh    = { id: bhResult?.id || '', name: bhResult?.name || bhName };
+          fspSetStep('bh', 'done', bhName);
+
+          fspSetStep('import', 'active');
+          const tts     = { welcome, holiday, override, closed, queue: queueMsg, noAgents };
+          const payload = buildFlowPayload(template, flowName, fspDetectedQueue.id, fspDetectedQueue.name, fspCreatedBh.id, fspCreatedBh.name, tts);
+          const result  = await importFlowFromTemplate(payload);
+          const newId   = result?.id || result?.flowId || '';
+          const newName = result?.name || flowName;
+          fspSetStep('import', 'done', newName);
+
+          fspSetStep('publish', 'active');
+          if (newId) await publishFlow(newId);
+          fspSetStep('publish', 'done', 'Published as Live');
+
+          /* Persist the created flow so the entry-point form can auto-wire it */
+          if (newId) {
+            saveWizardState({ latestCreatedFlow: { id: newId, name: newName } });
+            seedAutoFlowInfo(newId, newName);
+          }
+
+          /* Brief pause to let the user see all steps green */
+          await new Promise((r) => setTimeout(r, 900));
+          showStage(stageForm);
+
+        } catch (err) {
+          fspProgressError(err.message);
+        } finally {
+          flowNextBtn.disabled = false;
+        }
+      }
+    });
+
+    /* ─────────────── Boot ─────────────── */
+    (async () => {
+      updateAuthIndicators();
+      restoreForm();
+      await loadDropdowns();
+    })();
+  </script>
+</body>
+</html>

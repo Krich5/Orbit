@@ -1,0 +1,3176 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="light" />
+  <title>WxCC Wizard - Queues Setup</title>
+  <link rel="icon" type="image/png" href="../../assets/images/WxCC_Icon-192.png" />
+  <link rel="stylesheet" href="../../assets/css/theme.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    main {
+      padding:32px 0 64px;
+      width:100%;
+      margin:0 auto;
+      display:flex;
+      justify-content:flex-start;
+      align-items:flex-start;
+    }
+    .wizard-card {
+      width:100%;
+      background:var(--panel);
+      border:1px solid rgba(255,255,255,0.08);
+      border-radius:36px;
+      padding:28px 32px;
+      box-shadow:0 30px 60px rgba(0,0,0,0.35);
+      margin:0 auto;
+    }
+    .wizard-title {
+      margin:0 0 8px;
+      font-size:clamp(2.75rem,3vw,3.6rem);
+      font-weight:700;
+      color:var(--fg);
+    }
+    .wizard-stage { display:none; }
+    .wizard-stage.active { display:flex; justify-content:center; }
+    .form-panel {
+      border:1px solid rgba(255,255,255,0.1);
+      border-radius:26px;
+      padding:32px 40px;
+      background:rgba(255,255,255,0.02);
+      box-shadow:inset 0 0 0 1px rgba(255,255,255,0.03);
+      display:flex;
+      flex-direction:column;
+      gap:18px;
+      width:100%;
+    }
+    body:not(.dark-mode) .form-panel {
+      border-color:rgba(0,0,0,0.12);
+      background:rgba(255,255,255,0.92);
+      box-shadow:0 25px 60px rgba(0,0,0,0.12), inset 0 0 0 1px rgba(255,255,255,0.25);
+    }
+    .form-panel form {
+      display:flex;
+      flex-direction:column;
+      gap:20px;
+      width:100%;
+    }
+    .step-label {
+      margin:0 0 12px;
+      font-size:1rem;
+      letter-spacing:0.25em;
+      text-transform:uppercase;
+      color:var(--muted);
+      font-weight:600;
+    }
+    .step-label.form-heading {
+      font-size:1.15rem;
+      font-weight:700;
+      color:var(--fg);
+      letter-spacing:0.4em;
+    }
+    body.dark-mode .step-label.form-heading {
+      color:#fff;
+    }
+    .wizard-subtitle {
+      margin:0 0 28px;
+      font-size:1rem;
+      color:var(--muted);
+      letter-spacing:0.2em;
+      text-transform:uppercase;
+    }
+    .progress-bar {
+      display:flex;
+      gap:8px;
+      margin-bottom:32px;
+    }
+    .progress-step {
+      flex:1;
+      height:6px;
+      background:#d4d4d4;
+      border-radius:3px;
+    }
+    body.dark-mode .progress-step {
+      background:rgba(255,255,255,0.18);
+    }
+    .progress-step.complete {
+      background:linear-gradient(135deg,#2196f3,#1976d2);
+    }
+    .progress-step.active {
+      background:linear-gradient(135deg,#22c55e,#10b981);
+    }
+    body.dark-mode .progress-step.complete {
+      background:linear-gradient(135deg,#2196f3,#1976d2);
+    }
+    body.dark-mode .progress-step.active {
+      background:linear-gradient(135deg,#22c55e,#10b981);
+    }
+    .field-grid {
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(210px,1fr));
+      gap:20px;
+      margin-bottom:20px;
+      align-items:flex-start;
+    }
+    .field-grid--with-toggles {
+      grid-template-columns:repeat(3,minmax(0,1fr));
+    }
+    .field-grid--triple { grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); }
+    .field-group {
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+    }
+    .field-group span,
+    .field-group label {
+      font-size:0.8rem;
+      letter-spacing:0.3em;
+      text-transform:uppercase;
+      color:var(--muted);
+      min-height:38px;
+      line-height:1.2;
+    }
+    .field-group input,
+    .field-group textarea,
+    .field-group select {
+      border-radius:14px;
+      border:1px solid var(--border);
+      background:var(--input);
+      color:var(--fg);
+      padding:12px 14px;
+      font-size:1rem;
+      font-family:inherit;
+    }
+    .field-group select[multiple] {
+      height:auto;
+      min-height:160px;
+      padding:12px;
+    }
+    .toggles-column {
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      min-height:138px;
+    }
+    .toggle-row {
+      display:flex;
+      flex-wrap:wrap;
+      gap:12px;
+      margin-bottom:0;
+    }
+    .toggle-row--stacked label {
+      width:100%;
+    }
+    .field-group textarea { min-height:120px; resize:vertical; }
+    .field-note {
+      font-size:0.85rem;
+      color:var(--muted);
+      margin-top:6px;
+    }
+    .text-link {
+      background:none;
+      border:none;
+      padding:0;
+      font:inherit;
+      color:#7cd6ff;
+      cursor:pointer;
+      text-decoration:underline;
+      margin-top:6px;
+    }
+    .skill-create-panel {
+      margin-top:12px;
+      padding:20px 22px;
+      border-radius:18px;
+      border:1px dashed rgba(255,255,255,0.2);
+      background:rgba(255,255,255,0.02);
+      box-shadow:inset 0 0 0 1px rgba(255,255,255,0.04);
+      display:flex;
+      flex-direction:column;
+      gap:16px;
+    }
+    body:not(.dark-mode) .skill-create-panel {
+      border-color:rgba(0,0,0,0.12);
+      background:rgba(0,0,0,0.02);
+    }
+    .queue-intro-grid {
+      display:grid;
+      grid-template-columns:1fr;
+      gap:20px;
+      align-items:end;
+      margin-bottom:8px;
+    }
+    .queue-type-panel {
+      display:flex;
+      flex-direction:column;
+      gap:14px;
+    }
+    .queue-type-grid {
+      display:grid;
+      grid-template-columns:repeat(4,minmax(0,1fr));
+      gap:18px;
+    }
+    .queue-type-card {
+      position:relative;
+      display:flex;
+      flex-direction:column;
+      min-height:158px;
+      border-radius:22px;
+      border:1px solid rgba(255,255,255,0.18);
+      background:linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.03));
+      color:var(--fg);
+      overflow:hidden;
+      cursor:pointer;
+      transition:transform 0.18s ease,border-color 0.18s ease,box-shadow 0.18s ease;
+    }
+    .queue-type-card:hover {
+      transform:translateY(-2px);
+      border-color:rgba(124,214,255,0.45);
+      box-shadow:0 16px 32px rgba(0,0,0,0.2);
+    }
+    .queue-type-card.active {
+      border-color:#43b1ff;
+      box-shadow:0 0 0 2px rgba(67,177,255,0.22),0 20px 40px rgba(0,0,0,0.28);
+    }
+    .queue-type-card-copy {
+      padding:18px 18px 56px;
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+      align-items:center;
+      text-align:center;
+    }
+    .queue-type-icon {
+      width:42px;
+      height:42px;
+      color:#f5f7fb;
+      opacity:0.96;
+    }
+    .queue-type-title {
+      font-size:1.05rem;
+      font-weight:700;
+      letter-spacing:0.04em;
+      color:#fff;
+    }
+    .queue-type-subtitle {
+      min-height:auto !important;
+      font-size:0.74rem !important;
+      letter-spacing:0.12em !important;
+      text-transform:uppercase;
+      color:#a9b7ce !important;
+      line-height:1.35 !important;
+    }
+    .queue-type-indicator {
+      position:absolute;
+      left:-1px;
+      right:-1px;
+      bottom:-1px;
+      height:42px;
+      background:rgba(0,0,0,0.35);
+      border-top:1px solid rgba(255,255,255,0.08);
+    }
+    .queue-type-indicator::before {
+      content:'';
+      position:absolute;
+      left:50%;
+      top:50%;
+      width:24px;
+      height:24px;
+      transform:translate(-50%,-50%);
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,0.45);
+      background:transparent;
+      transition:all 0.18s ease;
+    }
+    .queue-type-card.active .queue-type-indicator {
+      background:#123560;
+    }
+    .queue-type-card.active .queue-type-indicator::before {
+      width:26px;
+      height:26px;
+      border-width:7px;
+      border-color:#43b1ff;
+      background:#0b101d;
+    }
+    .queue-team-note {
+      margin:-4px 0 8px;
+      font-size:0.92rem;
+      color:var(--muted);
+    }
+    .queue-config-shell {
+      padding:22px;
+      border-radius:22px;
+      border:1px solid rgba(255,255,255,0.1);
+      background:rgba(255,255,255,0.03);
+      display:flex;
+      flex-direction:column;
+      gap:18px;
+    }
+    .queue-config-header {
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:16px;
+      flex-wrap:wrap;
+    }
+    .queue-config-header .step-label {
+      margin:0;
+    }
+    .queue-row-grid {
+      display:grid;
+      grid-template-columns:repeat(4,minmax(0,1fr));
+      gap:18px;
+      align-items:end;
+    }
+    .queue-row-grid .field-group--wide {
+      grid-column:span 2;
+    }
+    .permission-panel {
+      display:flex;
+      flex-direction:column;
+      gap:14px;
+      padding-top:4px;
+    }
+    .permission-panel .step-label {
+      margin:0;
+    }
+    .queue-config-actions {
+      display:flex;
+      justify-content:flex-end;
+      margin-top:4px;
+    }
+    .queue-mode-section {
+      display:flex;
+      flex-direction:column;
+      gap:16px;
+      padding-top:2px;
+    }
+    .queue-mode-grid {
+      display:grid;
+      grid-template-columns:minmax(0,1.25fr) minmax(280px,0.75fr);
+      gap:16px;
+      align-items:start;
+    }
+    .queue-mode-card {
+      padding:16px;
+      border-radius:18px;
+      border:1px solid rgba(255,255,255,0.08);
+      background:rgba(255,255,255,0.03);
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+    }
+    .queue-mode-card .step-label {
+      margin:0;
+    }
+    .agent-picker-shell {
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+    }
+    .agent-assignment-grid {
+      display:grid;
+      grid-template-columns:minmax(0,1.15fr) minmax(320px,0.85fr);
+      gap:16px;
+      align-items:start;
+    }
+    .agent-panel {
+      padding:16px;
+      border-radius:18px;
+      border:1px solid rgba(255,255,255,0.08);
+      background:rgba(255,255,255,0.03);
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+    }
+    .agent-panel .step-label {
+      margin:0;
+    }
+    .agent-panel input {
+      width:100%;
+    }
+    .agent-list-box {
+      min-height:180px;
+      max-height:260px;
+      overflow:auto;
+      border-radius:14px;
+      border:1px solid rgba(67,177,255,0.45);
+      background:rgba(255,255,255,0.03);
+      padding:6px;
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+    }
+    .agent-list-item {
+      width:100%;
+      text-align:left;
+      border:none;
+      border-radius:10px;
+      background:transparent;
+      color:var(--fg);
+      padding:10px 12px;
+      cursor:pointer;
+      transition:background 0.18s ease,color 0.18s ease;
+    }
+    .agent-list-item:hover {
+      background:rgba(67,177,255,0.16);
+    }
+    .agent-list-item.selected {
+      background:rgba(160,199,245,0.75);
+      color:#0f1727;
+    }
+    .selected-agent-list {
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+      min-height:120px;
+    }
+    .selected-agent-item {
+      position:relative;
+      padding:12px 40px 12px 14px;
+      border-radius:14px;
+      border:1px solid rgba(255,255,255,0.08);
+      background:rgba(255,255,255,0.03);
+      color:#fff;
+      line-height:1.35;
+    }
+    .selected-agent-remove {
+      position:absolute;
+      top:10px;
+      right:10px;
+      width:24px;
+      height:24px;
+      border:none;
+      border-radius:999px;
+      background:rgba(255,255,255,0.08);
+      color:#fff;
+      cursor:pointer;
+      font-size:1rem;
+      line-height:1;
+    }
+    .selected-agent-empty {
+      color:var(--muted);
+      font-size:0.92rem;
+      padding:8px 2px;
+    }
+    .routing-card-grid {
+      display:grid;
+      grid-template-columns:repeat(3,minmax(0,1fr));
+      gap:12px;
+    }
+    .routing-card {
+      position:relative;
+      border-radius:18px;
+      border:1px solid rgba(255,255,255,0.18);
+      background:linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.03));
+      color:#fff;
+      cursor:pointer;
+      overflow:hidden;
+    }
+    .routing-card.active {
+      border-color:#43b1ff;
+      box-shadow:0 0 0 2px rgba(67,177,255,0.18);
+    }
+    .routing-card-copy {
+      padding:18px 14px 46px;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      gap:10px;
+      text-align:center;
+    }
+    .routing-card-icon {
+      width:40px;
+      height:40px;
+    }
+    .routing-card-title {
+      font-size:0.95rem;
+      font-weight:700;
+      line-height:1.25;
+      word-break:break-word;
+    }
+    .routing-card-indicator {
+      position:absolute;
+      left:0;
+      right:0;
+      bottom:0;
+      height:30px;
+      background:rgba(0,0,0,0.45);
+      border-top:1px solid rgba(255,255,255,0.08);
+    }
+    .routing-card-indicator::before {
+      content:'';
+      position:absolute;
+      left:50%;
+      top:50%;
+      width:20px;
+      height:20px;
+      transform:translate(-50%,-50%);
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,0.45);
+    }
+    .routing-card.active .routing-card-indicator {
+      background:#123560;
+    }
+    .routing-card.active .routing-card-indicator::before {
+      border-width:6px;
+      border-color:#43b1ff;
+      background:#0b101d;
+    }
+    .routingPatternRowCompact .field-group span,
+    .routingPatternRowCompact .field-group label {
+      min-height:auto;
+    }
+    .queue-batch-panel {
+      padding:18px 20px;
+      border:1px dashed rgba(255,255,255,0.2);
+      border-radius:18px;
+      background:rgba(255,255,255,0.02);
+      display:flex;
+      flex-direction:column;
+      gap:14px;
+    }
+    .queue-batch-header {
+      display:flex;
+      justify-content:space-between;
+      gap:16px;
+      align-items:flex-start;
+      flex-wrap:wrap;
+    }
+    .queue-batch-copy strong {
+      display:block;
+      font-size:1rem;
+      margin-bottom:6px;
+    }
+    .queue-batch-copy p {
+      margin:0;
+      color:var(--muted);
+      font-size:0.92rem;
+    }
+    .queue-batch-list {
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+    }
+    .queue-batch-item {
+      padding:18px;
+      border-radius:20px;
+      border:1px solid rgba(255,255,255,0.1);
+      background:rgba(255,255,255,0.03);
+      display:flex;
+      flex-direction:column;
+      gap:16px;
+    }
+    .queue-batch-item-header {
+      display:flex;
+      justify-content:space-between;
+      gap:16px;
+      align-items:center;
+    }
+    .queue-batch-title {
+      font-size:1rem;
+      font-weight:700;
+      color:var(--fg);
+    }
+    .queue-batch-grid {
+      display:grid;
+      grid-template-columns:repeat(4,minmax(0,1fr));
+      gap:14px;
+    }
+    .queue-batch-cell {
+      padding:12px 14px;
+      border-radius:14px;
+      border:1px solid rgba(255,255,255,0.08);
+      background:rgba(255,255,255,0.03);
+    }
+    .queue-batch-cell-label {
+      display:block;
+      margin-bottom:6px;
+      font-size:0.7rem;
+      letter-spacing:0.22em;
+      text-transform:uppercase;
+      color:var(--muted);
+    }
+    .queue-batch-cell-value {
+      color:#fff;
+      font-weight:600;
+      line-height:1.35;
+    }
+    .queue-batch-pills {
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+    }
+    .queue-batch-pill {
+      display:inline-flex;
+      align-items:center;
+      padding:5px 10px;
+      border-radius:999px;
+      font-size:0.78rem;
+      font-weight:600;
+      letter-spacing:0.04em;
+      background:rgba(124,214,255,0.12);
+      color:#7cd6ff;
+      border:1px solid rgba(124,214,255,0.22);
+    }
+    .loading-overlay {
+      position:fixed;
+      inset:0;
+      display:none;
+      align-items:center;
+      justify-content:center;
+      background:rgba(7,11,22,0.74);
+      backdrop-filter:blur(6px);
+      z-index:9998;
+      padding:24px;
+    }
+    .loading-overlay.active {
+      display:flex;
+    }
+    .loading-card {
+      width:min(420px,100%);
+      padding:28px 30px;
+      border-radius:24px;
+      border:1px solid rgba(255,255,255,0.12);
+      background:rgba(19,26,42,0.96);
+      box-shadow:0 30px 70px rgba(0,0,0,0.45);
+      text-align:center;
+    }
+    .loading-spinner {
+      width:52px;
+      height:52px;
+      margin:0 auto 18px;
+      border-radius:999px;
+      border:4px solid rgba(124,214,255,0.18);
+      border-top-color:#22c55e;
+      animation:spin 0.9s linear infinite;
+    }
+    .loading-title {
+      margin:0 0 8px;
+      font-size:1.2rem;
+      font-weight:700;
+      color:#fff;
+    }
+    .loading-copy {
+      margin:0;
+      color:#b7c3d9;
+      line-height:1.5;
+    }
+    @keyframes spin {
+      to { transform:rotate(360deg); }
+    }
+    .btn {
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      padding:12px 24px;
+      border-radius:16px;
+      font-weight:700;
+      font-size:1rem;
+      cursor:pointer;
+      transition:all 0.2s;
+      border:none;
+    }
+    .btn.primary {
+      background:linear-gradient(135deg,#2196f3,#1976d2);
+      color:#fff;
+      border:1px solid #1976d2;
+    }
+    .btn.primary:hover {
+      background:linear-gradient(135deg,#1976d2,#1565c0);
+    }
+    .btn.ghost {
+      background:transparent;
+      color:#7cd6ff;
+      border:1px solid rgba(255,255,255,0.3);
+      border-radius:16px;
+      padding:10px 16px;
+    }
+    .button-row {
+      display:flex;
+      justify-content:flex-end;
+      gap:12px;
+      margin-top:16px;
+    }
+    .button-row--right {
+      margin-top:32px;
+    }
+    .btn.secondary {
+      border:1px solid rgba(255,255,255,0.25);
+      background:rgba(255,255,255,0.08);
+      color:var(--fg);
+    }
+    body.dark-mode .btn.secondary {
+      color:#fff;
+    }
+    .button-row .btn { min-width:140px; }
+    .statusMessage {
+      margin-top:16px;
+      padding:12px 16px;
+      border-radius:12px;
+      text-align:center;
+      width:min(360px,100%);
+      font-size:1rem;
+      font-weight:600;
+      background-color:rgba(255,255,255,0.05);
+      color:var(--muted);
+      border:1px solid transparent;
+    }
+    .statusMessage.success {
+      background:linear-gradient(135deg,#10b981,#22c55e);
+      color:#fff;
+      border-color:#22c55e;
+    }
+    .statusMessage.error {
+      background:#f87171;
+      color:#1f2937;
+      border-color:#f87171;
+    }
+    .stage-status {
+      display:none !important;
+    }
+    .stage-status.active {
+      display:flex !important;
+      justify-content:center;
+    }
+    .stage-status.active .form-panel {
+      align-items:center;
+      width:100%;
+      max-width:1280px;
+      margin:0;
+      padding:40px 48px;
+    }
+    body:not(.dark-mode) .stage-status.active .form-panel {
+      border-color:rgba(0,0,0,0.12);
+      background:rgba(255,255,255,0.92);
+      box-shadow:0 25px 60px rgba(0,0,0,0.12), inset 0 0 0 1px rgba(255,255,255,0.25);
+    }
+    .stage-status .status-card {
+      width:100%;
+      max-width:none;
+    }
+    .stage-status .status-card {
+      display:flex;
+      flex-direction:column;
+      gap:18px;
+      align-items:center;
+      justify-content:center;
+      min-height:260px;
+      text-align:center;
+      padding:24px 12px 18px;
+      width:min(520px,100%);
+    }
+    .stage-status .status-card strong {
+      font-size:clamp(3rem,3.5vw,3.8rem);
+      font-weight:700;
+      letter-spacing:0.05em;
+      text-transform:uppercase;
+    }
+    .stage-status .status-card span {
+      font-size:0.9rem;
+      text-transform:uppercase;
+      letter-spacing:0.35em;
+      color:var(--muted);
+    }
+    .stage-status .status-card .btn {
+      margin-top:auto;
+    }
+    .status-actions .btn.primary {
+      min-width:110px;
+      padding:8px 16px;
+      justify-content:center;
+      text-align:center;
+    }
+    .status-panel {
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+    }
+    .toggle-row {
+      display:flex;
+      flex-direction:column;
+      align-items:flex-start;
+      gap:12px;
+      margin-bottom:18px;
+      width:100%;
+    }
+    .toggle-grid {
+      display:grid;
+      grid-template-columns:repeat(4,minmax(0,1fr));
+      gap:12px;
+      width:100%;
+      margin-bottom:18px;
+    }
+    .toggle-grid label,
+    .toggle-grid .pause-duration-cell {
+      border-radius:16px;
+      border:1px solid var(--border);
+      background:var(--input);
+      color:var(--fg);
+      padding:10px 14px;
+      display:flex;
+      align-items:center;
+      gap:8px;
+      justify-content:flex-start;
+      width:100%;
+      min-height:52px;
+      font-weight:600;
+      white-space:nowrap;
+    }
+    .toggle-grid label input {
+      width:16px;
+      height:16px;
+      margin:0;
+      accent-color:#43b1ff;
+    }
+    .toggle-grid .pause-duration-cell {
+      grid-column:1 / -1;
+      justify-content:flex-start;
+      flex-direction:column;
+      align-items:flex-start;
+      gap:4px;
+    }
+    .toggle-grid .pause-inner {
+      width:100%;
+      display:flex;
+      align-items:center;
+      justify-content:flex-start;
+      gap:8px;
+    }
+    .toggle-grid .pause-inner input {
+      min-width:80px;
+      max-width:110px;
+      padding:8px 12px;
+      border-radius:12px;
+      border:1px solid rgba(255,255,255,0.2);
+      background:var(--panel);
+      color:#fff;
+    }
+    .assignment-row {
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+      margin-bottom:16px;
+    }
+    .assignment-row label {
+      display:inline-flex;
+      gap:8px;
+      align-items:center;
+      font-size:0.9rem;
+    }
+    .skill-requirements {
+      margin-bottom:14px;
+    }
+    .skill-requirements .field-grid {
+      gap:16px;
+    }
+    .flow-skill-helper {
+      margin:0 0 16px;
+      color:var(--muted);
+      font-size:0.92rem;
+      line-height:1.5;
+    }
+    .flow-skill-list {
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+      margin-top:18px;
+    }
+    .flow-skill-card {
+      border:1px solid var(--border);
+      border-radius:20px;
+      background:var(--card);
+      padding:18px 20px;
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:16px;
+      box-shadow:0 10px 24px rgba(0,0,0,0.08);
+    }
+    body.dark-mode .flow-skill-card {
+      background:rgba(12,12,12,0.75);
+      border-color:rgba(255,255,255,0.14);
+    }
+    .flow-skill-copy {
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+    }
+    .flow-skill-title {
+      font-size:0.95rem;
+      font-weight:700;
+      color:var(--fg);
+      letter-spacing:0.04em;
+      text-transform:uppercase;
+    }
+    .flow-skill-meta {
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+    }
+    .flow-skill-pill {
+      padding:6px 10px;
+      border-radius:999px;
+      border:1px solid var(--border);
+      background:var(--input);
+      color:var(--muted);
+      font-size:0.76rem;
+      letter-spacing:0.14em;
+      text-transform:uppercase;
+    }
+    .flow-skill-empty {
+      border:1px dashed rgba(255,255,255,0.18);
+      border-radius:18px;
+      padding:16px 18px;
+      color:var(--muted);
+      font-size:0.92rem;
+      background:rgba(255,255,255,0.02);
+    }
+    .flow-skill-card.success {
+      background:linear-gradient(135deg,#10b981,#22c55e);
+      border-color:#22c55e;
+      box-shadow:0 14px 28px rgba(16,185,129,0.25);
+    }
+    .flow-skill-card.success .flow-skill-title,
+    .flow-skill-card.success .flow-skill-pill {
+      color:#fff;
+    }
+    .flow-skill-card.success .flow-skill-pill {
+      border-color:rgba(255,255,255,0.28);
+      background:rgba(255,255,255,0.14);
+    }
+    .skill-batch-list {
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+      margin-top:16px;
+    }
+    .skill-batch-item {
+      border:1px solid var(--border);
+      border-radius:16px;
+      background:var(--input);
+      padding:14px 16px;
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:14px;
+    }
+    .skill-batch-meta {
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+    }
+    .skill-batch-label {
+      font-size:0.82rem;
+      letter-spacing:0.16em;
+      text-transform:uppercase;
+      color:var(--muted);
+    }
+    .toggle-row label {
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:10px 16px;
+      border-radius:14px;
+      border:1px solid var(--border);
+      background:var(--input);
+      cursor:pointer;
+      font-size:0.9rem;
+      color:var(--fg);
+    }
+    .toggle-row input[type="checkbox"],
+    .toggle-row input[type="radio"] {
+      width:18px;
+      height:18px;
+    }
+    .toggle-duration {
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+      margin-bottom:10px;
+    }
+    .toggle-duration input {
+      max-width:220px;
+      border-radius:14px;
+      border:1px solid var(--border);
+      background:var(--input);
+      color:var(--fg);
+      padding:12px 14px;
+      font-size:1rem;
+      font-family:inherit;
+    }
+    .hidden { display:none !important; }
+
+    /* ── Checked permission toggles get a blue tint ── */
+    .toggle-grid label:has(input:checked) {
+      border-color:rgba(67,177,255,0.4);
+      background:rgba(67,177,255,0.1);
+    }
+    body:not(.dark-mode) .toggle-grid label:has(input:checked) {
+      border-color:rgba(33,150,243,0.35);
+      background:rgba(33,150,243,0.08);
+    }
+
+    /* ── 4-column skill requirement grid ── */
+    .field-grid--four {
+      grid-template-columns:repeat(4,minmax(0,1fr));
+    }
+
+    /* ── 2-column routing card grid (skill modes) ── */
+    .routing-card-grid--two {
+      grid-template-columns:repeat(2,minmax(0,1fr));
+    }
+    .skill-routing-section {
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+    }
+    .skill-routing-section .step-label { margin:0; }
+
+    /* ── Inline skill creation panel (opens under the "Create Skill" button
+       it was triggered from, instead of a floating modal) ── */
+    .skill-modal-header .step-label { margin:0; }
+    .skill-modal-footer {
+      display:flex;
+      justify-content:flex-end;
+      gap:10px;
+      padding-top:4px;
+    }
+
+    /* ── Light mode overrides ── */
+    body:not(.dark-mode) .queue-config-shell {
+      border-color:rgba(0,0,0,0.1);
+      background:rgba(0,0,0,0.025);
+    }
+    /* Queue type cards */
+    body:not(.dark-mode) .queue-type-card {
+      border-color:rgba(0,0,0,0.12);
+      background:linear-gradient(180deg,#fff,rgba(0,0,0,0.02));
+      box-shadow:0 4px 16px rgba(0,0,0,0.07);
+    }
+    body:not(.dark-mode) .queue-type-card:hover {
+      border-color:rgba(33,150,243,0.45);
+    }
+    body:not(.dark-mode) .queue-type-card.active {
+      border-color:#2196f3;
+      box-shadow:0 0 0 2px rgba(33,150,243,0.2),0 8px 24px rgba(0,0,0,0.1);
+    }
+    body:not(.dark-mode) .queue-type-icon { color:var(--fg); }
+    body:not(.dark-mode) .queue-type-title { color:var(--fg); }
+    body:not(.dark-mode) .queue-type-subtitle { color:var(--muted) !important; }
+    body:not(.dark-mode) .queue-type-indicator {
+      background:rgba(0,0,0,0.07);
+      border-top-color:rgba(0,0,0,0.08);
+    }
+    body:not(.dark-mode) .queue-type-indicator::before {
+      border-color:rgba(0,0,0,0.3);
+    }
+    body:not(.dark-mode) .queue-type-card.active .queue-type-indicator {
+      background:#ddeeff;
+    }
+    body:not(.dark-mode) .queue-type-card.active .queue-type-indicator::before {
+      border-color:#2196f3;
+      background:var(--card);
+    }
+    /* Routing cards */
+    body:not(.dark-mode) .routing-card {
+      border-color:rgba(0,0,0,0.12);
+      background:linear-gradient(180deg,#fff,rgba(0,0,0,0.02));
+      color:var(--fg);
+      box-shadow:0 4px 14px rgba(0,0,0,0.07);
+    }
+    body:not(.dark-mode) .routing-card:hover {
+      border-color:rgba(33,150,243,0.4);
+    }
+    body:not(.dark-mode) .routing-card.active {
+      border-color:#2196f3;
+      box-shadow:0 0 0 2px rgba(33,150,243,0.18);
+    }
+    body:not(.dark-mode) .routing-card-indicator {
+      background:rgba(0,0,0,0.07);
+      border-top-color:rgba(0,0,0,0.08);
+    }
+    body:not(.dark-mode) .routing-card-indicator::before {
+      border-color:rgba(0,0,0,0.3);
+    }
+    body:not(.dark-mode) .routing-card.active .routing-card-indicator {
+      background:#ddeeff;
+    }
+    body:not(.dark-mode) .routing-card.active .routing-card-indicator::before {
+      border-color:#2196f3;
+      background:var(--card);
+    }
+    /* Agent panels */
+    body:not(.dark-mode) .agent-panel,
+    body:not(.dark-mode) .queue-mode-card {
+      border-color:rgba(0,0,0,0.1);
+      background:var(--card);
+    }
+    body:not(.dark-mode) .agent-list-box {
+      background:var(--input);
+      border-color:rgba(33,150,243,0.3);
+    }
+    body:not(.dark-mode) .agent-list-item { color:var(--fg); }
+    body:not(.dark-mode) .agent-list-item:hover { background:rgba(33,150,243,0.1); }
+    body:not(.dark-mode) .agent-list-item.selected {
+      background:rgba(33,150,243,0.15);
+      color:var(--fg);
+    }
+    body:not(.dark-mode) .selected-agent-item {
+      border-color:rgba(0,0,0,0.1);
+      background:var(--input);
+      color:var(--fg);
+    }
+    /* Batch queue items */
+    body:not(.dark-mode) .queue-batch-panel {
+      border-color:rgba(0,0,0,0.12);
+      background:rgba(0,0,0,0.015);
+    }
+    body:not(.dark-mode) .queue-batch-item {
+      border-color:rgba(0,0,0,0.1);
+      background:var(--card);
+    }
+    body:not(.dark-mode) .queue-batch-cell {
+      border-color:rgba(0,0,0,0.08);
+      background:rgba(0,0,0,0.02);
+    }
+    body:not(.dark-mode) .queue-batch-cell-value { color:var(--fg); }
+
+    @media (max-width: 768px) {
+      .wizard-card { padding:32px 24px; }
+      .button-row { justify-content:flex-start; }
+      .queue-type-grid { grid-template-columns:1fr; }
+      .queue-row-grid { grid-template-columns:1fr; }
+      .queue-mode-grid { grid-template-columns:1fr; }
+      .queue-row-grid .field-group--wide { grid-column:auto; }
+      .toggle-grid { grid-template-columns:1fr; }
+      .queue-batch-grid { grid-template-columns:1fr; }
+    }
+
+    /* ─── Error popup modal ─── */
+    .err-modal-backdrop {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.55);
+      backdrop-filter: blur(3px);
+      z-index: 9000;
+      display: flex; align-items: center; justify-content: center;
+      padding: 24px;
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.18s ease;
+    }
+    .err-modal-backdrop.open { opacity: 1; pointer-events: all; }
+    .err-modal-card {
+      width: min(520px, 100%);
+      background: var(--panel, #1a1f2e);
+      border: 1px solid rgba(248,113,113,0.25);
+      border-radius: 22px;
+      padding: 28px 32px 24px;
+      box-shadow: 0 32px 64px rgba(0,0,0,0.5);
+      display: flex; flex-direction: column; gap: 16px;
+      transform: translateY(10px);
+      transition: transform 0.18s ease;
+    }
+    .err-modal-backdrop.open .err-modal-card { transform: translateY(0); }
+    .err-modal-header { display: flex; align-items: flex-start; gap: 14px; }
+    .err-modal-icon {
+      width: 38px; height: 38px; border-radius: 50%; flex-shrink: 0;
+      background: rgba(248,113,113,0.15);
+      border: 2px solid rgba(248,113,113,0.4);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.1rem; font-weight: 700; color: #f87171;
+    }
+    .err-modal-titles { display: flex; flex-direction: column; gap: 3px; padding-top: 3px; }
+    .err-modal-title {
+      font-size: 1rem; font-weight: 700; color: #f87171;
+    }
+    .err-modal-source {
+      font-size: 0.72rem; letter-spacing: 0.15em; text-transform: uppercase;
+      color: var(--muted, #888);
+    }
+    .err-modal-body {
+      font-size: 0.88rem; line-height: 1.6;
+      color: var(--fg, #e2e8f0);
+      background: rgba(248,113,113,0.06);
+      border: 1px solid rgba(248,113,113,0.15);
+      border-radius: 12px;
+      padding: 12px 16px;
+    }
+    .err-modal-footer { display: flex; justify-content: flex-end; }
+    .err-modal-dismiss {
+      padding: 9px 22px; border-radius: 12px; font-size: 0.88rem; font-weight: 600;
+      background: rgba(248,113,113,0.12); border: 1px solid rgba(248,113,113,0.35);
+      color: #f87171; cursor: pointer; font-family: inherit; transition: all 0.15s;
+    }
+    .err-modal-dismiss:hover { background: rgba(248,113,113,0.22); }
+  </style>
+</head>
+<body class="dark-mode">
+  <script>if (localStorage.getItem("tpRailExpanded") === "true") document.body.classList.add("tp-rail-expanded");</script>
+  <api-tools-header basepath="../../"></api-tools-header>
+
+  <main>
+    <div class="wrap wide contentWrap">
+      <section class="wizard-card">
+        <h1 class="wizard-title">Contact Center Setup Wizard</h1>
+        <p class="wizard-subtitle">Step 2 of 5 · Queue Creation</p>
+        <div class="progress-bar">
+          <div class="progress-step complete"></div>
+          <div class="progress-step active"></div>
+          <div class="progress-step"></div>
+          <div class="progress-step"></div>
+          <div class="progress-step"></div>
+        </div>
+
+        <div id="stageQueue" class="wizard-stage active">
+          <div class="form-panel">
+            <div class="step-label form-heading">Step 2 · Create Queue</div>
+            <form id="queueForm" novalidate>
+              <div class="queue-intro-grid">
+                <div class="queue-type-panel">
+                  <span class="step-label">Queue Type</span>
+                  <input id="queueRoutingSelect" type="hidden" value="">
+                  <div class="queue-type-grid" id="queueTypeGrid">
+                    <button type="button" class="queue-type-card" data-queue-type="TEAM_BASED" aria-pressed="false">
+                      <div class="queue-type-card-copy">
+                        <svg class="queue-type-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                          <path d="M17 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2"/>
+                          <circle cx="9" cy="7" r="4"/>
+                          <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                          <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                        </svg>
+                        <div class="queue-type-title">Teams</div>
+                        <span class="queue-type-subtitle">Agents log into a specific team, and calls route to queues associated with that team; simplest and most common setup.</span>
+                      </div>
+                      <div class="queue-type-indicator"></div>
+                    </button>
+                    <button type="button" class="queue-type-card" data-queue-type="AGENT_BASED" aria-pressed="false">
+                      <div class="queue-type-card-copy">
+                        <svg class="queue-type-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                          <path d="M20 21a8 8 0 1 0-16 0"/>
+                          <circle cx="12" cy="7" r="4"/>
+                        </svg>
+                        <div class="queue-type-title">Agents</div>
+                        <span class="queue-type-subtitle">Agents are assigned directly to individual queues, giving precise queue-level control over who receives contacts.</span>
+                      </div>
+                      <div class="queue-type-indicator"></div>
+                    </button>
+                    <button type="button" class="queue-type-card" data-queue-type="SKILL_BASED_FLOW" aria-pressed="false">
+                      <div class="queue-type-card-copy">
+                        <svg class="queue-type-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                          <circle cx="8" cy="8" r="3"/>
+                          <circle cx="16" cy="16" r="3"/>
+                          <path d="M10.5 10.5 13.5 13.5"/>
+                          <path d="M18.6 5.4a2 2 0 1 1-2.83-2.83 2 2 0 0 1 2.83 2.83Z"/>
+                          <path d="m17.2 6.8-1.7 1.7"/>
+                        </svg>
+                        <div class="queue-type-title">Skills to Flow</div>
+                        <span class="queue-type-subtitle">Skills are applied dynamically within the flow logic, allowing advanced routing features like skill relaxation, overflow, and conditional routing.</span>
+                      </div>
+                      <div class="queue-type-indicator"></div>
+                    </button>
+                    <button type="button" class="queue-type-card" data-queue-type="SKILL_BASED_QUEUE" aria-pressed="false">
+                      <div class="queue-type-card-copy">
+                        <svg class="queue-type-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                          <path d="m9 12 2 2 4-4"/>
+                          <path d="M12 2v4"/>
+                          <path d="m16.24 7.76 2.83-2.83"/>
+                          <path d="M20 12h-4"/>
+                          <path d="m16.24 16.24 2.83 2.83"/>
+                          <path d="M12 18v4"/>
+                          <path d="m4.93 19.07 2.83-2.83"/>
+                          <path d="M4 12h4"/>
+                          <path d="m4.93 4.93 2.83 2.83"/>
+                          <circle cx="12" cy="12" r="8"/>
+                        </svg>
+                        <div class="queue-type-title">Skills to Queue</div>
+                        <span class="queue-type-subtitle">Skills are attached directly to the queue itself, making setup and transfers easier, but with less routing flexibility and fewer advanced flow features.</span>
+                      </div>
+                      <div class="queue-type-indicator"></div>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <p id="queueTeamNote" class="queue-team-note hidden"></p>
+
+              <div class="queue-config-shell">
+                <div class="queue-config-header">
+                  <div class="step-label">Current Queue Configuration</div>
+                </div>
+
+                <div class="queue-row-grid">
+                  <label class="field-group">
+                    <span>Queue Name</span>
+                    <input id="queueName" type="text" placeholder="Enter Queue Name" autocomplete="off" required>
+                  </label>
+                  <label class="field-group">
+                    <span>Service Level Threshold (seconds)</span>
+                    <input id="queueThreshold" type="number" placeholder="30" min="1" autocomplete="off" required>
+                  </label>
+                  <label class="field-group">
+                    <span>Max Time in Queue (seconds)</span>
+                    <input id="queueMaxTime" type="number" placeholder="3600" min="1" autocomplete="off" required>
+                  </label>
+                  <label class="field-group">
+                    <span>Music On Hold</span>
+                    <select id="queueMusicSelect" aria-label="Select Music On Hold"></select>
+                  </label>
+                </div>
+
+                <div class="permission-panel">
+                  <div class="step-label">Queue Permissions</div>
+                  <div class="toggle-grid">
+                    <label>
+                      <input type="checkbox" id="monitoringToggle">
+                      Allow Monitoring
+                    </label>
+                    <label>
+                      <input type="checkbox" id="recordingToggle">
+                      Allow Recording
+                    </label>
+                    <label>
+                      <input type="checkbox" id="recordAllToggle">
+                      Record All Calls
+                    </label>
+                    <label class="pause-toggle-cell">
+                      <input type="checkbox" id="pauseToggle">
+                      Allow Pause Recording
+                    </label>
+                    <div id="pauseDurationCell" class="pause-duration-cell hidden">
+                        <div class="pause-inner">
+                          <span>Seconds</span>
+                          <input id="pauseDurationInline" type="number" placeholder="e.g., 30" min="0" autocomplete="off">
+                        </div>
+                    </div>
+                    <div></div>
+                  </div>
+                  <div id="queueModeSection" class="queue-mode-section hidden">
+                    <!-- Hidden select keeps value for JS; skill modes use card UI below -->
+                    <div id="routingPatternRow" class="hidden">
+                      <select id="routingPatternSelect" aria-label="Select Routing Pattern">
+                        <option value="LONGEST_AVAILABLE_AGENT">Longest Available</option>
+                        <option value="BEST_AVAILABLE_AGENT">Best Available</option>
+                        <option value="CIRCULAR">Circular</option>
+                        <option value="LINEAR">Linear</option>
+                      </select>
+                    </div>
+
+                    <!-- Skill Routing Pattern cards (shown for SKILL_BASED modes) -->
+                    <div id="skillRoutingRow" class="skill-routing-section hidden">
+                      <span class="step-label">Routing Pattern</span>
+                      <div id="skillRoutingCardGrid" class="routing-card-grid routing-card-grid--two">
+                        <button type="button" class="routing-card" data-skill-routing="LONGEST_AVAILABLE_AGENT" aria-pressed="false">
+                          <div class="routing-card-copy">
+                            <svg class="routing-card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                              <path d="M12 8v4l3 3"/>
+                              <path d="M3.05 11A9 9 0 1 1 6 17.94"/>
+                              <path d="M3 20v-5h5"/>
+                            </svg>
+                            <div class="routing-card-title">Longest Available</div>
+                          </div>
+                          <div class="routing-card-indicator"></div>
+                        </button>
+                        <button type="button" class="routing-card" data-skill-routing="BEST_AVAILABLE_AGENT" aria-pressed="false">
+                          <div class="routing-card-copy">
+                            <svg class="routing-card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                              <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/>
+                              <circle cx="12" cy="7" r="4"/>
+                              <path d="m22 11-1.5 1.5L19 11"/>
+                              <path d="M22 8v3.5"/>
+                            </svg>
+                            <div class="routing-card-title">Best Available</div>
+                          </div>
+                          <div class="routing-card-indicator"></div>
+                        </button>
+                      </div>
+                    </div>
+
+                    <!-- Agent Selection (for Agent-Based) -->
+                    <div id="agentSelectionRow" class="hidden">
+                      <div class="agent-assignment-grid">
+                        <div class="agent-panel">
+                          <div class="step-label">Select Agents</div>
+                          <label class="field-group agent-picker-search">
+                            <span>Search Agents</span>
+                            <input id="agentSearchInput" type="text" placeholder="Type to search..." autocomplete="off">
+                          </label>
+                          <div class="field-group">
+                            <span>Available Agents</span>
+                            <div id="availableAgentList" class="agent-list-box" aria-label="Available Agents"></div>
+                          </div>
+                          <p id="agentSelectionInfo" class="field-note">0 agents selected</p>
+                        </div>
+                        <div class="agent-picker-shell">
+                          <div class="agent-panel">
+                            <div class="step-label">Assigned Agents</div>
+                            <div id="selectedAgentList" class="selected-agent-list"></div>
+                          </div>
+                          <div class="agent-panel">
+                            <div class="step-label">Routing Pattern</div>
+                            <input id="agentRoutingPatternSelect" type="hidden" value="LONGEST_AVAILABLE_AGENT">
+                            <div id="agentRoutingCardGrid" class="routing-card-grid">
+                              <button type="button" class="routing-card" data-routing-pattern="CIRCULAR" aria-pressed="false">
+                                <div class="routing-card-copy">
+                                  <svg class="routing-card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <path d="M21 2v6h-6"/>
+                                    <path d="M3 12a9 9 0 0 1 15.55-6.36L21 8"/>
+                                    <path d="M3 22v-6h6"/>
+                                    <path d="M21 12a9 9 0 0 1-15.55 6.36L3 16"/>
+                                  </svg>
+                                  <div class="routing-card-title">Circular</div>
+                                </div>
+                                <div class="routing-card-indicator"></div>
+                              </button>
+                              <button type="button" class="routing-card" data-routing-pattern="LINEAR" aria-pressed="false">
+                                <div class="routing-card-copy">
+                                  <svg class="routing-card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <path d="M8 6h13"/>
+                                    <path d="M8 12h13"/>
+                                    <path d="M8 18h13"/>
+                                    <path d="M3 6h.01"/>
+                                    <path d="M3 12h.01"/>
+                                    <path d="M3 18h.01"/>
+                                  </svg>
+                                  <div class="routing-card-title">Top Down</div>
+                                </div>
+                                <div class="routing-card-indicator"></div>
+                              </button>
+                              <button type="button" class="routing-card" data-routing-pattern="LONGEST_AVAILABLE_AGENT" aria-pressed="false">
+                                <div class="routing-card-copy">
+                                  <svg class="routing-card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <path d="M12 8v4l3 3"/>
+                                    <path d="M3.05 11A9 9 0 1 1 6 17.94"/>
+                                    <path d="M3 20v-5h5"/>
+                                  </svg>
+                                  <div class="routing-card-title">Longest Available</div>
+                                </div>
+                                <div class="routing-card-indicator"></div>
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Skill Requirements (for Queue Assignment) -->
+                    <div id="skillRequirementSection" class="skill-requirements hidden">
+                      <div id="skillRequirementHeading" class="step-label">Skill Requirement</div>
+                      <p id="skillRequirementHelper" class="flow-skill-helper hidden"></p>
+                      <!-- All 4 fields in one row -->
+                      <div id="skillRequirementFields" class="field-grid field-grid--four">
+                        <label class="field-group" id="skillTypeField">
+                          <span>Skill Type</span>
+                          <select id="skillTypeSelect" aria-label="Select Skill Type">
+                            <option value="" disabled selected>Select Skill Type</option>
+                            <option value="PROFICIENCY">Proficiency</option>
+                            <option value="BOOLEAN">Boolean</option>
+                            <option value="TEXT">Text</option>
+                            <option value="ENUM">Enum</option>
+                          </select>
+                        </label>
+                        <label class="field-group" id="skillNameField">
+                          <span>Skill Name</span>
+                          <select id="skillNameSelect" aria-label="Select Skill"></select>
+                        </label>
+                        <label class="field-group" id="skillConditionField">
+                          <span>Condition</span>
+                          <select id="skillConditionSelect" aria-label="Select Condition">
+                            <option value="" disabled selected>Select Condition</option>
+                            <option value="IS">Is</option>
+                            <option value="IS_NOT">Is Not</option>
+                            <option value="GTE">&gt;= (Greater or Equal)</option>
+                            <option value="LTE">&lt;= (Less or Equal)</option>
+                          </select>
+                        </label>
+                        <!-- Value field occupies 4th column; only one shown at a time -->
+                        <div id="skillValueSelectGroup" class="field-group hidden">
+                          <span>Value</span>
+                          <select id="skillValueSelect" aria-label="Select Skill Value"></select>
+                        </div>
+                        <div id="skillValueInputGroup" class="field-group hidden">
+                          <span>Value</span>
+                          <input id="skillValueInput" type="text" placeholder="Enter value" autocomplete="off">
+                        </div>
+                      </div>
+
+                      <!-- Flow mode actions / Queue mode create button -->
+                      <div id="flowSkillActions" class="button-row hidden">
+                        <button type="button" class="btn secondary" id="flowSkillAddBtn">Create Skill</button>
+                      </div>
+                      <div id="queueSkillCreateAction" class="button-row hidden">
+                        <button type="button" class="btn ghost" id="queueCreateSkillBtn">+ Create New Skill</button>
+                      </div>
+                      <div id="flowSkillList" class="flow-skill-list hidden"></div>
+
+                      <!-- Inline "Create Skill" panel — opens in place under whichever
+                           "Create Skill" button triggered it, instead of a modal. -->
+                      <div id="skillCreateModal" class="skill-create-panel hidden">
+                        <div class="skill-modal-header">
+                          <span class="step-label form-heading">Create New Skill</span>
+                        </div>
+                        <div class="field-grid">
+                          <label class="field-group">
+                            <span>Skill Type</span>
+                            <select id="skillCreateTypeSelect" aria-label="Skill Type">
+                              <option value="" disabled selected>Select Skill Type</option>
+                              <option value="PROFICIENCY">Proficiency</option>
+                              <option value="BOOLEAN">Boolean</option>
+                              <option value="TEXT">Text</option>
+                              <option value="ENUM">Enum</option>
+                            </select>
+                          </label>
+                          <label class="field-group">
+                            <span>Skill Name</span>
+                            <input id="skillCreateName" type="text" placeholder="Enter skill name" autocomplete="off">
+                          </label>
+                          <label class="field-group">
+                            <span>Service Level Threshold</span>
+                            <input id="skillCreateThreshold" type="number" value="30" min="1" autocomplete="off">
+                          </label>
+                        </div>
+                        <div id="skillCreateEnumValuesGroup" class="field-grid hidden">
+                          <label class="field-group">
+                            <span>Enum Values (comma-separated)</span>
+                            <input id="skillCreateEnumValues" type="text" placeholder="Bronze, Silver, Gold" autocomplete="off">
+                          </label>
+                        </div>
+                        <div id="skillBatchList" class="skill-batch-list hidden"></div>
+                        <p id="skillCreateStatus" class="statusMessage"></p>
+                        <div class="skill-modal-footer">
+                          <button type="button" class="btn secondary" id="skillCreateCancel">Cancel</button>
+                          <button type="button" class="btn secondary" id="skillBatchAddBtn">+ Add Skill</button>
+                          <button type="button" class="btn primary" id="skillCreateBtn">Create Skill</button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="queue-config-actions">
+                  <button type="button" class="btn secondary" id="addQueueDraftBtn">+ Add Queue</button>
+                </div>
+              </div>
+
+              <div id="queueBatchPanel" class="queue-batch-panel hidden">
+                <div class="queue-batch-header">
+                  <div class="queue-batch-copy">
+                    <strong>Queued for creation</strong>
+                    <p>Each saved row will be created in sequence when you continue.</p>
+                  </div>
+                </div>
+                <div id="queueBatchList" class="queue-batch-list hidden"></div>
+              </div>
+
+              <!-- Team Selection is handled from step 1 state -->
+              <div id="queueTeamWrapper" class="field-grid hidden">
+                <label class="field-group">
+                  <span>Team</span>
+                  <select id="queueTeamSelect" aria-label="Select Team"></select>
+                </label>
+              </div>
+
+              <div class="button-row button-row--right">
+                <button type="button" class="btn primary" id="createQueueBtn">Create Queue and Continue</button>
+              </div>
+              <p id="queueCreateStatus" class="statusMessage"></p>
+            </form>
+          </div>
+        </div>
+
+      </section>
+    </div>
+  </main>
+
+  <!-- Error popup modal -->
+  <div class="err-modal-backdrop" id="errModalBackdrop">
+    <div class="err-modal-card">
+      <div class="err-modal-header">
+        <div class="err-modal-icon">!</div>
+        <div class="err-modal-titles">
+          <div class="err-modal-title" id="errModalTitle">Something went wrong</div>
+          <div class="err-modal-source">Cisco WxCC API</div>
+        </div>
+      </div>
+      <div class="err-modal-body" id="errModalBody"></div>
+      <div class="err-modal-footer">
+        <button class="err-modal-dismiss" id="errModalDismiss">Dismiss</button>
+      </div>
+    </div>
+  </div>
+
+
+  <div id="queueLoadingOverlay" class="loading-overlay" aria-hidden="true">
+    <div class="loading-card">
+      <div class="loading-spinner"></div>
+      <p class="loading-title">Creating Queues</p>
+      <p id="queueLoadingCopy" class="loading-copy">Submitting your queue configuration…</p>
+    </div>
+  </div>
+
+  
+  
+  <script src="../../assets/js/orbit-config.js"></script>
+
+  
+  
+  <script src="../../assets/js/components.js"></script>
+
+  
+  
+  <script src="../../assets/js/theme.js"></script>
+  <script>
+    const WIZARD_STATE_KEY = 'wxcc_wizard_state';
+
+    function getWizardState() {
+      try {
+        return JSON.parse(localStorage.getItem(WIZARD_STATE_KEY) || '{}');
+      } catch {
+        return {};
+      }
+    }
+
+    function saveWizardState(updates) {
+      const snapshot = getWizardState();
+      Object.assign(snapshot, updates);
+      localStorage.setItem(WIZARD_STATE_KEY, JSON.stringify(snapshot));
+    }
+
+    const stageQueue = document.getElementById('stageQueue');
+    const addQueueDraftBtn = document.getElementById('addQueueDraftBtn');
+    const createQueueBtn = document.getElementById('createQueueBtn');
+    const queueStatusEl = document.getElementById('queueCreateStatus');
+    const queueLoadingOverlay = document.getElementById('queueLoadingOverlay');
+    const queueLoadingCopy = document.getElementById('queueLoadingCopy');
+    const queueNameInput = document.getElementById('queueName');
+    const queueThresholdInput = document.getElementById('queueThreshold');
+    const queueMaxTimeInput = document.getElementById('queueMaxTime');
+    const queueMusicSelect = document.getElementById('queueMusicSelect');
+    const queueRoutingSelect = document.getElementById('queueRoutingSelect');
+    const queueTypeGrid = document.getElementById('queueTypeGrid');
+    const queueTypeCards = Array.from(document.querySelectorAll('.queue-type-card'));
+    const queueBatchPanel = document.getElementById('queueBatchPanel');
+    const queueBatchList = document.getElementById('queueBatchList');
+    const queueTeamNote = document.getElementById('queueTeamNote');
+    const queueTeamWrapper = document.getElementById('queueTeamWrapper');
+    const queueTeamSelect = document.getElementById('queueTeamSelect');
+    const skillRequirementHeading = document.getElementById('skillRequirementHeading');
+    const skillRequirementHelper = document.getElementById('skillRequirementHelper');
+    const skillRequirementFields = document.getElementById('skillRequirementFields');
+    const skillTypeField = document.getElementById('skillTypeField');
+    const skillNameField = document.getElementById('skillNameField');
+    const skillConditionField = document.getElementById('skillConditionField');
+    const monitoringToggle = document.getElementById('monitoringToggle');
+    const recordingToggle = document.getElementById('recordingToggle');
+    const recordAllToggle = document.getElementById('recordAllToggle');
+    const pauseToggle = document.getElementById('pauseToggle');
+    const pauseDurationInline = document.getElementById('pauseDurationInline');
+    const pauseDurationCell = document.getElementById('pauseDurationCell');
+    const queueModeSection = document.getElementById('queueModeSection');
+    const skillRequirementSection = document.getElementById('skillRequirementSection');
+    const routingPatternRow = document.getElementById('routingPatternRow');
+    const routingPatternSelect = document.getElementById('routingPatternSelect');
+    const agentRoutingPatternSelect = document.getElementById('agentRoutingPatternSelect');
+    const agentRoutingCardGrid = document.getElementById('agentRoutingCardGrid');
+    const routingCards = Array.from(document.querySelectorAll('.routing-card'));
+    const skillTypeSelect = document.getElementById('skillTypeSelect');
+    const skillNameSelect = document.getElementById('skillNameSelect');
+    const skillConditionSelect = document.getElementById('skillConditionSelect');
+    const skillValueSelectGroup = document.getElementById('skillValueSelectGroup');
+    const skillValueSelect = document.getElementById('skillValueSelect');
+    const skillValueInputGroup = document.getElementById('skillValueInputGroup');
+    const skillValueInput = document.getElementById('skillValueInput');
+    const agentSelectionRow = document.getElementById('agentSelectionRow');
+    const agentSearchInput = document.getElementById('agentSearchInput');
+    const availableAgentList = document.getElementById('availableAgentList');
+    const selectedAgentList = document.getElementById('selectedAgentList');
+    const agentSelectionInfo = document.getElementById('agentSelectionInfo');
+    const WIZARD_TEAM_ID_KEY = 'wizardTeamId';
+    const WIZARD_TEAM_NAME_KEY = 'wizardTeamName';
+    const persistedTeamId = (localStorage.getItem(WIZARD_TEAM_ID_KEY) || '').trim();
+    const persistedTeamName = localStorage.getItem(WIZARD_TEAM_NAME_KEY) || '';
+    // Inline "Create Skill" panel elements
+    const skillCreateModal = document.getElementById('skillCreateModal');
+    const skillCreateTypeSelect = document.getElementById('skillCreateTypeSelect');
+    const skillCreateName = document.getElementById('skillCreateName');
+    const skillCreateThreshold = document.getElementById('skillCreateThreshold');
+    const skillCreateEnumGroup = document.getElementById('skillCreateEnumValuesGroup');
+    const skillCreateEnumInput = document.getElementById('skillCreateEnumValues');
+    const skillBatchAddBtn = document.getElementById('skillBatchAddBtn');
+    const skillBatchList = document.getElementById('skillBatchList');
+    const skillCreateBtn = document.getElementById('skillCreateBtn');
+    const skillCreateCancel = document.getElementById('skillCreateCancel');
+    const skillCreateStatus = document.getElementById('skillCreateStatus');
+    const flowSkillActions = document.getElementById('flowSkillActions');
+    const flowSkillAddBtn = document.getElementById('flowSkillAddBtn');
+    const flowSkillList = document.getElementById('flowSkillList');
+    // Skill routing cards
+    const skillRoutingRow = document.getElementById('skillRoutingRow');
+    const skillRoutingCardGrid = document.getElementById('skillRoutingCardGrid');
+    const queueSkillCreateAction = document.getElementById('queueSkillCreateAction');
+    const queueCreateSkillBtn = document.getElementById('queueCreateSkillBtn');
+
+    const cacheKeyBearer = 'authBearer';
+    const cacheKeyOrg = 'authOrg';
+    const cacheKeyOrgName = 'authOrgName';
+    const cacheKeyUser = 'authUserName';
+
+    const authToken = (localStorage.getItem(cacheKeyBearer) || '').trim();
+
+    function setStatus(element, text = '', type = '') {
+      if (!element) return;
+      element.textContent = text;
+      element.classList.toggle('success', type === 'success');
+      element.classList.toggle('error', type === 'error');
+      element.style.display = text ? 'block' : 'none';
+    }
+
+    function showErrorPopup(title, detail) {
+      const backdrop = document.getElementById('errModalBackdrop');
+      const titleEl  = document.getElementById('errModalTitle');
+      const bodyEl   = document.getElementById('errModalBody');
+      if (!backdrop) return;
+      if (titleEl) titleEl.textContent = title || 'Something went wrong';
+      if (bodyEl)  bodyEl.textContent  = detail || 'An unexpected error occurred.';
+      backdrop.classList.add('open');
+    }
+
+    function hideErrorPopup() {
+      document.getElementById('errModalBackdrop')?.classList.remove('open');
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('errModalDismiss')?.addEventListener('click', hideErrorPopup);
+      document.getElementById('errModalBackdrop')?.addEventListener('click', (e) => {
+        if (e.target === e.currentTarget) hideErrorPopup();
+      });
+    });
+
+    function decodeOrgId(raw) {
+      if (!raw) return '';
+      if (/^[0-9a-fA-F-]{30,}$/.test(raw)) return raw;
+      if (/^Y2lz/i.test(raw)) {
+        try {
+          const padded = raw.replace(/-/g, '+').replace(/_/g, '/').padEnd(Math.ceil(raw.length / 4) * 4, '=');
+          const decoded = atob(padded);
+          const parts = decoded.split('/');
+          return parts[parts.length - 1] || decoded;
+        } catch {
+          return raw;
+        }
+      }
+      const orgPathIdx = raw.toLowerCase().indexOf('organization/');
+      if (orgPathIdx !== -1) {
+        const candidate = raw.slice(orgPathIdx + 'organization/'.length);
+        return candidate || raw;
+      }
+      return raw;
+    }
+
+    function resolveOrgId() {
+      const storedId = (localStorage.getItem('authOrgId') || '').trim();
+      if (storedId) return decodeOrgId(storedId) || storedId;
+      const raw = (localStorage.getItem(cacheKeyOrg) || '').trim();
+      if (raw) return decodeOrgId(raw) || raw;
+      return '';
+    }
+
+    const ORG_ID = resolveOrgId();
+    const BASE_URL = `https://api.wxcc-us1.cisco.com/organization/${encodeURIComponent(ORG_ID)}`;
+    const endpoints = {
+      audioFiles: `${BASE_URL}/v2/audio-file`,
+      teams: `${BASE_URL}/v2/team?page=0&pageSize=200`,
+      skills: `${BASE_URL}/v2/skill?page=0&pageSize=200`,
+      users: `${BASE_URL}/v2/user?page=0&pageSize=200`
+    };
+
+    const fetchHeaders = Object.assign(
+      { Accept: 'application/json' },
+      authToken ? { Authorization: `Bearer ${authToken}` } : {}
+    );
+
+    const fallbackAudioFiles = [
+      { id: '0021634b-0a79-44b0-8f19-28d0222ed261', name: 'MoH-Apr2022.wav' },
+      { id: '4e46cf9a-4cca-4554-bf6c-44593df487d0', name: 'silence.wav' },
+      { id: '5cbeca84-9557-41f6-b8f0-19844096906e', name: 'defaultmusic_on_hold.wav' }
+    ];
+    const fallbackTeams = [];
+    const fallbackSkills = [
+      { id: '00000000-0000-0000-0000-000000000000', name: 'Default Skill' }
+    ];
+    const fallbackUsers = [];
+    const skillTypeNameMap = {
+      PROFICIENCY: 'PROFICIENCY',
+      BOOLEAN: 'BOOLEAN',
+      TEXT: 'TEXT',
+      ENUM: 'ENUM',
+      '0': 'PROFICIENCY',
+      '1': 'BOOLEAN',
+      '2': 'TEXT',
+      '3': 'ENUM'
+    };
+    function normalizeSkillTypeName(raw) {
+      if (!raw) return '';
+      const key = raw.toString().toUpperCase();
+      return skillTypeNameMap[key] || '';
+    }
+    const skillTypeValueMap = {
+      PROFICIENCY: '0',
+      BOOLEAN: '1',
+      TEXT: '2',
+      ENUM: '3'
+    };
+    const wizardState = getWizardState();
+    const queueTypeLabels = {
+      TEAM_BASED: 'Team',
+      AGENT_BASED: 'Agent',
+      SKILL_BASED_FLOW: 'Skills Assigned to Flow',
+      SKILL_BASED_QUEUE: 'Skills Assigned to Queue'
+    };
+    let queueTeams = [...fallbackTeams];
+    let audioFiles = [];
+    let creatingQueue = false;
+    let queueDrafts = [];
+    let creatingSkill = false;
+    let skillsList = [];
+    let skillsMap = new Map();
+    let pendingSkillBatch = [];
+    let flowSkillRequirements = Array.isArray(wizardState?.flowSkillDrafts?.skills)
+      ? wizardState.flowSkillDrafts.skills.map((entry) => ({ ...entry }))
+      : [];
+    let flowSkillComposerVisible = false;
+    let agentList = [];
+    let agentFilteredList = [];
+    let agentMap = new Map();
+    let selectedAgentIds = new Set();
+
+    function ensurePersistedTeamIncluded() {
+      if (!persistedTeamId) return;
+      const exists = queueTeams.some((team) => team.id === persistedTeamId);
+      if (!exists) {
+        queueTeams.unshift({
+          id: persistedTeamId,
+          name: persistedTeamName || persistedTeamId
+        });
+      }
+    }
+
+    function applyPersistedTeamSelection() {
+      if (queueTeamSelect && persistedTeamId) {
+        queueTeamSelect.value = persistedTeamId;
+      }
+    }
+
+    function showStage(targetStage) {
+      [stageQueue].filter(Boolean).forEach((stage) => {
+        stage.classList.remove('active');
+        stage.classList.add('hidden');
+      });
+      if (targetStage) {
+        targetStage.classList.remove('hidden');
+        targetStage.classList.add('active');
+      }
+    }
+
+    function cloneQueueDraft(draft) {
+      return {
+        ...draft,
+        skillRequirement: draft.skillRequirement ? { ...draft.skillRequirement } : null,
+        flowSkills: Array.isArray(draft.flowSkills) ? draft.flowSkills.map((entry) => ({ ...entry })) : [],
+        agents: Array.isArray(draft.agents) ? draft.agents.map((entry) => ({ ...entry })) : []
+      };
+    }
+
+    function setQueueLoading(active, text = '') {
+      if (queueLoadingCopy && text) {
+        queueLoadingCopy.textContent = text;
+      }
+      if (queueLoadingOverlay) {
+        queueLoadingOverlay.classList.toggle('active', active);
+        queueLoadingOverlay.setAttribute('aria-hidden', active ? 'false' : 'true');
+      }
+    }
+
+    function syncQueueTypeCards() {
+      queueTypeCards.forEach((card) => {
+        const isActive = card.dataset.queueType === (queueRoutingSelect?.value || '');
+        card.classList.toggle('active', isActive);
+        card.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+      });
+    }
+
+    function syncRoutingCards() {
+      routingCards.forEach((card) => {
+        const isActive = card.dataset.routingPattern === (agentRoutingPatternSelect?.value || '');
+        card.classList.toggle('active', isActive);
+        card.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+      });
+    }
+
+    function renderQueueDrafts() {
+      const showBatch = Boolean(queueDrafts.length);
+      if (queueBatchPanel) queueBatchPanel.classList.toggle('hidden', !showBatch);
+      if (queueBatchList) queueBatchList.classList.toggle('hidden', !queueDrafts.length);
+      if (!queueBatchList) return;
+      if (!queueDrafts.length) {
+        queueBatchList.innerHTML = '';
+        return;
+      }
+      queueBatchList.innerHTML = queueDrafts.map((draft, index) => `
+        <div class="queue-batch-item">
+          <div class="queue-batch-item-header">
+            <div class="queue-batch-title">${draft.name}</div>
+            <button type="button" class="btn secondary queue-draft-remove-btn" data-queue-draft-index="${index}">Remove</button>
+          </div>
+          <div class="queue-batch-grid">
+            <div class="queue-batch-cell">
+              <span class="queue-batch-cell-label">Queue Type</span>
+              <div class="queue-batch-cell-value">${queueTypeLabels[draft.routingType] || draft.routingType}</div>
+            </div>
+            <div class="queue-batch-cell">
+              <span class="queue-batch-cell-label">Service Level</span>
+              <div class="queue-batch-cell-value">${draft.serviceLevelThreshold} seconds</div>
+            </div>
+            <div class="queue-batch-cell">
+              <span class="queue-batch-cell-label">Max Time</span>
+              <div class="queue-batch-cell-value">${draft.maxTimeInQueue} seconds</div>
+            </div>
+            <div class="queue-batch-cell">
+              <span class="queue-batch-cell-label">Music On Hold</span>
+              <div class="queue-batch-cell-value">${audioFiles.find((item) => item.id === draft.musicId)?.name || 'Configured'}</div>
+            </div>
+          </div>
+          <div class="queue-batch-pills">
+            ${draft.monitoringPermitted ? '<span class="queue-batch-pill">Monitoring</span>' : ''}
+            ${draft.recordingPermitted ? '<span class="queue-batch-pill">Recording</span>' : ''}
+            ${draft.recordingAllCallsPermitted ? '<span class="queue-batch-pill">Record All</span>' : ''}
+            ${draft.pauseRecordingPermitted ? `<span class="queue-batch-pill">Pause ${draft.recordingPauseDuration || 0}s</span>` : ''}
+            ${draft.flowSkills?.length ? `<span class="queue-batch-pill">${draft.flowSkills.length} Flow Skill${draft.flowSkills.length === 1 ? '' : 's'}</span>` : ''}
+            ${draft.skillRequirement ? `<span class="queue-batch-pill">${draft.skillRequirement.skillName || 'Skill Rule'}</span>` : ''}
+            ${draft.agents?.length ? `<span class="queue-batch-pill">${draft.agents.length} Agent${draft.agents.length === 1 ? '' : 's'}</span>` : ''}
+          </div>
+          <div class="queue-batch-pills">
+            ${draft.routingType === 'TEAM_BASED' && persistedTeamName ? `<span class="queue-batch-pill">Team: ${persistedTeamName}</span>` : ''}
+            ${draft.routingType === 'SKILL_BASED_FLOW' ? '<span class="queue-batch-pill">Flow-assigned skill routing</span>' : ''}
+            ${draft.routingType === 'SKILL_BASED_QUEUE' ? '<span class="queue-batch-pill">Queue-assigned skill routing</span>' : ''}
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function updateQueueActionState() {
+      if (createQueueBtn) {
+        createQueueBtn.textContent = queueDrafts.length
+          ? 'Create Queues and Continue'
+          : 'Create Queue and Continue';
+      }
+      renderQueueDrafts();
+    }
+
+    async function fetchList(url) {
+      try {
+        const response = await fetch(url, { headers: fetchHeaders });
+        if (!response.ok) throw new Error('Fetch failed');
+        const json = await response.json();
+        const data = Array.isArray(json?.data) ? json.data : [];
+        return data;
+      } catch {
+        return null;
+      }
+    }
+
+    function renderSelectOptions(selectEl, items, placeholder) {
+      selectEl.innerHTML = '';
+      const placeholderOption = document.createElement('option');
+      placeholderOption.value = '';
+      placeholderOption.textContent = placeholder;
+      placeholderOption.disabled = true;
+      placeholderOption.selected = true;
+      selectEl.appendChild(placeholderOption);
+      items.forEach((item) => {
+        const option = document.createElement('option');
+        option.value = item.id;
+        option.textContent = item.name || item.id;
+        selectEl.appendChild(option);
+      });
+      selectEl.selectedIndex = 0;
+    }
+
+    function updateAgentSelectionInfo() {
+      if (!agentSelectionInfo) return;
+      agentSelectionInfo.textContent = `${selectedAgentIds.size} agent${selectedAgentIds.size === 1 ? '' : 's'} selected`;
+    }
+
+    function renderAgentOptions(list) {
+      if (!availableAgentList) return;
+      availableAgentList.innerHTML = '';
+      if (!list.length) {
+        availableAgentList.innerHTML = '<div class="selected-agent-empty">No agents match this search.</div>';
+        return;
+      }
+      list.forEach((user) => {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = `agent-list-item${selectedAgentIds.has(user.id) ? ' selected' : ''}`;
+        button.dataset.agentId = user.id;
+        button.textContent = `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email || user.id;
+        availableAgentList.appendChild(button);
+      });
+    }
+
+    function renderSelectedAgents() {
+      if (!selectedAgentList) return;
+      if (!selectedAgentIds.size) {
+        selectedAgentList.innerHTML = '<div class="selected-agent-empty">No agents added yet.</div>';
+        updateAgentSelectionInfo();
+        return;
+      }
+      selectedAgentList.innerHTML = Array.from(selectedAgentIds).map((agentId) => {
+        const user = agentMap.get(agentId);
+        const label = user ? (`${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email || user.id) : agentId;
+        return `
+          <div class="selected-agent-item">
+            ${label}
+            <button type="button" class="selected-agent-remove" data-remove-agent-id="${agentId}" aria-label="Remove ${label}">×</button>
+          </div>
+        `;
+      }).join('');
+      updateAgentSelectionInfo();
+    }
+
+    function filterAgents(query = '') {
+      const normalized = (query || '').toLowerCase().trim();
+      agentFilteredList = normalized
+        ? agentList.filter((user) => {
+          const searchable = `${user.firstName || ''} ${user.lastName || ''} ${user.email || ''}`.toLowerCase();
+          return searchable.includes(normalized);
+        })
+        : [...agentList];
+      renderAgentOptions(agentFilteredList);
+      renderSelectedAgents();
+    }
+
+    function renderSkillOptions(list, typeFilter = '') {
+      if (!skillNameSelect) return;
+      skillNameSelect.innerHTML = '';
+      const placeholderOption = document.createElement('option');
+      placeholderOption.value = '';
+      placeholderOption.textContent = 'Select Skill';
+      placeholderOption.disabled = true;
+      placeholderOption.selected = true;
+      skillNameSelect.appendChild(placeholderOption);
+      const filtered = typeFilter ? list.filter((skill) => skill.skillType === typeFilter) : [...list];
+      filtered.forEach((skill) => {
+        const option = document.createElement('option');
+        option.value = skill.id;
+        option.textContent = skill.name || skill.id;
+        option.dataset.skillType = normalizeSkillTypeName(skill.skillType);
+        skillNameSelect.appendChild(option);
+      });
+      skillNameSelect.value = '';
+    }
+
+    function renderQueueTeams() {
+      renderSelectOptions(queueTeamSelect, queueTeams, 'Select Team');
+      applyPersistedTeamSelection();
+    }
+
+    async function hydrateQueueTeams() {
+      const data = await fetchList(endpoints.teams);
+      queueTeams = Array.isArray(data) && data.length ? data : queueTeams;
+      ensurePersistedTeamIncluded();
+      renderQueueTeams();
+    }
+
+    async function hydrateSkills() {
+      const data = await fetchList(endpoints.skills);
+      const rawList = Array.isArray(data) && data.length ? data : fallbackSkills;
+      skillsList = rawList.map((skill) => ({
+        ...skill,
+        skillType: normalizeSkillTypeName(skill.skillType)
+      }));
+      skillsMap = new Map();
+      skillsList.forEach((skill) => {
+        if (skill?.id) skillsMap.set(skill.id, skill);
+      });
+      renderSkillOptions(skillsList, skillTypeSelect?.value || '');
+    }
+
+    function isSkillAssignedToFlow() {
+      return queueRoutingSelect.value === 'SKILL_BASED_FLOW';
+    }
+
+    function isSkillAssignedToQueue() {
+      return queueRoutingSelect.value === 'SKILL_BASED_QUEUE';
+    }
+
+    function updateSkillAssignmentVisibility() {
+      const showSkillBuilder = isSkillAssignedToQueue() || isSkillAssignedToFlow();
+      const flowMode = isSkillAssignedToFlow();
+      const showModeSection = showSkillBuilder || queueRoutingSelect.value === 'AGENT_BASED';
+      if (queueModeSection) {
+        queueModeSection.classList.toggle('hidden', !showModeSection);
+      }
+      skillRequirementSection.classList.toggle('hidden', !showSkillBuilder);
+      if (skillRequirementHeading) {
+        skillRequirementHeading.textContent = 'Skill Requirement';
+        skillRequirementHeading.classList.toggle('hidden', flowMode);
+      }
+      if (skillRequirementHelper) {
+        skillRequirementHelper.textContent = '';
+        skillRequirementHelper.classList.add('hidden');
+      }
+      if (flowSkillActions) {
+        flowSkillActions.classList.toggle('hidden', !flowMode);
+      }
+      if (queueSkillCreateAction) {
+        queueSkillCreateAction.classList.toggle('hidden', flowMode || !showSkillBuilder);
+      }
+      if (skillRequirementFields) {
+        skillRequirementFields.classList.toggle('hidden', flowMode);
+      }
+      if (skillTypeField) {
+        skillTypeField.classList.toggle('hidden', false);
+      }
+      if (skillNameField) {
+        skillNameField.classList.toggle('hidden', flowMode);
+      }
+      if (skillConditionField) {
+        skillConditionField.classList.toggle('hidden', flowMode);
+      }
+      if (skillValueSelectGroup && flowMode) {
+        skillValueSelectGroup.classList.add('hidden');
+      }
+      if (skillValueInputGroup && flowMode) {
+        skillValueInputGroup.classList.add('hidden');
+      }
+      renderFlowSkillRequirements();
+      refreshTeamVisibility();
+      updateRoutingPatternVisibility();
+      updateAgentSectionVisibility();
+    }
+
+    function refreshTeamVisibility() {
+      queueTeamWrapper.classList.add('hidden');
+      if (persistedTeamId) {
+        applyPersistedTeamSelection();
+      }
+      if (queueTeamNote) queueTeamNote.classList.add('hidden');
+    }
+
+    const routingPatterns = {
+      agent: [
+        { value: 'LONGEST_AVAILABLE_AGENT', label: 'Longest Available' },
+        { value: 'CIRCULAR', label: 'Circular' },
+        { value: 'LINEAR', label: 'Linear' }
+      ],
+      skill: [
+        { value: 'LONGEST_AVAILABLE_AGENT', label: 'Longest Available' },
+        { value: 'BEST_AVAILABLE_AGENT', label: 'Best Available' }
+      ]
+    };
+
+    function populateRoutingPatternOptions(list = []) {
+      if (!routingPatternSelect) return;
+      routingPatternSelect.innerHTML = '';
+      list.forEach((entry, index) => {
+        const option = document.createElement('option');
+        option.value = entry.value;
+        option.textContent = entry.label;
+        if (index === 0) option.selected = true;
+        routingPatternSelect.appendChild(option);
+      });
+    }
+
+    function updateRoutingPatternVisibility() {
+      const isSkillMode = isSkillAssignedToFlow() || isSkillAssignedToQueue();
+      const isAgentMode = queueRoutingSelect.value === 'AGENT_BASED';
+
+      // Skill routing cards (Longest / Best Available)
+      if (skillRoutingRow) {
+        skillRoutingRow.classList.toggle('hidden', !isSkillMode);
+        if (isSkillMode) {
+          if (!routingPatternSelect.value || routingPatternSelect.value === 'CIRCULAR' || routingPatternSelect.value === 'LINEAR') {
+            routingPatternSelect.value = 'LONGEST_AVAILABLE_AGENT';
+          }
+          syncSkillRoutingCards();
+        }
+      }
+
+      // Agent routing cards (Circular / Top Down / Longest)
+      if (agentRoutingPatternSelect) {
+        const wrapper = agentRoutingPatternSelect.closest('.queue-mode-card');
+        if (wrapper) wrapper.classList.toggle('hidden', !isAgentMode);
+        if (isAgentMode) {
+          agentRoutingPatternSelect.value = agentRoutingPatternSelect.value || 'LONGEST_AVAILABLE_AGENT';
+          syncRoutingCards();
+        }
+      }
+    }
+
+    function updateAgentSectionVisibility() {
+      const showAgent = queueRoutingSelect.value === 'AGENT_BASED';
+      if (agentSelectionRow) {
+        agentSelectionRow.classList.toggle('hidden', !showAgent);
+      }
+    }
+
+    function getSelectedSkillType() {
+      return skillTypeSelect?.value || '';
+    }
+
+    function getModalSkillType() {
+      return skillCreateTypeSelect?.value || '';
+    }
+
+    function openSkillModal({ presetType = '' } = {}) {
+      if (skillCreateTypeSelect) {
+        skillCreateTypeSelect.value = presetType || skillTypeSelect?.value || '';
+        if (skillCreateEnumGroup) {
+          skillCreateEnumGroup.classList.toggle('hidden', skillCreateTypeSelect.value !== 'ENUM');
+        }
+      }
+      if (skillCreateModal) {
+        skillCreateModal.classList.remove('hidden');
+        skillCreateModal.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+      if (skillCreateName) { skillCreateName.value = ''; skillCreateName.focus(); }
+      if (skillCreateThreshold) skillCreateThreshold.value = '30';
+      if (skillCreateEnumInput) skillCreateEnumInput.value = '';
+      setStatus(skillCreateStatus, '');
+    }
+
+    function closeSkillModal() {
+      if (skillCreateModal) skillCreateModal.classList.add('hidden');
+    }
+
+    function showSkillCreatePanel(visible) {
+      if (visible) openSkillModal();
+      else closeSkillModal();
+    }
+
+    function syncSkillRoutingCards() {
+      if (!skillRoutingCardGrid) return;
+      const current = routingPatternSelect?.value || '';
+      skillRoutingCardGrid.querySelectorAll('.routing-card').forEach((card) => {
+        const isActive = card.dataset.skillRouting === current;
+        card.classList.toggle('active', isActive);
+        card.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+      });
+    }
+
+    function clearAgentSelection() {
+      selectedAgentIds.clear();
+      if (agentSearchInput) agentSearchInput.value = '';
+      filterAgents('');
+    }
+
+    function handleSkillAssignmentChange() {
+      updateSkillAssignmentVisibility();
+      showSkillCreatePanel(false);
+    }
+
+    function openFlowSkillComposer() {
+      flowSkillComposerVisible = true;
+      clearSkillBuilderInputs();
+      updateSkillAssignmentVisibility();
+      if (skillTypeSelect) skillTypeSelect.focus();
+    }
+
+    function clearSkillBuilderInputs() {
+      if (skillTypeSelect) {
+        skillTypeSelect.selectedIndex = 0;
+        if (!isSkillAssignedToFlow()) {
+          renderSkillOptions(skillsList, '');
+        }
+      }
+      if (skillNameSelect) skillNameSelect.selectedIndex = 0;
+      if (skillConditionSelect) skillConditionSelect.selectedIndex = 0;
+      if (skillValueSelect) {
+        skillValueSelect.innerHTML = '<option value="" disabled selected>Select skill value</option>';
+        skillValueSelect.value = '';
+      }
+      if (skillValueInput) {
+        skillValueInput.type = 'text';
+        skillValueInput.removeAttribute('min');
+        skillValueInput.removeAttribute('max');
+        skillValueInput.placeholder = 'Enter value';
+        skillValueInput.value = '';
+      }
+      skillValueSelectGroup.classList.add('hidden');
+      skillValueInputGroup.classList.add('hidden');
+      resetSkillCreateForm();
+    }
+
+    function renderSkillBatchList() {
+      if (!skillBatchList) return;
+      skillBatchList.classList.toggle('hidden', !pendingSkillBatch.length);
+      if (!pendingSkillBatch.length) {
+        skillBatchList.innerHTML = '';
+        return;
+      }
+      skillBatchList.innerHTML = pendingSkillBatch.map((entry, index) => `
+        <div class="skill-batch-item">
+          <div class="flow-skill-copy">
+            <div class="flow-skill-title">${entry.name}</div>
+            <div class="skill-batch-meta">
+              <span class="flow-skill-pill">${entry.skillType}</span>
+              <span class="flow-skill-pill">Threshold ${entry.serviceLevelThreshold}</span>
+              ${entry.enumSkillValues?.length ? `<span class="flow-skill-pill">${entry.enumSkillValues.length} Enum Values</span>` : ''}
+            </div>
+          </div>
+          <button type="button" class="btn secondary skill-batch-remove-btn" data-skill-batch-index="${index}">Remove</button>
+        </div>
+      `).join('');
+    }
+
+    function syncSkillCreateButton() {
+      if (!skillCreateBtn) return;
+      skillCreateBtn.textContent = pendingSkillBatch.length ? 'Create All' : 'Create Skill';
+    }
+
+    function resetSkillCreateDraftInputs() {
+      if (skillCreateName) skillCreateName.value = '';
+      if (skillCreateThreshold) skillCreateThreshold.value = '30';
+      if (skillCreateEnumInput) skillCreateEnumInput.value = '';
+      if (skillCreateStatus) setStatus(skillCreateStatus, '');
+    }
+
+    function buildSkillCreateDraft({ statusTarget = skillCreateStatus } = {}) {
+      const skillName = (skillCreateName?.value || '').trim();
+      const skillType = getModalSkillType() || getSelectedSkillType();
+      const threshold = Number(skillCreateThreshold?.value || 30);
+      const enumList = (skillCreateEnumInput?.value || '').split(',').map((value) => value.trim()).filter(Boolean);
+      if (!skillName || !skillType) {
+        setStatus(statusTarget, 'Skill name and type are required.', 'error');
+        return null;
+      }
+      if (!skillTypeValueMap[skillType]) {
+        setStatus(statusTarget, 'Invalid skill type selected.', 'error');
+        return null;
+      }
+      if (!Number.isFinite(threshold) || threshold < 1) {
+        setStatus(statusTarget, 'Service level threshold must be 1 or greater.', 'error');
+        return null;
+      }
+      if (skillType === 'ENUM' && !enumList.length) {
+        setStatus(statusTarget, 'Provide at least one enum value.', 'error');
+        return null;
+      }
+      const payload = {
+        name: skillName,
+        description: skillName,
+        serviceLevelThreshold: threshold,
+        active: true,
+        skillType: skillTypeValueMap[skillType]
+      };
+      if (skillType === 'ENUM') {
+        payload.enumSkillValues = enumList.map((value) => ({ name: value }));
+      }
+      return {
+        payload,
+        name: skillName,
+        skillType,
+        serviceLevelThreshold: threshold,
+        enumSkillValues: payload.enumSkillValues || []
+      };
+    }
+
+    function addSkillToBatch() {
+      const draft = buildSkillCreateDraft();
+      if (!draft) return;
+      pendingSkillBatch.push(draft);
+      renderSkillBatchList();
+      syncSkillCreateButton();
+      resetSkillCreateDraftInputs();
+      setStatus(skillCreateStatus, `Queued skill (${draft.name}).`, 'success');
+      if (skillCreateName) skillCreateName.focus();
+    }
+
+    function removeSkillFromBatch(index) {
+      pendingSkillBatch = pendingSkillBatch.filter((_, itemIndex) => itemIndex !== index);
+      renderSkillBatchList();
+      syncSkillCreateButton();
+      setStatus(skillCreateStatus, 'Removed queued skill.', 'success');
+    }
+
+    function buildSkillRequirement({ statusTarget = queueStatusEl } = {}) {
+      const selectedSkillId = skillNameSelect.value;
+      const selectedSkill = skillsMap.get(selectedSkillId);
+      const skillTypeValue = selectedSkill?.skillType || '';
+      const skillCondition = skillConditionSelect.value;
+      const skillValueSource = skillValueSelectGroup.classList.contains('hidden')
+        ? (skillValueInput?.value || '').trim()
+        : skillValueSelect?.value || '';
+      if (!skillTypeValue || !selectedSkillId || !skillCondition || !skillValueSource) {
+        setStatus(statusTarget, 'Complete the skill requirement details.', 'error');
+        return null;
+      }
+      if (skillTypeValue === 'PROFICIENCY') {
+        const numericValue = Number(skillValueSource);
+        if (Number.isNaN(numericValue) || numericValue < 1 || numericValue > 9) {
+          setStatus(statusTarget, 'Skill value must be a number between 1 and 9.', 'error');
+          return null;
+        }
+      }
+      return {
+        skillId: selectedSkillId,
+        skillName: selectedSkill?.name || '',
+        skillType: skillTypeValue,
+        condition: skillCondition,
+        skillValue: skillValueSource
+      };
+    }
+
+    function persistFlowSkillDraft() {
+      saveWizardState({
+        flowSkillDrafts: {
+          queueName: (queueNameInput?.value || '').trim(),
+          skills: flowSkillRequirements
+        }
+      });
+    }
+
+    function renderFlowSkillRequirements() {
+      if (!flowSkillList) return;
+      if (!isSkillAssignedToFlow() || !flowSkillRequirements.length) {
+        flowSkillList.classList.add('hidden');
+        flowSkillList.innerHTML = '';
+        return;
+      }
+      flowSkillList.classList.remove('hidden');
+      flowSkillList.innerHTML = `
+        <div class="flow-skill-card success">
+          <div class="flow-skill-copy">
+            <div class="flow-skill-title">Skills Added</div>
+            <div class="flow-skill-meta">
+              ${flowSkillRequirements.map((entry) => `
+                <span class="flow-skill-pill">${entry.skillName || entry.name || 'Skill'}</span>
+              `).join('')}
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function addFlowSkillRequirement() {
+      if (!flowSkillComposerVisible) {
+        openFlowSkillComposer();
+        return;
+      }
+      const draft = buildSkillCreateDraft({ statusTarget: queueStatusEl });
+      if (!draft) return;
+      pendingSkillBatch.push(draft);
+      renderSkillBatchList();
+      syncSkillCreateButton();
+      resetSkillCreateDraftInputs();
+      setStatus(queueStatusEl, `Queued skill (${draft.name}).`, 'success');
+    }
+
+    function removeFlowSkillRequirement(index) {
+      flowSkillRequirements = flowSkillRequirements.filter((_, itemIndex) => itemIndex !== index);
+      persistFlowSkillDraft();
+      renderFlowSkillRequirements();
+      setStatus(queueStatusEl, 'Removed flow skill.', 'success');
+    }
+
+    function persistFlowSkillPlan(queueDetails) {
+      const snapshot = getWizardState();
+      const plans = Array.isArray(snapshot.flowSkillPlans) ? snapshot.flowSkillPlans : [];
+      const nextPlan = {
+        queueId: queueDetails.queueId || '',
+        queueName: queueDetails.queueName || '',
+        teamId: queueDetails.teamId || '',
+        teamName: queueDetails.teamName || '',
+        routingPattern: queueDetails.routingPattern || '',
+        skills: flowSkillRequirements.map((entry) => ({ ...entry }))
+      };
+      const filteredPlans = plans.filter((plan) => {
+        if (queueDetails.queueId && plan.queueId) {
+          return plan.queueId !== queueDetails.queueId;
+        }
+        return plan.queueName !== queueDetails.queueName;
+      });
+      filteredPlans.push(nextPlan);
+      saveWizardState({
+        flowSkillPlans: filteredPlans,
+        flowSkillDrafts: { queueName: '', skills: [] }
+      });
+    }
+
+    async function hydrateAudioFiles() {
+      const data = await fetchList(endpoints.audioFiles);
+      audioFiles = Array.isArray(data) && data.length ? data : fallbackAudioFiles;
+      renderSelectOptions(queueMusicSelect, audioFiles, 'Select Music On Hold');
+    }
+
+    async function hydrateUsers() {
+      const data = await fetchList(endpoints.users);
+      agentList = Array.isArray(data) && data.length ? data : fallbackUsers;
+      agentMap = new Map(agentList.map((user) => [user.id, user]));
+      filterAgents('');
+    }
+
+    if (agentSearchInput) {
+      agentSearchInput.addEventListener('input', () => {
+        setStatus(queueStatusEl, '');
+        filterAgents(agentSearchInput.value);
+      });
+    }
+    if (availableAgentList) {
+      availableAgentList.addEventListener('click', (event) => {
+        const button = event.target.closest('.agent-list-item');
+        if (!button) return;
+        const agentId = button.dataset.agentId;
+        if (!agentId) return;
+        if (selectedAgentIds.has(agentId)) {
+          selectedAgentIds.delete(agentId);
+        } else {
+          selectedAgentIds.add(agentId);
+        }
+        renderAgentOptions(agentFilteredList);
+        renderSelectedAgents();
+        updateAgentSelectionInfo();
+        setStatus(queueStatusEl, '');
+      });
+    }
+    if (selectedAgentList) {
+      selectedAgentList.addEventListener('click', (event) => {
+        const button = event.target.closest('.selected-agent-remove');
+        if (!button) return;
+        const agentId = button.dataset.removeAgentId;
+        if (!agentId) return;
+        selectedAgentIds.delete(agentId);
+        renderAgentOptions(agentFilteredList);
+        renderSelectedAgents();
+        setStatus(queueStatusEl, '');
+      });
+    }
+
+    [queueNameInput, queueThresholdInput, queueMaxTimeInput, pauseDurationInline, skillValueInput].filter(Boolean).forEach((el) => {
+      el.addEventListener('input', () => {
+        setStatus(queueStatusEl, '');
+        if (el === queueNameInput && flowSkillRequirements.length) {
+          persistFlowSkillDraft();
+        }
+      });
+    });
+
+    [queueMusicSelect, queueTeamSelect].filter(Boolean).forEach((el) => {
+      el.addEventListener('change', () => {
+        setStatus(queueStatusEl, '');
+      });
+    });
+    [routingPatternSelect, agentRoutingPatternSelect].filter(Boolean).forEach((el) => {
+      el.addEventListener('change', () => {
+        if (routingPatternSelect && agentRoutingPatternSelect) {
+          if (el === routingPatternSelect) {
+            agentRoutingPatternSelect.value = routingPatternSelect.value;
+          } else {
+            routingPatternSelect.value = agentRoutingPatternSelect.value;
+          }
+        }
+        syncRoutingCards();
+        setStatus(queueStatusEl, '');
+      });
+    });
+    if (agentRoutingCardGrid) {
+      agentRoutingCardGrid.addEventListener('click', (event) => {
+        const card = event.target.closest('.routing-card');
+        if (!card || !agentRoutingPatternSelect) return;
+        agentRoutingPatternSelect.value = card.dataset.routingPattern || '';
+        agentRoutingPatternSelect.dispatchEvent(new Event('change'));
+      });
+    }
+
+    [monitoringToggle, recordingToggle, recordAllToggle, pauseToggle].filter(Boolean).forEach((toggle) => {
+      toggle.addEventListener('change', () => {
+        setStatus(queueStatusEl, '');
+      });
+    });
+
+    if (queueRoutingSelect) {
+      queueRoutingSelect.addEventListener('change', () => {
+        setStatus(queueStatusEl, '');
+        if (queueRoutingSelect.value !== 'AGENT_BASED') {
+          clearAgentSelection();
+        }
+        flowSkillComposerVisible = false;
+        syncQueueTypeCards();
+        updateSkillAssignmentVisibility();
+      });
+    }
+    if (queueTypeGrid) {
+      queueTypeGrid.addEventListener('click', (event) => {
+        const card = event.target.closest('.queue-type-card');
+        if (!card || !queueRoutingSelect) return;
+        queueRoutingSelect.value = card.dataset.queueType || '';
+        queueRoutingSelect.dispatchEvent(new Event('change'));
+      });
+    }
+
+    if (pauseToggle) {
+      pauseToggle.addEventListener('change', () => {
+        if (pauseDurationCell) {
+          pauseDurationCell.classList.toggle('hidden', !pauseToggle.checked);
+        }
+        if (!pauseToggle.checked && pauseDurationInline) {
+          pauseDurationInline.value = '';
+        }
+      });
+    }
+
+    if (skillNameSelect) {
+      skillNameSelect.addEventListener('change', () => {
+        setStatus(queueStatusEl, '');
+        if (isSkillAssignedToFlow()) return;
+        updateSkillValueControls();
+      });
+    }
+
+    // Skill routing card clicks
+    if (skillRoutingCardGrid) {
+      skillRoutingCardGrid.addEventListener('click', (event) => {
+        const card = event.target.closest('.routing-card');
+        if (!card || !routingPatternSelect) return;
+        routingPatternSelect.value = card.dataset.skillRouting || '';
+        syncSkillRoutingCards();
+        setStatus(queueStatusEl, '');
+      });
+    }
+
+    if (queueCreateSkillBtn) {
+      queueCreateSkillBtn.addEventListener('click', () => openSkillModal({ presetType: skillTypeSelect?.value || '' }));
+    }
+
+    // Modal skill type drives enum field visibility
+    if (skillCreateTypeSelect) {
+      skillCreateTypeSelect.addEventListener('change', () => {
+        if (skillCreateEnumGroup) {
+          skillCreateEnumGroup.classList.toggle('hidden', skillCreateTypeSelect.value !== 'ENUM');
+        }
+      });
+    }
+    if (skillTypeSelect) {
+      const skillTypeHandler = () => {
+        if (!isSkillAssignedToFlow()) {
+          renderSkillOptions(skillsList, getSelectedSkillType());
+          if (skillNameSelect) skillNameSelect.value = '';
+        }
+        updateSkillAssignmentVisibility();
+      };
+      skillTypeSelect.addEventListener('change', skillTypeHandler);
+      skillTypeHandler();
+    }
+    if (skillCreateCancel) {
+      skillCreateCancel.addEventListener('click', () => {
+        pendingSkillBatch = [];
+        renderSkillBatchList();
+        syncSkillCreateButton();
+        closeSkillModal();
+      });
+    }
+    if (skillValueSelect) {
+      skillValueSelect.addEventListener('change', () => {
+        setStatus(queueStatusEl, '');
+      });
+    }
+    if (skillBatchAddBtn) {
+      skillBatchAddBtn.addEventListener('click', addSkillToBatch);
+    }
+    if (skillCreateBtn) {
+      skillCreateBtn.addEventListener('click', submitNewSkill);
+    }
+    if (skillBatchList) {
+      skillBatchList.addEventListener('click', (event) => {
+        const target = event.target.closest('.skill-batch-remove-btn');
+        if (!target) return;
+        const index = Number(target.dataset.skillBatchIndex);
+        if (Number.isNaN(index)) return;
+        removeSkillFromBatch(index);
+      });
+    }
+    if (flowSkillAddBtn) {
+      flowSkillAddBtn.addEventListener('click', () => openSkillModal({ presetType: skillTypeSelect?.value || '' }));
+    }
+    if (flowSkillList) {
+      flowSkillList.innerHTML = '';
+    }
+    if (queueBatchList) {
+      queueBatchList.addEventListener('click', (event) => {
+        const target = event.target.closest('.queue-draft-remove-btn');
+        if (!target) return;
+        const index = Number(target.dataset.queueDraftIndex);
+        if (Number.isNaN(index)) return;
+        queueDrafts = queueDrafts.filter((_, itemIndex) => itemIndex !== index);
+        updateQueueActionState();
+        setStatus(queueStatusEl, 'Removed queued queue.', 'success');
+      });
+    }
+
+    function populateSkillValueOptions(items = []) {
+      if (!skillValueSelect) return;
+      skillValueSelect.innerHTML = '';
+      const placeholderOption = document.createElement('option');
+      placeholderOption.value = '';
+      placeholderOption.textContent = 'Select skill value';
+      placeholderOption.disabled = true;
+      placeholderOption.selected = true;
+      skillValueSelect.appendChild(placeholderOption);
+      items.forEach((item) => {
+        const option = document.createElement('option');
+        option.value = item.value;
+        option.textContent = item.label;
+        skillValueSelect.appendChild(option);
+      });
+      skillValueSelect.value = '';
+    }
+
+    function updateSkillValueControls() {
+      if (isSkillAssignedToFlow()) {
+        skillValueSelectGroup.classList.add('hidden');
+        skillValueInputGroup.classList.add('hidden');
+        return;
+      }
+      if (!skillNameSelect) return;
+      const selectedSkill = skillsMap.get(skillNameSelect.value);
+      const skillType = selectedSkill?.skillType || '';
+      if (!skillType) {
+        skillValueSelectGroup.classList.add('hidden');
+        skillValueInputGroup.classList.add('hidden');
+        return;
+      }
+      if (skillType === 'ENUM') {
+        const values = Array.isArray(selectedSkill.enumSkillValues) ? selectedSkill.enumSkillValues : [];
+        populateSkillValueOptions(values.map((value) => ({
+          label: value.name || value.id,
+          value: value.name || value.id
+        })));
+        skillValueSelectGroup.classList.remove('hidden');
+        skillValueInputGroup.classList.add('hidden');
+      } else if (skillType === 'BOOLEAN') {
+        populateSkillValueOptions([
+          { label: 'True', value: 'true' },
+          { label: 'False', value: 'false' }
+        ]);
+        skillValueSelectGroup.classList.remove('hidden');
+        skillValueInputGroup.classList.add('hidden');
+      } else {
+        skillValueSelectGroup.classList.add('hidden');
+        skillValueInputGroup.classList.remove('hidden');
+        if (skillValueInput) {
+          if (skillType === 'PROFICIENCY') {
+            skillValueInput.type = 'number';
+            skillValueInput.min = '1';
+            skillValueInput.max = '9';
+            skillValueInput.placeholder = 'Enter value (1-9)';
+          } else {
+            skillValueInput.type = 'text';
+            skillValueInput.removeAttribute('min');
+            skillValueInput.removeAttribute('max');
+            skillValueInput.placeholder = 'Enter value';
+          }
+          skillValueInput.value = '';
+        }
+      }
+    }
+
+    function resetSkillCreateForm() {
+      resetSkillCreateDraftInputs();
+      pendingSkillBatch = [];
+      renderSkillBatchList();
+      syncSkillCreateButton();
+      closeSkillModal();
+      if (skillCreateEnumGroup) skillCreateEnumGroup.classList.add('hidden');
+    }
+
+    async function submitNewSkill() {
+      if (creatingSkill) return;
+      const drafts = [...pendingSkillBatch];
+      if (!drafts.length) {
+        const currentDraft = buildSkillCreateDraft();
+        if (!currentDraft) {
+          setStatus(skillCreateStatus, 'Add at least one skill to the batch or complete the current draft.', 'error');
+          return;
+        }
+        drafts.push(currentDraft);
+      }
+      creatingSkill = true;
+      if (skillBatchAddBtn) skillBatchAddBtn.disabled = true;
+      skillCreateBtn.disabled = true;
+      skillCreateBtn.textContent = 'CREATING…';
+      setStatus(skillCreateStatus, `Creating ${drafts.length} skill${drafts.length === 1 ? '' : 's'}…`);
+      try {
+        const createdSkills = [];
+        for (const draft of drafts) {
+          const response = await fetch(`${BASE_URL}/skill`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Accept: 'application/json',
+              Authorization: `Bearer ${authToken}`
+            },
+            body: JSON.stringify(draft.payload)
+          });
+          const body = await response.json().catch(() => ({}));
+          if (!response.ok) {
+            throw new Error(body?.message || response.statusText || `HTTP ${response.status}`);
+          }
+          const newSkill = body?.data || body;
+          if (!newSkill?.id) {
+            throw new Error('Unexpected skill response.');
+          }
+          const addedSkill = {
+            id: newSkill.id,
+            name: newSkill.name || draft.name,
+            skillType: normalizeSkillTypeName(newSkill.skillType || draft.skillType)
+          };
+          createdSkills.push(addedSkill);
+          skillsList.unshift(addedSkill);
+          skillsMap.set(addedSkill.id, addedSkill);
+        }
+        renderSkillOptions(skillsList, getSelectedSkillType());
+        if (skillNameSelect && createdSkills.length) {
+          skillNameSelect.value = createdSkills[createdSkills.length - 1].id;
+        }
+        if (isSkillAssignedToFlow() && createdSkills.length) {
+          flowSkillRequirements.push(...createdSkills.map((skill) => ({
+            skillId: skill.id,
+            skillName: skill.name,
+            skillType: skill.skillType
+          })));
+          persistFlowSkillDraft();
+          renderFlowSkillRequirements();
+          closeSkillModal();
+        } else {
+          updateSkillValueControls();
+        }
+        setStatus(skillCreateStatus, `Created ${createdSkills.length} skill${createdSkills.length === 1 ? '' : 's'}.`, 'success');
+        resetSkillCreateForm();
+      } catch (error) {
+        setStatus(skillCreateStatus, `Failed to create skill: ${error.message}`, 'error');
+      } finally {
+        creatingSkill = false;
+        if (skillBatchAddBtn) skillBatchAddBtn.disabled = false;
+        skillCreateBtn.disabled = false;
+        syncSkillCreateButton();
+      }
+    }
+    function resetSkillFields() {
+      clearSkillBuilderInputs();
+      flowSkillRequirements = [];
+      persistFlowSkillDraft();
+      renderFlowSkillRequirements();
+    }
+
+    function buildCurrentQueueDraft({ statusTarget = queueStatusEl } = {}) {
+      const queueName = queueNameInput.value.trim();
+      const serviceLevel = queueThresholdInput.value.trim();
+      const maxTime = queueMaxTimeInput.value.trim();
+      const musicId = queueMusicSelect.value;
+      const routingType = queueRoutingSelect.value;
+      if (!queueName) {
+        setStatus(statusTarget, 'Queue name is required.', 'error');
+        return null;
+      }
+      if (!serviceLevel) {
+        setStatus(statusTarget, 'Service level threshold is required.', 'error');
+        return null;
+      }
+      if (!maxTime) {
+        setStatus(statusTarget, 'Max time in queue is required.', 'error');
+        return null;
+      }
+      if (!musicId) {
+        setStatus(statusTarget, 'Please select music on hold.', 'error');
+        return null;
+      }
+      if (!routingType) {
+        setStatus(statusTarget, 'Select a queue type.', 'error');
+        return null;
+      }
+      const assignmentFlow = routingType === 'SKILL_BASED_FLOW';
+      const assignmentQueue = routingType === 'SKILL_BASED_QUEUE';
+      const teamId = persistedTeamId || (queueTeamSelect?.value || '');
+      if ((routingType === 'TEAM_BASED' || assignmentFlow) && !teamId) {
+        setStatus(statusTarget, 'Complete step 1 first so the wizard has a team to attach to this queue.', 'error');
+        return null;
+      }
+      let skillRequirement = null;
+      if (assignmentQueue) {
+        skillRequirement = buildSkillRequirement({ statusTarget });
+        if (!skillRequirement) return null;
+      }
+      let agentPayload = [];
+      if (routingType === 'AGENT_BASED') {
+        if (!selectedAgentIds.size) {
+          setStatus(statusTarget, 'Select at least one agent for the queue.', 'error');
+          return null;
+        }
+        agentPayload = Array.from(selectedAgentIds)
+          .map((agentId) => {
+            const user = agentMap.get(agentId);
+            if (!user) return null;
+            return { id: user.id, ciUserId: user.ciUserId || '' };
+          })
+          .filter(Boolean);
+        if (!agentPayload.length) {
+          setStatus(statusTarget, 'Select at least one agent for the queue.', 'error');
+          return null;
+        }
+      }
+      const pauseRecordingPermitted = Boolean(pauseToggle.checked);
+      return {
+        name: queueName,
+        serviceLevelThreshold: Number(serviceLevel),
+        maxTimeInQueue: Number(maxTime),
+        musicId,
+        routingType,
+        routingPattern: routingType === 'AGENT_BASED'
+          ? (agentRoutingPatternSelect?.value || 'LONGEST_AVAILABLE_AGENT')
+          : (routingPatternSelect?.value || 'LONGEST_AVAILABLE_AGENT'),
+        monitoringPermitted: Boolean(monitoringToggle.checked),
+        recordingPermitted: Boolean(recordingToggle.checked),
+        recordingAllCallsPermitted: Boolean(recordAllToggle.checked),
+        pauseRecordingPermitted,
+        recordingPauseDuration: pauseRecordingPermitted ? Number(pauseDurationInline?.value || 0) : 0,
+        teamId,
+        skillRequirement,
+        flowSkills: flowSkillRequirements.map((entry) => ({ ...entry })),
+        agents: agentPayload
+      };
+    }
+
+    function clearCurrentQueueEntry({ preserveRoute = true } = {}) {
+      if (queueNameInput) queueNameInput.value = '';
+      // Preserve all other settings (type, permissions, routing, skills, agents)
+      // so the user can quickly create similar queues with just a new name.
+      closeSkillModal();
+      setStatus(queueStatusEl, '');
+    }
+
+    function addQueueDraft() {
+      const draft = buildCurrentQueueDraft();
+      if (!draft) return;
+      queueDrafts.push(cloneQueueDraft(draft));
+      renderQueueDrafts();
+      updateQueueActionState();
+      clearCurrentQueueEntry();
+      setStatus(queueStatusEl, `Queued ${draft.name}.`, 'success');
+      if (queueNameInput) queueNameInput.focus();
+    }
+
+    async function submitQueueCreation() {
+      if (creatingQueue) return;
+      if (!authToken) {
+        setStatus(queueStatusEl, 'Authentication is required to create a queue.', 'error');
+        return;
+      }
+      const draftsToCreate = queueDrafts.map(cloneQueueDraft);
+      const currentHasValues = Boolean(queueNameInput.value.trim());
+      if (currentHasValues || !draftsToCreate.length) {
+        const currentDraft = buildCurrentQueueDraft();
+        if (!currentDraft) return;
+        draftsToCreate.push(cloneQueueDraft(currentDraft));
+      }
+      if (!draftsToCreate.length) {
+        setStatus(queueStatusEl, 'Configure at least one queue before continuing.', 'error');
+        return;
+      }
+      creatingQueue = true;
+      createQueueBtn.disabled = true;
+      if (addQueueDraftBtn) addQueueDraftBtn.disabled = true;
+      createQueueBtn.textContent = 'CREATING…';
+      setStatus(queueStatusEl, `Creating ${draftsToCreate.length} queue${draftsToCreate.length === 1 ? '' : 's'}…`);
+      setQueueLoading(true, `Creating ${draftsToCreate.length} queue${draftsToCreate.length === 1 ? '' : 's'} and applying each configuration in sequence.`);
+      try {
+        // Clear stale queue data from previous wizard runs before we start
+        saveWizardState({ flowSkillPlans: [], latestCreatedQueue: null });
+        const createdNames = [];
+        for (const [index, draft] of draftsToCreate.entries()) {
+          if (index > 0) {
+            // Brief pause between requests — WxCC API can return 400 "team doesn't belong
+            // to same org" when the same team is used in back-to-back queue creation calls.
+            await new Promise((resolve) => setTimeout(resolve, 1400));
+          }
+          setQueueLoading(true, `Creating queue ${index + 1} of ${draftsToCreate.length}: ${draft.name}`);
+          const assignmentFlow = draft.routingType === 'SKILL_BASED_FLOW';
+          const assignmentQueue = draft.routingType === 'SKILL_BASED_QUEUE';
+          const queueRoutingTypeValue = assignmentFlow
+            ? 'TEAM_BASED'
+            : assignmentQueue
+              ? 'SKILL_BASED'
+              : draft.routingType;
+          let routingTypeValue = 'LONGEST_AVAILABLE_AGENT';
+          if (assignmentFlow || assignmentQueue) {
+            routingTypeValue = 'SKILLS_BASED';
+          } else if (draft.routingType === 'AGENT_BASED') {
+            routingTypeValue = draft.routingPattern;
+          }
+          const queuePayload = {
+            name: draft.name,
+            description: draft.name,
+            active: true,
+            monitoringPermitted: draft.monitoringPermitted,
+            parkingPermitted: true,
+            recordingPermitted: draft.recordingPermitted,
+            recordingAllCallsPermitted: draft.recordingAllCallsPermitted,
+            pauseRecordingPermitted: draft.pauseRecordingPermitted,
+            recordingPauseDuration: draft.recordingPauseDuration,
+            queueType: 'INBOUND',
+            channelType: 'TELEPHONY',
+            serviceLevelThreshold: draft.serviceLevelThreshold,
+            maxActiveContacts: 0,
+            maxTimeInQueue: draft.maxTimeInQueue,
+            defaultMusicInQueueMediaFileId: draft.musicId,
+            routingType: routingTypeValue,
+            queueRoutingType: queueRoutingTypeValue,
+            skillBasedRoutingType: (assignmentFlow || assignmentQueue) ? draft.routingPattern : undefined
+          };
+          if (draft.routingType === 'TEAM_BASED' || assignmentFlow) {
+            queuePayload.callDistributionGroups = [
+              {
+                agentGroups: [
+                  {
+                    teamId: draft.teamId
+                  }
+                ],
+                order: 1,
+                duration: 0
+              }
+            ];
+          }
+          if (assignmentQueue && draft.skillRequirement) {
+            queuePayload.queueSkillRequirements = [{ ...draft.skillRequirement }];
+          }
+          if (draft.agents?.length) {
+            queuePayload.agents = draft.agents.map((entry) => ({ ...entry }));
+            queuePayload.callDistributionGroups = [];
+            queuePayload.queueLevelSummariesInclusion = 'EXCLUDED';
+          }
+          const response = await fetch(`${BASE_URL}/v2/contact-service-queue`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Accept: 'application/json',
+              Authorization: `Bearer ${authToken}`
+            },
+            body: JSON.stringify(queuePayload)
+          });
+          const body = await response.json().catch(() => ({}));
+          if (!response.ok) {
+            const detail = body?.error?.message?.[0]?.description
+                        || body?.error?.reason
+                        || body?.message
+                        || response.statusText
+                        || `HTTP ${response.status}`;
+            throw new Error(detail);
+          }
+          // Always track the most recently created queue (and its MOH) so S3 can use them without asking
+          saveWizardState({
+            latestCreatedQueue: { id: body?.id || '', name: body?.name || draft.name },
+            latestMusicOnHoldId: draft.musicId || '',
+            latestSlt: draft.serviceLevelThreshold || 30
+          });
+          if (assignmentFlow) {
+            flowSkillRequirements = draft.flowSkills.map((entry) => ({ ...entry }));
+            persistFlowSkillPlan({
+              queueId: body?.id || '',
+              queueName: body?.name || draft.name,
+              teamId: draft.teamId,
+              teamName: persistedTeamName || '',
+              routingPattern: draft.routingPattern
+            });
+          }
+          createdNames.push(body?.name || body?.id || draft.name);
+        }
+        queueDrafts = [];
+        renderQueueDrafts();
+        setStatus(queueStatusEl, `Created ${createdNames.length} queue${createdNames.length === 1 ? '' : 's'}: ${createdNames.join(', ')}.`, 'success');
+        window.location.href = 'S3_Channels.html';
+      } catch (error) {
+        showErrorPopup('Failed to Create Queue', error.message);
+        setStatus(queueStatusEl, 'Queue creation failed — see error popup for details.', 'error');
+      } finally {
+        creatingQueue = false;
+        createQueueBtn.disabled = false;
+        if (addQueueDraftBtn) addQueueDraftBtn.disabled = false;
+        setQueueLoading(false);
+        updateQueueActionState();
+      }
+    }
+
+    const queueForm = document.getElementById('queueForm');
+
+    function resetQueueFormState() {
+      resetSkillFields();
+      resetSkillCreateForm();
+      handleSkillAssignmentChange();
+      updateSkillAssignmentVisibility();
+      if (routingPatternSelect) routingPatternSelect.selectedIndex = 0;
+      if (agentRoutingPatternSelect) agentRoutingPatternSelect.value = 'LONGEST_AVAILABLE_AGENT';
+      clearAgentSelection();
+      updateAgentSectionVisibility();
+      updateRoutingPatternVisibility();
+      applyPersistedTeamSelection();
+      syncRoutingCards();
+      syncQueueTypeCards();
+      updateQueueActionState();
+    }
+
+    if (addQueueDraftBtn) {
+      addQueueDraftBtn.addEventListener('click', addQueueDraft);
+    }
+    if (createQueueBtn) {
+      createQueueBtn.addEventListener('click', submitQueueCreation);
+    }
+
+    (async () => {
+      showStage(stageQueue);
+      if (queueForm) queueForm.reset();
+      queueDrafts = [];
+      resetQueueFormState();
+      queueTeamWrapper.classList.add('hidden');
+      if (pauseDurationCell) pauseDurationCell.classList.add('hidden');
+      setStatus(queueStatusEl, '');
+      handleSkillAssignmentChange();
+      updateSkillAssignmentVisibility();
+      updateQueueActionState();
+      await Promise.all([
+        hydrateAudioFiles(),
+        hydrateQueueTeams(),
+        hydrateSkills(),
+        hydrateUsers()
+      ]);
+    })();
+
+
+    function updateAuthIndicators() {
+      const token = (localStorage.getItem(cacheKeyBearer) || '').trim();
+      const orgName = localStorage.getItem(cacheKeyOrgName) || localStorage.getItem(cacheKeyOrg) || '';
+      const userName = localStorage.getItem(cacheKeyUser) || '';
+      const userNameEl = document.getElementById('userName');
+      const userOrgEl = document.getElementById('userOrg');
+      if (userNameEl) userNameEl.textContent = token ? (userName || 'Signed in') : 'Not authenticated';
+      if (userOrgEl) userOrgEl.textContent = token ? orgName : '';
+    }
+
+    updateAuthIndicators();
+
+    const signOutBtn = document.getElementById('signOutBtn');
+    if (signOutBtn) {
+      signOutBtn.addEventListener('click', () => {
+        ['authBearer','authOrg','authOrgName','authOrgId','authUserName','authRefreshToken','authExpiresAt','authLoginMethod','authScopes'].forEach((key) => localStorage.removeItem(key));
+        window.location.href = '../../index.html';
+      });
+    }
+
+
+    document.addEventListener('click', (event) => {
+    });
+
+    document.addEventListener('keydown', (event) => {
+    });
+  </script>
+  </body>
+</html>

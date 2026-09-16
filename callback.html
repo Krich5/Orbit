@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="light dark" />
+  <title>Signing in… | Orbit</title>
+  <link rel="icon" type="image/png" href="assets/images/WxCC_Icon-192.png" />
+  <link rel="stylesheet" href="assets/css/theme.css">
+  <script src="assets/js/orbit-config.js"></script>
+</head>
+<body class="dark-mode api-landing">
+  <main>
+    <section class="surface-card surface-card--hero">
+      <div class="hero-brand">
+        <span class="hero-logo-text">Orbit</span>
+      </div>
+      <p class="lead" id="callbackStatus">Completing sign-in…</p>
+    </section>
+  </main>
+
+  <script src="assets/js/components.js"></script>
+  <script src="assets/js/theme.js"></script>
+  <script>
+    (function () {
+      const STATE_KEY = 'orbitOAuthState';
+      const statusEl = document.getElementById('callbackStatus');
+
+      function fail(message, detail) {
+        statusEl.textContent = message;
+        if (detail) console.error(detail);
+        setTimeout(() => {
+          window.location.href = `index.html?error=${encodeURIComponent(message)}`;
+        }, 2500);
+      }
+
+      const params = new URLSearchParams(window.location.search);
+      const error = params.get('error');
+      const code = params.get('code');
+      const state = params.get('state');
+      const expectedState = sessionStorage.getItem(STATE_KEY);
+      sessionStorage.removeItem(STATE_KEY);
+
+      if (error) {
+        fail(`Webex sign-in was cancelled or failed (${error}).`);
+        return;
+      }
+      if (!code) {
+        fail('No authorization code was returned.');
+        return;
+      }
+      if (expectedState && state !== expectedState) {
+        fail('Sign-in state mismatch — please try again.');
+        return;
+      }
+
+      fetch(`${window.ORBIT_PROXY_BASE}/token`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code }),
+      })
+        .then((res) => res.json().then((data) => ({ ok: res.ok, data })))
+        .then(({ ok, data }) => {
+          if (!ok) throw new Error(data.error || data.message || 'Token exchange failed');
+          return window.completeOAuthSignIn(data);
+        })
+        .then(() => {
+          window.location.href = 'home.html';
+        })
+        .catch((err) => fail('Could not complete sign-in.', err));
+    })();
+  </script>
+</body>
+</html>

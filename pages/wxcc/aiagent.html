@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="light" />
+  <title>WxCC - AI Agent</title>
+  <link rel="icon" type="image/png" href="../../assets/images/WxCC_Icon-192.png" />
+  <link rel="stylesheet" href="../../assets/css/theme.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+<body class="dark-mode api-aiagent">
+  <script>if (localStorage.getItem("tpRailExpanded") === "true") document.body.classList.add("tp-rail-expanded");</script>
+  <api-tools-header basepath="../../"></api-tools-header>
+
+  <main>
+    <div class="wrap wide aiagent-page-stack">
+      <section class="card aiagent-card">
+        <div class="pageHeader aiagent-page-header aiagent-page-header--workspace">
+          <div>
+            <h1>AI Agent Workspace</h1>
+            <p class="lead">Switch between the bot visualizer, call transcript summaries, and AI utilization setup from one page.</p>
+          </div>
+          <div class="aiagent-mode-switch" role="tablist" aria-label="AI Agent Workspace Modes">
+            <button class="aiagent-mode-tab active" type="button" data-mode="visualizer" aria-selected="true">AI Bot Visualizer</button>
+            <button class="aiagent-mode-tab" type="button" data-mode="summary" aria-selected="false">AI Call Transcription Summary</button>
+            <button class="aiagent-mode-tab" type="button" data-mode="utilization" aria-selected="false">AI Utilization</button>
+            <button class="aiagent-mode-tab" type="button" data-mode="autonomous" aria-selected="false">Autonomous Instructions Builder</button>
+          </div>
+        </div>
+
+        <section class="aiagent-mode-panel" id="aiagentPanelVisualizer" data-mode-panel="visualizer">
+          <div class="aiagent-section-heading">
+            <h2>AI Bot Visualizer</h2>
+            <p>Load a bot export JSON and browse it more like Webex AI Agent Studio: intents, entities, responses, and conditional response logic.</p>
+          </div>
+          <div class="aiagent-bot-grid aiagent-bot-grid--single">
+            <div class="aiagent-request-card">
+              <div class="aiagent-request-header">
+                <div>
+                  <h2>Bot Loader</h2>
+                  <p class="aiagent-request-desc">Use a JSON export from the Cisco AI bot designer.</p>
+                </div>
+              </div>
+              <div class="aiagent-field-row">
+                <div class="aiagent-field-span-3">
+                  <label for="botJsonFileInput">Bot JSON File</label>
+                  <div class="aiagent-file-wrap">
+                    <input id="botJsonFileInput" type="file" accept=".json,application/json" class="aiagent-file-hidden" />
+                    <label class="aiagent-file-display" for="botJsonFileInput">
+                      <span class="aiagent-file-btn">Browse</span>
+                      <span class="aiagent-file-name" id="botFileNameDisplay">No file chosen</span>
+                    </label>
+                  </div>
+                </div>
+              </div>
+              <div class="actionsRow">
+                <button class="btn primary" id="loadBotBtn" type="button">Load Bot JSON</button>
+                <button class="btn" id="clearBotBtn" type="button">Clear</button>
+              </div>
+              <div class="aiagent-inline-error hidden" id="botErrorBox"></div>
+            </div>
+          </div>
+
+          <div class="aiagent-studio-shell">
+            <div class="aiagent-studio-tabs" role="tablist" aria-label="AI Bot Browser Tabs">
+              <button class="aiagent-studio-tab active" id="tabIntents" type="button" data-tab="intents" role="tab" aria-selected="true">Intents</button>
+              <button class="aiagent-studio-tab" id="tabEntities" type="button" data-tab="entities" role="tab" aria-selected="false">Entities</button>
+              <button class="aiagent-studio-tab" id="tabResponses" type="button" data-tab="responses" role="tab" aria-selected="false">Responses</button>
+              <button class="aiagent-studio-tab" id="tabFlow" type="button" data-tab="flow" role="tab" aria-selected="false">Flow</button>
+            </div>
+            <div class="aiagent-studio-panel" id="studioSplitPanel">
+              <div class="aiagent-studio-list-wrap" id="studioListWrap">
+                <div class="aiagent-empty-state">Load a bot JSON file to browse intents, entities, and responses.</div>
+              </div>
+              <div class="aiagent-studio-detail" id="studioDetailWrap">
+                <div class="aiagent-empty-state">Select an item to inspect its details.</div>
+              </div>
+            </div>
+            <div class="aiagent-flow-canvas hidden" id="studioFlowCanvas">
+              <div class="aiagent-empty-state">Load a bot JSON file to see the conversation flow.</div>
+            </div>
+          </div>
+        </section>
+
+        <section class="aiagent-mode-panel hidden" id="aiagentPanelSummary" data-mode-panel="summary">
+          <div class="aiagent-section-heading">
+            <h2>AI Call Transcript Summary</h2>
+            <p>Run post-call, mid-call transfer, and consult summaries using the Summaries API.</p>
+          </div>
+          <div class="aiagent-request-grid">
+            <div class="aiagent-request-card">
+              <div class="aiagent-request-header">
+                <div>
+                  <h2>Summaries Runner</h2>
+                  <p class="aiagent-request-desc">Switch summary type and run the API in one place.</p>
+                </div>
+              </div>
+              <div class="aiagent-field-row">
+                <div>
+                  <label for="summaryTypeSelect">Summary Type</label>
+                  <select id="summaryTypeSelect">
+                    <option value="">Not set</option>
+                    <option value="POST_CALL">Post-Call Summary</option>
+                    <option value="MID_CALL_TRANSFER">Mid-Call Transfer Summary</option>
+                    <option value="CONSULT">Consult Summary</option>
+                  </select>
+                </div>
+                <div>
+                  <label for="searchTypeSelect">Search Type</label>
+                  <select id="searchTypeSelect">
+                    <option value="ORGANIZATION">Organization</option>
+                    <option value="AGENT">Agent</option>
+                    <option value="INTERACTION">Interaction</option>
+                  </select>
+                </div>
+                <div class="aiagent-interaction-field">
+                  <label for="interactionIdInput">Interaction ID</label>
+                  <input id="interactionIdInput" type="text" placeholder="Interaction ID" />
+                </div>
+                <div class="aiagent-agent-field">
+                  <label for="agentIdInput">Agent CI User ID</label>
+                  <input id="agentIdInput" type="text" placeholder="Agent ID" />
+                </div>
+              </div>
+              <div class="aiagent-field-row aiagent-field-row--spaced">
+                <div>
+                  <label for="startInput">Start (optional)</label>
+                  <input id="startInput" type="datetime-local" />
+                </div>
+                <div>
+                  <label for="endInput">End (optional)</label>
+                  <input id="endInput" type="datetime-local" />
+                </div>
+              </div>
+              <div class="actionsRow">
+                <button class="btn primary" id="runBtn" type="button">Run Summary</button>
+              </div>
+              <div class="aiagent-response" id="responseBox">Response will appear here…</div>
+            </div>
+          </div>
+        </section>
+
+        <section class="aiagent-mode-panel hidden" id="aiagentPanelUtilization" data-mode-panel="utilization">
+          <div class="aiagent-section-heading">
+            <h2>AI Utilization</h2>
+            <p>Use the guided setup to import the AI utilization assets first, then follow the next-step instructions for where to place them in WxCC.</p>
+          </div>
+          <div class="aiagent-util-layout">
+            <div class="aiagent-request-card aiagent-util-step-card">
+              <div class="aiagent-util-step-header">
+                <div class="aiagent-util-step-number">Step 1</div>
+                <div>
+                  <h2>Import Assets</h2>
+                  <p class="aiagent-request-desc">This runs the full asset import for the current tenant: 4 global variables, 3 subflow imports, then 3 subflow publishes.</p>
+                </div>
+              </div>
+              <div class="aiagent-util-status-line" id="aiUtilPackageSummary">Ready to import built-in AI utilization assets.</div>
+              <div class="actionsRow">
+                <button class="btn primary" id="runAiUtilBtn" type="button">Run Step 1 Import</button>
+              </div>
+              <div class="aiagent-inline-error hidden" id="aiUtilErrorBox"></div>
+              <div class="aiagent-util-log hidden" id="aiUtilLogBox">Import log will appear here…</div>
+            </div>
+
+            <div class="aiagent-request-card aiagent-util-step-card">
+              <div class="aiagent-util-step-header">
+                <div class="aiagent-util-step-number">Step 2</div>
+                <div>
+                  <h2>Place the Assets</h2>
+                  <p class="aiagent-request-desc">Add your instructions here for where each imported variable and subflow should be used in the tenant.</p>
+                </div>
+              </div>
+              <div class="aiagent-util-instructions">
+                <div class="aiagent-util-instruction-note">Instruction placeholder</div>
+                <p>Use this area to explain where the new variables and subflows should be referenced after Step 1 completes.</p>
+                <ul class="aiagent-util-instruction-list">
+                  <li>Add the specific flow or entry point placement notes here.</li>
+                  <li>Document where each subflow should be called from.</li>
+                  <li>Document any variable mapping or reporting follow-up here.</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <div class="aiagent-util-overlay hidden" id="aiUtilOverlay" aria-live="polite" aria-busy="true">
+            <div class="aiagent-util-overlay-card">
+              <div class="aiagent-util-spinner"></div>
+              <div class="aiagent-util-overlay-label" id="aiUtilOverlayLabel">Preparing import…</div>
+              <div class="aiagent-util-overlay-detail" id="aiUtilOverlayDetail">Connecting to the current tenant.</div>
+              <div class="aiagent-util-phase-list">
+                <div class="aiagent-util-phase-row" id="aiUtilPhaseGlobals">Importing Global Variables</div>
+                <div class="aiagent-util-phase-row" id="aiUtilPhaseSubflows">Importing Subflows</div>
+                <div class="aiagent-util-phase-row" id="aiUtilPhasePublish">Publishing Subflows</div>
+              </div>
+              <div class="aiagent-util-task-log" id="aiUtilTaskLog">Task progress will appear here…</div>
+            </div>
+          </div>
+        </section>
+
+        <section class="aiagent-mode-panel hidden" id="aiagentPanelAutonomous" data-mode-panel="autonomous">
+          <div class="aiagent-section-heading">
+            <h2>Autonomous Instructions Builder</h2>
+            <p>Draft the Agent Goal and Instructions as plain text. Spaces and line breaks count toward the shared 5,120 character limit split between the two boxes.</p>
+          </div>
+          <div class="aiagent-autonomous-total" id="autoTotalCounter">0 / 5,120 characters</div>
+          <div class="aiagent-inline-error hidden" id="autoLimitError"></div>
+          <div class="aiagent-autonomous-stack">
+            <div class="aiagent-request-card">
+              <div class="aiagent-request-header">
+                <div>
+                  <h2>Agent Goal</h2>
+                  <p class="aiagent-request-desc">What the agent is trying to accomplish.</p>
+                </div>
+              </div>
+              <textarea id="autoGoalInput" class="aiagent-autonomous-textarea" placeholder="Describe the agent's goal in plain text…" spellcheck="false"></textarea>
+              <div class="aiagent-autonomous-counter" id="autoGoalCounter">0 characters</div>
+            </div>
+            <div class="aiagent-request-card">
+              <div class="aiagent-request-header">
+                <div>
+                  <h2>Instructions</h2>
+                  <p class="aiagent-request-desc">Step-by-step guidance for the agent to follow.</p>
+                </div>
+              </div>
+              <textarea id="autoInstructionsInput" class="aiagent-autonomous-textarea" placeholder="Describe the agent's instructions in plain text…" spellcheck="false"></textarea>
+              <div class="aiagent-autonomous-counter" id="autoInstructionsCounter">0 characters</div>
+            </div>
+          </div>
+          <div class="actionsRow">
+            <button class="btn" id="autoClearBtn" type="button">Clear</button>
+          </div>
+        </section>
+      </section>
+    </div>
+  </main>
+
+  <script src="../../assets/js/orbit-config.js"></script>
+
+  <script src="../../assets/js/components.js"></script>
+
+  <script src="../../assets/js/theme.js"></script>
+  <script src="../../assets/js/aiagent-page.js"></script>
+</body>
+</html>

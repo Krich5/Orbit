@@ -1,0 +1,2324 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="light" />
+  <title>WxCC — Skills</title>
+  <link rel="stylesheet" href="../../assets/css/theme.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/png" href="../../assets/images/WxCC_Icon-192.png" />
+  <style>
+main { padding:32px 0 80px; display:flex; justify-content:flex-start; }
+.pageHeaderActions .btn { font-size:0.9rem; padding:8px 14px; }
+.actionsRow { display:flex; flex-wrap:wrap; gap:16px; align-items:flex-end; margin-bottom:20px; }
+.searchWrapper { flex:1; min-width:260px; }
+.searchLabel { font-size:13px; color:var(--muted); margin-bottom:6px; display:block; }
+    .searchControl { border:1px solid var(--border); background:var(--input); border-radius:12px; padding:4px 10px; display:flex; align-items:center; }
+    .searchInput { width:100%; border:none; background:transparent; color:var(--fg); font-size:14px; font-family:inherit; height:28px; min-height:28px; }
+.searchInput:focus { outline:none; }
+.columnSearch { width:100%; }
+.actionsRight { display:flex; align-items:center; gap:10px; margin-left:auto; }
+.pill { display:inline-flex; align-items:center; gap:6px; padding:6px 12px; border-radius:999px; border:1px solid var(--border); background:var(--panel); font-size:13px; font-weight:600; }
+.skillColumns { display:grid; grid-template-columns:repeat(auto-fit,minmax(320px,1fr)); gap:18px; margin-top:26px; }
+.skillColumn { border:1px solid var(--border); border-radius:18px; background:var(--panel); padding:18px; display:flex; flex-direction:column; gap:16px; min-height:360px; }
+.columnHeader { display:flex; justify-content:space-between; align-items:flex-start; }
+.columnHeader h2 { margin:0; font-size:1.2rem; }
+.columnHeader .muted { margin-top:4px; font-size:13px; }
+.columnHeaderActions { display:flex; align-items:center; gap:8px; flex-wrap:wrap; justify-content:flex-end; }
+.selectionPill { font-size:12px; padding:5px 10px; }
+.selectionPill.is-hidden { display:none; }
+.selectAllBtn {
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+}
+.selectAllCheck {
+  width:16px;
+  height:16px;
+  accent-color:var(--accent);
+  cursor:pointer;
+  margin:0;
+}
+.skillProfileListWrapper { position:relative; }
+.skillProfileList { display:flex; flex-direction:column; gap:10px; }
+    .profileRowCard { display:grid; grid-template-columns:24px minmax(0,1fr) minmax(220px,330px); gap:16px; padding:12px 16px; border-radius:14px; border:1px solid var(--border); background:var(--card); }
+    .rowSelectCell { display:flex; align-items:flex-start; justify-content:center; padding-top:4px; }
+    .rowSelectCheck { width:16px; height:16px; accent-color:var(--accent); cursor:pointer; }
+    .profileRowContent { display:flex; flex-direction:column; gap:6px; }
+    .profileRowTitle { display:flex; flex-direction:column; gap:4px; }
+    .profileTitleLine,
+    .definitionTitleLine {
+      display:flex;
+      align-items:center;
+      gap:8px;
+      min-width:0;
+    }
+    .profileTitleName,
+    .definitionName {
+      min-width:0;
+      overflow-wrap:anywhere;
+    }
+    .profileTitleName { font-weight:400; font-size:1rem; margin:0; }
+    .profileSummaryGroup {
+      display:flex;
+      flex-wrap:wrap;
+      gap:6px;
+      align-items:center;
+      line-height:1.5;
+    }
+    .profileSummaryItem {
+      display:inline-flex;
+      align-items:center;
+      gap:0;
+      flex-wrap:nowrap;
+      white-space:nowrap;
+      font-size:13px;
+      color:var(--fg);
+    }
+    .profileSummaryLabel {
+      color:var(--fg);
+      font-weight:600;
+    }
+    .profileSummarySeparator {
+      color:var(--muted);
+      padding:0 4px;
+    }
+    .profileSummaryValue { font-weight:400; color:var(--fg); }
+    .profileSummaryJoin {
+      color:var(--muted);
+      padding:0 2px;
+      white-space:nowrap;
+    }
+    .profileReferencePanel { display:flex; flex-direction:column; gap:8px; height:100%; }
+.skillDefinitionList { display:flex; flex-direction:column; gap:8px; }
+    .definitionRow { display:grid; grid-template-columns:24px minmax(0,1fr) minmax(220px,320px); gap:16px; padding:10px 14px; border-radius:10px; border:1px solid var(--border); background:var(--card); cursor:pointer; transition:background .2s,border-color .2s; }
+    .definitionRow.is-selected { border-color:rgba(59,130,246,.5); background:rgba(15,118,255,.08); }
+    .definitionRowContent { display:flex; flex-direction:column; justify-content:center; gap:4px; }
+    .definitionName { font-weight:600; font-size:1.05rem; }
+    .definitionType { color:var(--muted); font-size:13px; }
+    .definitionRowRefs { display:flex; flex-direction:column; gap:6px; border-left:1px solid var(--border); padding-left:14px; }
+    .definitionRowSummary { color:var(--fg); font-size:12px; }
+    .definitionRowChips { display:flex; flex-wrap:wrap; gap:6px; }
+    .definitionRowHeader { display:flex; align-items:center; gap:8px; }
+    .definitionRowLabel { font-size:12px; color:var(--muted); font-weight:600; }
+    .definitionReferenceList { display:flex; flex-wrap:wrap; gap:6px; padding:0; }
+    .definitionReferenceItem { font-size:12px; color:#ffffff; background:rgba(255,255,255,0.08); border-radius:999px; padding:4px 12px; border:1px solid rgba(255,255,255,0.2); }
+    .definitionReferenceGroup { display:flex; flex-wrap:wrap; gap:6px; align-items:center; }
+    .referenceMeta { display:flex; flex-wrap:wrap; gap:6px; margin-top:8px; }
+    .referenceChip { font-size:12px; padding:4px 10px; border-radius:999px; border:1px solid var(--border); background:var(--card); color:var(--muted); }
+ .builderModalOverlay { position:fixed; inset:0; background:rgba(8,27,51,.75); display:none; align-items:center; justify-content:center; z-index:3000; padding:16px; }
+ .builderModalOverlay.open { display:flex; }
+
+     .builderModalCard { width:min(960px, 96vw); max-width:960px; background:var(--card); border:1px solid var(--border); border-radius:18px; padding:24px; box-shadow:0 32px 60px rgba(0,0,0,.35); display:flex; flex-direction:column; gap:16px; max-height:min(92vh, 820px); overflow:auto; }
+     .builderModalHeader { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; }
+     .builderModalActions { display:flex; align-items:center; gap:8px; }
+     .builderModalClose { background:transparent; border:none; font-size:1.5rem; color:var(--muted); cursor:pointer; }
+.builderBody { display:flex; flex-direction:column; gap:18px; }
+.builderColumns { display:grid; grid-template-columns:repeat(auto-fit,minmax(320px,1fr)); gap:18px; width:100%; }
+   .builderSection { border:1px solid var(--border); border-radius:14px; padding:16px; background:var(--panel); display:flex; flex-direction:column; gap:12px; }
+    .builderProgress { border:1px solid var(--border); border-radius:14px; padding:14px; background:var(--panel); display:flex; flex-direction:column; gap:12px; }
+    .builderProgressStep { display:flex; gap:12px; align-items:flex-start; padding-bottom:12px; border-bottom:1px solid var(--border); }
+    .builderProgressStep:last-child { border-bottom:none; padding-bottom:0; }
+    .stepIndicator { width:32px; height:32px; border-radius:999px; border:1px solid var(--border); display:flex; align-items:center; justify-content:center; font-size:14px; color:var(--muted); position:relative; }
+    .stepIndicator::after { content:''; position:absolute; inset:6px; border-radius:50%; border:2px solid transparent; border-top-color:var(--accent); display:none; }
+    .builderProgressStep[data-status="active"] .stepIndicator::after { display:block; animation:spin 0.9s linear infinite; }
+    .builderProgressStep[data-status="success"] .stepIndicator { border-color:#34d399; background:#ecfdf5; color:#065f46; }
+    .builderProgressStep[data-status="error"] .stepIndicator { border-color:#ef4444; background:#fee2e2; color:#991b1b; }
+    .stepLabel { font-weight:600; margin:0; }
+    .stepDetail { font-size:12px; color:var(--muted); margin:2px 0 0; }
+.builderField { display:flex; flex-direction:column; gap:6px; }
+    .builderField input, .builderField textarea, .builderField select {
+      width:100%;
+      border:1px solid var(--border);
+      border-radius:12px;
+      background:var(--panel);
+      color:var(--fg);
+      padding:10px 14px;
+      font-size:14px;
+      font-family:inherit;
+    }
+    .builderField textarea {
+      resize:vertical;
+      min-height:72px;
+      line-height:1.4;
+    }
+    .builderField select {
+      border-radius:999px;
+      appearance:none;
+      background-color:var(--panel);
+      border:1px solid rgba(255,255,255,0.2);
+      color:var(--fg);
+      padding-right:40px;
+      background-repeat:no-repeat;
+      background-position:center right 14px;
+      background-size:100% 100%, 12px 7px;
+      background-image:
+        linear-gradient(135deg, rgba(14, 92, 199, 0.18), rgba(52, 211, 153, 0.18)),
+        url('data:image/svg+xml,%3Csvg width="12" height="7" viewBox="0 0 12 7" fill="none" xmlns="http://www.w3.org/2000/svg"%3E%3Cpath d="M10.333 1L6 5.333 1.667 1" stroke="%23FFFFFF" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/%3E%3C/svg%3E');
+    }
+.builderFieldRow { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:12px; }
+.bundleBuilderLayout { display:flex; flex-direction:column; gap:18px; }
+.bundleSetupCard { border:1px solid var(--border); border-radius:14px; padding:18px; background:var(--panel); display:flex; flex-direction:column; gap:14px; }
+.bundlePrimaryGrid {
+  display:grid;
+  gap:14px;
+  align-items:end;
+}
+.bundlePrimaryGrid--two {
+  grid-template-columns:minmax(220px,1.1fr) minmax(260px,1.4fr);
+  align-items:start;
+}
+.bundlePrimaryGrid--three {
+  grid-template-columns:minmax(220px,1.35fr) minmax(160px,.8fr) minmax(130px,.7fr);
+}
+.bundlePrimaryGrid--four {
+  grid-template-columns:minmax(220px,1.3fr) minmax(160px,.8fr) minmax(130px,.7fr) minmax(130px,.7fr);
+}
+.bundlePrimaryGrid .builderField input,
+.bundlePrimaryGrid .builderField select {
+  min-height:44px;
+  border-radius:999px;
+  background:rgba(255,255,255,.04);
+}
+.bundlePrimaryGrid .builderField select {
+  background-color:rgba(255,255,255,.04);
+}
+.bundleDescriptionField textarea {
+  min-height:44px;
+  border-radius:18px;
+  background:rgba(255,255,255,.04);
+  padding:12px 14px;
+  line-height:1.4;
+}
+.bundleProfilesHint { margin:0; font-size:12px; color:var(--muted); }
+    .builderToggle { display:flex; align-items:center; gap:10px; }
+    .builderSectionHeader { display:flex; justify-content:space-between; align-items:center; }
+.profileRow { display:grid; grid-template-columns:1fr auto; gap:10px; align-items:flex-start; border:1px solid var(--border); border-radius:12px; padding:10px; background:var(--card); }
+.profileRow input { width:100%; border:1px solid var(--border); border-radius:8px; padding:6px 10px; background:transparent; color:var(--fg); }
+.profileRowSmall { display:flex; flex-direction:column; gap:6px; }
+.chip { display:inline-flex; align-items:center; gap:6px; padding:4px 10px; border-radius:999px; border:1px solid var(--border); background:var(--card); font-size:12px; font-weight:600; }
+.emptyState { padding:14px 16px; color:var(--muted); border:1px dashed var(--border); border-radius:14px; text-align:center; }
+.tableLoader { position:absolute; inset:0; background:rgba(15,23,42,.25); border-radius:14px; display:flex; align-items:center; justify-content:center; opacity:0; pointer-events:none; transition:opacity .2s ease; }
+    .tableLoader.open { opacity:1; pointer-events:auto; }
+    .loaderInner { width:100%; display:flex; justify-content:center; align-items:center; gap:10px; }
+    .loaderSpinner { width:34px; height:34px; border:4px solid rgba(255,255,255,0.4); border-top-color:var(--accent); border-radius:50%; animation:spin 1s linear infinite; }
+    .loaderText { font-size:14px; color:#fff; }
+    .successModalOverlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.45);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 10000;
+      padding: 16px;
+      opacity: 0;
+      transition: opacity 0.2s ease;
+    }
+    .successModalOverlay.show { opacity: 1; }
+    .successCard {
+      width: 100%;
+      max-width: 460px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 24px;
+      box-shadow: 0 18px 40px rgba(0, 0, 0, 0.25);
+      text-align: center;
+      transform: scale(0.98);
+      transition: transform 0.2s ease;
+    }
+    .successModalOverlay.show .successCard { transform: scale(1); }
+    .successIcon {
+      margin: 0 auto 14px;
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #159DD8, #159DD8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #06111d;
+    }
+    .successCard h2 { margin: 0 0 10px; font-size: 1.35rem; color: var(--fg); }
+    .successMsg { margin: 0 0 8px; font-size: .95rem; color: var(--fg); line-height: 1.5; }
+    .successCard .actions { display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin-top:18px; }
+@keyframes spin { from { transform:rotate(0deg); } to { transform:rotate(360deg); } }
+.copyInline { background:transparent; border:1px solid var(--border); border-radius:8px; color:var(--muted); width:30px; height:30px; min-width:30px; display:inline-flex; align-items:center; justify-content:center; cursor:pointer; }
+.copyInline:hover { color:var(--fg); border-color:rgba(0,0,0,.2); }
+.copyInline svg { width:18px; height:18px; }
+.copyInline--mini { width:22px; height:22px; min-width:22px; border-radius:6px; }
+.copyInline--mini svg { width:14px; height:14px; }
+.copyBadge { display:inline-block; margin-left:6px; font-size:11px; color:var(--accent); opacity:0; animation:copyPop 900ms ease; }
+@keyframes copyPop { 0% { opacity:0; transform:translateY(2px); } 20% { opacity:1; transform:translateY(0); } 80% { opacity:1; } 100% { opacity:0; transform:translateY(-2px); } }
+    .skillCreateOverlay { position:fixed; inset:0; background:rgba(7,11,26,.8); display:none; align-items:center; justify-content:center; z-index:4000; padding:20px; }
+    .skillCreateOverlay.open { display:flex; }
+    .skillCreateCard { width:min(640px, 94vw); background:var(--card); border:1px solid var(--border); border-radius:20px; padding:24px; box-shadow:0 30px 60px rgba(0,0,0,.4); }
+    .builderModalCard.wide { width:min(1100px,96vw); max-width:1100px; overflow:visible; }
+    .builderModalCard.wide .builderBody { overflow:visible; }
+    .builderModalCard.wide .multiRowTable { overflow:visible; }
+    .multiRowTable { display:flex; flex-direction:column; gap:6px; overflow-x:auto; }
+    .multiRowHeader { display:grid; gap:10px; padding:4px 10px; }
+    .multiRowHeader.defHeader { grid-template-columns: minmax(120px,1.2fr) minmax(130px,1.5fr) 90px 120px 36px; }
+    .multiRowHeader.profHeader { grid-template-columns: minmax(160px,1fr) minmax(260px,1.8fr) 82px; }
+    .multiRowHeaderLabel { font-size:11px; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); font-weight:600; }
+    .multiRowEntry { display:grid; gap:10px; padding:8px 10px; border:1px solid var(--border); border-radius:12px; background:var(--panel); align-items:center; }
+    .multiRowEntry.defEntry { grid-template-columns: minmax(120px,1.2fr) minmax(130px,1.5fr) 90px 120px 36px; }
+    .multiRowEntry.profEntry { grid-template-columns: minmax(160px,1fr) minmax(260px,1.8fr) 82px; align-items:start; }
+    .multiRowEntry input[type="text"], .multiRowEntry input[type="number"], .multiRowEntry select { width:100%; border:1px solid var(--border); border-radius:8px; background:rgba(255,255,255,.04); color:var(--fg); padding:7px 10px; font-size:13px; font-family:inherit; box-sizing:border-box; }
+    .multiRowEntry select { appearance:none; background-image:url('data:image/svg+xml,%3Csvg width="10" height="6" viewBox="0 0 12 7" fill="none" xmlns="http://www.w3.org/2000/svg"%3E%3Cpath d="M10.333 1L6 5.333 1.667 1" stroke="%23FFFFFF" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/%3E%3C/svg%3E'); background-repeat:no-repeat; background-position:right 10px center; background-size:10px 6px; padding-right:28px; }
+    .multiRowEntry [data-value-cell] { min-width:0; }
+    .multiRowEntry [data-value-cell] input, .multiRowEntry [data-value-cell] select { width:100%; }
+    .profAssignments { display:flex; flex-direction:column; gap:8px; min-width:0; }
+    .profAssignmentRow { display:grid; grid-template-columns:minmax(180px,1.35fr) minmax(110px,.7fr) 36px; gap:10px; align-items:center; }
+    .profAssignmentRemove {
+      background:transparent;
+      border:1px solid var(--border);
+      border-radius:8px;
+      color:var(--muted);
+      cursor:pointer;
+      width:36px;
+      height:36px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:16px;
+      flex-shrink:0;
+    }
+    .profAssignmentRemove:hover { color:#ef4444; border-color:#ef4444; background:rgba(239,68,68,.08); }
+    .profRowActions { display:flex; gap:8px; justify-content:flex-end; }
+    .profRowAction {
+      background:transparent;
+      border:1px solid var(--border);
+      border-radius:8px;
+      color:var(--muted);
+      cursor:pointer;
+      width:36px;
+      height:36px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:18px;
+      flex-shrink:0;
+    }
+    .profRowAction:hover { color:#08acf2; border-color:#08acf2; background:rgba(8,172,242,.08); }
+    .profRowAction[data-remove-prof-row]:hover { color:#ef4444; border-color:#ef4444; background:rgba(239,68,68,.08); }
+    .skillPicker { position:relative; }
+    .skillPickerToggle {
+      width:100%;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      padding:7px 10px;
+      min-height:36px;
+      border-radius:10px;
+      border:1px solid rgba(255,255,255,.18);
+      background:rgba(255,255,255,.05);
+      color:var(--fg);
+      font-size:13px;
+      font-family:inherit;
+      cursor:pointer;
+      text-align:left;
+    }
+    .skillPicker.open .skillPickerToggle {
+      border-color:#08acf2;
+      box-shadow:0 0 0 1px rgba(8,172,242,.35);
+    }
+    .skillPickerLabel {
+      min-width:0;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      white-space:nowrap;
+    }
+    .skillPickerLabel.is-placeholder { color:var(--muted); }
+    .skillPickerChevron {
+      font-size:11px;
+      opacity:.8;
+      transition:transform .15s ease;
+    }
+    .skillPicker.open .skillPickerChevron { transform:rotate(180deg); }
+    .skillPickerPanel {
+      display:none;
+      position:absolute;
+      top:calc(100% + 6px);
+      left:0;
+      right:0;
+      min-width:260px;
+      max-height:320px;
+      background:#20293f;
+      border:1px solid rgba(255,255,255,.12);
+      border-radius:14px;
+      box-shadow:0 20px 50px rgba(0,0,0,.35);
+      z-index:2500;
+      overflow:hidden;
+    }
+    .skillPicker.open .skillPickerPanel { display:flex; flex-direction:column; }
+    .skillPickerSearch {
+      width:100%;
+      border:none;
+      border-bottom:1px solid rgba(255,255,255,.08);
+      background:rgba(255,255,255,.04);
+      color:var(--fg);
+      padding:11px 14px;
+      font-size:13px;
+      font-family:inherit;
+      outline:none;
+      box-sizing:border-box;
+    }
+    .skillPickerSearch::placeholder { color:var(--muted); }
+    .skillPickerOptions {
+      display:flex;
+      flex-direction:column;
+      gap:2px;
+      max-height:260px;
+      overflow-y:auto;
+      padding:6px;
+    }
+    .skillPickerOption {
+      appearance:none;
+      width:100%;
+      border:none;
+      background:transparent;
+      color:var(--fg);
+      text-align:left;
+      padding:10px 12px;
+      border-radius:8px;
+      font-size:13px;
+      font-family:inherit;
+      cursor:pointer;
+    }
+    .skillPickerOption:hover,
+    .skillPickerOption.is-active {
+      background:rgba(255,255,255,.08);
+    }
+    .skillPickerEmpty {
+      padding:12px;
+      color:var(--muted);
+      font-size:12px;
+    }
+    .multiRowRemove { background:transparent; border:1px solid var(--border); border-radius:8px; color:var(--muted); cursor:pointer; width:36px; height:36px; display:flex; align-items:center; justify-content:center; font-size:18px; flex-shrink:0; }
+    .multiRowRemove:hover { color:#ef4444; border-color:#ef4444; background:rgba(239,68,68,.08); }
+    @media (max-width: 900px) {
+      .bundlePrimaryGrid--two,
+      .bundlePrimaryGrid--three,
+      .bundlePrimaryGrid--four {
+        grid-template-columns:1fr 1fr;
+      }
+    }
+    @media (max-width: 640px) {
+      .bundlePrimaryGrid--two,
+      .bundlePrimaryGrid--three,
+      .bundlePrimaryGrid--four {
+        grid-template-columns:1fr;
+      }
+    }
+  </style>
+</head>
+<body class="dark-mode">
+  <script>if (localStorage.getItem("tpRailExpanded") === "true") document.body.classList.add("tp-rail-expanded");</script>
+  <api-tools-header basepath="../../"></api-tools-header>
+
+  <main>
+    <div class="wrap wide contentWrap">
+      <section class="card">
+        <div class="pageHeader">
+          <div>
+            <h1>Skills</h1>
+            <p class="lead">List tenant skill profiles and their definitions.</p>
+          </div>
+          <div class="pageHeaderActions">
+            <button class="btn" id="openSkillBuilder" type="button">Add Skill Bundle</button>
+          </div>
+        </div>
+        <div class="skillColumns">
+          <section class="skillColumn">
+            <div class="columnHeader">
+              <div>
+                <h2>Skill Profiles</h2>
+              </div>
+              <div class="columnHeaderActions">
+                <span class="pill selectionPill is-hidden" id="profileSelectedPill">0 selected</span>
+                <label class="btn btn-ghost selectAllBtn" for="selectAllProfiles" style="font-size:0.85rem;padding:6px 12px;">
+                  <input class="selectAllCheck" id="selectAllProfiles" type="checkbox" />
+                  Select all
+                </label>
+                <button class="btn btn-ghost" id="deleteProfilesBtn" type="button" style="font-size:0.85rem;padding:6px 12px;" disabled>Delete Selected</button>
+                <button class="btn btn-ghost" id="openAddProfiles" type="button" style="font-size:0.85rem;padding:6px 12px;">Add Profiles</button>
+              </div>
+            </div>
+            <div class="columnSearch">
+              <div class="searchControl">
+                <input id="profileSearch" class="searchInput" type="text" placeholder="Search profiles..." />
+              </div>
+            </div>
+            <div class="skillProfileListWrapper">
+              <div id="skillProfileList" class="skillProfileList"></div>
+              <div id="skillLoader" class="tableLoader">
+              <div class="loaderInner">
+                <div class="loaderSpinner" aria-hidden="true"></div>
+                <div class="loaderText" id="skillLoaderText">Loading skill metadata…</div>
+              </div>
+              </div>
+            </div>
+          </section>
+          <section class="skillColumn">
+          <div class="columnHeader">
+            <div>
+              <h2>Skill Definitions</h2>
+            </div>
+            <div class="columnHeaderActions">
+              <span class="pill selectionPill is-hidden" id="definitionSelectedPill">0 selected</span>
+              <label class="btn btn-ghost selectAllBtn" for="selectAllDefinitions" style="font-size:0.85rem;padding:6px 12px;">
+                <input class="selectAllCheck" id="selectAllDefinitions" type="checkbox" />
+                Select all
+              </label>
+              <button class="btn btn-ghost" id="deleteDefinitionsBtn" type="button" style="font-size:0.85rem;padding:6px 12px;" disabled>Delete Selected</button>
+              <button class="btn btn-ghost" id="openAddDefinitions" type="button" style="font-size:0.85rem;padding:6px 12px;">Add Definitions</button>
+            </div>
+          </div>
+          <div class="columnSearch">
+            <div class="searchControl">
+              <input id="definitionSearch" class="searchInput" type="text" placeholder="Search definitions..." />
+            </div>
+          </div>
+          <div id="skillDefinitionList" class="skillDefinitionList"></div>
+        </section>
+        </div>
+      </section>
+    </div>
+  </main>
+  <div class="builderModalOverlay" id="skillBuilderModal">
+    <div class="builderModalCard" role="dialog" aria-modal="true" aria-labelledby="builderModalTitle">
+        <div class="builderModalHeader">
+          <div>
+            <h3 id="builderModalTitle">Build new skill</h3>
+            <p class="muted">Create a definition and one or more profiles in one flow.</p>
+          </div>
+          <div class="builderModalActions">
+            <button class="btn btn-primary" id="submitSkillBundleHeader" type="button">Create</button>
+            <button class="builderModalClose" id="closeSkillBuilder" type="button" aria-label="Close builder">×</button>
+          </div>
+        </div>
+      <div class="builderBody">
+        <div class="bundleBuilderLayout">
+          <section class="bundleSetupCard">
+            <div class="bundlePrimaryGrid bundlePrimaryGrid--two">
+              <div class="builderField">
+                <label for="builderProfileBaseName">Skill Profile Name</label>
+                <input id="builderProfileBaseName" type="text" placeholder="Profile base name" />
+              </div>
+              <div class="builderField bundleDescriptionField">
+                <label for="builderSkillDescription">Description</label>
+                <textarea id="builderSkillDescription" rows="2" placeholder="What this skill represents"></textarea>
+              </div>
+            </div>
+            <div class="bundlePrimaryGrid bundlePrimaryGrid--four">
+              <div class="builderField">
+                <label for="builderSkillName">Skill Definition</label>
+                <input id="builderSkillName" type="text" placeholder="New Skill Definition Name" />
+              </div>
+              <div class="builderField">
+                <label for="builderSkillType">Skill Type</label>
+                <select id="builderSkillType">
+                  <option value="0">Proficiency</option>
+                  <option value="1">Boolean</option>
+                  <option value="2">Text</option>
+                  <option value="3">Enum</option>
+                </select>
+              </div>
+              <div class="builderField">
+                <label for="builderServiceLevel">Service Level</label>
+                <input id="builderServiceLevel" type="number" min="0" value="30" />
+              </div>
+              <div class="builderField" id="builderProfileValueField"></div>
+            </div>
+          </section>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- Add Definitions Modal -->
+  <div class="builderModalOverlay" id="addDefinitionsModal">
+    <div class="builderModalCard wide" role="dialog" aria-modal="true" aria-labelledby="addDefinitionsModalTitle">
+      <div class="builderModalHeader">
+        <div>
+          <h3 id="addDefinitionsModalTitle">Add Skill Definitions</h3>
+          <p class="muted">Create multiple skill definitions at once. Add a row for each definition.</p>
+        </div>
+        <div class="builderModalActions">
+          <button class="btn btn-primary" id="submitAddDefinitions" type="button">Create</button>
+          <button class="builderModalClose" id="closeAddDefinitionsModal" type="button" aria-label="Close">×</button>
+        </div>
+      </div>
+      <div class="builderBody">
+        <div class="multiRowTable">
+          <div class="multiRowHeader defHeader">
+            <span class="multiRowHeaderLabel">Name *</span>
+            <span class="multiRowHeaderLabel">Description</span>
+            <span class="multiRowHeaderLabel">Service Level *</span>
+            <span class="multiRowHeaderLabel">Type *</span>
+            <span></span>
+          </div>
+          <div id="addDefinitionsRows"></div>
+        </div>
+        <button class="btn btn-ghost" id="addDefinitionRowBtn" type="button" style="margin-top:8px;">+ Add Row</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add Profiles Modal -->
+  <div class="builderModalOverlay" id="addProfilesModal">
+    <div class="builderModalCard wide" role="dialog" aria-modal="true" aria-labelledby="addProfilesModalTitle">
+      <div class="builderModalHeader">
+        <div>
+          <h3 id="addProfilesModalTitle">Add Skill Profiles</h3>
+        </div>
+        <div class="builderModalActions">
+          <button class="btn btn-primary" id="submitAddProfiles" type="button">Create</button>
+          <button class="builderModalClose" id="closeAddProfilesModal" type="button" aria-label="Close">×</button>
+        </div>
+      </div>
+      <div class="builderBody">
+        <div class="multiRowTable">
+          <div class="multiRowHeader profHeader">
+            <span class="multiRowHeaderLabel">Profile Name *</span>
+            <span class="multiRowHeaderLabel">Skill Definitions + Values</span>
+            <span></span>
+          </div>
+          <div id="addProfilesRows"></div>
+        </div>
+        <button class="btn btn-ghost" id="addProfileAddRowBtn" type="button" style="margin-top:8px;">+ Add Row</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="../../assets/js/orbit-config.js"></script>
+
+  <script src="../../assets/js/components.js"></script>
+
+  <script src="../../assets/js/theme.js"></script>
+  <div class="skillCreateOverlay" id="skillCreateOverlay" aria-live="polite">
+    <div class="skillCreateCard" role="status" aria-atomic="true">
+      <div class="builderProgress" aria-label="Creating skills">
+        <div class="builderProgressStep" data-step="definition" data-status="pending">
+          <div class="stepIndicator"></div>
+          <div>
+            <p class="stepLabel">Creating Skill Definition</p>
+            <p class="stepDetail" data-step-detail>Waiting to start</p>
+          </div>
+        </div>
+        <div class="builderProgressStep" data-step="profiles" data-status="pending">
+          <div class="stepIndicator"></div>
+          <div>
+            <p class="stepLabel">Creating Skill Profiles</p>
+            <p class="stepDetail" data-step-detail>Waiting to start</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="skillCreateOverlay" id="addDefinitionsProgress" aria-live="polite">
+    <div class="skillCreateCard" role="status" aria-atomic="true">
+      <div class="builderProgress" aria-label="Creating definitions">
+        <div class="builderProgressStep" data-step="defs-progress" data-status="pending">
+          <div class="stepIndicator"></div>
+          <div>
+            <p class="stepLabel">Creating Skill Definitions</p>
+            <p class="stepDetail" data-step-detail>Waiting to start</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="skillCreateOverlay" id="addProfilesProgress" aria-live="polite">
+    <div class="skillCreateCard" role="status" aria-atomic="true">
+      <div class="builderProgress" aria-label="Creating profiles">
+        <div class="builderProgressStep" data-step="profs-progress" data-status="pending">
+          <div class="stepIndicator"></div>
+          <div>
+            <p class="stepLabel">Creating Skill Profiles</p>
+            <p class="stepDetail" data-step-detail>Waiting to start</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+<script>
+    const skillProfilesList = document.getElementById('skillProfileList');
+    const skillDefinitionList = document.getElementById('skillDefinitionList');
+    const definitionSearchInput = document.getElementById('definitionSearch');
+    const profileSearchInput = document.getElementById('profileSearch');
+    const definitionSelectedPill = document.getElementById('definitionSelectedPill');
+    const profileSelectedPill = document.getElementById('profileSelectedPill');
+    const selectAllDefinitions = document.getElementById('selectAllDefinitions');
+    const selectAllProfiles = document.getElementById('selectAllProfiles');
+    const deleteDefinitionsBtn = document.getElementById('deleteDefinitionsBtn');
+    const deleteProfilesBtn = document.getElementById('deleteProfilesBtn');
+    const skillLoader = document.getElementById('skillLoader');
+    const skillLoaderText = document.getElementById('skillLoaderText');
+    let definitionSearchTerm = '';
+    let profileSearchTerm = '';
+    let selectedDefinitionId = '';
+    let visibleDefinitionIds = [];
+    let visibleProfileIds = [];
+    const selectedDefinitionIds = new Set();
+    const selectedProfileIds = new Set();
+    const definitionReferenceSummary = new Map();
+    const profileReferenceSummary = new Map();
+    const ENTITY_LABELS = {
+      'skill-profile': 'Skill Profile',
+      'resource-collection': 'Resource Collection',
+      'user': 'User',
+      'resource-collection-template': 'Resource Collection',
+      'resource': 'Resource',
+      'skill': 'Skill',
+      'enum-value': 'Enum Value'
+    };
+
+    const cacheKeyBearer = 'authBearer';
+    const cacheKeyOrg = 'authOrg';
+    const cacheKeyOrgName = 'authOrgName';
+    const cacheKeyUser = 'authUserName';
+
+    const DATACENTER_MAP = {
+      us1: 'https://api.wxcc-us1.cisco.com',
+      eu1: 'https://api.wxcc-eu1.cisco.com',
+      eu2: 'https://api.wxcc-eu2.cisco.com',
+      anz1: 'https://api.wxcc-anz1.cisco.com',
+      ca1: 'https://api.wxcc-ca1.cisco.com'
+    };
+
+    function getDataCenter() {
+      const params = new URLSearchParams(window.location.search);
+      return params.get('dc') || 'us1';
+    }
+
+    function getApiBaseUrl() {
+      return DATACENTER_MAP[getDataCenter()] || DATACENTER_MAP.us1;
+    }
+
+    function buildAuthHeaders(bearer) {
+      return {
+        Authorization: `Bearer ${bearer}`,
+        'Content-Type': 'application/json',
+        Accept: 'application/json'
+      };
+    }
+
+    const SKILL_ENDPOINT = (orgId, page, pageSize) => `${getApiBaseUrl()}/organization/${encodeURIComponent(orgId)}/v2/skill?page=${page}&pageSize=${pageSize}`;
+    const SKILL_PROFILE_ENDPOINT = (orgId, page, pageSize) => `${getApiBaseUrl()}/organization/${encodeURIComponent(orgId)}/v2/skill-profile?page=${page}&pageSize=${pageSize}`;
+    const SKILL_PAGE_SIZE = 100;
+    const SKILL_PROFILE_PAGE_SIZE = 100;
+
+    const skillDefinitionMap = new Map();
+    const enumSkillValueMap = new Map();
+    let skillProfiles = [];
+    let metadataLoading = false;
+
+    const builderModal = document.getElementById('skillBuilderModal');
+    const openBuilderBtn = document.getElementById('openSkillBuilder');
+    const closeBuilderBtn = document.getElementById('closeSkillBuilder');
+    const builderProfileBaseName = document.getElementById('builderProfileBaseName');
+    const builderSkillName = document.getElementById('builderSkillName');
+    const builderSkillDescription = document.getElementById('builderSkillDescription');
+    const builderServiceLevel = document.getElementById('builderServiceLevel');
+    const builderSkillType = document.getElementById('builderSkillType');
+    const builderProfileValueField = document.getElementById('builderProfileValueField');
+    const submitSkillBundleHeaderBtn = document.getElementById('submitSkillBundleHeader');
+    const skillCreateOverlay = document.getElementById('skillCreateOverlay');
+    const createProgressSteps = {
+      definition: skillCreateOverlay?.querySelector('.builderProgressStep[data-step="definition"]'),
+      profiles: skillCreateOverlay?.querySelector('.builderProgressStep[data-step="profiles"]')
+    };
+
+    function escapeHtml(text) {
+      return String(text)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    function escapeAttr(text) {
+      return escapeHtml(text).replace(/`/g, '&#96;');
+    }
+
+    function buildCopyButton(value, title, extraClass = '') {
+      if (!value) return '';
+      const className = ['copyInline', extraClass].filter(Boolean).join(' ');
+      return `
+        <button class="${className}" type="button" title="${escapeAttr(title)}" data-copy-value="${escapeAttr(value)}" aria-label="${escapeAttr(title)}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <rect x="9" y="9" width="13" height="13" rx="2"></rect>
+            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+          </svg>
+        </button>
+      `;
+    }
+
+    async function copyValueWithFeedback(button, value) {
+      if (!button || !value) return;
+      const original = button.innerHTML;
+      try {
+        await navigator.clipboard.writeText(value);
+        button.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 13l4 4L19 7"></path></svg>';
+        setTimeout(() => {
+          button.innerHTML = original;
+        }, 900);
+      } catch (err) {
+        console.error('Copy failed', err);
+      }
+    }
+
+    const SKILL_TYPE_LABELS = {
+      SKILL: 'Skill',
+      BOOLEAN: 'Boolean',
+      TEXT: 'Text',
+      PROFICIENCY: 'Proficiency',
+      ENUM: 'Enum',
+      '0': 'Proficiency',
+      '1': 'Boolean',
+      '2': 'Text',
+      '3': 'Enum'
+    };
+
+    function formatSkillType(type) {
+      if (!type) return 'Skill';
+      const normalized = type.toString().toUpperCase();
+      return SKILL_TYPE_LABELS[normalized] || type.charAt(0).toUpperCase() + type.slice(1).toLowerCase();
+    }
+
+    function getEntityLabel(key) {
+      if (!key) return '';
+      return ENTITY_LABELS[key] || key.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+    }
+
+    function setSkillLoading(active, message = 'Loading skill metadata…') {
+      if (!skillLoader) return;
+      if (skillLoaderText) skillLoaderText.textContent = message;
+      skillLoader.classList.toggle('open', Boolean(active));
+    }
+
+    function updateProgressStep(stepKey, status, detailText) {
+      const stepEl = createProgressSteps[stepKey];
+      if (!stepEl) return;
+      stepEl.dataset.status = status || 'pending';
+      const detailEl = stepEl.querySelector('.stepDetail');
+      if (detailEl && detailText != null) {
+        detailEl.textContent = detailText;
+      }
+    }
+
+    function resetProgressSteps() {
+      updateProgressStep('definition', 'pending', 'Waiting to start');
+      updateProgressStep('profiles', 'pending', 'Waiting to start');
+    }
+
+    function showProgressOverlay() {
+      skillCreateOverlay?.classList.add('open');
+    }
+
+    function hideProgressOverlay() {
+      skillCreateOverlay?.classList.remove('open');
+    }
+
+    function showActionModal(title, message, opts = {}) {
+      const overlayId = 'skillsActionModal';
+      const existing = document.getElementById(overlayId);
+      if (existing) existing.remove();
+      const variant = opts.variant || 'success';
+      const okLabel = opts.okLabel || 'OK';
+      const icon = variant === 'danger'
+        ? '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 8v5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="16.5" r="1" fill="currentColor"/><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.72 3h16.92a2 2 0 0 0 1.72-3L13.71 3.86a2 2 0 0 0-3.42 0Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>'
+        : '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m7 12 3 3 7-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/></svg>';
+      const modal = document.createElement('div');
+      modal.id = overlayId;
+      modal.className = 'successModalOverlay';
+      modal.innerHTML = `
+        <div class="successCard">
+          <div class="successIcon">${icon}</div>
+          <h2>${escapeHtml(title)}</h2>
+          <p class="successMsg">${escapeHtml(message)}</p>
+          <div class="actions">
+            <button class="btn ${variant === 'danger' ? 'danger' : 'primary'}" id="skillsActionOkBtn">${escapeHtml(okLabel)}</button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(modal);
+      setTimeout(() => modal.classList.add('show'), 10);
+      const closeModal = () => {
+        modal.classList.remove('show');
+        setTimeout(() => modal.remove(), 250);
+      };
+      modal.querySelector('#skillsActionOkBtn')?.addEventListener('click', closeModal);
+      modal.addEventListener('click', event => { if (event.target === modal) closeModal(); });
+    }
+
+    function confirmAction(title, message, opts = {}) {
+      return new Promise(resolve => {
+        const overlayId = 'skillsConfirmModal';
+        const existing = document.getElementById(overlayId);
+        if (existing) existing.remove();
+        const variant = opts.variant || 'danger';
+        const okLabel = opts.okLabel || 'Delete';
+        const cancelLabel = opts.cancelLabel || 'Cancel';
+        const okClass = variant === 'danger' ? 'btn danger' : 'btn primary';
+        const modal = document.createElement('div');
+        modal.id = overlayId;
+        modal.className = 'successModalOverlay';
+        modal.innerHTML = `
+          <div class="successCard">
+            <div class="successIcon">
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 8v5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="16.5" r="1" fill="currentColor"/><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.72 3h16.92a2 2 0 0 0 1.72-3L13.71 3.86a2 2 0 0 0-3.42 0Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>
+            </div>
+            <h2>${escapeHtml(title)}</h2>
+            <p class="successMsg">${escapeHtml(message)}</p>
+            <div class="actions">
+              <button class="btn secondary" id="skillsConfirmCancelBtn">${escapeHtml(cancelLabel)}</button>
+              <button class="${okClass}" id="skillsConfirmOkBtn">${escapeHtml(okLabel)}</button>
+            </div>
+          </div>
+        `;
+        document.body.appendChild(modal);
+        setTimeout(() => modal.classList.add('show'), 10);
+        const closeModal = result => {
+          modal.classList.remove('show');
+          setTimeout(() => modal.remove(), 250);
+          resolve(result);
+        };
+        modal.querySelector('#skillsConfirmOkBtn')?.addEventListener('click', () => closeModal(true));
+        modal.querySelector('#skillsConfirmCancelBtn')?.addEventListener('click', () => closeModal(false));
+        modal.addEventListener('click', event => { if (event.target === modal) closeModal(false); });
+      });
+    }
+
+    function getSkillSummariesForProfile(profile) {
+      if (!profile) return [];
+      const entries = [];
+      (profile.activeSkills || []).forEach(skill => {
+        const definition = skillDefinitionMap.get(skill.skillId);
+        const skillName = definition?.name || 'Skill';
+        const skillType = definition?.skillType || 'SKILL';
+        let displayValue = '';
+        if (skillType === 'BOOLEAN') {
+          displayValue = skill.booleanValue ? 'True' : 'False';
+        } else if (skillType === 'PROFICIENCY') {
+          displayValue = skill.proficiencyValue != null ? String(skill.proficiencyValue) : '';
+        } else if (skillType === 'TEXT') {
+          displayValue = skill.textValue || '';
+        }
+        entries.push({ name: skillName, value: displayValue || '—' });
+      });
+      (profile.activeEnumSkills || []).forEach(enumSkill => {
+        const enumValue = enumSkillValueMap.get(enumSkill.enumSkillValueId);
+        if (!enumValue) return;
+        const definition = skillDefinitionMap.get(enumValue.skillId);
+        const skillName = definition?.name || 'Enum Skill';
+        const valueName = enumValue.name || '—';
+        entries.push({ name: skillName, value: valueName });
+      });
+      return entries;
+    }
+
+    function buildProfileSummary(profile) {
+      const descriptions = getSkillSummariesForProfile(profile);
+      if (!descriptions.length) {
+        return `
+          <div class="profileSummaryGroup">
+            <div class="profileSummaryItem">
+              <span class="profileSummaryLabel">No skills assigned</span>
+              <span class="profileSummarySeparator">-</span>
+              <span class="profileSummaryValue">—</span>
+            </div>
+          </div>
+        `;
+      }
+      return `
+        <div class="profileSummaryGroup">
+          ${descriptions.map((entry, index) => `
+            <div class="profileSummaryItem">
+              <span class="profileSummaryLabel">${escapeHtml(entry.name)}</span>
+              <span class="profileSummarySeparator">-</span>
+              <span class="profileSummaryValue">${escapeHtml(entry.value)}</span>
+            </div>
+            ${index < descriptions.length - 1 ? '<span class="profileSummaryJoin">|</span>' : ''}
+          `).join('')}
+        </div>
+      `;
+    }
+
+    function buildProfileReferenceMarkup(entry = {}) {
+      const chipsMarkup = buildReferenceChips(entry.meta);
+      const groups = groupReferenceItems(entry);
+      if (!groups.length) {
+        return `
+          <div class="definitionRowRefs empty">
+            <span class="definitionRowLabel">References</span>
+            <span class="definitionRowSummary">No references found.</span>
+          </div>
+        `;
+      }
+      return `
+        <div class="definitionRowRefs">
+          <div class="definitionRowHeader">
+            <span class="definitionRowLabel">References</span>
+            ${chipsMarkup ? `<div class="definitionRowChips">${chipsMarkup}</div>` : ''}
+          </div>
+          ${groups.map(group => `
+            <div class="definitionReferenceGroup">
+              <span class="definitionRowLabel">${escapeHtml(group.label)}:</span>
+              <div class="definitionReferenceList">
+                ${group.items.map(ref => `<span class="definitionReferenceItem">${escapeHtml(ref?.name || 'Unnamed reference')}</span>`).join('')}
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      `;
+    }
+
+    function syncSelectionControls() {
+      if (definitionSelectedPill) {
+        definitionSelectedPill.textContent = `${selectedDefinitionIds.size} selected`;
+        definitionSelectedPill.classList.toggle('is-hidden', selectedDefinitionIds.size === 0);
+      }
+      if (profileSelectedPill) {
+        profileSelectedPill.textContent = `${selectedProfileIds.size} selected`;
+        profileSelectedPill.classList.toggle('is-hidden', selectedProfileIds.size === 0);
+      }
+      if (deleteDefinitionsBtn) deleteDefinitionsBtn.disabled = selectedDefinitionIds.size === 0;
+      if (deleteProfilesBtn) deleteProfilesBtn.disabled = selectedProfileIds.size === 0;
+
+      if (selectAllDefinitions) {
+        const visibleSelected = visibleDefinitionIds.filter(id => selectedDefinitionIds.has(id)).length;
+        selectAllDefinitions.checked = visibleDefinitionIds.length > 0 && visibleSelected === visibleDefinitionIds.length;
+        selectAllDefinitions.indeterminate = visibleSelected > 0 && visibleSelected < visibleDefinitionIds.length;
+      }
+      if (selectAllProfiles) {
+        const visibleSelected = visibleProfileIds.filter(id => selectedProfileIds.has(id)).length;
+        selectAllProfiles.checked = visibleProfileIds.length > 0 && visibleSelected === visibleProfileIds.length;
+        selectAllProfiles.indeterminate = visibleSelected > 0 && visibleSelected < visibleProfileIds.length;
+      }
+    }
+
+    function pruneSelectionState() {
+      const definitionIds = new Set([...skillDefinitionMap.keys()]);
+      [...selectedDefinitionIds].forEach(id => {
+        if (!definitionIds.has(id)) selectedDefinitionIds.delete(id);
+      });
+      const profileIds = new Set(skillProfiles.map(profile => profile.id).filter(Boolean));
+      [...selectedProfileIds].forEach(id => {
+        if (!profileIds.has(id)) selectedProfileIds.delete(id);
+      });
+      syncSelectionControls();
+    }
+
+    function renderProfileRow(profile) {
+      const profileId = profile?.id || '';
+      const checked = profileId && selectedProfileIds.has(profileId) ? ' checked' : '';
+      const profileName = profile.name || 'Unnamed profile';
+      const referenceEntry = profileReferenceSummary.get(profileId);
+      const referenceMarkup = referenceEntry && referenceEntry.items.length
+        ? buildProfileReferenceMarkup(referenceEntry)
+        : `
+          <div class="definitionRowRefs empty">
+            <span class="definitionRowLabel">References</span>
+            <span class="definitionRowSummary">Loading references…</span>
+          </div>
+        `;
+      return `
+        <article class="profileRowCard" data-profile-id="${escapeAttr(profileId)}">
+          <div class="rowSelectCell">
+            <input class="rowSelectCheck" type="checkbox" data-profile-select="${escapeAttr(profileId)}"${checked} />
+          </div>
+          <div class="profileRowContent">
+            <div class="profileRowTitle">
+              <div class="profileTitleLine">
+                <span class="profileTitleName">${escapeHtml(profileName)}</span>
+                ${buildCopyButton(profileName, `Copy profile name: ${profileName}`, 'copyInline--mini')}
+              </div>
+            </div>
+            ${buildProfileSummary(profile)}
+          </div>
+          <div class="profileReferencePanel">
+            ${referenceMarkup}
+          </div>
+        </article>
+      `;
+    }
+
+    function renderSkillProfiles() {
+      if (!skillProfilesList) return;
+      const term = (profileSearchTerm || '').toLowerCase().trim();
+      const filtered = skillProfiles.filter(profile => {
+        const name = (profile.name || '').toLowerCase();
+        const desc = (profile.description || '').toLowerCase();
+        const summaryText = getSkillSummariesForProfile(profile).map(entry => `${entry.name} ${entry.value}`).join(' ').toLowerCase();
+        return !term || name.includes(term) || desc.includes(term) || summaryText.includes(term);
+      });
+      if (!filtered.length) {
+        visibleProfileIds = [];
+        syncSelectionControls();
+        skillProfilesList.innerHTML = '<div class="emptyState">No skill profiles found.</div>';
+        return;
+      }
+      visibleProfileIds = filtered.map(profile => profile.id).filter(Boolean);
+      syncSelectionControls();
+      skillProfilesList.innerHTML = filtered.map(renderProfileRow).join('');
+    }
+
+    function renderDefinitionRow(def) {
+      const defId = def.id || '';
+      const checked = defId && selectedDefinitionIds.has(defId) ? ' checked' : '';
+      const selectedClass = defId && defId === selectedDefinitionId ? ' is-selected' : '';
+      const definitionName = def.name || 'Unnamed skill';
+      const summary = definitionReferenceSummary.get(defId);
+      const chipsMarkup = summary ? buildReferenceChips(summary.meta) : '';
+      const referenceGroups = summary ? groupReferenceItems(summary) : [];
+      const referenceMarkup = summary ? `
+        <div class="definitionRowRefs">
+          <div class="definitionRowHeader">
+            <span class="definitionRowLabel">References</span>
+          </div>
+          ${chipsMarkup ? `<div class="definitionRowChips">${chipsMarkup}</div>` : ''}
+          ${referenceGroups.map(group => `
+            <div class="definitionReferenceGroup">
+              <span class="definitionRowLabel">${escapeHtml(group.label)}:</span>
+              <div class="definitionReferenceList">
+                ${group.items.map(ref => `<span class="definitionReferenceItem">${escapeHtml(ref?.name || 'Unnamed reference')}</span>`).join('')}
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      ` : '<div class="definitionRowRefs empty"><span class="definitionRowLabel">References</span><span class="definitionRowSummary">Loading references…</span></div>';
+      return `
+        <div class="definitionRow${selectedClass}" data-skill-id="${escapeAttr(defId)}">
+          <div class="rowSelectCell">
+            <input class="rowSelectCheck" type="checkbox" data-definition-select="${escapeAttr(defId)}"${checked} />
+          </div>
+          <div class="definitionRowContent">
+            <div class="definitionTitleLine">
+              <span class="definitionName">${escapeHtml(definitionName)}</span>
+              ${buildCopyButton(definitionName, `Copy definition name: ${definitionName}`, 'copyInline--mini')}
+            </div>
+            <span class="definitionType">${escapeHtml(formatSkillType(def.skillType))}</span>
+          </div>
+          ${referenceMarkup}
+        </div>
+      `;
+    }
+
+    function renderSkillDefinitions(definitionsOverride) {
+      if (!skillDefinitionList) return;
+      const term = (definitionSearchTerm || '').toLowerCase().trim();
+      const definitions = (definitionsOverride || [...skillDefinitionMap.values()])
+        .filter(def => {
+          if (!term) return true;
+          const name = (def.name || '').toLowerCase();
+          const type = formatSkillType(def.skillType).toLowerCase();
+          return name.includes(term) || type.includes(term);
+        })
+        .sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+      if (!definitions.length) {
+        skillDefinitionList.innerHTML = '<div class="emptyState">No skill definitions available.</div>';
+        visibleDefinitionIds = [];
+        syncSelectionControls();
+        selectedDefinitionId = '';
+        return;
+      }
+      ensureDefinitionSelection(definitions);
+      visibleDefinitionIds = definitions.map(def => def.id).filter(Boolean);
+      syncSelectionControls();
+      skillDefinitionList.innerHTML = definitions.map(renderDefinitionRow).join('');
+    }
+
+    function ensureDefinitionSelection(definitions) {
+      if (!definitions.length) {
+        selectedDefinitionId = '';
+        return;
+      }
+      if (!selectedDefinitionId || !definitions.some(def => def.id === selectedDefinitionId)) {
+        selectedDefinitionId = definitions[0].id || '';
+      }
+    }
+
+    function renderReferenceChips(container, meta = {}) {
+      if (!container) return;
+      const entities = Array.isArray(meta?.referencedEntities) ? meta.referencedEntities : [];
+      if (!entities.length) {
+        container.innerHTML = '';
+        return;
+      }
+      container.innerHTML = entities
+        .map(entity => `<span class="referenceChip">${escapeHtml(getEntityLabel(entity))}</span>`)
+        .join('');
+    }
+
+    function buildReferenceChips(meta = {}) {
+      const entities = Array.isArray(meta?.referencedEntities) ? meta.referencedEntities : [];
+      if (!entities.length) return '';
+      return entities
+        .map(entity => `<span class="referenceChip">${escapeHtml(getEntityLabel(entity))}</span>`)
+        .join('');
+    }
+
+    function resolveItemType(item, meta = {}) {
+      const typeProps = ['entityType', 'type', 'entity', 'referenceType'];
+      for (const prop of typeProps) {
+        if (item?.[prop]) return item[prop];
+      }
+      if (Array.isArray(meta?.referencedEntities) && meta.referencedEntities.length === 1) {
+        return meta.referencedEntities[0];
+      }
+      return 'reference';
+    }
+
+    function groupReferenceItems(entry = {}) {
+      const items = Array.isArray(entry?.items) ? entry.items : [];
+      const meta = entry?.meta || {};
+      const groups = new Map();
+      items.forEach(item => {
+        const key = resolveItemType(item, meta);
+        const label = getEntityLabel(key);
+        if (!groups.has(label)) groups.set(label, []);
+        groups.get(label).push(item);
+      });
+      const ordered = Array.isArray(meta?.referencedEntities)
+        ? meta.referencedEntities.map(getEntityLabel).filter(Boolean)
+        : [];
+      const result = [];
+      const seen = new Set();
+      ordered.forEach(label => {
+        if (groups.has(label)) {
+          result.push({ label, items: groups.get(label) });
+          seen.add(label);
+        }
+      });
+      groups.forEach((value, label) => {
+        if (!seen.has(label)) result.push({ label, items: value });
+      });
+      if (!result.length && items.length) {
+        result.push({ label: 'References', items });
+      }
+      return result;
+    }
+
+    async function throttledBatch(tasks, concurrency, onBatchDone) {
+      for (let i = 0; i < tasks.length; i += concurrency) {
+        await Promise.all(tasks.slice(i, i + concurrency).map(t => t().catch(() => null)));
+        if (onBatchDone) onBatchDone();
+      }
+    }
+
+    async function fetchWithRetry(url, headers) {
+      let res = await fetch(url, { headers });
+      if (res.status === 429) {
+        const retryAfter = parseFloat(res.headers.get('Retry-After') || '2');
+        await new Promise(r => setTimeout(r, (retryAfter + 0.5) * 1000));
+        res = await fetch(url, { headers });
+      }
+      return res;
+    }
+
+    async function fetchDefinitionReferencesSummary(defId, bearer, orgId) {
+      if (!defId || !bearer || !orgId) return { items: [], meta: {} };
+      if (definitionReferenceSummary.has(defId)) return definitionReferenceSummary.get(defId);
+      try {
+        const res = await fetchWithRetry(
+          `${getApiBaseUrl()}/organization/${encodeURIComponent(orgId)}/skill/${encodeURIComponent(defId)}/incoming-references`,
+          buildAuthHeaders(bearer)
+        );
+        if (!res.ok) {
+          const entry = { items: [], meta: {} };
+          definitionReferenceSummary.set(defId, entry);
+          return entry;
+        }
+        const payload = await res.json();
+        const entry = { items: Array.isArray(payload?.data) ? payload.data : [], meta: payload?.meta || {} };
+        definitionReferenceSummary.set(defId, entry);
+        return entry;
+      } catch {
+        const entry = { items: [], meta: {} };
+        definitionReferenceSummary.set(defId, entry);
+        return entry;
+      }
+    }
+
+    async function prefetchDefinitionReferences(definitions = [], bearer, orgId) {
+      if (!definitions.length || !bearer || !orgId) return;
+      await throttledBatch(
+        definitions.map(def => () => fetchDefinitionReferencesSummary(def.id, bearer, orgId)),
+        5,
+        () => renderSkillDefinitions()
+      );
+      renderSkillDefinitions();
+    }
+
+    async function fetchProfileReferencesSummary(profileId, bearer, orgId) {
+      if (!profileId || !bearer || !orgId) return { items: [], meta: {} };
+      if (profileReferenceSummary.has(profileId)) return profileReferenceSummary.get(profileId);
+      try {
+        const res = await fetchWithRetry(
+          `${getApiBaseUrl()}/organization/${encodeURIComponent(orgId)}/skill-profile/${encodeURIComponent(profileId)}/incoming-references`,
+          buildAuthHeaders(bearer)
+        );
+        if (!res.ok) {
+          const entry = { items: [], meta: {} };
+          profileReferenceSummary.set(profileId, entry);
+          return entry;
+        }
+        const payload = await res.json();
+        const entry = { items: Array.isArray(payload?.data) ? payload.data : [], meta: payload?.meta || {} };
+        profileReferenceSummary.set(profileId, entry);
+        return entry;
+      } catch {
+        const entry = { items: [], meta: {} };
+        profileReferenceSummary.set(profileId, entry);
+        return entry;
+      }
+    }
+
+    async function prefetchProfileReferences(profiles = [], bearer, orgId) {
+      if (!profiles.length || !bearer || !orgId) return;
+      await throttledBatch(
+        profiles.map(profile => () => fetchProfileReferencesSummary(profile.id, bearer, orgId)),
+        5,
+        () => renderSkillProfiles()
+      );
+      renderSkillProfiles();
+    }
+
+    async function deleteEntityWithFallback(kind, id, bearer, orgId) {
+      const urls = [
+        `${getApiBaseUrl()}/organization/${encodeURIComponent(orgId)}/${kind}/${encodeURIComponent(id)}`,
+        `${getApiBaseUrl()}/organization/${encodeURIComponent(orgId)}/v2/${kind}/${encodeURIComponent(id)}`
+      ];
+      let lastMessage = '';
+      for (const url of urls) {
+        try {
+          const res = await fetch(url, {
+            method: 'DELETE',
+            headers: { Authorization: `Bearer ${bearer}`, Accept: 'application/json' }
+          });
+          if (res.ok || res.status === 204) return;
+          lastMessage = await res.text().catch(() => '') || `Delete failed (${res.status})`;
+        } catch (err) {
+          lastMessage = err?.message || 'Delete failed.';
+        }
+      }
+      throw new Error(lastMessage || 'Delete failed.');
+    }
+
+    async function handleDeleteProfiles() {
+      const ids = [...selectedProfileIds];
+      if (!ids.length) return;
+      const bearer = (localStorage.getItem(cacheKeyBearer) || '').trim();
+      const orgId = getOrgIdValue();
+      if (!bearer || !orgId) return;
+      const confirmed = await confirmAction(
+        'Delete Skill Profiles',
+        `Delete ${ids.length} selected skill profile${ids.length === 1 ? '' : 's'}?`,
+        { variant:'danger', okLabel:'Delete' }
+      );
+      if (!confirmed) return;
+
+      if (deleteProfilesBtn) {
+        deleteProfilesBtn.disabled = true;
+        deleteProfilesBtn.textContent = 'Deleting...';
+      }
+      try {
+        for (const id of ids) {
+          await deleteEntityWithFallback('skill-profile', id, bearer, orgId);
+          selectedProfileIds.delete(id);
+          profileReferenceSummary.delete(id);
+        }
+        await loadSkills();
+      } catch (err) {
+        showActionModal('Delete failed', err?.message || 'Unable to delete selected profiles.', { variant:'danger' });
+      } finally {
+        if (deleteProfilesBtn) deleteProfilesBtn.textContent = 'Delete Selected';
+        syncSelectionControls();
+      }
+    }
+
+    async function handleDeleteDefinitions() {
+      const ids = [...selectedDefinitionIds];
+      if (!ids.length) return;
+      const bearer = (localStorage.getItem(cacheKeyBearer) || '').trim();
+      const orgId = getOrgIdValue();
+      if (!bearer || !orgId) return;
+
+      if (deleteDefinitionsBtn) {
+        deleteDefinitionsBtn.disabled = true;
+        deleteDefinitionsBtn.textContent = 'Checking...';
+      }
+      try {
+        const blocked = [];
+        for (const id of ids) {
+          definitionReferenceSummary.delete(id);
+          const summary = await fetchDefinitionReferencesSummary(id, bearer, orgId);
+          if ((summary?.items || []).length) {
+            blocked.push(skillDefinitionMap.get(id)?.name || id);
+          }
+        }
+        if (blocked.length) {
+          renderSkillDefinitions();
+          showActionModal(
+            'Definitions In Use',
+            `These skill definitions are still in use and cannot be deleted: ${blocked.join(', ')}`,
+            { variant:'danger', okLabel:'Close' }
+          );
+          return;
+        }
+
+        const confirmed = await confirmAction(
+          'Delete Skill Definitions',
+          `Delete ${ids.length} selected skill definition${ids.length === 1 ? '' : 's'}?`,
+          { variant:'danger', okLabel:'Delete' }
+        );
+        if (!confirmed) return;
+        deleteDefinitionsBtn.textContent = 'Deleting...';
+        for (const id of ids) {
+          await deleteEntityWithFallback('skill', id, bearer, orgId);
+          selectedDefinitionIds.delete(id);
+          definitionReferenceSummary.delete(id);
+        }
+        await loadSkills();
+      } catch (err) {
+        showActionModal('Delete failed', err?.message || 'Unable to delete selected definitions.', { variant:'danger' });
+      } finally {
+        if (deleteDefinitionsBtn) deleteDefinitionsBtn.textContent = 'Delete Selected';
+        syncSelectionControls();
+      }
+    }
+
+    function buildBundleProfileValueField(skillType, value = '') {
+      const normalized = (skillType || '0').toString().toUpperCase();
+      if (normalized === '1' || normalized === 'BOOLEAN') {
+        return `
+          <label for="builderProfileValue">Value</label>
+          <select id="builderProfileValue" data-profile-value>
+            <option value="true"${String(value) === 'true' ? ' selected' : ''}>True</option>
+            <option value="false"${String(value) === 'false' ? ' selected' : ''}>False</option>
+          </select>
+        `;
+      }
+      if (normalized === '2' || normalized === 'TEXT') {
+        return `
+          <label for="builderProfileValue">Value</label>
+          <input id="builderProfileValue" type="text" data-profile-value value="${escapeAttr(value || '')}" placeholder="Text value" />
+        `;
+      }
+      if (normalized === '3' || normalized === 'ENUM') {
+        return `
+          <label for="builderProfileValue">Value</label>
+          <input id="builderProfileValue" type="text" data-profile-value value="${escapeAttr(value || '')}" placeholder="Enum value ID" />
+        `;
+      }
+      return `
+        <label for="builderProfileValue">Value</label>
+        <input id="builderProfileValue" type="number" min="0" max="10" data-profile-value value="${escapeAttr(value || '')}" placeholder="0-10" />
+      `;
+    }
+
+    function refreshBundleProfileValueFields() {
+      if (!builderProfileValueField) return;
+      const skillType = builderSkillType?.value || '0';
+      const currentValue = builderProfileValueField.querySelector('[data-profile-value]')?.value || '';
+      builderProfileValueField.className = 'builderField';
+      builderProfileValueField.innerHTML = buildBundleProfileValueField(skillType, currentValue);
+    }
+
+    function gatherBuilderData() {
+      const definition = {
+        name: builderSkillName?.value.trim() || '',
+        description: builderSkillDescription?.value.trim() || '',
+        serviceLevelThreshold: Number(builderServiceLevel?.value || 0),
+        skillType: builderSkillType?.value || '0',
+        active: true
+      };
+      return {
+        definition,
+        profileBaseName: builderProfileBaseName?.value.trim() || '',
+        profileValue: builderProfileValueField?.querySelector('[data-profile-value]')?.value || ''
+      };
+    }
+
+    function toggleCreateButton(state) {
+      if (!submitSkillBundleHeaderBtn) return;
+      submitSkillBundleHeaderBtn.disabled = Boolean(state);
+    }
+
+    function resetBuilder() {
+      if (builderProfileBaseName) builderProfileBaseName.value = '';
+      if (builderSkillName) builderSkillName.value = '';
+      if (builderSkillDescription) builderSkillDescription.value = '';
+      if (builderServiceLevel) builderServiceLevel.value = '30';
+      if (builderSkillType) builderSkillType.value = '0';
+      refreshBundleProfileValueFields();
+      const valueInput = builderProfileValueField?.querySelector('[data-profile-value]');
+      if (valueInput) valueInput.value = '';
+      // intentionally no status text
+      resetProgressSteps();
+      hideProgressOverlay();
+    }
+
+    async function handleSkillBundleSubmit(event) {
+      if (event?.preventDefault) event.preventDefault();
+      const { definition, profileBaseName, profileValue } = gatherBuilderData();
+      if (!profileBaseName) {
+        console.warn('Provide a skill profile name before submitting.');
+        builderProfileBaseName?.focus();
+        return;
+      }
+      if (!definition.name) {
+        console.warn('Provide a skill definition name before submitting.');
+        builderSkillName?.focus();
+        return;
+      }
+      if (profileValue === '') {
+        console.warn('Provide a profile value before submitting.');
+        return;
+      }
+      const bearer = (localStorage.getItem(cacheKeyBearer) || '').trim();
+      const orgId = getOrgIdValue();
+      if (!bearer || !orgId) {
+        console.warn('Authenticate before creating skills.');
+        return;
+      }
+
+      const apiBase = getApiBaseUrl();
+      const headers = buildAuthHeaders(bearer);
+      const definitionPayload = {
+        name: definition.name,
+        description: definition.description,
+        serviceLevelThreshold: definition.serviceLevelThreshold,
+        active: definition.active,
+        skillType: definition.skillType
+      };
+
+      toggleCreateButton(true);
+      resetProgressSteps();
+      updateProgressStep('definition', 'active', 'Creating skill definition…');
+      updateProgressStep('profiles', 'pending', 'Waiting to create profiles…');
+      let currentStep = 'definition';
+      showProgressOverlay();
+      try {
+        const defRes = await fetch(`${apiBase}/organization/${encodeURIComponent(orgId)}/skill`, {
+          method: 'POST',
+          headers,
+          body: JSON.stringify(definitionPayload)
+        });
+        if (!defRes.ok) {
+          const text = await defRes.text().catch(() => '');
+          throw new Error(text || `Skill definition creation failed (${defRes.status})`);
+        }
+        const defData = await defRes.json();
+        const skillId = defData?.id || defData?.dbId;
+        if (!skillId) {
+          throw new Error('Skill definition response is missing an ID.');
+        }
+
+        currentStep = 'profiles';
+        updateProgressStep('definition', 'success', 'Skill definition created.');
+        updateProgressStep('profiles', 'active', 'Creating linked skill profile…');
+        const profilePayload = { name: profileBaseName };
+        if (definition.skillType === '1') {
+          profilePayload.activeSkills = [{
+            organizationId: orgId,
+            booleanValue: profileValue === 'true',
+            skillId,
+            skillName: definition.name
+          }];
+        } else if (definition.skillType === '2') {
+          profilePayload.activeSkills = [{
+            organizationId: orgId,
+            textValue: profileValue,
+            skillId,
+            skillName: definition.name
+          }];
+        } else if (definition.skillType === '3') {
+          profilePayload.activeEnumSkills = [{
+            organizationId: orgId,
+            skillId,
+            enumSkillValueId: profileValue
+          }];
+        } else {
+          profilePayload.activeSkills = [{
+            organizationId: orgId,
+            proficiencyValue: Number(profileValue || 0),
+            skillId,
+            skillName: definition.name
+          }];
+        }
+        const profileRes = await fetch(`${apiBase}/organization/${encodeURIComponent(orgId)}/skill-profile`, {
+          method: 'POST',
+          headers,
+          body: JSON.stringify(profilePayload)
+        });
+        if (!profileRes.ok) {
+          const text = await profileRes.text().catch(() => '');
+          throw new Error(text || `Profile creation failed (${profileRes.status})`);
+        }
+
+        updateProgressStep('profiles', 'success', 'Skill profile created.');
+        console.info('Created linked skill definition and skill profile.');
+        loadSkills();
+        closeBuilder();
+      } catch (err) {
+        const message = err?.message || 'Failed to create the skill bundle.';
+        console.error(message);
+        updateProgressStep(currentStep, 'error', message);
+        if (currentStep === 'definition') {
+          updateProgressStep('profiles', 'pending', 'Waiting to create profiles…');
+        }
+      } finally {
+        toggleCreateButton(false);
+      }
+    }
+
+    function openBuilder() {
+      resetBuilder();
+      builderModal?.classList.add('open');
+      toggleCreateButton(false);
+    }
+
+    function closeBuilder() {
+      builderModal?.classList.remove('open');
+      resetBuilder();
+    }
+
+    if (openBuilderBtn) {
+      openBuilderBtn.addEventListener('click', openBuilder);
+    }
+    if (closeBuilderBtn) {
+      closeBuilderBtn.addEventListener('click', closeBuilder);
+    }
+    builderSkillType?.addEventListener('change', refreshBundleProfileValueFields);
+    if (submitSkillBundleHeaderBtn) {
+      submitSkillBundleHeaderBtn.addEventListener('click', handleSkillBundleSubmit);
+    }
+    if (skillDefinitionList) {
+      skillDefinitionList.addEventListener('click', (event) => {
+        const checkbox = event.target.closest('[data-definition-select]');
+        if (checkbox) {
+          const defId = checkbox.getAttribute('data-definition-select') || '';
+          if (!defId) return;
+          if (checkbox.checked) selectedDefinitionIds.add(defId);
+          else selectedDefinitionIds.delete(defId);
+          syncSelectionControls();
+          event.stopPropagation();
+          return;
+        }
+        const row = event.target.closest('[data-skill-id]');
+        if (!row) return;
+        const defId = row.getAttribute('data-skill-id') || '';
+        if (!defId || defId === selectedDefinitionId) return;
+        selectedDefinitionId = defId;
+        renderSkillDefinitions();
+      });
+    }
+    if (skillProfilesList) {
+      skillProfilesList.addEventListener('click', event => {
+        const checkbox = event.target.closest('[data-profile-select]');
+        if (!checkbox) return;
+        const profileId = checkbox.getAttribute('data-profile-select') || '';
+        if (!profileId) return;
+        if (checkbox.checked) selectedProfileIds.add(profileId);
+        else selectedProfileIds.delete(profileId);
+        syncSelectionControls();
+      });
+    }
+    if (submitSkillBundleHeaderBtn) {
+      submitSkillBundleHeaderBtn.addEventListener('click', handleSkillBundleSubmit);
+    }
+    if (selectAllDefinitions) {
+      selectAllDefinitions.addEventListener('change', event => {
+        const checked = Boolean(event.target.checked);
+        visibleDefinitionIds.forEach(id => {
+          if (checked) selectedDefinitionIds.add(id);
+          else selectedDefinitionIds.delete(id);
+        });
+        renderSkillDefinitions();
+      });
+    }
+    if (selectAllProfiles) {
+      selectAllProfiles.addEventListener('change', event => {
+        const checked = Boolean(event.target.checked);
+        visibleProfileIds.forEach(id => {
+          if (checked) selectedProfileIds.add(id);
+          else selectedProfileIds.delete(id);
+        });
+        renderSkillProfiles();
+      });
+    }
+    if (deleteDefinitionsBtn) deleteDefinitionsBtn.addEventListener('click', handleDeleteDefinitions);
+    if (deleteProfilesBtn) deleteProfilesBtn.addEventListener('click', handleDeleteProfiles);
+
+    function getOrgIdValue() {
+      const cached = localStorage.getItem('authOrgId') || '';
+      if (cached) {
+        if (/^Y2lz/i.test(cached)) {
+          try {
+            const padded = cached.replace(/-/g, '+').replace(/_/g, '/').padEnd(Math.ceil(cached.length / 4) * 4, '=');
+            const decoded = atob(padded);
+            const parts = decoded.split('/');
+            const result = parts[parts.length - 1] || decoded;
+            localStorage.setItem('authOrgId', result);
+            return result;
+          } catch {
+            return cached;
+          }
+        }
+        const orgPathIdx = cached.toLowerCase().indexOf('organization/');
+        if (orgPathIdx !== -1) {
+          const candidate = cached.slice(orgPathIdx + 'organization/'.length);
+          if (candidate) {
+            localStorage.setItem('authOrgId', candidate);
+            return candidate;
+          }
+        }
+        return cached;
+      }
+      const raw = localStorage.getItem(cacheKeyOrg) || '';
+      if (!raw) return '';
+
+      if (/^Y2lz/i.test(raw)) {
+        try {
+          const padded = raw.replace(/-/g, '+').replace(/_/g, '/').padEnd(Math.ceil(raw.length / 4) * 4, '=');
+          const decoded = atob(padded);
+          const parts = decoded.split('/');
+          return parts[parts.length - 1] || decoded;
+        } catch {
+          return raw;
+        }
+      }
+
+      const orgPathIdx = raw.toLowerCase().indexOf('organization/');
+      if (orgPathIdx !== -1) {
+        const candidate = raw.slice(orgPathIdx + 'organization/'.length);
+        return candidate || raw;
+      }
+
+      return raw;
+    }
+
+    async function loadSkillDefinitions(orgId, bearer) {
+      skillDefinitionMap.clear();
+      enumSkillValueMap.clear();
+      let page = 0;
+      let totalPages = 1;
+      if (!orgId || !bearer) return;
+      const headers = { Authorization: `Bearer ${bearer}` };
+      do {
+        const url = SKILL_ENDPOINT(orgId, page, SKILL_PAGE_SIZE);
+        try {
+          const res = await fetch(url, { headers });
+          if (!res.ok) break;
+          const parsed = await res.json();
+          const chunk = parsed?.data || [];
+          chunk.forEach(skill => {
+            if (!skill?.id) return;
+            skillDefinitionMap.set(skill.id, skill);
+            if (Array.isArray(skill.enumSkillValues)) {
+              skill.enumSkillValues.forEach(value => {
+                if (value?.id) {
+                  enumSkillValueMap.set(value.id, value);
+                }
+              });
+            }
+          });
+          const meta = parsed?.meta || {};
+          totalPages = typeof meta.totalPages === 'number' ? meta.totalPages : totalPages;
+          page += 1;
+        } catch (err) {
+          console.error('Failed to load skill definitions', err);
+          break;
+        }
+      } while (page < totalPages);
+    }
+
+    async function loadSkillProfiles(orgId, bearer) {
+      const profiles = [];
+      let page = 0;
+      let totalPages = 1;
+      if (!orgId || !bearer) {
+        skillProfiles = [];
+        return;
+      }
+      const headers = { Authorization: `Bearer ${bearer}` };
+      do {
+        const url = SKILL_PROFILE_ENDPOINT(orgId, page, SKILL_PROFILE_PAGE_SIZE);
+        try {
+          const res = await fetch(url, { headers });
+          if (!res.ok) break;
+          const parsed = await res.json();
+          const chunk = parsed?.data || [];
+          chunk.forEach(profile => {
+            if (profile?.id) {
+              profiles.push(profile);
+            }
+          });
+          const meta = parsed?.meta || {};
+          totalPages = typeof meta.totalPages === 'number' ? meta.totalPages : totalPages;
+          page += 1;
+        } catch (err) {
+          console.error('Failed to load skill profiles', err);
+          break;
+        }
+      } while (page < totalPages);
+      skillProfiles = profiles;
+    }
+
+    async function loadSkills() {
+      const bearer = (localStorage.getItem(cacheKeyBearer) || '').trim();
+      const orgId = getOrgIdValue();
+      if (!bearer || !orgId) {
+        if (skillProfilesList) skillProfilesList.innerHTML = '<div class="emptyState">Authenticate via Webex to load skill data.</div>';
+        if (skillDefinitionList) skillDefinitionList.innerHTML = '';
+        visibleDefinitionIds = [];
+        visibleProfileIds = [];
+        selectedDefinitionIds.clear();
+        selectedProfileIds.clear();
+        syncSelectionControls();
+        return;
+      }
+      try {
+        definitionReferenceSummary.clear();
+        profileReferenceSummary.clear();
+        selectedDefinitionId = '';
+
+        metadataLoading = true;
+        setSkillLoading(true, 'Loading skill definitions…');
+        await loadSkillDefinitions(orgId, bearer);
+        const definitions = [...skillDefinitionMap.values()];
+        pruneSelectionState();
+        renderSkillDefinitions(definitions);
+        prefetchDefinitionReferences(definitions, bearer, orgId);
+        setSkillLoading(true, 'Loading skill profiles…');
+        await loadSkillProfiles(orgId, bearer);
+        skillProfiles.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+        pruneSelectionState();
+        renderSkillProfiles();
+        await prefetchProfileReferences(skillProfiles, bearer, orgId);
+      } catch (err) {
+        console.error('Failed to load skills', err);
+        const message = err?.message || 'Unable to load skill metadata.';
+        if (skillProfilesList) skillProfilesList.innerHTML = `<div class="emptyState">${escapeHtml(message)}</div>`;
+        if (skillDefinitionList) skillDefinitionList.innerHTML = '';
+        visibleDefinitionIds = [];
+        visibleProfileIds = [];
+        syncSelectionControls();
+      } finally {
+        metadataLoading = false;
+        setSkillLoading(false);
+      }
+    }
+
+
+
+    function updateAuthIndicators() {
+      const b = localStorage.getItem(cacheKeyBearer) || '';
+      const org = localStorage.getItem(cacheKeyOrgName) || localStorage.getItem(cacheKeyOrg) || '';
+      const user = localStorage.getItem(cacheKeyUser) || '';
+      const userNameEl = document.getElementById('userName');
+      const userOrgEl = document.getElementById('userOrg');
+      if (userNameEl) userNameEl.textContent = b ? (user || 'Authenticated') : 'Not authenticated';
+      if (userOrgEl) userOrgEl.textContent = org || '';
+    }
+    updateAuthIndicators();
+
+    const signOutBtn = document.getElementById('signOutBtn');
+    if (signOutBtn) {
+      signOutBtn.addEventListener('click', () => {
+        localStorage.removeItem(cacheKeyBearer);
+        localStorage.removeItem(cacheKeyOrg);
+        localStorage.removeItem(cacheKeyOrgName);
+        localStorage.removeItem(cacheKeyUser);
+        localStorage.removeItem('authRefreshToken');
+        localStorage.removeItem('authExpiresAt');
+        window.location.href = '../../index.html';
+      });
+    }
+
+
+    document.addEventListener('click', (event) => {
+      const copyButton = event.target.closest('[data-copy-value]');
+      if (copyButton) {
+        event.preventDefault();
+        event.stopPropagation();
+        copyValueWithFeedback(copyButton, copyButton.getAttribute('data-copy-value') || '');
+      }
+    });
+
+    document.addEventListener('keydown', (event) => {
+    });
+
+    if (definitionSearchInput) {
+      definitionSearchInput.addEventListener('input', () => {
+        definitionSearchTerm = (definitionSearchInput.value || '').toLowerCase().trim();
+        renderSkillDefinitions();
+      });
+    }
+    if (profileSearchInput) {
+      profileSearchInput.addEventListener('input', () => {
+        profileSearchTerm = (profileSearchInput.value || '').toLowerCase().trim();
+        renderSkillProfiles();
+      });
+    }
+
+    // ===========================
+    // Add Definitions Modal
+    // ===========================
+    const addDefinitionsModal = document.getElementById('addDefinitionsModal');
+    const addDefinitionsRowsEl = document.getElementById('addDefinitionsRows');
+    const submitAddDefinitionsBtn = document.getElementById('submitAddDefinitions');
+    const addDefinitionRowBtn = document.getElementById('addDefinitionRowBtn');
+    const closeAddDefinitionsModalBtn = document.getElementById('closeAddDefinitionsModal');
+    const addDefinitionsProgressEl = document.getElementById('addDefinitionsProgress');
+
+    function createDefinitionRow(data) {
+      data = data || {};
+      const row = document.createElement('div');
+      row.className = 'multiRowEntry defEntry';
+      const slt = data.serviceLevelThreshold != null ? String(data.serviceLevelThreshold) : '30';
+      const type = data.skillType || '0';
+      row.innerHTML = `
+        <input type="text" data-def-name placeholder="Skill name *" value="${escapeAttr(data.name || '')}" />
+        <input type="text" data-def-desc placeholder="Description" value="${escapeAttr(data.description || '')}" />
+        <input type="number" data-def-slt min="0" value="${escapeAttr(slt)}" />
+        <select data-def-type>
+          <option value="0"${type === '0' || type === 'PROFICIENCY' ? ' selected' : ''}>Proficiency</option>
+          <option value="1"${type === '1' || type === 'BOOLEAN' ? ' selected' : ''}>Boolean</option>
+          <option value="2"${type === '2' || type === 'TEXT' ? ' selected' : ''}>Text</option>
+          <option value="3"${type === '3' || type === 'ENUM' ? ' selected' : ''}>Enum</option>
+        </select>
+        <button class="multiRowRemove" type="button" data-remove-def-row aria-label="Remove row">×</button>
+      `;
+      addDefinitionsRowsEl.appendChild(row);
+      return row;
+    }
+
+    function gatherDefinitionRows() {
+      return Array.from(addDefinitionsRowsEl.querySelectorAll('.defEntry')).map(row => ({
+        name: row.querySelector('[data-def-name]')?.value.trim() || '',
+        description: row.querySelector('[data-def-desc]')?.value.trim() || '',
+        serviceLevelThreshold: Number(row.querySelector('[data-def-slt]')?.value || 0),
+        skillType: row.querySelector('[data-def-type]')?.value || '0',
+        active: true
+      }));
+    }
+
+    function updateAddDefinitionsProgress(status, detail) {
+      const step = addDefinitionsProgressEl?.querySelector('.builderProgressStep');
+      if (!step) return;
+      step.dataset.status = status;
+      const detailEl = step.querySelector('.stepDetail');
+      if (detailEl && detail != null) detailEl.textContent = detail;
+    }
+
+    function openAddDefinitionsModal() {
+      if (addDefinitionsRowsEl) addDefinitionsRowsEl.innerHTML = '';
+      createDefinitionRow();
+      addDefinitionsProgressEl?.classList.remove('open');
+      if (submitAddDefinitionsBtn) submitAddDefinitionsBtn.disabled = false;
+      addDefinitionsModal?.classList.add('open');
+    }
+
+    function closeAddDefinitionsModalFn() {
+      addDefinitionsModal?.classList.remove('open');
+      addDefinitionsProgressEl?.classList.remove('open');
+    }
+
+    async function handleAddDefinitionsSubmit() {
+      const rows = gatherDefinitionRows().filter(r => r.name);
+      if (!rows.length) return;
+      const bearer = (localStorage.getItem(cacheKeyBearer) || '').trim();
+      const orgId = getOrgIdValue();
+      if (!bearer || !orgId) return;
+      const apiBase = getApiBaseUrl();
+      const headers = buildAuthHeaders(bearer);
+      if (submitAddDefinitionsBtn) submitAddDefinitionsBtn.disabled = true;
+      updateAddDefinitionsProgress('active', `Creating definition 1 of ${rows.length}…`);
+      addDefinitionsProgressEl?.classList.add('open');
+      let errorMsg = null;
+      for (let i = 0; i < rows.length; i++) {
+        updateAddDefinitionsProgress('active', `Creating definition ${i + 1} of ${rows.length}…`);
+        try {
+          const res = await fetch(`${apiBase}/organization/${encodeURIComponent(orgId)}/skill`, {
+            method: 'POST', headers, body: JSON.stringify(rows[i])
+          });
+          if (!res.ok) {
+            const text = await res.text().catch(() => '');
+            errorMsg = `Failed on "${rows[i].name}": ${text || res.status}`;
+            break;
+          }
+        } catch (err) {
+          errorMsg = `Error on "${rows[i].name}": ${err?.message || 'Unknown error'}`;
+          break;
+        }
+      }
+      if (submitAddDefinitionsBtn) submitAddDefinitionsBtn.disabled = false;
+      if (errorMsg) {
+        updateAddDefinitionsProgress('error', errorMsg);
+      } else {
+        updateAddDefinitionsProgress('success', `${rows.length} definition${rows.length === 1 ? '' : 's'} created.`);
+        loadSkills();
+        setTimeout(() => closeAddDefinitionsModalFn(), 1500);
+      }
+    }
+
+    if (addDefinitionsRowsEl) {
+      addDefinitionsRowsEl.addEventListener('click', e => {
+        if (e.target.closest('[data-remove-def-row]')) e.target.closest('.defEntry')?.remove();
+      });
+    }
+    if (addDefinitionRowBtn) addDefinitionRowBtn.addEventListener('click', () => createDefinitionRow());
+    if (submitAddDefinitionsBtn) submitAddDefinitionsBtn.addEventListener('click', handleAddDefinitionsSubmit);
+    if (closeAddDefinitionsModalBtn) closeAddDefinitionsModalBtn.addEventListener('click', closeAddDefinitionsModalFn);
+    const openAddDefinitionsBtn = document.getElementById('openAddDefinitions');
+    if (openAddDefinitionsBtn) openAddDefinitionsBtn.addEventListener('click', openAddDefinitionsModal);
+
+    // ===========================
+    // Add Profiles Modal
+    // ===========================
+    const addProfilesModal = document.getElementById('addProfilesModal');
+    const addProfilesRowsEl = document.getElementById('addProfilesRows');
+    const submitAddProfilesBtn = document.getElementById('submitAddProfiles');
+    const addProfileAddRowBtn = document.getElementById('addProfileAddRowBtn');
+    const closeAddProfilesModalBtn = document.getElementById('closeAddProfilesModal');
+    const addProfilesProgressEl = document.getElementById('addProfilesProgress');
+
+    function findSkillDefinitionById(skillId) {
+      return skillId ? skillDefinitionMap.get(skillId) || null : null;
+    }
+
+    function buildProfileValueCell(skillType, skillId) {
+      if (!skillId) {
+        return `<input type="text" data-prof-value placeholder="Select a skill definition" disabled />`;
+      }
+      const type = (skillType || 'PROFICIENCY').toString().toUpperCase();
+      if (type === 'BOOLEAN' || type === '1') {
+        return `<select data-prof-value><option value="true">True</option><option value="false">False</option></select>`;
+      }
+      if (type === 'TEXT' || type === '2') {
+        return `<input type="text" data-prof-value placeholder="Text value" />`;
+      }
+      if (type === 'ENUM' || type === '3') {
+        const enumValues = skillId ? [...enumSkillValueMap.values()].filter(v => v.skillId === skillId) : [];
+        if (enumValues.length) {
+          const opts = enumValues.map(v => `<option value="${escapeAttr(v.id)}">${escapeHtml(v.name || v.id)}</option>`).join('');
+          return `<select data-prof-value data-value-type="enum">${opts}</select>`;
+        }
+        return `<input type="text" data-prof-value placeholder="Enum value ID" />`;
+      }
+      return `<input type="number" data-prof-value min="0" max="10" value="5" placeholder="0-10" />`;
+    }
+
+    function renderProfileSkillPickerOptions(assignmentRow, searchTerm) {
+      const optionsEl = assignmentRow.querySelector('[data-prof-skill-options]');
+      const selectedId = assignmentRow.querySelector('[data-prof-skill-id]')?.value || '';
+      if (!optionsEl) return;
+      const defs = [...skillDefinitionMap.values()]
+        .sort((a, b) => (a.name || '').localeCompare(b.name || ''))
+        .filter(def => {
+          const term = (searchTerm || '').trim().toLowerCase();
+          if (!term) return true;
+          return (def.name || '').toLowerCase().includes(term);
+        });
+      if (!defs.length) {
+        optionsEl.innerHTML = '<div class="skillPickerEmpty">No skill definitions found.</div>';
+        return;
+      }
+      optionsEl.innerHTML = defs.map(def => `
+        <button
+          class="skillPickerOption${def.id === selectedId ? ' is-active' : ''}"
+          type="button"
+          data-prof-skill-option
+          data-skill-id="${escapeAttr(def.id)}"
+        >${escapeHtml(def.name || 'Unnamed')}</button>
+      `).join('');
+    }
+
+    function updateProfileSkillPickerLabel(assignmentRow) {
+      const labelEl = assignmentRow.querySelector('[data-prof-skill-label]');
+      const skillId = assignmentRow.querySelector('[data-prof-skill-id]')?.value || '';
+      const definition = findSkillDefinitionById(skillId);
+      if (!labelEl) return;
+      if (!definition) {
+        labelEl.textContent = 'Skill definition *';
+        labelEl.classList.add('is-placeholder');
+        return;
+      }
+      labelEl.textContent = definition.name || 'Skill definition';
+      labelEl.classList.remove('is-placeholder');
+    }
+
+    function closeAllProfileSkillPickers(exceptAssignmentRow) {
+      addProfilesRowsEl?.querySelectorAll('.skillPicker.open').forEach(picker => {
+        if (exceptAssignmentRow && picker.closest('.profAssignmentRow') === exceptAssignmentRow) return;
+        picker.classList.remove('open');
+        picker.querySelector('[data-prof-skill-toggle]')?.setAttribute('aria-expanded', 'false');
+      });
+    }
+
+    function openProfileSkillPicker(assignmentRow) {
+      const picker = assignmentRow.querySelector('.skillPicker');
+      const searchInput = assignmentRow.querySelector('[data-prof-skill-search]');
+      if (!picker) return;
+      closeAllProfileSkillPickers(assignmentRow);
+      picker.classList.add('open');
+      if (searchInput) {
+        searchInput.value = '';
+        renderProfileSkillPickerOptions(assignmentRow, '');
+        searchInput.focus();
+      }
+    }
+
+    function setProfileSkillSelection(assignmentRow, skillId) {
+      const skillIdInput = assignmentRow.querySelector('[data-prof-skill-id]');
+      const skillTypeInput = assignmentRow.querySelector('[data-prof-skill-type]');
+      const valueCell = assignmentRow.querySelector('[data-value-cell]');
+      const definition = findSkillDefinitionById(skillId);
+      if (skillIdInput) skillIdInput.value = definition?.id || '';
+      if (skillTypeInput) skillTypeInput.value = definition?.skillType || 'PROFICIENCY';
+      if (valueCell) valueCell.innerHTML = buildProfileValueCell(definition?.skillType, definition?.id);
+      updateProfileSkillPickerLabel(assignmentRow);
+      renderProfileSkillPickerOptions(assignmentRow, assignmentRow.querySelector('[data-prof-skill-search]')?.value || '');
+    }
+
+    function createProfileAssignmentRow(assignmentsContainer) {
+      const assignmentRow = document.createElement('div');
+      assignmentRow.className = 'profAssignmentRow';
+      assignmentRow.innerHTML = `
+        <div class="skillPicker" data-prof-skill-picker>
+          <button class="skillPickerToggle" type="button" data-prof-skill-toggle aria-expanded="false">
+            <span class="skillPickerLabel is-placeholder" data-prof-skill-label>Skill definition *</span>
+            <span class="skillPickerChevron">▼</span>
+          </button>
+          <div class="skillPickerPanel">
+            <input class="skillPickerSearch" type="text" data-prof-skill-search placeholder="Search definitions..." autocomplete="off" />
+            <div class="skillPickerOptions" data-prof-skill-options></div>
+          </div>
+          <input type="hidden" data-prof-skill-id value="" />
+          <input type="hidden" data-prof-skill-type value="PROFICIENCY" />
+        </div>
+        <div data-value-cell>${buildProfileValueCell('', '')}</div>
+        <button class="profAssignmentRemove" type="button" data-remove-assignment-row aria-label="Remove skill definition">×</button>
+      `;
+      const toggleBtn = assignmentRow.querySelector('[data-prof-skill-toggle]');
+      const searchInput = assignmentRow.querySelector('[data-prof-skill-search]');
+      const optionsEl = assignmentRow.querySelector('[data-prof-skill-options]');
+      toggleBtn?.addEventListener('click', () => {
+        const picker = assignmentRow.querySelector('.skillPicker');
+        const isOpen = picker?.classList.contains('open');
+        if (isOpen) {
+          picker.classList.remove('open');
+          toggleBtn.setAttribute('aria-expanded', 'false');
+          return;
+        }
+        openProfileSkillPicker(assignmentRow);
+        toggleBtn.setAttribute('aria-expanded', 'true');
+      });
+      searchInput?.addEventListener('input', () => {
+        renderProfileSkillPickerOptions(assignmentRow, searchInput.value || '');
+      });
+      optionsEl?.addEventListener('click', event => {
+        const option = event.target.closest('[data-prof-skill-option]');
+        if (!option) return;
+        setProfileSkillSelection(assignmentRow, option.getAttribute('data-skill-id') || '');
+        assignmentRow.querySelector('.skillPicker')?.classList.remove('open');
+        toggleBtn?.setAttribute('aria-expanded', 'false');
+      });
+      renderProfileSkillPickerOptions(assignmentRow, '');
+      updateProfileSkillPickerLabel(assignmentRow);
+      assignmentsContainer.appendChild(assignmentRow);
+      return assignmentRow;
+    }
+
+    function createProfileAddRow() {
+      const row = document.createElement('div');
+      row.className = 'multiRowEntry profEntry';
+      row.innerHTML = `
+        <input type="text" data-prof-name placeholder="Profile name *" />
+        <div class="profAssignments" data-prof-assignments></div>
+        <div class="profRowActions">
+          <button class="profRowAction" type="button" data-add-assignment-row aria-label="Add skill definition">+</button>
+          <button class="profRowAction" type="button" data-remove-prof-row aria-label="Remove profile">×</button>
+        </div>
+      `;
+      const assignmentsContainer = row.querySelector('[data-prof-assignments]');
+      createProfileAssignmentRow(assignmentsContainer);
+      addProfilesRowsEl.appendChild(row);
+      return row;
+    }
+
+    function createEmptyProfilePayload(name) {
+      return {
+        name,
+        activeSkills: [],
+        activeEnumSkills: []
+      };
+    }
+
+    function appendProfileSkillToPayload(payload, orgId, rowData) {
+      const { skillId, skillName, skillType, rawValue } = rowData;
+      if (skillType === 'ENUM' || skillType === '3') {
+        payload.activeEnumSkills.push({
+          enumSkillValueId: rawValue,
+          skillId,
+          organizationId: orgId
+        });
+        return;
+      }
+      const skillEntry = { skillId, skillName, organizationId: orgId };
+      if (skillType === 'BOOLEAN' || skillType === '1') {
+        skillEntry.booleanValue = rawValue === 'true';
+      } else if (skillType === 'TEXT' || skillType === '2') {
+        skillEntry.textValue = rawValue;
+      } else {
+        skillEntry.proficiencyValue = Number(rawValue || 0);
+      }
+      payload.activeSkills.push(skillEntry);
+    }
+
+    function buildGroupedProfilePayloads(orgId, rows) {
+      const grouped = new Map();
+      rows.forEach(row => {
+        const key = row.name.trim().toLowerCase();
+        if (!key) return;
+        if (!grouped.has(key)) {
+          grouped.set(key, createEmptyProfilePayload(row.name.trim()));
+        }
+        appendProfileSkillToPayload(grouped.get(key), orgId, row);
+      });
+      return [...grouped.values()].filter(payload => payload.name && (payload.activeSkills.length || payload.activeEnumSkills.length));
+    }
+
+    function gatherProfileAddRows() {
+      return Array.from(addProfilesRowsEl.querySelectorAll('.profEntry')).flatMap(row => {
+        const name = row.querySelector('[data-prof-name]')?.value.trim() || '';
+        return Array.from(row.querySelectorAll('.profAssignmentRow')).map(assignmentRow => {
+          const skillId = assignmentRow.querySelector('[data-prof-skill-id]')?.value || '';
+          const skillName = findSkillDefinitionById(skillId)?.name || '';
+          const skillType = (assignmentRow.querySelector('[data-prof-skill-type]')?.value || 'PROFICIENCY').toString().toUpperCase();
+          const valueEl = assignmentRow.querySelector('[data-prof-value]');
+          const rawValue = valueEl ? valueEl.value : '';
+          const valueType = valueEl?.dataset?.valueType || '';
+          return { name, skillId, skillName, skillType, rawValue, valueType };
+        });
+      });
+    }
+
+    function updateAddProfilesProgress(status, detail) {
+      const step = addProfilesProgressEl?.querySelector('.builderProgressStep');
+      if (!step) return;
+      step.dataset.status = status;
+      const detailEl = step.querySelector('.stepDetail');
+      if (detailEl && detail != null) detailEl.textContent = detail;
+    }
+
+    function openAddProfilesModal() {
+      if (addProfilesRowsEl) addProfilesRowsEl.innerHTML = '';
+      createProfileAddRow();
+      addProfilesProgressEl?.classList.remove('open');
+      if (submitAddProfilesBtn) submitAddProfilesBtn.disabled = false;
+      addProfilesModal?.classList.add('open');
+    }
+
+    function closeAddProfilesModalFn() {
+      addProfilesModal?.classList.remove('open');
+      addProfilesProgressEl?.classList.remove('open');
+    }
+
+    async function handleAddProfilesSubmit() {
+      const rows = gatherProfileAddRows().filter(r => r.name && r.skillId);
+      if (!rows.length) return;
+      const bearer = (localStorage.getItem(cacheKeyBearer) || '').trim();
+      const orgId = getOrgIdValue();
+      if (!bearer || !orgId) return;
+      const apiBase = getApiBaseUrl();
+      const headers = buildAuthHeaders(bearer);
+      const payloads = buildGroupedProfilePayloads(orgId, rows);
+      if (!payloads.length) return;
+      if (submitAddProfilesBtn) submitAddProfilesBtn.disabled = true;
+      updateAddProfilesProgress('active', `Creating profile 1 of ${payloads.length}…`);
+      addProfilesProgressEl?.classList.add('open');
+      let errorMsg = null;
+      for (let i = 0; i < payloads.length; i++) {
+        updateAddProfilesProgress('active', `Creating profile ${i + 1} of ${payloads.length}…`);
+        try {
+          const payload = payloads[i];
+          const res = await fetch(`${apiBase}/organization/${encodeURIComponent(orgId)}/skill-profile`, {
+            method: 'POST', headers, body: JSON.stringify(payload)
+          });
+          if (!res.ok) {
+            const text = await res.text().catch(() => '');
+            errorMsg = `Failed on "${payload.name}": ${text || res.status}`;
+            break;
+          }
+        } catch (err) {
+          errorMsg = `Error on "${payloads[i].name}": ${err?.message || 'Unknown error'}`;
+          break;
+        }
+      }
+      if (submitAddProfilesBtn) submitAddProfilesBtn.disabled = false;
+      if (errorMsg) {
+        updateAddProfilesProgress('error', errorMsg);
+      } else {
+        updateAddProfilesProgress('success', `${payloads.length} profile${payloads.length === 1 ? '' : 's'} created.`);
+        loadSkills();
+        setTimeout(() => closeAddProfilesModalFn(), 1500);
+      }
+    }
+
+    if (addProfilesRowsEl) {
+      addProfilesRowsEl.addEventListener('click', e => {
+        const addAssignmentBtn = e.target.closest('[data-add-assignment-row]');
+        if (addAssignmentBtn) {
+          const profileRow = addAssignmentBtn.closest('.profEntry');
+          const assignmentsContainer = profileRow?.querySelector('[data-prof-assignments]');
+          if (assignmentsContainer) createProfileAssignmentRow(assignmentsContainer);
+          return;
+        }
+        const removeAssignmentBtn = e.target.closest('[data-remove-assignment-row]');
+        if (removeAssignmentBtn) {
+          const profileRow = removeAssignmentBtn.closest('.profEntry');
+          const assignments = profileRow?.querySelectorAll('.profAssignmentRow') || [];
+          if (assignments.length <= 1) {
+            profileRow?.remove();
+            return;
+          }
+          removeAssignmentBtn.closest('.profAssignmentRow')?.remove();
+          return;
+        }
+        if (e.target.closest('[data-remove-prof-row]')) e.target.closest('.profEntry')?.remove();
+      });
+    }
+    if (addProfileAddRowBtn) addProfileAddRowBtn.addEventListener('click', () => createProfileAddRow());
+    if (submitAddProfilesBtn) submitAddProfilesBtn.addEventListener('click', handleAddProfilesSubmit);
+    if (closeAddProfilesModalBtn) closeAddProfilesModalBtn.addEventListener('click', closeAddProfilesModalFn);
+    const openAddProfilesBtn = document.getElementById('openAddProfiles');
+    if (openAddProfilesBtn) openAddProfilesBtn.addEventListener('click', openAddProfilesModal);
+
+    document.addEventListener('click', event => {
+      if (event.target.closest('[data-prof-skill-picker]')) return;
+      closeAllProfileSkillPickers();
+    });
+
+    document.addEventListener('keydown', event => {
+      if (event.key === 'Escape') {
+        closeAllProfileSkillPickers();
+      }
+    });
+
+    resetBuilder();
+    loadSkills();
+  </script>
+
+  </body>
+</html>

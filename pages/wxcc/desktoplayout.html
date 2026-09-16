@@ -1,0 +1,2980 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="light" />
+  <title>WxCC Desktop Layout</title>
+  <link rel="icon" type="image/png" href="../../assets/images/WxCC_Icon-192.png" />
+  <link rel="stylesheet" href="../../assets/css/theme.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    main {
+      padding: 32px 0 80px;
+      width: 100%;
+      margin: 0 auto;
+      display: flex;
+      justify-content: flex-start;
+    }
+    .topBar,
+    .toolbar,
+    .buttonRow {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+    }
+    .layoutGrid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      gap: 16px;
+      align-items: start;
+    }
+    .editorPanel {
+      display: none;
+    }
+    .panel {
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      background: var(--panel);
+      padding: 18px;
+    }
+    .panel h2 {
+      margin: 0 0 8px;
+      font-size: 1.05rem;
+    }
+    .panelHelp {
+      margin: 0 0 14px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.45;
+    }
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-bottom: 12px;
+    }
+    .field label {
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+    .field input,
+    .field select,
+    .field textarea {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: var(--input);
+      color: var(--fg);
+      padding: 11px 12px;
+      font-size: 14px;
+      font-family: inherit;
+      appearance: none;
+    }
+    .field.selectField select {
+      padding-right: 52px;
+    }
+    .editorGrid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px 14px;
+      align-items: start;
+    }
+    .field.span-1 { grid-column: span 1; }
+    .field.span-2 { grid-column: span 2; }
+    .field.span-3 { grid-column: span 3; }
+    .field.span-4 { grid-column: 1 / -1; }
+    .field.selectField {
+      position: relative;
+    }
+    .field.selectField::before {
+      content: none;
+    }
+    .field.selectField::after {
+      content: '';
+      position: absolute;
+      right: 16px;
+      top: 50%;
+      width: 14px;
+      height: 14px;
+      transform: translateY(2px);
+      background-repeat: no-repeat;
+      background-position: center;
+      background-size: 14px 14px;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 14 14' fill='none'%3E%3Cpath d='M3 5.25L7 9.25L11 5.25' stroke='%23C9D1E4' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+      pointer-events: none;
+    }
+    .field textarea {
+      min-height: 84px;
+      resize: vertical;
+      line-height: 1.45;
+    }
+    .field input:focus,
+    .field select:focus,
+    .field textarea:focus,
+    .jsonEditor:focus {
+      outline: 2px solid rgba(21, 157, 216, 0.2);
+      outline-offset: 0;
+    }
+    .statusBar {
+      display: none !important;
+    }
+    .metaLine {
+      margin: 0 0 14px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .tabList {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+    .navEditorList {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+    .navEditorItem {
+      width: 100%;
+      text-align: left;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: var(--input);
+      color: var(--fg);
+      padding: 11px 12px;
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: center;
+      cursor: pointer;
+    }
+    .navEditorItem.active {
+      box-shadow: inset 0 0 0 2px rgba(21, 157, 216, 0.45);
+      border-color: rgba(21, 157, 216, 0.35);
+    }
+    .navEditorMeta {
+      color: var(--muted);
+      font-size: 12px;
+      white-space: nowrap;
+    }
+    .navEditorActions {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+    .navEditorEmpty {
+      border: 1px dashed var(--border);
+      border-radius: 12px;
+      padding: 12px;
+      color: var(--muted);
+      font-size: 13px;
+      margin-bottom: 12px;
+    }
+    .sectionTitle {
+      margin: 20px 0 8px;
+      font-size: 1.05rem;
+    }
+    .tabRow {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 44px;
+      gap: 10px;
+      align-items: center;
+    }
+    .tabRow button {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 18px;
+    }
+    .previewShell {
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      overflow: hidden;
+      background: rgba(255,255,255,0.03);
+    }
+    .previewHeader {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+    }
+    .previewHeader strong {
+      display: block;
+      font-size: 1rem;
+    }
+    .previewHeader span {
+      color: var(--muted);
+      font-size: 12px;
+    }
+    .previewHeaderActions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .previewToolbar {
+      display: grid;
+      grid-template-columns: minmax(280px, 460px) 180px auto;
+      gap: 12px;
+      align-items: end;
+      margin-bottom: 14px;
+    }
+    .previewToolbarActions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .panelPicker {
+      position: relative;
+    }
+    .panelPickerTrigger {
+      width: 100%;
+      min-height: 46px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: var(--input);
+      color: var(--fg);
+      padding: 11px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      text-align: left;
+      font: inherit;
+      cursor: pointer;
+    }
+    .panelPickerTrigger:hover,
+    .panelPickerTrigger.open {
+      border-color: rgba(21, 157, 216, 0.35);
+      box-shadow: inset 0 0 0 2px rgba(21, 157, 216, 0.18);
+    }
+    .panelPickerLabel {
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
+    .panelPickerCaret {
+      width: 14px;
+      height: 14px;
+      color: #c9d1e4;
+      flex: 0 0 auto;
+      transition: transform 160ms ease;
+    }
+    .panelPickerTrigger.open .panelPickerCaret {
+      transform: rotate(180deg);
+    }
+    .panelPickerMenu {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: calc(100% + 6px);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      background: #1d2537;
+      box-shadow: 0 18px 40px rgba(0, 0, 0, 0.28);
+      padding: 8px;
+      display: none;
+      flex-direction: column;
+      gap: 4px;
+      z-index: 30;
+      max-height: 320px;
+      overflow: auto;
+    }
+    .panelPickerMenu.open {
+      display: flex;
+    }
+    .panelPickerOption {
+      border: 0;
+      border-radius: 10px;
+      background: transparent;
+      color: var(--fg);
+      padding: 10px 12px;
+      text-align: left;
+      font: inherit;
+      cursor: pointer;
+    }
+    .panelPickerOption:hover {
+      background: rgba(255, 255, 255, 0.08);
+    }
+    .panelPickerOption.selected {
+      background: #2563eb;
+      color: #fff;
+      font-weight: 700;
+    }
+    .srOnlySelect {
+      display: none;
+    }
+    .previewFrame {
+      display: block;
+      width: 100%;
+      min-height: 760px;
+      border: 0;
+      background: #0f172a;
+    }
+    .jsonEditor {
+      width: 100%;
+      min-height: 320px;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      background: var(--input);
+      color: var(--text);
+      padding: 16px;
+      font-size: 13px;
+      line-height: 1.5;
+      resize: vertical;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+    }
+    .jsonEditor.hidden {
+      display: none;
+    }
+    .previewModal {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.16);
+      display: none;
+      align-items: flex-start;
+      justify-content: flex-start;
+      z-index: 300;
+      padding: 170px 0 0 180px;
+      pointer-events: auto;
+      backdrop-filter: none;
+    }
+    .previewModal.open {
+      display: flex;
+    }
+    .previewModalCard {
+      width: min(560px, calc(100vw - 32px));
+      border-radius: 28px;
+      border: 1px solid rgba(15, 23, 42, 0.12);
+      background: rgba(255, 255, 255, 0.98);
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.28);
+      padding: 22px 28px 28px;
+      color: #111827;
+    }
+    .previewModalHeader {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .previewModalHeader h3 {
+      margin: 0;
+      font-size: 1.2rem;
+      color: #111827;
+    }
+    .hiddenField {
+      display: none;
+    }
+    .previewModalClose {
+      width: 42px;
+      height: 42px;
+      border-radius: 16px;
+      border: 1px solid rgba(15, 23, 42, 0.12);
+      background:var(--card);
+      color: #111827;
+      cursor: pointer;
+      font: inherit;
+      font-weight: 700;
+    }
+    .previewModal .field label {
+      color: #64748b;
+    }
+    .previewModal .field input,
+    .previewModal .field select {
+      background:var(--card);
+      color: #111827;
+      border: 1px solid rgba(15, 23, 42, 0.12);
+      border-radius: 18px;
+      min-height: 44px;
+      font-size: 15px;
+      font-weight: 500;
+    }
+    .previewModal .field select,
+    .previewModal .field input {
+      -webkit-text-fill-color: #111827;
+    }
+    .previewModal select option {
+      color: #111827;
+      background:var(--card);
+    }
+    .previewModal .field input:focus,
+    .previewModal .field select:focus {
+      border-color: #2563eb;
+      box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.14);
+    }
+    .previewModal .buttonRow {
+      justify-content: flex-end;
+      margin-top: 20px;
+      gap: 12px;
+    }
+    .previewModal .btn {
+      min-width: 84px;
+      min-height: 52px;
+      border-radius: 18px;
+      background:var(--card);
+      color: #111827;
+      border: 1px solid rgba(15, 23, 42, 0.12);
+      box-shadow: none;
+      font-size: 15px;
+      font-weight: 700;
+      padding: 0 18px;
+    }
+    .previewModal .btn.primary {
+      background: #2563eb;
+      color: #fff;
+      border-color: #2563eb;
+    }
+    /* Override dark-mode !important rules so modal stays light-themed */
+    body.dark-mode .previewModal .btn {
+      background:var(--input) !important;
+      color: #111827 !important;
+      border: 1px solid rgba(15, 23, 42, 0.18) !important;
+      box-shadow: none !important;
+    }
+    body.dark-mode .previewModal .btn.primary {
+      background: #2563eb !important;
+      color: #fff !important;
+      border-color: #2563eb !important;
+    }
+    body.dark-mode .previewModal .field select,
+    body.dark-mode .previewModal .field input {
+      background:var(--card) !important;
+      color: #111827 !important;
+      border-color: rgba(15, 23, 42, 0.12) !important;
+      -webkit-text-fill-color: #111827 !important;
+    }
+    /* Modal select arrow — dark stroke for light background */
+    .previewModal .field.selectField::after {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 14 14' fill='none'%3E%3Cpath d='M3 5.25L7 9.25L11 5.25' stroke='%236B7280' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    }
+    .previewModal .field.selectField::before {
+      content: none;
+    }
+    .inlineGrid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    .hiddenInput {
+      display: none;
+    }
+    /* Icon Picker */
+    .iconPicker {
+      position: relative;
+    }
+    .iconPickerTrigger {
+      width: 100%;
+      min-height: 44px;
+      border: 1px solid rgba(15, 23, 42, 0.12);
+      border-radius: 18px;
+      background:var(--card);
+      color: #111827;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 10px 8px 10px;
+      cursor: pointer;
+      font: 500 14px/1 inherit;
+      text-align: left;
+      transition: border-color 0.15s;
+    }
+    .iconPickerTrigger:hover,
+    .iconPickerTrigger.open {
+      border-color: #2563eb;
+    }
+    .iconPickerTriggerImg {
+      width: 20px;
+      height: 20px;
+      object-fit: contain;
+      flex-shrink: 0;
+      filter: brightness(0) opacity(0.75);
+    }
+    .iconPickerTriggerName {
+      flex: 1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .iconPickerTriggerCaret {
+      width: 14px;
+      height: 14px;
+      flex-shrink: 0;
+      opacity: 0.45;
+      transition: transform 0.15s;
+    }
+    .iconPickerTrigger.open .iconPickerTriggerCaret {
+      transform: rotate(180deg);
+    }
+    .iconPickerPanel {
+      display: none;
+      position: absolute;
+      top: calc(100% + 4px);
+      left: 0;
+      right: 0;
+      background:var(--card);
+      border: 1px solid rgba(15, 23, 42, 0.12);
+      border-radius: 16px;
+      box-shadow: 0 8px 28px rgba(15,23,42,0.18);
+      z-index: 20;
+      padding: 10px;
+    }
+    .iconPickerPanel.open {
+      display: block;
+    }
+    .iconPickerGrid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 5px;
+      margin-bottom: 7px;
+    }
+    .iconPickerGridBtn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      padding: 7px 3px 5px;
+      border-radius: 10px;
+      border: 1px solid rgba(15,23,42,0.09);
+      background:var(--input);
+      cursor: pointer;
+      transition: border-color 0.12s, background 0.12s;
+    }
+    .iconPickerGridBtn:hover {
+      background: #eff4ff;
+      border-color: rgba(37,99,235,0.3);
+    }
+    .iconPickerGridBtn.selected {
+      border-color: #2563eb;
+      background: rgba(37,99,235,0.07);
+      box-shadow: inset 0 0 0 1px rgba(37,99,235,0.25);
+    }
+    .iconPickerGridBtn img {
+      width: 20px;
+      height: 20px;
+      object-fit: contain;
+      filter: brightness(0) opacity(0.7);
+    }
+    .iconPickerGridBtn.selected img {
+      filter: brightness(0) saturate(10) invert(0.35) sepia(1) hue-rotate(195deg);
+    }
+    .iconPickerGridBtn span {
+      font-size: 9px;
+      color: #6b7280;
+      line-height: 1;
+      max-width: 100%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      text-align: center;
+    }
+    .iconPickerUrlBtn {
+      width: 100%;
+      padding: 7px 10px;
+      border-radius: 10px;
+      border: 1px solid rgba(15,23,42,0.09);
+      background:var(--input);
+      color: #374151;
+      font: 600 12px/1 inherit;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      transition: border-color 0.12s, background 0.12s;
+    }
+    .iconPickerUrlBtn:hover {
+      background: #eff4ff;
+      border-color: rgba(37,99,235,0.3);
+    }
+    .iconPickerUrlBtn.selected {
+      border-color: #2563eb;
+      background: rgba(37,99,235,0.07);
+      color: #2563eb;
+      box-shadow: inset 0 0 0 1px rgba(37,99,235,0.25);
+    }
+    body.dark-mode .previewModal .iconPickerTrigger,
+    body.dark-mode .previewModal .iconPickerPanel,
+    body.dark-mode .previewModal .iconPickerGridBtn,
+    body.dark-mode .previewModal .iconPickerUrlBtn {
+      background:var(--card) !important;
+      color: #111827 !important;
+      border-color: rgba(15,23,42,0.1) !important;
+    }
+    body.dark-mode .previewModal .iconPickerGridBtn.selected,
+    body.dark-mode .previewModal .iconPickerUrlBtn.selected {
+      background: rgba(37,99,235,0.07) !important;
+      border-color: #2563eb !important;
+    }
+    @media (max-width: 1320px) {
+      .layoutGrid {
+        grid-template-columns: 1fr;
+      }
+    }
+    @media (max-width: 1200px) {
+      .editorGrid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+      .field.span-3,
+      .field.span-4 {
+        grid-column: 1 / -1;
+      }
+    }
+    @media (max-width: 980px) {
+      .editorGrid,
+      .inlineGrid {
+        grid-template-columns: 1fr;
+      }
+      .field.span-1,
+      .field.span-2,
+      .field.span-3,
+      .field.span-4 {
+        grid-column: 1 / -1;
+      }
+    }
+  </style>
+</head>
+<body class="dark-mode">
+  <script>if (localStorage.getItem("tpRailExpanded") === "true") document.body.classList.add("tp-rail-expanded");</script>
+  <api-tools-header basepath="../../"></api-tools-header>
+
+  <main>
+    <div class="wrap wide contentWrap">
+        <section class="card">
+          <div class="pageHeader">
+            <h1>Desktop Layout</h1>
+          </div>
+
+          <div class="layoutGrid">
+          <section class="panel editorPanel" aria-hidden="true">
+            <h2>Basic Editor</h2>
+            <p class="panelHelp">The controls here only touch the currently selected role so we can keep the workflow simple.</p>
+
+            <div class="editorGrid">
+            <div class="field span-4 selectField">
+              <label for="tenantLayoutSelect">Desktop Layouts</label>
+              <select id="tenantLayoutSelect">
+                <option value="__new__">New Desktop Layout</option>
+                <option value="">Sign in to load desktop layouts</option>
+              </select>
+            </div>
+            <div class="field span-1 selectField">
+              <label for="roleSelect">Role</label>
+              <select id="roleSelect">
+                <option value="agent">Agent</option>
+                <option value="supervisor">Supervisor</option>
+                <option value="supervisorAgent">Supervisor Agent</option>
+              </select>
+            </div>
+
+            <div class="field span-2">
+              <label for="layoutName">Layout Name</label>
+              <input id="layoutName" type="text" placeholder="Tenant display name">
+            </div>
+
+            <div class="field span-2">
+              <label for="appTitle">App Title</label>
+              <input id="appTitle" type="text" placeholder="TITLE_GOES_HERE">
+            </div>
+
+            <div class="field span-2">
+              <label for="logoUrl">Logo URL</label>
+              <input id="logoUrl" type="text" placeholder="URL_TOP_LEFT">
+            </div>
+
+            <div class="field span-2">
+              <label for="taskPageIllustration">Task Page Illustration</label>
+              <input id="taskPageIllustration" type="text" placeholder="URL_for_IMAGE">
+            </div>
+
+            <div class="field span-4">
+              <label for="layoutDescription">Description</label>
+              <textarea id="layoutDescription" placeholder="Description"></textarea>
+            </div>
+
+              <div class="field span-1 selectField">
+                <label for="dragDropEnabled">Drag Drop Enabled</label>
+                <select id="dragDropEnabled">
+                  <option value="true">true</option>
+                  <option value="false">false</option>
+                </select>
+              </div>
+              <div class="field span-1 selectField">
+                <label for="stopNavigateOnAcceptTask">Stop Navigate On Accept Task</label>
+                <select id="stopNavigateOnAcceptTask">
+                  <option value="true">true</option>
+                  <option value="false">false</option>
+                </select>
+              </div>
+              <div class="field span-1">
+                <label for="maximumToasterCount">Maximum Toaster Count</label>
+                <input id="maximumToasterCount" type="number" min="0" step="1">
+              </div>
+              <div class="field span-1">
+                <label for="notificationTimer">Notification Timer</label>
+                <input id="notificationTimer" type="number" min="0" step="1">
+              </div>
+              <div class="field span-1">
+                <label for="browserNotificationTimer">Browser Notification Timer</label>
+                <input id="browserNotificationTimer" type="number" min="0" step="1">
+              </div>
+              <div class="field span-1 selectField">
+                <label for="wxmConfigured">WXM Configured</label>
+                <select id="wxmConfigured">
+                  <option value="false">false</option>
+                  <option value="true">true</option>
+                </select>
+              </div>
+              <div class="field span-2 selectField">
+              <label for="webexConfigured">Desktop Chat App Webex Configured</label>
+              <select id="webexConfigured">
+                <option value="false">false</option>
+                <option value="true">true</option>
+              </select>
+            </div>
+            </div>
+
+            <h2 class="sectionTitle">Navigation</h2>
+            <p class="panelHelp">These are the left-side desktop icons from the role <code>navigation</code> section. Select one from here or from the preview to edit it.</p>
+            <div id="navList" class="navEditorList"></div>
+            <div class="navEditorActions">
+              <button class="btn" id="addTabBtn" type="button">New Tab</button>
+              <button class="btn" id="removeTabBtn" type="button">Remove Tab</button>
+            </div>
+
+            <div class="editorGrid">
+              <div class="field span-2">
+                <label for="navLabel">Tab Label</label>
+                <input id="navLabel" type="text" placeholder="Dashboard">
+              </div>
+              <div class="field span-1 selectField">
+                <label for="navIconType">Icon Type</label>
+                <select id="navIconType">
+                  <option value="momentum">momentum</option>
+                  <option value="other">other</option>
+                </select>
+              </div>
+              <div class="field span-1">
+                <label for="navIcon">Icon</label>
+                <input id="navIcon" type="text" placeholder="dashboard">
+              </div>
+              <div class="field span-2">
+                <label for="navNavigateTo">Navigate To</label>
+                <input id="navNavigateTo" type="text" placeholder="dashboard-widget">
+              </div>
+              <div class="field span-2">
+                <label for="navPageId">Page Id</label>
+                <input id="navPageId" type="text" placeholder="dashboard-widget">
+              </div>
+              <div class="field span-4">
+                <label for="navSrc">Source URL</label>
+                <input id="navSrc" type="text" placeholder="https://analyzer-v2.wxcc-us1.cisco.com/analyzer/view/dashboard?...">
+              </div>
+            </div>
+
+            <div class="buttonRow" style="margin-top:20px;">
+              <button class="btn" id="newFromDefaultBtn" type="button">New From Global</button>
+              <button class="btn" id="importJsonBtn" type="button">Import JSON</button>
+              <button class="btn primary" id="applyFormBtn" type="button">Apply To JSON</button>
+              <button class="btn" id="formatJsonBtn" type="button">Format JSON</button>
+              <button class="btn" id="copyJsonBtn" type="button">Copy JSON</button>
+              <input class="hiddenInput" type="file" id="jsonUploadInput" accept=".json,application/json" />
+            </div>
+          </section>
+
+          <section class="panel">
+            <h2>Preview</h2>
+            <div class="previewToolbar">
+              <div class="field" style="margin-bottom:0;">
+                <label for="previewTenantLayoutTrigger">Desktop Layouts</label>
+                <div class="panelPicker" id="previewTenantLayoutPicker">
+                  <button type="button" class="panelPickerTrigger" id="previewTenantLayoutTrigger" aria-haspopup="listbox" aria-expanded="false">
+                    <span class="panelPickerLabel" id="previewTenantLayoutText">New Desktop Layout</span>
+                    <svg class="panelPickerCaret" viewBox="0 0 14 14" fill="none"><path d="M3 5.25L7 9.25L11 5.25" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                  </button>
+                  <div class="panelPickerMenu" id="previewTenantLayoutMenu" role="listbox"></div>
+                  <select id="previewTenantLayoutSelect" class="srOnlySelect">
+                    <option value="__new__">New Desktop Layout</option>
+                    <option value="">Sign in to load desktop layouts</option>
+                  </select>
+                </div>
+              </div>
+              <div class="field" style="margin-bottom:0;">
+                <label for="previewRoleTrigger">Role</label>
+                <div class="panelPicker" id="previewRolePicker">
+                  <button type="button" class="panelPickerTrigger" id="previewRoleTrigger" aria-haspopup="listbox" aria-expanded="false">
+                    <span class="panelPickerLabel" id="previewRoleText">Agent</span>
+                    <svg class="panelPickerCaret" viewBox="0 0 14 14" fill="none"><path d="M3 5.25L7 9.25L11 5.25" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                  </button>
+                  <div class="panelPickerMenu" id="previewRoleMenu" role="listbox"></div>
+                  <select id="previewRoleSelect" class="srOnlySelect">
+                    <option value="agent">Agent</option>
+                    <option value="supervisor">Supervisor</option>
+                    <option value="supervisorAgent">Supervisor Agent</option>
+                  </select>
+                </div>
+              </div>
+              <div class="previewToolbarActions">
+                <button class="btn" id="previewNewBtn" type="button">New From Global</button>
+                <button class="btn" id="previewImportBtn" type="button">Import JSON</button>
+              </div>
+            </div>
+
+            <div class="previewShell">
+              <div class="previewHeader">
+                <div>
+                  <strong id="previewTitle">Desktop Layout Preview</strong>
+                </div>
+                <div class="previewHeaderActions">
+                  <span id="previewMeta">Role: agent</span>
+                  <button class="btn" id="exportJsonBtn" type="button">Export JSON</button>
+                </div>
+              </div>
+              <iframe id="previewFrame" class="previewFrame" title="Desktop Layout Preview"></iframe>
+            </div>
+            <textarea id="jsonEditor" class="jsonEditor hidden" spellcheck="false"></textarea>
+          </section>
+          </div>
+
+          <div class="previewModal" id="previewNavModal">
+            <div class="previewModalCard">
+                <div class="previewModalHeader">
+                  <h3>Edit Navigation Tab</h3>
+                  <button class="previewModalClose" id="previewNavModalClose" type="button">×</button>
+                </div>
+              <div class="editorGrid">
+                <div class="field span-2">
+                  <label for="modalNavLabel">Label</label>
+                  <input id="modalNavLabel" type="text" placeholder="Dashboard">
+                </div>
+                <div class="field span-1">
+                  <label>Icon</label>
+                  <div class="iconPicker" id="modalNavIconPickerWrap">
+                    <button type="button" class="iconPickerTrigger" id="modalNavIconPickerTrigger">
+                      <img class="iconPickerTriggerImg" id="modalNavIconPickerTriggerImg" src="" alt="">
+                      <span class="iconPickerTriggerName" id="modalNavIconPickerTriggerName">Dashboard</span>
+                      <svg class="iconPickerTriggerCaret" viewBox="0 0 14 14" fill="none"><path d="M3 5.25L7 9.25L11 5.25" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    </button>
+                    <div class="iconPickerPanel" id="modalNavIconPickerPanel">
+                      <div class="iconPickerGrid" id="modalNavIconPickerGrid"></div>
+                      <button type="button" class="iconPickerUrlBtn" id="modalNavIconPickerUrlBtn" data-value="url">
+                        <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M5.5 2.5H2a1 1 0 0 0-1 1v7.5a1 1 0 0 0 1 1H10a1 1 0 0 0 1-1V7.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><path d="M8 1.5h3.5V5M11.5 1.5l-5 5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                        Custom URL
+                      </button>
+                    </div>
+                  </div>
+                  <select id="modalNavIconPreset" style="display:none;" aria-hidden="true">
+                    <option value="dashboard">Dashboard</option>
+                    <option value="breakout-session">breakout-session</option>
+                    <option value="view-thumbnail">view-thumbnail</option>
+                    <option value="multiline-chart">multiline-chart</option>
+                    <option value="pmr">Pmr</option>
+                    <option value="queue-contact">queue-contact</option>
+                    <option value="participant-list">Participant-list</option>
+                    <option value="url">URL</option>
+                  </select>
+                </div>
+                <div class="field span-4 hiddenField" id="modalNavIconUrlField">
+                  <label for="modalNavIconUrl">Icon URL</label>
+                  <input id="modalNavIconUrl" type="text" placeholder="Enter Url">
+                </div>
+                <div class="field span-4">
+                  <label for="modalNavSrc">Source URL</label>
+                  <input id="modalNavSrc" type="text" placeholder="https://analyzer-v2.wxcc-us1.cisco.com/analyzer/view/dashboard?...">
+                </div>
+              </div>
+              <div class="buttonRow">
+                <button class="btn" id="previewNavModalDelete" type="button">Remove Tab</button>
+                <button class="btn" id="previewNavModalCancel" type="button">Cancel</button>
+                <button class="btn primary" id="previewNavModalSave" type="button">Save</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        </section>
+      </div>
+  </main>
+
+  <script src="../../assets/js/orbit-config.js"></script>
+
+  <script src="../../assets/js/components.js"></script>
+
+  <script src="../../assets/js/theme.js"></script>
+  <script>
+    const cacheKeyBearer = 'authBearer';
+    const cacheKeyOrg = 'authOrg';
+    const cacheKeyOrgName = 'authOrgName';
+    const cacheKeyUser = 'authUserName';
+    const cacheKeyOrgId = 'authOrgId';
+
+    const DATACENTER_MAP = {
+      us1: 'https://api.wxcc-us1.cisco.com',
+      eu1: 'https://api.wxcc-eu1.cisco.com',
+      eu2: 'https://api.wxcc-eu2.cisco.com',
+      anz1: 'https://api.wxcc-anz1.cisco.com',
+      ca1: 'https://api.wxcc-ca1.cisco.com'
+    };
+
+    const DEFAULT_PREVIEW_LOGO = '../../assets/images/WxCC_Icon-192.png';
+    const DEFAULT_PREVIEW_ILLUSTRATION = '../../assets/images/support-contact-threetwozero-default.png';
+    const ICON_PRESETS = [
+      'dashboard',
+      'breakout-session',
+      'view-thumbnail',
+      'multiline-chart',
+      'pmr',
+      'queue-contact',
+      'participant-list'
+    ];
+    const LOCKED_NAV_COUNT = 1;
+
+    function createStockAnalyticsNav() {
+      return {
+        nav: {
+          label: 'Customer Experience Analytics',
+          icon: '/app/images/wxm.bcd45cc3.svg',
+          iconType: 'other',
+          navigateTo: 'Customer-Experience-Analytics-widget',
+          align: 'top'
+        },
+        page: {
+          id: 'Customer-Experience-Analytics-widget',
+          widgets: {
+            comp1: {
+              comp: 'agentx-wc-cloudcherry-widget',
+              attributes: {
+                metrics: true
+              },
+              properties: {
+                userModel: '$STORE.app.userModel',
+                spaceId: '',
+                metricsId: '',
+                isDarkMode: '$STORE.app.darkMode',
+                agentId: '$STORE.agent.agentId'
+              }
+            }
+          },
+          layout: {
+            areas: [['comp1']],
+            size: {
+              cols: [1],
+              rows: [1]
+            }
+          }
+        },
+        visibility: 'WXM_METRICS'
+      };
+    }
+
+    const DEFAULT_LAYOUT_CONTENT = {
+      agent: {
+        version: '0.1.0',
+        appTitle: 'Webex Contact Center',
+        logo: DEFAULT_PREVIEW_LOGO,
+        stopNavigateOnAcceptTask: false,
+        dragDropEnabled: false,
+        notificationTimer: 8,
+        maximumNotificationCount: 3,
+        browserNotificationTimer: 8,
+        wxmConfigured: false,
+        taskPageIllustration: DEFAULT_PREVIEW_ILLUSTRATION,
+        desktopChatApp: { webexConfigured: false },
+        navigation: [
+          createStockAnalyticsNav()
+        ],
+        area: {
+          advancedHeader: [
+            { comp: 'ai-assistant' },
+            { comp: 'agentx-webex' },
+            { comp: 'agentx-state-selector' }
+          ],
+          panel: {
+            comp: 'md-tabs',
+            attributes: { class: 'widget-tabs' },
+            children: [
+              { comp: 'md-tab', attributes: { slot: 'tab', class: 'widget-pane-tab' }, children: [{ comp: 'slot', attributes: { name: 'CONTACT_HISTORY_TAB' } }] },
+              { comp: 'md-tab-panel', attributes: { slot: 'panel', class: 'widget-pane' }, children: [{ comp: 'slot', attributes: { name: 'CONTACT_HISTORY' } }] }
+            ]
+          }
+        }
+      },
+      supervisor: {
+        version: '0.1.0',
+        appTitle: 'Webex Contact Center',
+        logo: DEFAULT_PREVIEW_LOGO,
+        stopNavigateOnAcceptTask: false,
+        dragDropEnabled: false,
+        notificationTimer: 8,
+        maximumNotificationCount: 3,
+        browserNotificationTimer: 8,
+        wxmConfigured: false,
+        taskPageIllustration: DEFAULT_PREVIEW_ILLUSTRATION,
+        desktopChatApp: { webexConfigured: false },
+        navigation: [
+          createStockAnalyticsNav()
+        ],
+        area: {
+          advancedHeader: [
+            { comp: 'agentx-webex' },
+            { comp: 'agentx-notification' }
+          ],
+          panel: {
+            comp: 'md-tabs',
+            attributes: { class: 'widget-tabs' },
+            children: [
+              { comp: 'md-tab', attributes: { slot: 'tab', class: 'widget-pane-tab' }, children: [{ comp: 'slot', attributes: { name: 'TEAM_PERFORMANCE_TAB' } }] },
+              { comp: 'md-tab-panel', attributes: { slot: 'panel', class: 'widget-pane' }, children: [{ comp: 'slot', attributes: { name: 'TEAM_PERFORMANCE' } }] }
+            ]
+          }
+        }
+      },
+      supervisorAgent: {
+        version: '0.1.0',
+        appTitle: 'Webex Contact Center',
+        logo: DEFAULT_PREVIEW_LOGO,
+        stopNavigateOnAcceptTask: false,
+        dragDropEnabled: false,
+        notificationTimer: 8,
+        maximumNotificationCount: 3,
+        browserNotificationTimer: 8,
+        wxmConfigured: false,
+        taskPageIllustration: DEFAULT_PREVIEW_ILLUSTRATION,
+        desktopChatApp: { webexConfigured: false },
+        navigation: [
+          createStockAnalyticsNav()
+        ],
+        area: {
+          advancedHeader: [
+            { comp: 'ai-assistant' },
+            { comp: 'agentx-webex' },
+            { comp: 'agentx-notification' }
+          ],
+          panel: {
+            comp: 'md-tabs',
+            attributes: { class: 'widget-tabs' },
+            children: [
+              { comp: 'md-tab', attributes: { slot: 'tab', class: 'widget-pane-tab' }, children: [{ comp: 'slot', attributes: { name: 'HOME_TAB' } }] },
+              { comp: 'md-tab-panel', attributes: { slot: 'panel', class: 'widget-pane' }, children: [{ comp: 'slot', attributes: { name: 'HOME' } }] }
+            ]
+          }
+        }
+      }
+    };
+
+    const state = {
+      layouts: [],
+      layoutMap: new Map(),
+      detailCache: new Map(),
+      selectedLayoutId: '',
+      selectedLayoutRecord: null,
+      globalLayoutRecord: null,
+      currentJsonObject: cloneJson(DEFAULT_LAYOUT_CONTENT),
+      currentRole: 'agent',
+      selectedNavigationIndex: 0,
+      modalNavigationIndex: -1
+    };
+
+    function $(id) {
+      return document.getElementById(id);
+    }
+
+    function cloneJson(obj) {
+      return JSON.parse(JSON.stringify(obj));
+    }
+
+    function decodeOrgId(raw) {
+      if (!raw) return '';
+      if (/^[0-9a-fA-F-]{30,}$/.test(raw)) return raw;
+      if (/^Y2lz/i.test(raw)) {
+        try {
+          const padded = raw.replace(/-/g, '+').replace(/_/g, '/').padEnd(Math.ceil(raw.length / 4) * 4, '=');
+          const decoded = atob(padded);
+          const parts = decoded.split('/');
+          return parts[parts.length - 1] || decoded;
+        } catch {
+          return raw;
+        }
+      }
+      const orgPathIdx = raw.toLowerCase().indexOf('organization/');
+      if (orgPathIdx !== -1) return raw.slice(orgPathIdx + 'organization/'.length) || raw;
+      return raw;
+    }
+
+    function getDataCenter() {
+      const params = new URLSearchParams(window.location.search);
+      return params.get('dc') || 'us1';
+    }
+
+    function getApiBaseUrl() {
+      return DATACENTER_MAP[getDataCenter()] || DATACENTER_MAP.us1;
+    }
+
+    function getBearer() {
+      return (localStorage.getItem(cacheKeyBearer) || '').trim();
+    }
+
+    function getOrgIdValue() {
+      const storedId = (localStorage.getItem(cacheKeyOrgId) || '').trim();
+      if (storedId) return decodeOrgId(storedId);
+      const raw = (localStorage.getItem(cacheKeyOrg) || '').trim();
+      return decodeOrgId(raw);
+    }
+
+    function setStatus(message, type = 'info') {
+      void message;
+      void type;
+    }
+
+    function escapeHtml(text) {
+      return String(text)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    function requestJson(url, options) {
+      return fetch(url, options).then(async (res) => {
+        let data = null;
+        try {
+          data = await res.json();
+        } catch {
+          data = null;
+        }
+        if (!res.ok) {
+          throw new Error(data?.message || data?.error || `HTTP ${res.status}`);
+        }
+        return data;
+      });
+    }
+
+    function getApiContext() {
+      const bearer = getBearer();
+      const orgId = getOrgIdValue();
+      if (!bearer || !orgId) throw new Error('Sign in first.');
+      return { bearer, orgId, apiBase: getApiBaseUrl() };
+    }
+
+    function getRoleConfig(json = state.currentJsonObject, role = state.currentRole) {
+      json[role] ||= {};
+      json[role].area ||= {};
+      json[role].area.panel ||= { comp: 'md-tabs', attributes: { class: 'widget-tabs' }, children: [] };
+      json[role].area.panel.children ||= [];
+      json[role].desktopChatApp ||= {};
+      return json[role];
+    }
+
+    function getNavigationArray(roleConfig) {
+      if (Array.isArray(roleConfig?.area?.navigation)) return roleConfig.area.navigation;
+      roleConfig.navigation ||= [];
+      return roleConfig.navigation;
+    }
+
+    function slugifySegment(value) {
+      return String(value || '')
+        .trim()
+        .replace(/\s+/g, '-')
+        .replace(/[^A-Za-z0-9-]+/g, '')
+        .replace(/^-+|-+$/g, '') || 'tab';
+    }
+
+    function widgetKeyFromLabel(value) {
+      return `${slugifySegment(value)}-widget`;
+    }
+
+    function createUniqueNavKey(roleConfig, label, skipIndex = -1) {
+      const navigation = getNavigationArray(roleConfig);
+      const base = widgetKeyFromLabel(label);
+      let next = base;
+      let counter = 2;
+      while (navigation.some((item, index) => index !== skipIndex && ((item?.nav?.navigateTo || '') === next || (item?.page?.id || '') === next))) {
+        next = `${base.replace(/-widget$/, '')}-${counter}-widget`;
+        counter += 1;
+      }
+      return next;
+    }
+
+    function ensureNavigationStructure(roleConfig, index) {
+      const navigation = getNavigationArray(roleConfig);
+      if (!navigation[index]) {
+        navigation[index] = {
+          nav: { label: 'Dashboard', icon: 'dashboard', iconType: 'momentum', navigateTo: 'dashboard', align: 'top' },
+          page: {
+            id: 'dashboard',
+            widgets: {
+              left: {
+                comp: 'agentx-wc-iframe',
+                attributes: { src: '' }
+              }
+            },
+            layout: {
+              areas: [['left']],
+              size: { cols: [1], rows: [1] }
+            }
+          }
+        };
+      }
+      const item = navigation[index];
+      item.nav ||= {};
+      item.page ||= {};
+      item.page.widgets ||= {};
+      const firstWidgetKey = Object.keys(item.page.widgets)[0] || 'left';
+      item.page.widgets[firstWidgetKey] ||= {};
+      item.page.widgets[firstWidgetKey].attributes ||= {};
+      item.page.layout ||= { areas: [[firstWidgetKey]], size: { cols: [1], rows: [1] } };
+      return { item, firstWidgetKey };
+    }
+
+    function getSelectedNavigationItem(roleConfig = getRoleConfig(state.currentJsonObject, state.currentRole)) {
+      const navigation = getNavigationArray(roleConfig);
+      if (!navigation.length) return null;
+      if (state.selectedNavigationIndex >= navigation.length) {
+        state.selectedNavigationIndex = navigation.length - 1;
+      }
+      return ensureNavigationStructure(roleConfig, state.selectedNavigationIndex).item;
+    }
+
+    function resolvePreviewIcon(item) {
+      const icon = item?.nav?.icon || '';
+      const iconType = item?.nav?.iconType || '';
+      if (!icon) return { type: 'glyph', value: (item?.nav?.label || 'NA').slice(0, 2).toUpperCase() };
+      if (iconType === 'momentum') {
+        if (icon.includes('/')) {
+          return {
+            type: 'image',
+            value: icon
+          };
+        }
+        if (icon === 'analysis') {
+          return {
+            type: 'image',
+            value: 'https://momentum.design/icons/analysis-bold.svg'
+          };
+        }
+        return {
+          type: 'image',
+          value: `https://momentum.design/icons/${icon}-light.svg`
+        };
+      }
+      if (iconType === 'other') {
+        if (icon.includes('/app/images/wxm') || /customer experience analytics/i.test(item?.nav?.label || '')) {
+          return {
+            type: 'image',
+            value: 'https://momentum.design/icons/analysis-bold.svg'
+          };
+        }
+        return {
+          type: 'image',
+          value: icon
+        };
+      }
+      return {
+        type: 'glyph',
+        value: icon.slice(0, 2).toUpperCase()
+      };
+    }
+
+    function getPresetIconUrl(preset) {
+      return `https://momentum.design/icons/${preset}-light.svg`;
+    }
+
+    function isInternalAssetValue(value) {
+      const normalized = String(value || '').trim();
+      if (!normalized) return false;
+      return normalized.startsWith('../../assets/')
+        || normalized === DEFAULT_PREVIEW_LOGO
+        || normalized === DEFAULT_PREVIEW_ILLUSTRATION;
+    }
+
+    function getEditableUrlValue(value) {
+      return isInternalAssetValue(value) ? '' : String(value || '').trim();
+    }
+
+    function syncModalIconControls() {
+      const preset = $('modalNavIconPreset').value;
+      const isUrl = preset === 'url';
+      $('modalNavIconUrlField').classList.toggle('hiddenField', !isUrl);
+    }
+
+    function closePanelPickers() {
+      document.querySelectorAll('.panelPickerTrigger.open').forEach((trigger) => {
+        trigger.classList.remove('open');
+        trigger.setAttribute('aria-expanded', 'false');
+      });
+      document.querySelectorAll('.panelPickerMenu.open').forEach((menu) => {
+        menu.classList.remove('open');
+      });
+    }
+
+    function renderPanelPicker(selectId, textId, menuId, triggerId) {
+      const select = $(selectId);
+      const text = $(textId);
+      const menu = $(menuId);
+      const trigger = $(triggerId);
+      if (!select || !text || !menu || !trigger) return;
+
+      const options = Array.from(select.options);
+      const selectedOption = options.find((option) => option.value === select.value) || options[0];
+      text.textContent = selectedOption?.textContent || '';
+      menu.innerHTML = '';
+
+      options.forEach((option) => {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = `panelPickerOption${option.value === select.value ? ' selected' : ''}`;
+        button.textContent = option.textContent;
+        button.setAttribute('role', 'option');
+        button.setAttribute('aria-selected', option.value === select.value ? 'true' : 'false');
+        button.addEventListener('click', () => {
+          select.value = option.value;
+          renderPanelPicker(selectId, textId, menuId, triggerId);
+          closePanelPickers();
+          select.dispatchEvent(new Event('change', { bubbles: true }));
+        });
+        menu.appendChild(button);
+      });
+    }
+
+    function wirePanelPicker(selectId, textId, menuId, triggerId) {
+      const trigger = $(triggerId);
+      const menu = $(menuId);
+      if (!trigger || !menu) return;
+
+      trigger.addEventListener('click', (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        const isOpen = trigger.classList.contains('open');
+        closePanelPickers();
+        if (!isOpen) {
+          trigger.classList.add('open');
+          trigger.setAttribute('aria-expanded', 'true');
+          menu.classList.add('open');
+        }
+      });
+    }
+
+    function updateJsonEditor() {
+      $('jsonEditor').value = JSON.stringify(state.currentJsonObject, null, 2);
+    }
+
+    function parseEditorJson() {
+      const parsed = JSON.parse($('jsonEditor').value);
+      state.currentJsonObject = parsed;
+      return parsed;
+    }
+
+    function syncFormFromJson() {
+      const roleConfig = getRoleConfig(state.currentJsonObject, state.currentRole);
+      const toasterCount = roleConfig.maximumToasterCount ?? roleConfig.maximumNotificationCount ?? 3;
+      $('layoutName').value = state.selectedLayoutRecord?.name || '';
+      $('layoutDescription').value = state.selectedLayoutRecord?.description || '';
+      $('appTitle').value = roleConfig.appTitle || '';
+      $('logoUrl').value = getEditableUrlValue(roleConfig.logo);
+      $('taskPageIllustration').value = getEditableUrlValue(roleConfig.taskPageIllustration);
+      $('notificationTimer').value = roleConfig.notificationTimer ?? 0;
+      $('maximumToasterCount').value = toasterCount;
+      $('browserNotificationTimer').value = roleConfig.browserNotificationTimer ?? 0;
+      $('stopNavigateOnAcceptTask').value = String(Boolean(roleConfig.stopNavigateOnAcceptTask));
+      $('dragDropEnabled').value = String(Boolean(roleConfig.dragDropEnabled));
+      $('wxmConfigured').value = String(Boolean(roleConfig.wxmConfigured));
+      $('webexConfigured').value = String(Boolean(roleConfig.desktopChatApp?.webexConfigured));
+      if ($('previewRoleSelect')) $('previewRoleSelect').value = state.currentRole;
+      if ($('previewTenantLayoutSelect')) {
+        $('previewTenantLayoutSelect').value = state.selectedLayoutId || '__new__';
+      }
+      renderPanelPicker('previewTenantLayoutSelect', 'previewTenantLayoutText', 'previewTenantLayoutMenu', 'previewTenantLayoutTrigger');
+      renderPanelPicker('previewRoleSelect', 'previewRoleText', 'previewRoleMenu', 'previewRoleTrigger');
+      renderNavigationEditor();
+      renderPreview();
+    }
+
+    function applyFormToJson() {
+      const roleConfig = getRoleConfig(state.currentJsonObject, state.currentRole);
+      const toasterCount = Number($('maximumToasterCount').value || 0);
+      roleConfig.appTitle = $('appTitle').value.trim();
+      roleConfig.logo = $('logoUrl').value.trim();
+      roleConfig.taskPageIllustration = $('taskPageIllustration').value.trim();
+      roleConfig.dragDropEnabled = $('dragDropEnabled').value === 'true';
+      roleConfig.maximumToasterCount = toasterCount;
+      if ('maximumNotificationCount' in roleConfig) roleConfig.maximumNotificationCount = toasterCount;
+      roleConfig.notificationTimer = Number($('notificationTimer').value || 0);
+      roleConfig.browserNotificationTimer = Number($('browserNotificationTimer').value || 0);
+      roleConfig.stopNavigateOnAcceptTask = $('stopNavigateOnAcceptTask').value === 'true';
+      roleConfig.wxmConfigured = $('wxmConfigured').value === 'true';
+      roleConfig.desktopChatApp.webexConfigured = $('webexConfigured').value === 'true';
+
+      if (state.selectedLayoutRecord) {
+        state.selectedLayoutRecord.name = $('layoutName').value.trim();
+        state.selectedLayoutRecord.description = $('layoutDescription').value.trim();
+      }
+
+      updateJsonEditor();
+      renderPreview();
+      setStatus('Applied form changes to JSON.', 'success');
+    }
+
+    function applyFormSilently() {
+      const roleConfig = getRoleConfig(state.currentJsonObject, state.currentRole);
+      const toasterCount = Number($('maximumToasterCount').value || 0);
+      roleConfig.appTitle = $('appTitle').value.trim();
+      roleConfig.logo = $('logoUrl').value.trim();
+      roleConfig.taskPageIllustration = $('taskPageIllustration').value.trim();
+      roleConfig.dragDropEnabled = $('dragDropEnabled').value === 'true';
+      roleConfig.maximumToasterCount = toasterCount;
+      if ('maximumNotificationCount' in roleConfig) roleConfig.maximumNotificationCount = toasterCount;
+      roleConfig.notificationTimer = Number($('notificationTimer').value || 0);
+      roleConfig.browserNotificationTimer = Number($('browserNotificationTimer').value || 0);
+      roleConfig.stopNavigateOnAcceptTask = $('stopNavigateOnAcceptTask').value === 'true';
+      roleConfig.wxmConfigured = $('wxmConfigured').value === 'true';
+      roleConfig.desktopChatApp.webexConfigured = $('webexConfigured').value === 'true';
+
+      if (state.selectedLayoutRecord) {
+        state.selectedLayoutRecord.name = $('layoutName').value.trim();
+        state.selectedLayoutRecord.description = $('layoutDescription').value.trim();
+      }
+
+      updateJsonEditor();
+      renderPreview();
+    }
+
+    function syncNavigationFields() {
+      const roleConfig = getRoleConfig(state.currentJsonObject, state.currentRole);
+      const selected = getSelectedNavigationItem(roleConfig);
+      const disabled = !selected;
+
+      ['navLabel', 'navIcon', 'navNavigateTo', 'navPageId', 'navSrc', 'navIconType', 'removeTabBtn'].forEach((id) => {
+        const el = $(id);
+        if (el) el.disabled = disabled;
+      });
+
+      if (!selected) {
+        $('navLabel').value = '';
+        $('navIcon').value = '';
+        $('navNavigateTo').value = '';
+        $('navPageId').value = '';
+        $('navSrc').value = '';
+        $('navIconType').value = 'momentum';
+        return;
+      }
+
+      const firstWidgetKey = Object.keys(selected.page.widgets || {})[0] || 'left';
+      const src = selected.page.widgets?.[firstWidgetKey]?.attributes?.src || '';
+
+      $('navLabel').value = selected.nav?.label || '';
+      $('navIcon').value = selected.nav?.icon || '';
+      $('navIconType').value = selected.nav?.iconType || 'momentum';
+      $('navNavigateTo').value = selected.nav?.navigateTo || '';
+      $('navPageId').value = selected.page?.id || '';
+      $('navSrc').value = src;
+    }
+
+    function renderNavigationEditor() {
+      const roleConfig = getRoleConfig(state.currentJsonObject, state.currentRole);
+      const navigation = getNavigationArray(roleConfig);
+      const list = $('navList');
+      list.innerHTML = '';
+
+      if (!navigation.length) {
+        list.innerHTML = '<div class="navEditorEmpty">No navigation tabs yet. Use New Tab to create one.</div>';
+        syncNavigationFields();
+        return;
+      }
+
+      navigation.forEach((item, index) => {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = `navEditorItem${index === state.selectedNavigationIndex ? ' active' : ''}`;
+        button.innerHTML = `
+          <span>${escapeHtml(item?.nav?.label || `Tab ${index + 1}`)}</span>
+          <span class="navEditorMeta">${escapeHtml(item?.nav?.iconType || 'momentum')}</span>
+        `;
+        button.addEventListener('click', () => {
+          state.selectedNavigationIndex = index;
+          renderNavigationEditor();
+          renderPreview();
+        });
+        list.appendChild(button);
+      });
+
+      syncNavigationFields();
+    }
+
+    function updateSelectedNavigationField(field) {
+      const roleConfig = getRoleConfig(state.currentJsonObject, state.currentRole);
+      const selected = getSelectedNavigationItem(roleConfig);
+      if (!selected) return;
+
+      const currentLabel = selected.nav?.label || '';
+      const oldAutoKey = slugifySegment(currentLabel);
+      const { item, firstWidgetKey } = ensureNavigationStructure(roleConfig, state.selectedNavigationIndex);
+
+      if (field === 'label') {
+        const nextLabel = $('navLabel').value.trim() || 'Dashboard';
+        const nextAutoKey = createUniqueNavKey(roleConfig, nextLabel, state.selectedNavigationIndex);
+        item.nav.label = nextLabel;
+        item.nav.navigateTo = nextAutoKey;
+        item.page.id = nextAutoKey;
+      } else if (field === 'icon') {
+        item.nav.icon = $('navIcon').value.trim();
+      } else if (field === 'iconType') {
+        item.nav.iconType = $('navIconType').value;
+      } else if (field === 'navigateTo') {
+        item.nav.navigateTo = $('navNavigateTo').value.trim() || createUniqueNavKey(roleConfig, item.nav.label || 'dashboard', state.selectedNavigationIndex);
+      } else if (field === 'pageId') {
+        item.page.id = $('navPageId').value.trim() || item.nav.navigateTo || createUniqueNavKey(roleConfig, item.nav.label || 'dashboard', state.selectedNavigationIndex);
+      } else if (field === 'src') {
+        item.page.widgets[firstWidgetKey].comp ||= 'agentx-wc-iframe';
+        item.page.widgets[firstWidgetKey].attributes.src = $('navSrc').value.trim();
+      }
+
+      updateJsonEditor();
+      renderNavigationEditor();
+      renderPreview();
+    }
+
+    function applyPreviewTitle(value) {
+      $('appTitle').value = value || 'Webex Contact Center';
+      applyFormSilently();
+      $('appTitle').focus();
+    }
+
+    function applyPreviewLogo(value) {
+      $('logoUrl').value = getEditableUrlValue(value);
+      applyFormSilently();
+      $('logoUrl').focus();
+    }
+
+    function applyPreviewIllustration(value) {
+      $('taskPageIllustration').value = getEditableUrlValue(value);
+      applyFormSilently();
+      $('taskPageIllustration').focus();
+    }
+
+    const ICON_PRESET_LABELS = {
+      'dashboard': 'Dashboard',
+      'breakout-session': 'Breakout',
+      'view-thumbnail': 'Thumbnail',
+      'multiline-chart': 'Chart',
+      'pmr': 'PMR',
+      'queue-contact': 'Queue',
+      'participant-list': 'Participants'
+    };
+
+    function initIconPicker() {
+      const grid = $('modalNavIconPickerGrid');
+      if (!grid) return;
+      ICON_PRESETS.forEach((preset) => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'iconPickerGridBtn';
+        btn.dataset.value = preset;
+        btn.title = ICON_PRESET_LABELS[preset] || preset;
+        const img = document.createElement('img');
+        img.src = getPresetIconUrl(preset);
+        img.alt = preset;
+        const label = document.createElement('span');
+        label.textContent = ICON_PRESET_LABELS[preset] || preset;
+        btn.appendChild(img);
+        btn.appendChild(label);
+        btn.addEventListener('click', () => {
+          setIconPickerValue(preset);
+          closeIconPicker();
+        });
+        grid.appendChild(btn);
+      });
+      const urlBtn = $('modalNavIconPickerUrlBtn');
+      if (urlBtn) {
+        urlBtn.addEventListener('click', () => {
+          setIconPickerValue('url');
+          closeIconPicker();
+        });
+      }
+      const trigger = $('modalNavIconPickerTrigger');
+      if (trigger) {
+        trigger.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const panel = $('modalNavIconPickerPanel');
+          const isOpen = panel.classList.contains('open');
+          if (isOpen) {
+            closeIconPicker();
+          } else {
+            panel.classList.add('open');
+            trigger.classList.add('open');
+          }
+        });
+      }
+      document.addEventListener('click', (e) => {
+        const wrap = $('modalNavIconPickerWrap');
+        if (wrap && !wrap.contains(e.target)) closeIconPicker();
+      });
+    }
+
+    function closeIconPicker() {
+      const panel = $('modalNavIconPickerPanel');
+      const trigger = $('modalNavIconPickerTrigger');
+      if (panel) panel.classList.remove('open');
+      if (trigger) trigger.classList.remove('open');
+    }
+
+    function setIconPickerValue(val) {
+      $('modalNavIconPreset').value = val;
+      const triggerImg = $('modalNavIconPickerTriggerImg');
+      const triggerName = $('modalNavIconPickerTriggerName');
+      const isUrl = val === 'url';
+      if (triggerImg) {
+        triggerImg.src = isUrl ? '' : getPresetIconUrl(val);
+        triggerImg.style.display = isUrl ? 'none' : '';
+      }
+      if (triggerName) triggerName.textContent = isUrl ? 'Custom URL' : (ICON_PRESET_LABELS[val] || val);
+      document.querySelectorAll('#modalNavIconPickerGrid .iconPickerGridBtn').forEach((btn) => {
+        btn.classList.toggle('selected', btn.dataset.value === val);
+      });
+      const urlBtn = $('modalNavIconPickerUrlBtn');
+      if (urlBtn) urlBtn.classList.toggle('selected', isUrl);
+      syncModalIconControls();
+    }
+
+    function openPreviewNavModal(index) {
+      const roleConfig = getRoleConfig(state.currentJsonObject, state.currentRole);
+      const navigation = getNavigationArray(roleConfig);
+      if (index < 0 || index >= navigation.length) return;
+      if (index < LOCKED_NAV_COUNT) return;
+      state.modalNavigationIndex = index;
+      state.selectedNavigationIndex = index;
+      const { item, firstWidgetKey } = ensureNavigationStructure(roleConfig, index);
+      $('modalNavLabel').value = item.nav?.label || '';
+      if ((item.nav?.iconType || 'momentum') === 'other') {
+        $('modalNavIconUrl').value = getEditableUrlValue(item.nav?.icon);
+        setIconPickerValue('url');
+      } else {
+        $('modalNavIconUrl').value = '';
+        setIconPickerValue(ICON_PRESETS.includes(item.nav?.icon) ? item.nav.icon : 'dashboard');
+      }
+      $('modalNavSrc').value = item.page?.widgets?.[firstWidgetKey]?.attributes?.src || '';
+      $('previewNavModalDelete').style.display = index < LOCKED_NAV_COUNT ? 'none' : '';
+      $('previewNavModal').classList.add('open');
+    }
+
+    function closePreviewNavModal() {
+      state.modalNavigationIndex = -1;
+      $('previewNavModal').classList.remove('open');
+    }
+
+    function savePreviewNavModal() {
+      if (state.modalNavigationIndex < 0) return;
+      state.selectedNavigationIndex = state.modalNavigationIndex;
+      $('navLabel').value = $('modalNavLabel').value;
+      $('navIcon').value = $('modalNavIconPreset').value === 'url' ? $('modalNavIconUrl').value.trim() : $('modalNavIconPreset').value;
+      $('navIconType').value = $('modalNavIconPreset').value === 'url' ? 'other' : 'momentum';
+      const widgetKey = createUniqueNavKey(getRoleConfig(state.currentJsonObject, state.currentRole), $('modalNavLabel').value || 'Dashboard', state.modalNavigationIndex);
+      $('navNavigateTo').value = widgetKey;
+      $('navPageId').value = widgetKey;
+      $('navSrc').value = $('modalNavSrc').value;
+      ['label', 'icon', 'iconType', 'navigateTo', 'pageId', 'src'].forEach(updateSelectedNavigationField);
+      closePreviewNavModal();
+    }
+
+    function buildPreviewHtml() {
+      const roleConfig = getRoleConfig(state.currentJsonObject, state.currentRole);
+      const title = roleConfig.appTitle || 'Desktop Layout';
+      const layoutDisplayName = $('layoutName').value.trim() || state.selectedLayoutRecord?.name || title;
+      const logo = roleConfig.logo || DEFAULT_PREVIEW_LOGO;
+      const illustration = roleConfig.taskPageIllustration || DEFAULT_PREVIEW_ILLUSTRATION;
+      const editableIllustrationUrl = getEditableUrlValue(illustration);
+      const headerWidgets = Array.isArray(roleConfig.area?.advancedHeader) ? roleConfig.area.advancedHeader : [];
+      const navigation = getNavigationArray(roleConfig);
+      const navItems = navigation.slice(0, 6);
+      const navData = navItems.map((item, index) => {
+        const widgets = item?.page?.widgets || {};
+        const firstWidget = Object.values(widgets)[0] || null;
+        return {
+          index,
+          label: item?.nav?.label || item?.page?.id || `Item ${index + 1}`,
+          src: firstWidget?.attributes?.src || '',
+          hasIframe: Boolean(firstWidget?.attributes?.src),
+          editable: index >= LOCKED_NAV_COUNT
+        };
+      });
+
+      $('previewTitle').textContent = layoutDisplayName;
+      $('previewMeta').textContent = `Role: ${state.currentRole}`;
+
+      const firstTab = navigation[0]?.nav?.label || 'Workspace';
+      const navMarkup = navItems.map((item, index) => {
+        const label = item?.nav?.label || item?.page?.id || `Item ${index + 1}`;
+        const previewIcon = resolvePreviewIcon(item);
+        const isLocked = index < LOCKED_NAV_COUNT;
+        return `
+          <div class="navEntry${index === state.selectedNavigationIndex ? ' active' : ''}">
+            ${isLocked ? '' : `<button class="navRemove" data-remove-index="${index}" type="button" title="Remove tab">×</button>`}
+            ${isLocked ? '' : `<button class="navEdit" data-edit-index="${index}" type="button" title="Edit tab">✎</button>`}
+            <button class="navItem${index === state.selectedNavigationIndex ? ' active' : ''}" title="${escapeHtml(label)}" data-index="${index}" type="button">
+              <div class="navGlyph">
+                ${previewIcon.type === 'image'
+                  ? `<img src="${escapeHtml(previewIcon.value)}" alt="${escapeHtml(label)}">`
+                  : escapeHtml(previewIcon.value || label.slice(0, 2).toUpperCase())}
+              </div>
+            </button>
+          </div>
+        `;
+      }).join('');
+
+      return `
+        <!doctype html>
+        <html>
+        <head>
+          <meta charset="utf-8">
+          <style>
+            * { box-sizing: border-box; }
+            body {
+              margin: 0;
+              font-family: Montserrat, Arial, sans-serif;
+              background: #e7e8fb;
+              color: #111827;
+            }
+            .app {
+              display: grid;
+              grid-template-rows: 72px 1fr;
+              min-height: 100vh;
+              background:
+                radial-gradient(circle at left top, rgba(147, 197, 253, 0.3), transparent 18%),
+                linear-gradient(180deg, #e8ebff 0%, #e5e7fb 100%);
+            }
+            .header {
+              display: flex;
+              align-items: center;
+              justify-content: space-between;
+              gap: 16px;
+              padding: 12px 20px;
+              border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+              background: rgba(235, 238, 255, 0.92);
+              backdrop-filter: blur(8px);
+            }
+            .brand {
+              display: flex;
+              align-items: center;
+              gap: 12px;
+              min-width: 0;
+            }
+            .editableWrap {
+              position: relative;
+              display: inline-flex;
+              align-items: center;
+              justify-content: center;
+            }
+            .editPencil {
+              position: absolute;
+              top: -7px;
+              right: -7px;
+              width: 18px;
+              height: 18px;
+              border: 1px solid rgba(255,255,255,0.8);
+              border-radius: 999px;
+              background: #1f2937;
+              color: #fff;
+              font-size: 10px;
+              font-weight: 700;
+              display: inline-flex;
+              align-items: center;
+              justify-content: center;
+              box-shadow: 0 4px 10px rgba(15, 23, 42, 0.14);
+              pointer-events: auto;
+              cursor: pointer;
+            }
+            .logo {
+              width: 38px;
+              height: 38px;
+              border-radius: 0;
+              background: transparent;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              overflow: hidden;
+              color: white;
+              font-weight: 700;
+            }
+            .logo.editable,
+            .title strong.editable {
+              cursor: default;
+            }
+            .logo.editable:hover,
+            .title strong.editable:hover {
+              box-shadow: none;
+            }
+            .logo img {
+              width: 100%;
+              height: 100%;
+              object-fit: contain;
+            }
+            .title {
+              min-width: 0;
+            }
+            .title strong {
+              display: block;
+              white-space: nowrap;
+              overflow: hidden;
+              text-overflow: ellipsis;
+            }
+            .titleLine {
+              position: relative;
+              display: inline-flex;
+              align-items: center;
+              padding-right: 18px;
+            }
+            .titleLine .editPencil {
+              right: -2px;
+            }
+            .title span {
+              display: block;
+              margin-top: 4px;
+              color: #6b7280;
+              font-size: 12px;
+            }
+            .headerRight {
+              display: flex;
+              align-items: center;
+              gap: 14px;
+            }
+            .headerIcons {
+              display: flex;
+              align-items: center;
+              gap: 14px;
+            }
+            .headerIconButton {
+              position: relative;
+              width: 24px;
+              height: 24px;
+              display: inline-flex;
+              align-items: center;
+              justify-content: center;
+              background: transparent;
+              border: 0;
+              padding: 0;
+              color: #111827;
+            }
+            .headerIconButton img,
+            .headerIconButton svg {
+              width: 22px;
+              height: 22px;
+              display: block;
+            }
+            .notificationBadge {
+              position: absolute;
+              top: -5px;
+              right: -5px;
+              min-width: 16px;
+              height: 16px;
+              padding: 0 4px;
+              border-radius: 999px;
+              background: #1d4ed8;
+              color: #fff;
+              font-size: 10px;
+              font-weight: 700;
+              display: inline-flex;
+              align-items: center;
+              justify-content: center;
+              border: 2px solid #e8ebff;
+            }
+            .timer {
+              border: 1px solid rgba(15, 23, 42, 0.28);
+              border-radius: 14px;
+              background: rgba(231, 231, 229, 0.9);
+              padding: 7px 12px;
+              min-width: 248px;
+              display: flex;
+              align-items: center;
+              justify-content: space-between;
+              gap: 10px;
+              box-shadow: inset 0 0 0 1px rgba(255,255,255,0.3);
+            }
+            .timerLeft {
+              display: inline-flex;
+              align-items: center;
+              gap: 8px;
+            }
+            .timerDot {
+              width: 14px;
+              height: 14px;
+              border-radius: 999px;
+              background: #6b7280;
+              position: relative;
+            }
+            .timerDot::after {
+              content: '';
+              position: absolute;
+              inset: 3px;
+              border-radius: 999px;
+              background: #d1d5db;
+            }
+            .timerCaret {
+              color: #374151;
+              font-size: 12px;
+            }
+            .headerChip {
+              display: inline-flex;
+              align-items: center;
+              padding: 6px 10px;
+              border-radius: 999px;
+              background: rgba(255,255,255,0.7);
+              border: 1px solid rgba(15,23,42,0.08);
+              font-size: 11px;
+              color: #4b5563;
+            }
+            .body {
+              --sidebar-w: 0px;
+              display: grid;
+              grid-template-columns: 84px var(--sidebar-w) minmax(0, 1fr);
+              min-height: calc(100vh - 72px);
+            }
+            .body.sidebar-open {
+              --sidebar-w: 430px;
+            }
+            .nav {
+              border-right: 1px solid rgba(15, 23, 42, 0.08);
+              background: linear-gradient(180deg, rgba(227, 229, 248, 0.95), rgba(220, 223, 245, 0.92));
+              padding: 14px 10px;
+              display: flex;
+              flex-direction: column;
+              gap: 10px;
+              align-items: center;
+            }
+            .navEntry {
+              position: relative;
+              width: 48px;
+              height: 48px;
+            }
+            .navItem {
+              width: 48px;
+              height: 48px;
+              border-radius: 16px;
+              border: 1px solid rgba(15, 23, 42, 0.08);
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              color: #111827;
+              font-size: 11px;
+              text-align: center;
+              background: rgba(255,255,255,0.15);
+              cursor: pointer;
+            }
+            .navEntry.active .navItem,
+            .navItem.active {
+              background: rgba(255,255,255,0.24);
+              color: #111827;
+              box-shadow: inset 0 0 0 2px #2563eb;
+            }
+            .navItem.addNav {
+              border-style: dashed;
+              color: #2563eb;
+              font-size: 24px;
+              background: rgba(255,255,255,0.28);
+            }
+            .navGlyph {
+              width: 22px;
+              height: 22px;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              font-weight: 700;
+              letter-spacing: 0.03em;
+            }
+            .navGlyph img {
+              width: 22px;
+              height: 22px;
+              object-fit: contain;
+              filter: contrast(1.05);
+            }
+            .navRemove {
+              position: absolute;
+              top: -5px;
+              left: -5px;
+              width: 16px;
+              height: 16px;
+              border: 1px solid rgba(255, 255, 255, 0.55);
+              border-radius: 999px;
+              background: #ef4444;
+              color: #fff;
+              font-size: 10px;
+              font-weight: 700;
+              line-height: 1;
+              display: none;
+              align-items: center;
+              justify-content: center;
+              cursor: pointer;
+              padding: 0;
+              box-shadow: 0 3px 10px rgba(15, 23, 42, 0.18);
+            }
+            .navEdit {
+              position: absolute;
+              top: -5px;
+              right: -5px;
+              width: 16px;
+              height: 16px;
+              border: 1px solid rgba(255, 255, 255, 0.6);
+              border-radius: 999px;
+              background: #1f2937;
+              color: #fff;
+              font-size: 9px;
+              font-weight: 700;
+              line-height: 1;
+              display: none;
+              align-items: center;
+              justify-content: center;
+              cursor: pointer;
+              padding: 0;
+              box-shadow: 0 3px 10px rgba(15, 23, 42, 0.18);
+            }
+            .navEntry:hover .navRemove,
+            .navEntry.active .navRemove,
+            .navEntry:hover .navEdit,
+            .navEntry.active .navEdit {
+              display: inline-flex;
+            }
+            .sidebar {
+              border-right: 1px solid rgba(15, 23, 42, 0.08);
+              background: rgba(232, 234, 249, 0.8);
+              padding: 18px 14px;
+              display: flex;
+              flex-direction: column;
+              width: 100%;
+              min-width: 0;
+              box-sizing: border-box;
+              padding-left: 0;
+              padding-right: 0;
+              overflow: hidden;
+              transition: padding 160ms ease;
+            }
+            .body.sidebar-open .sidebar {
+              padding-left: 14px;
+              padding-right: 14px;
+            }
+            .sidebar h2 {
+              margin: 0 0 12px;
+              font-size: 22px;
+            }
+            .sidebarToggle {
+              position: absolute;
+              left: 54px;
+              top: 50%;
+              transform: translate(-50%, -50%);
+              width: 22px;
+              height: 42px;
+              border-radius: 0 12px 12px 0;
+              border: 1px solid rgba(15, 23, 42, 0.12);
+              background: rgba(255,255,255,0.96);
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              color: #374151;
+              cursor: pointer;
+              z-index: 2;
+              box-shadow: 0 4px 14px rgba(15, 23, 42, 0.08);
+            }
+            .interactionCard {
+              border: 1px solid rgba(15, 23, 42, 0.12);
+              background: rgba(255,255,255,0.45);
+              border-radius: 12px;
+              padding: 12px 14px;
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              color: #4b5563;
+              margin-bottom: auto;
+            }
+            .emptyState {
+              margin-top: auto;
+              padding: 24px 10px 8px;
+              text-align: center;
+              color: #374151;
+            }
+            .emptyState strong {
+              display: block;
+              font-size: 18px;
+              margin-bottom: 10px;
+            }
+            .workspace {
+              padding: 16px;
+              position: relative;
+              min-width: 0;
+            }
+            .canvas {
+              height: calc(100vh - 108px);
+              border-radius: 16px;
+              border: 1px solid rgba(15, 23, 42, 0.14);
+              background: rgba(241, 244, 255, 0.8);
+              padding: 18px;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              overflow: hidden;
+              cursor: pointer;
+            }
+            .canvas iframe {
+              width: 100%;
+              height: 100%;
+              border: 0;
+              border-radius: 12px;
+              background: white;
+            }
+            .iframeFallback {
+              width: 100%;
+              height: calc(100vh - 144px);
+              border-radius: 12px;
+              border: 1px solid rgba(15, 23, 42, 0.12);
+              background: rgba(255,255,255,0.72);
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              justify-content: center;
+              gap: 10px;
+              color: #475569;
+              text-align: center;
+              padding: 20px;
+            }
+            .iframeFallback code {
+              max-width: 100%;
+              overflow-wrap: anywhere;
+              font-size: 12px;
+            }
+            .canvasInner {
+              width: 100%;
+              height: 100%;
+              min-height: inherit;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+            }
+            .illustrationWrap {
+              position: relative;
+              display: inline-block;
+              cursor: pointer;
+              line-height: 0;
+              width: clamp(240px, 38%, 500px);
+            }
+            .illustrationWrap img {
+              width: 100%;
+              height: auto;
+              object-fit: contain;
+              opacity: 0.95;
+              display: block;
+            }
+            .illustrationWrap .editPencil {
+              top: 8px;
+              right: 8px;
+              pointer-events: auto;
+            }
+            .illustrationPlaceholder {
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              width: 220px;
+              height: 140px;
+              border: 2px dashed rgba(15, 23, 42, 0.18);
+              border-radius: 18px;
+              background: rgba(255,255,255,0.55);
+            }
+            .illustrationAddBtn {
+              display: inline-flex;
+              align-items: center;
+              gap: 6px;
+              padding: 10px 18px;
+              border-radius: 12px;
+              border: 1px solid rgba(15, 23, 42, 0.14);
+              background: rgba(255,255,255,0.9);
+              color: #374151;
+              font: 600 13px/1 Montserrat, Arial, sans-serif;
+              cursor: pointer;
+              box-shadow: 0 2px 8px rgba(15,23,42,0.08);
+            }
+            .illustrationAddBtn:hover {
+              background:var(--card);
+              box-shadow: 0 4px 14px rgba(15,23,42,0.14);
+            }
+            .canvasPlaceholder {
+              color: #6b7280;
+              font-size: 14px;
+              text-align: center;
+            }
+            .helpIcon {
+              width: 24px;
+              height: 24px;
+              border-radius: 999px;
+              border: 1px solid rgba(15, 23, 42, 0.18);
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              font-weight: 700;
+            }
+            .inlineEditor {
+              position: fixed;
+              inset: 0;
+              display: none;
+              align-items: flex-start;
+              justify-content: center;
+              padding-top: 88px;
+              background: rgba(15, 23, 42, 0.16);
+              z-index: 20;
+            }
+            .inlineEditor.open {
+              display: flex;
+            }
+            .inlineEditorCard {
+              width: min(480px, calc(100vw - 32px));
+              border-radius: 16px;
+              border: 1px solid rgba(15, 23, 42, 0.12);
+              background: rgba(255,255,255,0.97);
+              box-shadow: 0 20px 40px rgba(15, 23, 42, 0.2);
+              padding: 14px;
+            }
+            .inlineEditorCard strong {
+              display: block;
+              margin-bottom: 10px;
+              font-size: 14px;
+            }
+            .inlineEditorCard input {
+              width: 100%;
+              border: 1px solid rgba(15, 23, 42, 0.12);
+              border-radius: 12px;
+              padding: 11px 12px;
+              font: inherit;
+              color: #111827;
+              background:var(--card);
+            }
+            .inlineEditorActions {
+              display: flex;
+              justify-content: flex-end;
+              gap: 8px;
+              margin-top: 10px;
+            }
+            .inlineEditorActions button {
+              min-width: 42px;
+              height: 38px;
+              border-radius: 12px;
+              border: 1px solid rgba(15, 23, 42, 0.12);
+              background:var(--card);
+              color: #111827;
+              cursor: pointer;
+              font: inherit;
+              font-weight: 700;
+            }
+            .inlineEditorActions .confirm {
+              background: #2563eb;
+              color: #fff;
+              border-color: #2563eb;
+            }
+          </style>
+        </head>
+        <body>
+          <div class="app">
+            <div class="header">
+              <div class="brand">
+                  <div class="editableWrap">
+                    <div class="logo editable" id="editableLogo" title="Edit logo URL">${logo ? `<img src="${escapeHtml(logo)}" alt="">` : 'DL'}</div>
+                    <button class="editPencil" id="editableLogoPencil" type="button" aria-label="Edit logo">✎</button>
+                  </div>
+                <div class="title">
+                  <div class="titleLine">
+                    <strong class="editable" id="editableTitle" title="Edit title">${escapeHtml(title)}</strong>
+                    <button class="editPencil" id="editableTitlePencil" type="button" aria-label="Edit title">✎</button>
+                  </div>
+                  <span>${escapeHtml(state.currentRole.replace(/([A-Z])/g, ' $1').replace(/^./, s => s.toUpperCase()))}</span>
+                </div>
+              </div>
+              <div class="headerRight">
+                <div class="headerIcons">
+                  <button class="headerIconButton" type="button" aria-label="Webex">
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                      <path d="M12 4.2a7.8 7.8 0 1 0 7.8 7.8" stroke="#06b6d4" stroke-width="2.2" stroke-linecap="round"/>
+                      <path d="M19.1 12A7.1 7.1 0 0 1 7.2 17.2" stroke="#2563eb" stroke-width="2.2" stroke-linecap="round"/>
+                    </svg>
+                  </button>
+                  <button class="headerIconButton" type="button" aria-label="Phone">
+                    <img src="https://momentum.design/icons/handset-regular.svg" alt="">
+                  </button>
+                  <button class="headerIconButton" type="button" aria-label="Notifications">
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                      <path d="M12 5.25a4.25 4.25 0 0 0-4.25 4.25v2.33c0 .72-.24 1.42-.68 1.99l-1.03 1.33h11.92l-1.03-1.33a3.22 3.22 0 0 1-.68-1.99V9.5A4.25 4.25 0 0 0 12 5.25Z" stroke="#111827" stroke-width="1.7" stroke-linejoin="round"/>
+                      <path d="M10.2 17.2a1.95 1.95 0 0 0 3.6 0" stroke="#111827" stroke-width="1.7" stroke-linecap="round"/>
+                    </svg>
+                    <span class="notificationBadge">8</span>
+                  </button>
+                </div>
+                <div class="timer">
+                  <span class="timerLeft"><span class="timerDot"></span><span>Login</span></span>
+                  <span class="timerLeft"><span>00:10</span><span class="timerCaret">▾</span></span>
+                </div>
+              </div>
+            </div>
+            <div class="body">
+              <div class="nav">
+                <button class="navItem active" title="My workspace" data-index="-1" type="button">
+                  <div class="navGlyph"><img src="https://momentum.design/icons/inbox-filled.svg" alt="My workspace"></div>
+                </button>
+                ${navMarkup}
+                <button class="navItem addNav" id="addNavFromPreview" title="Add navigation tab" type="button">+</button>
+                <div style="margin-top:auto;" class="helpIcon">?</div>
+              </div>
+              <div class="sidebar" id="workspaceSidebar">
+                <h2>My workspace</h2>
+                <div class="interactionCard">
+                  <span>0 active interactions</span>
+                  <span>⇵</span>
+                </div>
+                <div class="emptyState">
+                  <strong>Let's get active</strong>
+                  <div>When you're available, any interactions assigned to you will appear here.</div>
+                </div>
+              </div>
+              <div class="workspace">
+                <button class="sidebarToggle" id="sidebarToggle" type="button">›</button>
+                <div class="canvas" id="canvasPreview">
+                  <div class="canvasInner">
+                    <div id="canvasContent" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;">
+                      ${illustration ? `<div class="illustrationWrap" id="editableIllustration"><img src="${escapeHtml(illustration)}" alt="${escapeHtml(firstTab)}"><button class="editPencil" id="editableIllustrationPencil" type="button" aria-label="Edit illustration">✎</button></div>` : `<div class="canvasPlaceholder">Click a preview icon with an iframe source to load that page here.</div>`}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="inlineEditor" id="inlineEditor">
+            <div class="inlineEditorCard">
+              <strong id="inlineEditorTitle">Edit</strong>
+              <input id="inlineEditorInput" type="text">
+              <div class="inlineEditorActions">
+                <button id="inlineEditorCancel" type="button">X</button>
+                <button class="confirm" id="inlineEditorSave" type="button">✓</button>
+              </div>
+            </div>
+          </div>
+          <script>
+            const navItems = Array.from(document.querySelectorAll('.navItem'));
+            const navData = ${JSON.stringify(navData)};
+            const initialIndex = ${JSON.stringify(state.selectedNavigationIndex)};
+            const illustrationHtml = ${JSON.stringify(
+              illustration
+                ? `<div class="illustrationWrap" id="editableIllustration"><img src="${escapeHtml(illustration)}" alt="${escapeHtml(firstTab)}"><button class="editPencil" id="editableIllustrationPencil" type="button" aria-label="Edit illustration">✎</button></div>`
+                : `<div class="canvasPlaceholder">Click a preview icon with an iframe source to load that page here.</div>`
+            )};
+            const canvasContent = document.getElementById('canvasContent');
+            const sidebar = document.getElementById('workspaceSidebar');
+            const bodyLayout = document.querySelector('.body');
+            const sidebarToggle = document.getElementById('sidebarToggle');
+            const inlineEditor = document.getElementById('inlineEditor');
+            const inlineEditorTitle = document.getElementById('inlineEditorTitle');
+            const inlineEditorInput = document.getElementById('inlineEditorInput');
+            let inlineEditorMode = '';
+            function loadCanvas(index) {
+              const selected = navData.find((item) => item.index === index);
+              if (!canvasContent) return;
+              if (selected && selected.hasIframe && selected.src) {
+                const safeSrc = selected.src.replace(/"/g, '&quot;');
+                canvasContent.innerHTML = '<iframe src="' + safeSrc + '" title="' + (selected.label || 'Preview') + '"></iframe>';
+                const frame = canvasContent.querySelector('iframe');
+                if (frame) {
+                  const fallback = () => {
+                    canvasContent.innerHTML = '<div class="iframeFallback"><strong>This page could not be embedded here.</strong><div>Some sites block iframe loading.</div><code>' + safeSrc + '</code></div>';
+                  };
+                  frame.addEventListener('error', fallback, { once: true });
+                  window.setTimeout(() => {
+                    if (canvasContent.contains(frame)) {
+                      try {
+                        void frame.contentWindow;
+                      } catch {
+                        fallback();
+                      }
+                    }
+                  }, 1800);
+                }
+                return;
+              }
+              canvasContent.innerHTML = illustrationHtml;
+              bindIllustrationEditor();
+            }
+            function bindIllustrationEditor() {
+              const illustrationPencil = document.getElementById('editableIllustrationPencil');
+              if (!illustrationPencil) return;
+              illustrationPencil.addEventListener('click', (event) => {
+                event.stopPropagation();
+                openInlineEditor('illustration', 'Edit Illustration URL', ${JSON.stringify(editableIllustrationUrl)});
+              });
+            }
+            function openInlineEditor(mode, label, value) {
+              inlineEditorMode = mode;
+              inlineEditorTitle.textContent = label;
+              inlineEditorInput.value = value || '';
+              inlineEditorInput.placeholder = mode === 'title' ? 'Enter value' : 'Enter Url';
+              inlineEditor.classList.add('open');
+              window.setTimeout(() => inlineEditorInput.focus(), 0);
+            }
+            function closeInlineEditor() {
+              inlineEditor.classList.remove('open');
+              inlineEditorMode = '';
+            }
+            function saveInlineEditor() {
+              if (!window.parent || !inlineEditorMode) return;
+              const value = inlineEditorInput.value.trim();
+              if (inlineEditorMode === 'title') {
+                window.parent.postMessage({ type: 'desktop-layout-preview-edit-title', value }, '*');
+              } else if (inlineEditorMode === 'logo') {
+                window.parent.postMessage({ type: 'desktop-layout-preview-edit-logo', value }, '*');
+              } else if (inlineEditorMode === 'illustration') {
+                window.parent.postMessage({ type: 'desktop-layout-preview-edit-illustration', value }, '*');
+              }
+              closeInlineEditor();
+            }
+            navItems.forEach((item) => {
+              item.addEventListener('click', () => {
+                if (item.id === 'addNavFromPreview') {
+                  if (window.parent) {
+                    window.parent.postMessage({ type: 'desktop-layout-preview-add-nav' }, '*');
+                  }
+                  return;
+                }
+                navItems.forEach((node) => node.classList.remove('active'));
+                item.classList.add('active');
+                const index = Number(item.dataset.index || '-1');
+                if (window.parent) {
+                  window.parent.postMessage({ type: 'desktop-layout-nav-select', index }, '*');
+                }
+                if (index === -1) {
+                  if (bodyLayout) bodyLayout.classList.toggle('sidebar-open');
+                  if (sidebarToggle) sidebarToggle.textContent = bodyLayout && bodyLayout.classList.contains('sidebar-open') ? '‹' : '›';
+                  loadCanvas(-1);
+                  return;
+                }
+                if (window.parent && navData.find((entry) => entry.index === index)?.editable) {
+                  window.parent.postMessage({ type: 'desktop-layout-preview-open-nav-editor', index }, '*');
+                }
+                loadCanvas(index);
+              });
+            });
+            Array.from(document.querySelectorAll('.navEdit')).forEach((button) => {
+              button.addEventListener('click', (event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                const index = Number(button.dataset.editIndex || '-1');
+                if (window.parent && index >= 0) {
+                  window.parent.postMessage({ type: 'desktop-layout-preview-open-nav-editor', index }, '*');
+                }
+              });
+            });
+            Array.from(document.querySelectorAll('.navRemove')).forEach((button) => {
+              button.addEventListener('click', (event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                const index = Number(button.dataset.removeIndex || '-1');
+                if (window.parent && index >= 0) {
+                  window.parent.postMessage({ type: 'desktop-layout-preview-remove-nav', index }, '*');
+                }
+              });
+            });
+            const editableTitle = document.getElementById('editableTitle');
+            const editableLogo = document.getElementById('editableLogo');
+            const editableTitlePencil = document.getElementById('editableTitlePencil');
+            const editableLogoPencil = document.getElementById('editableLogoPencil');
+            if (editableTitle) editableTitle.title = '';
+            if (editableLogo) editableLogo.title = '';
+            if (editableTitlePencil) {
+              editableTitlePencil.addEventListener('click', (event) => {
+                event.stopPropagation();
+                openInlineEditor('title', 'Edit Title', editableTitle ? editableTitle.textContent.trim() : '');
+              });
+            }
+            if (editableLogoPencil) {
+              editableLogoPencil.addEventListener('click', (event) => {
+                event.stopPropagation();
+                openInlineEditor('logo', 'Edit Logo URL', ${JSON.stringify(getEditableUrlValue(logo))});
+              });
+            }
+            bindIllustrationEditor();
+            document.getElementById('inlineEditorCancel').addEventListener('click', closeInlineEditor);
+            document.getElementById('inlineEditorSave').addEventListener('click', saveInlineEditor);
+            inlineEditor.addEventListener('click', (event) => {
+              if (event.target === inlineEditor) closeInlineEditor();
+            });
+            inlineEditorInput.addEventListener('keydown', (event) => {
+              if (event.key === 'Enter') {
+                event.preventDefault();
+                saveInlineEditor();
+              }
+              if (event.key === 'Escape') {
+                closeInlineEditor();
+              }
+            });
+            if (sidebarToggle) {
+              sidebarToggle.addEventListener('click', () => {
+                if (!bodyLayout) return;
+                bodyLayout.classList.toggle('sidebar-open');
+                sidebarToggle.textContent = bodyLayout.classList.contains('sidebar-open') ? '‹' : '›';
+              });
+            }
+            const canvas = document.getElementById('canvasPreview');
+            if (canvas) {
+              canvas.addEventListener('click', () => {
+                canvas.style.outline = '3px solid rgba(29,78,216,0.35)';
+                window.setTimeout(() => { canvas.style.outline = 'none'; }, 250);
+              });
+            }
+            if (bodyLayout) bodyLayout.classList.remove('sidebar-open');
+            loadCanvas(initialIndex >= 0 ? initialIndex : -1);
+          <\/script>
+        </body>
+        </html>
+      `;
+    }
+
+    function renderPreview() {
+      try {
+        parseEditorJson();
+      } catch {
+        return;
+      }
+      $('previewFrame').srcdoc = buildPreviewHtml();
+    }
+
+    function normalizeDetailResponse(response, fallbackRecord) {
+      const payload = response?.data?.[0] || response?.data || response || {};
+      const record = { ...(fallbackRecord || {}), ...payload };
+      let json = record.jsonFileContent || payload?.jsonFileContent || '';
+      if (typeof json === 'string') {
+        try {
+          json = JSON.parse(json);
+        } catch {
+          json = null;
+        }
+      }
+      return { record, json };
+    }
+
+    async function fetchLayoutDetail(layoutId) {
+      if (state.detailCache.has(layoutId)) return state.detailCache.get(layoutId);
+      const { bearer, orgId, apiBase } = getApiContext();
+      const headers = { Authorization: `Bearer ${bearer}`, Accept: 'application/json' };
+      const fallbackRecord = state.layoutMap.get(layoutId) || null;
+      const filter = encodeURIComponent(`id=="${layoutId}"`);
+      const urls = [
+        `${apiBase}/organization/${encodeURIComponent(orgId)}/v2/desktop-layout/${encodeURIComponent(layoutId)}`,
+        `${apiBase}/organization/${encodeURIComponent(orgId)}/desktop-layout/${encodeURIComponent(layoutId)}`,
+        `${apiBase}/organization/${encodeURIComponent(orgId)}/v2/desktop-layout?filter=${filter}&page=0&pageSize=1`
+      ];
+      let lastError = null;
+      for (const url of urls) {
+        try {
+          const data = await requestJson(url, { method: 'GET', headers });
+          const normalized = normalizeDetailResponse(data, fallbackRecord);
+          state.detailCache.set(layoutId, normalized);
+          return normalized;
+        } catch (err) {
+          lastError = err;
+        }
+      }
+      throw lastError || new Error('Unable to load layout detail.');
+    }
+
+    async function fetchLayouts() {
+      const { bearer, orgId, apiBase } = getApiContext();
+      const url = `${apiBase}/organization/${encodeURIComponent(orgId)}/v2/desktop-layout?page=0&pageSize=100`;
+      const data = await requestJson(url, {
+        method: 'GET',
+        headers: { Authorization: `Bearer ${bearer}`, Accept: 'application/json' }
+      });
+      const list = Array.isArray(data?.data) ? data.data : [];
+      list.sort((a, b) => (a.name || '').localeCompare(b.name || '', undefined, { sensitivity: 'base' }));
+      state.layouts = list;
+      state.layoutMap = new Map(list.map(item => [item.id, item]));
+      state.globalLayoutRecord = list.find(item => item.global) || null;
+
+      const select = $('tenantLayoutSelect');
+      select.innerHTML = '<option value="__new__">New Desktop Layout</option><option value="">Select a tenant layout</option>';
+      const previewSelect = $('previewTenantLayoutSelect');
+      if (previewSelect) {
+        previewSelect.innerHTML = '<option value="__new__">New Desktop Layout</option><option value="">Select a tenant layout</option>';
+      }
+      list.forEach((item) => {
+        const option = document.createElement('option');
+        option.value = item.id;
+        option.textContent = item.global ? `${item.name} [Global]` : item.name;
+        select.appendChild(option);
+        if (previewSelect) {
+          previewSelect.appendChild(option.cloneNode(true));
+        }
+      });
+      renderPanelPicker('previewTenantLayoutSelect', 'previewTenantLayoutText', 'previewTenantLayoutMenu', 'previewTenantLayoutTrigger');
+    }
+
+    async function loadSelectedLayout() {
+      const layoutId = $('tenantLayoutSelect').value;
+      if (!layoutId || layoutId === '__new__') {
+        setStatus('Select a tenant layout first.', 'error');
+        return;
+      }
+      try {
+        const detail = await fetchLayoutDetail(layoutId);
+        state.selectedLayoutId = detail.record?.id || layoutId;
+        state.selectedLayoutRecord = detail.record || null;
+        state.currentJsonObject = detail.json && typeof detail.json === 'object' ? detail.json : cloneJson(DEFAULT_LAYOUT_CONTENT);
+        state.selectedNavigationIndex = 0;
+        $('tenantLayoutSelect').value = state.selectedLayoutId;
+        if ($('previewTenantLayoutSelect')) $('previewTenantLayoutSelect').value = state.selectedLayoutId;
+        updateJsonEditor();
+        syncFormFromJson();
+        setStatus(`Loaded ${detail.record?.name || layoutId}.`, 'success');
+      } catch (err) {
+        setStatus(err.message, 'error');
+      }
+    }
+
+    async function startFromGlobal() {
+      state.selectedLayoutId = '';
+      state.selectedLayoutRecord = null;
+      state.selectedNavigationIndex = 0;
+      if (state.globalLayoutRecord?.id) {
+        try {
+          const detail = await fetchLayoutDetail(state.globalLayoutRecord.id);
+          state.currentJsonObject = detail.json && typeof detail.json === 'object' ? detail.json : cloneJson(DEFAULT_LAYOUT_CONTENT);
+          updateJsonEditor();
+          syncFormFromJson();
+          $('layoutName').value = '';
+          $('layoutDescription').value = '';
+          $('tenantLayoutSelect').value = '__new__';
+          if ($('previewTenantLayoutSelect')) $('previewTenantLayoutSelect').value = '__new__';
+          setStatus(`Started from global layout "${state.globalLayoutRecord.name}".`, 'success');
+          return;
+        } catch (err) {
+          setStatus(`Global layout was found but could not be loaded. Using local starter JSON instead. ${err.message}`, 'info');
+        }
+      }
+      state.currentJsonObject = cloneJson(DEFAULT_LAYOUT_CONTENT);
+      updateJsonEditor();
+      syncFormFromJson();
+      $('tenantLayoutSelect').value = '__new__';
+      if ($('previewTenantLayoutSelect')) $('previewTenantLayoutSelect').value = '__new__';
+    }
+
+    async function importJsonFile(file) {
+      if (!file) return;
+      try {
+        const text = await file.text();
+        state.currentJsonObject = JSON.parse(text);
+        state.selectedLayoutId = '';
+        state.selectedLayoutRecord = null;
+        state.selectedNavigationIndex = 0;
+        $('tenantLayoutSelect').value = '';
+        if ($('previewTenantLayoutSelect')) $('previewTenantLayoutSelect').value = '__new__';
+        updateJsonEditor();
+        syncFormFromJson();
+        setStatus(`Imported ${file.name}.`, 'success');
+      } catch (err) {
+        setStatus(`Import failed. ${err.message}`, 'error');
+      }
+    }
+
+    function formatJson() {
+      try {
+        parseEditorJson();
+        updateJsonEditor();
+        syncFormFromJson();
+        setStatus('JSON formatted.', 'success');
+      } catch (err) {
+        setStatus(`JSON error. ${err.message}`, 'error');
+      }
+    }
+
+    function addTab() {
+      try {
+        parseEditorJson();
+      } catch (err) {
+        setStatus(`JSON error. ${err.message}`, 'error');
+        return;
+      }
+      const roleConfig = getRoleConfig(state.currentJsonObject, state.currentRole);
+      const navigation = getNavigationArray(roleConfig);
+      const uniqueKey = createUniqueNavKey(roleConfig, 'Dashboard');
+      navigation.push({
+        nav: {
+          label: 'Dashboard',
+          icon: 'dashboard',
+          iconType: 'momentum',
+          navigateTo: uniqueKey,
+          align: 'top'
+        },
+        page: {
+          id: uniqueKey,
+          widgets: {
+            left: {
+              comp: 'agentx-wc-iframe',
+              attributes: {
+                src: ''
+              }
+            }
+          },
+          layout: {
+            areas: [['left']],
+            size: {
+              cols: [1],
+              rows: [1]
+            }
+          }
+        }
+      });
+      state.selectedNavigationIndex = navigation.length - 1;
+      updateJsonEditor();
+      renderNavigationEditor();
+      renderPreview();
+    }
+
+    function removeSelectedTab() {
+      const roleConfig = getRoleConfig(state.currentJsonObject, state.currentRole);
+      const navigation = getNavigationArray(roleConfig);
+      if (!navigation.length) return;
+      if (state.selectedNavigationIndex < LOCKED_NAV_COUNT) return;
+      navigation.splice(state.selectedNavigationIndex, 1);
+      if (state.selectedNavigationIndex >= navigation.length) {
+        state.selectedNavigationIndex = Math.max(0, navigation.length - 1);
+      }
+      updateJsonEditor();
+      renderNavigationEditor();
+      renderPreview();
+    }
+
+    function removeTabAt(index) {
+      const roleConfig = getRoleConfig(state.currentJsonObject, state.currentRole);
+      const navigation = getNavigationArray(roleConfig);
+      if (index < 0 || index >= navigation.length) return;
+      state.selectedNavigationIndex = index;
+      removeSelectedTab();
+    }
+
+    function downloadJson() {
+      const blob = new Blob([$('jsonEditor').value], { type: 'application/json' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = `${($('layoutName').value.trim() || 'desktop-layout').replace(/\s+/g, '_')}.json`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(link.href);
+    }
+
+    function copyJson() {
+      navigator.clipboard.writeText($('jsonEditor').value)
+        .then(() => setStatus('JSON copied to clipboard.', 'success'))
+        .catch(() => setStatus('Unable to copy JSON.', 'error'));
+    }
+
+    function wireEvents() {
+      wirePanelPicker('previewTenantLayoutSelect', 'previewTenantLayoutText', 'previewTenantLayoutMenu', 'previewTenantLayoutTrigger');
+      wirePanelPicker('previewRoleSelect', 'previewRoleText', 'previewRoleMenu', 'previewRoleTrigger');
+      document.addEventListener('click', closePanelPickers);
+      $('newFromDefaultBtn').addEventListener('click', startFromGlobal);
+      $('applyFormBtn').addEventListener('click', applyFormToJson);
+      $('addTabBtn').addEventListener('click', addTab);
+      $('removeTabBtn').addEventListener('click', removeSelectedTab);
+      $('formatJsonBtn').addEventListener('click', formatJson);
+      $('copyJsonBtn').addEventListener('click', copyJson);
+      $('exportJsonBtn').addEventListener('click', downloadJson);
+      $('importJsonBtn').addEventListener('click', () => $('jsonUploadInput').click());
+      $('previewNewBtn').addEventListener('click', startFromGlobal);
+      $('previewImportBtn').addEventListener('click', () => $('jsonUploadInput').click());
+      $('previewNavModalClose').addEventListener('click', closePreviewNavModal);
+      $('previewNavModalCancel').addEventListener('click', closePreviewNavModal);
+      $('previewNavModalSave').addEventListener('click', savePreviewNavModal);
+      $('modalNavIconUrl').addEventListener('input', syncModalIconControls);
+      initIconPicker();
+      $('previewNavModalDelete').addEventListener('click', () => {
+        if (state.modalNavigationIndex >= LOCKED_NAV_COUNT) {
+          removeTabAt(state.modalNavigationIndex);
+        }
+        closePreviewNavModal();
+      });
+      $('previewNavModal').addEventListener('click', (event) => {
+        if (event.target === $('previewNavModal')) {
+          closePreviewNavModal();
+        }
+      });
+      $('jsonUploadInput').addEventListener('change', (event) => importJsonFile(event.target.files?.[0]));
+      $('tenantLayoutSelect').addEventListener('change', () => {
+        if ($('tenantLayoutSelect').value === '__new__') {
+          startFromGlobal();
+          return;
+        }
+        if ($('tenantLayoutSelect').value) {
+          loadSelectedLayout();
+        }
+      });
+      $('previewTenantLayoutSelect').addEventListener('change', () => {
+        $('tenantLayoutSelect').value = $('previewTenantLayoutSelect').value;
+        if ($('previewTenantLayoutSelect').value === '__new__') {
+          startFromGlobal();
+          return;
+        }
+        if ($('previewTenantLayoutSelect').value) {
+          loadSelectedLayout();
+        }
+      });
+      ['layoutName', 'layoutDescription', 'appTitle', 'logoUrl', 'taskPageIllustration', 'maximumToasterCount', 'notificationTimer', 'browserNotificationTimer'].forEach((id) => {
+        const el = $(id);
+        if (!el) return;
+        el.addEventListener('blur', () => applyFormSilently());
+      });
+      [
+        ['navLabel', 'label'],
+        ['navIcon', 'icon'],
+        ['navNavigateTo', 'navigateTo'],
+        ['navPageId', 'pageId'],
+        ['navSrc', 'src']
+      ].forEach(([id, field]) => {
+        const el = $(id);
+        if (!el) return;
+        el.addEventListener('blur', () => updateSelectedNavigationField(field));
+      });
+      $('navIconType').addEventListener('change', () => updateSelectedNavigationField('iconType'));
+      ['dragDropEnabled', 'stopNavigateOnAcceptTask', 'wxmConfigured', 'webexConfigured', 'roleSelect'].forEach((id) => {
+        const el = $(id);
+        if (!el) return;
+        el.addEventListener('change', () => {
+          if (id === 'roleSelect') {
+            state.currentRole = el.value;
+            state.selectedNavigationIndex = 0;
+            syncFormFromJson();
+            return;
+          }
+          applyFormSilently();
+        });
+      });
+      $('previewRoleSelect').addEventListener('change', () => {
+        $('roleSelect').value = $('previewRoleSelect').value;
+        state.currentRole = $('previewRoleSelect').value;
+        state.selectedNavigationIndex = 0;
+        syncFormFromJson();
+      });
+      $('jsonEditor').addEventListener('input', () => {
+        try {
+          parseEditorJson();
+          syncFormFromJson();
+        } catch {
+          renderPreview();
+        }
+      });
+      window.addEventListener('message', (event) => {
+        if (event?.data?.type === 'desktop-layout-nav-select') {
+          if (typeof event.data.index !== 'number' || event.data.index < 0) return;
+          state.selectedNavigationIndex = event.data.index;
+          renderNavigationEditor();
+          return;
+        }
+        if (event?.data?.type === 'desktop-layout-preview-edit-title') {
+          applyPreviewTitle(event.data.value || '');
+          return;
+        }
+        if (event?.data?.type === 'desktop-layout-preview-edit-logo') {
+          applyPreviewLogo(event.data.value || '');
+          return;
+        }
+        if (event?.data?.type === 'desktop-layout-preview-edit-illustration') {
+          applyPreviewIllustration(event.data.value || '');
+          return;
+        }
+        if (event?.data?.type === 'desktop-layout-preview-add-nav') {
+          addTab();
+          openPreviewNavModal(state.selectedNavigationIndex);
+          return;
+        }
+        if (event?.data?.type === 'desktop-layout-preview-remove-nav') {
+          if (event.data.index < LOCKED_NAV_COUNT) return;
+          removeTabAt(event.data.index);
+          return;
+        }
+        if (event?.data?.type === 'desktop-layout-preview-open-nav-editor') {
+          openPreviewNavModal(event.data.index);
+          return;
+        }
+      });
+    }
+
+
+    function updateAuthIndicators() {
+      const bearer = localStorage.getItem(cacheKeyBearer) || '';
+      const org = localStorage.getItem(cacheKeyOrgName) || localStorage.getItem(cacheKeyOrg) || '';
+      const user = localStorage.getItem(cacheKeyUser) || '';
+      $('userName').textContent = bearer ? (user || 'Authenticated') : 'Not authenticated';
+      $('userOrg').textContent = org || '';
+    }
+
+    function initNavMenus() {
+      function setupMenu(buttonId, menuId) {
+        const btn = document.getElementById(buttonId);
+        const menu = document.getElementById(menuId);
+        if (!btn || !menu) return;
+        btn.addEventListener('click', (event) => {
+          event.stopPropagation();
+          const expanded = btn.getAttribute('aria-expanded') === 'true';
+          document.querySelectorAll('.tp-nav-dropdown, .tp-user-dropdown').forEach((el) => el.classList.remove('open'));
+          document.querySelectorAll('.tp-nav-button, .tp-user-button').forEach((el) => el.setAttribute('aria-expanded', 'false'));
+          if (!expanded) {
+            menu.classList.add('open');
+            btn.setAttribute('aria-expanded', 'true');
+          }
+        });
+      }
+      setupMenu('tpCallingBtn', 'tpCallingMenu');
+      setupMenu('tpContactCenterBtn', 'tpContactCenterMenu');
+      setupMenu('tpUserMenuBtn', 'tpUserMenu');
+      document.addEventListener('click', () => {
+        document.querySelectorAll('.tp-nav-dropdown, .tp-user-dropdown').forEach((el) => el.classList.remove('open'));
+        document.querySelectorAll('.tp-nav-button, .tp-user-button').forEach((el) => el.setAttribute('aria-expanded', 'false'));
+      });
+    }
+
+    function initSignOut() {
+      const signOutBtn = $('signOutBtn');
+      if (!signOutBtn) return;
+      signOutBtn.addEventListener('click', () => {
+        localStorage.removeItem(cacheKeyBearer);
+        localStorage.removeItem(cacheKeyOrg);
+        localStorage.removeItem(cacheKeyOrgName);
+        localStorage.removeItem(cacheKeyUser);
+        localStorage.removeItem(cacheKeyOrgId);
+        localStorage.removeItem('authRefreshToken');
+        localStorage.removeItem('authExpiresAt');
+        window.location.href = '../../index.html';
+      });
+    }
+
+    function initPage() {
+      updateAuthIndicators();
+      initNavMenus();
+      initSignOut();
+      wireEvents();
+      $('roleSelect').value = state.currentRole;
+      updateJsonEditor();
+      syncFormFromJson();
+      try {
+        if (getBearer() && getOrgIdValue()) {
+          fetchLayouts().catch((err) => setStatus(err.message, 'error'));
+        }
+      } catch (err) {
+        setStatus(err.message, 'error');
+      }
+    }
+
+    initPage();
+  </script>
+</body>
+</html>

@@ -1,0 +1,947 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="light" />
+  <title>WxCC Wizard - Users</title>
+  <link rel="icon" type="image/png" href="../../assets/images/WxCC_Icon-192.png" />
+  <link rel="stylesheet" href="../../assets/css/theme.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    main { padding: 32px 0 64px; display: flex; justify-content: flex-start; align-items: flex-start; }
+    .wizard-card {
+      width: 100%;
+      background: var(--panel); border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 36px; padding: 28px 32px;
+      box-shadow: 0 30px 60px rgba(0,0,0,0.35); margin: 0 auto;
+    }
+    .wizard-title { margin: 0 0 8px; font-size: clamp(2.75rem,3vw,3.6rem); font-weight: 700; color: var(--fg); }
+    .step-label { margin: 0 0 12px; font-size: 1rem; letter-spacing: 0.25em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+    .step-label.form-heading { font-size: 1.15rem; font-weight: 700; color: var(--fg); letter-spacing: 0.4em; }
+    body.dark-mode .step-label.form-heading { color: #fff; }
+    .wizard-subtitle { margin: 0 0 28px; font-size: 1rem; color: var(--muted); letter-spacing: 0.2em; text-transform: uppercase; }
+    .progress-bar { display: flex; gap: 8px; margin-bottom: 32px; }
+    .progress-step { flex: 1; height: 6px; background: #d4d4d4; border-radius: 3px; }
+    body.dark-mode .progress-step { background: rgba(255,255,255,0.18); }
+    .progress-step.complete { background: linear-gradient(135deg,#2196f3,#1976d2); }
+    .progress-step.active   { background: linear-gradient(135deg,#22c55e,#10b981); }
+    body.dark-mode .progress-step.complete { background: linear-gradient(135deg,#2196f3,#1976d2); }
+    body.dark-mode .progress-step.active   { background: linear-gradient(135deg,#22c55e,#10b981); }
+    .form-panel {
+      border: 1px solid rgba(255,255,255,0.1); border-radius: 26px; padding: 32px 40px;
+      background: rgba(255,255,255,0.02); box-shadow: inset 0 0 0 1px rgba(255,255,255,0.03);
+      display: flex; flex-direction: column; gap: 18px; width: 100%;
+    }
+    body:not(.dark-mode) .form-panel { border-color: rgba(0,0,0,0.12); background: rgba(255,255,255,0.94); box-shadow: 0 25px 60px rgba(0,0,0,0.12); }
+    .hidden { display: none !important; }
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center;
+      padding: 11px 24px; border-radius: 14px; font-weight: 700; font-size: 0.95rem;
+      cursor: pointer; transition: all 0.2s; border: none; font-family: inherit;
+    }
+    .btn.primary { background: linear-gradient(135deg,#2196f3,#1976d2); color: #fff; border: 1px solid #1976d2; }
+    .btn.primary:hover { background: linear-gradient(135deg,#1976d2,#1565c0); box-shadow: 0 4px 12px rgba(33,150,243,0.4); }
+    .btn.primary:disabled { opacity: 0.45; cursor: not-allowed; }
+    .btn.secondary { border: 1px solid rgba(255,255,255,0.25); background: rgba(255,255,255,0.08); color: var(--fg); }
+    body.dark-mode .btn.secondary { color: #fff; }
+    .btn.secondary:hover { background: rgba(255,255,255,0.12); }
+    .btn.sm { padding: 7px 14px; font-size: 0.82rem; border-radius: 10px; }
+    .button-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-top: 8px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.06); }
+
+    /* ── Toolbar ── */
+    .user-toolbar {
+      display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+    }
+    .search-wrap { flex: 1; min-width: 200px; }
+    .search-wrap input {
+      width: 100%; border-radius: 14px; border: 1px solid var(--border); background: var(--input);
+      color: var(--fg); padding: 10px 14px; font-size: 0.9rem; font-family: inherit;
+    }
+    .toolbar-right { display: flex; gap: 10px; align-items: center; }
+    .license-pick {
+      border-radius: 14px; border: 1px solid var(--border); background: var(--input);
+      color: var(--fg); padding: 10px 14px; font-size: 0.85rem; font-family: inherit; min-width: 220px;
+    }
+
+    /* ── Load status bar ── */
+    .load-status {
+      font-size: 0.82rem; color: var(--muted); padding: 8px 0; display: flex; align-items: center; gap: 8px;
+    }
+    .load-status.error { color: #f87171; }
+    .spinner {
+      width: 14px; height: 14px; border: 2px solid rgba(255,255,255,0.2);
+      border-top-color: #2196f3; border-radius: 50%; animation: spin 0.7s linear infinite; flex-shrink: 0;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── User Table ── */
+    .user-table-wrap {
+      border: 1px solid rgba(255,255,255,0.09); border-radius: 16px; overflow: hidden;
+      max-height: 480px; overflow-y: auto;
+    }
+    .user-table { width: 100%; border-collapse: collapse; }
+    .user-table thead { position: sticky; top: 0; z-index: 2; }
+    .user-table th {
+      background: #1a2035; padding: 12px 16px; text-align: left;
+      font-size: 0.72rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted); font-weight: 700;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+    body:not(.dark-mode) .user-table th { background: #eef0f5; border-bottom-color: rgba(0,0,0,0.08); }
+    .user-table td {
+      padding: 12px 16px; border-bottom: 1px solid rgba(255,255,255,0.05); vertical-align: middle; font-size: 0.88rem;
+    }
+    body:not(.dark-mode) .user-table td { border-bottom-color: rgba(0,0,0,0.06); }
+    .user-table tr:last-child td { border-bottom: none; }
+    .user-table tr.selected td { background: rgba(33,150,243,0.06); }
+    .user-table tr:hover td { background: rgba(255,255,255,0.03); }
+    .user-table tr.selected:hover td { background: rgba(33,150,243,0.09); }
+    .ut-check { width: 44px; text-align: center; }
+    .ut-name strong { display: block; font-size: 0.9rem; font-weight: 600; }
+    .ut-name span { font-size: 0.78rem; color: var(--muted); }
+    .ut-email { color: var(--muted); font-size: 0.82rem; }
+    .ut-role select {
+      border-radius: 10px; border: 1px solid var(--border); background: var(--input);
+      color: var(--fg); padding: 6px 10px; font-size: 0.82rem; font-family: inherit;
+    }
+    input[type="checkbox"].ut-cb { width: 16px; height: 16px; cursor: pointer; accent-color: #2196f3; }
+
+    /* ── CC Status badge ── */
+    .cc-badge {
+      display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px;
+      border-radius: 20px; font-size: 0.75rem; font-weight: 600; letter-spacing: 0.05em;
+      white-space: nowrap;
+    }
+    .cc-badge.agent    { background: rgba(34,197,94,0.15);  border: 1px solid rgba(34,197,94,0.3);  color: #22c55e; }
+    .cc-badge.super    { background: rgba(33,150,243,0.15); border: 1px solid rgba(33,150,243,0.35); color: #2196f3; }
+    .cc-badge.none     { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12); color: var(--muted); }
+    .cc-badge.wxcc     { background: rgba(16,185,129,0.15);  border: 1px solid rgba(16,185,129,0.35); color: #10b981; }
+    body:not(.dark-mode) .cc-badge.none { background: rgba(0,0,0,0.04); border-color: rgba(0,0,0,0.12); color: #666; }
+
+    /* ── Selection count ── */
+    .selection-count { font-size: 0.85rem; color: var(--muted); }
+
+    /* ── Load more ── */
+    .load-more-row { padding: 16px; text-align: center; }
+
+    /* ── Provisioning progress ── */
+    .prov-bar-track { background: rgba(255,255,255,0.08); border-radius: 99px; height: 8px; margin: 8px 0 18px; overflow: hidden; }
+    body:not(.dark-mode) .prov-bar-track { background: rgba(0,0,0,0.1); }
+    .prov-bar-fill { height: 100%; background: linear-gradient(135deg,#2196f3,#22c55e); border-radius: 99px; transition: width 0.5s ease; width: 0%; }
+    .prov-meta { font-size: 0.85rem; color: var(--muted); margin-bottom: 16px; }
+    .prov-user-list { display: flex; flex-direction: column; gap: 8px; max-height: 400px; overflow-y: auto; }
+    .prov-user-row {
+      display: flex; align-items: center; gap: 14px; padding: 12px 16px;
+      border-radius: 12px; border: 1px solid rgba(255,255,255,0.08); background: rgba(255,255,255,0.02);
+      transition: all 0.2s;
+    }
+    .prov-user-row.prov-active  { border-color: rgba(33,150,243,0.4);  background: rgba(33,150,243,0.07); }
+    .prov-user-row.prov-done    { border-color: rgba(34,197,94,0.35);  background: rgba(34,197,94,0.06); }
+    .prov-user-row.prov-error   { border-color: rgba(248,113,113,0.4); background: rgba(248,113,113,0.07); }
+    .prov-icon { font-size: 1.1rem; flex-shrink: 0; width: 22px; text-align: center; }
+    .prov-user-info { flex: 1; min-width: 0; }
+    .prov-user-name { font-size: 0.88rem; font-weight: 600; }
+    .prov-user-detail { font-size: 0.78rem; color: var(--muted); margin-top: 2px; }
+    .prov-results-box {
+      border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 20px 24px;
+      background: rgba(255,255,255,0.02); margin-top: 16px;
+    }
+    .prov-results-title { font-size: 1.1rem; font-weight: 700; margin-bottom: 8px; }
+    .prov-ok  { color: #22c55e; }
+    .prov-err { color: #f87171; }
+
+    /* ── Bulk panel ── */
+    .bulk-panel { display: flex; flex-direction: column; gap: 18px; }
+    .bulk-textarea {
+      width: 100%; border-radius: 14px; border: 1px solid var(--border); background: var(--input);
+      color: var(--fg); padding: 12px 14px; font-size: 0.9rem; font-family: inherit; resize: vertical;
+    }
+    .statusMessage { margin-top: 8px; padding: 12px 16px; border-radius: 12px; text-align: center; font-size: 0.9rem; font-weight: 600; display: none; }
+    .statusMessage.success { background: linear-gradient(135deg,#10b981,#22c55e); color: #fff; border: 1px solid #22c55e; display: block; }
+    .statusMessage.error   { background: rgba(248,113,113,0.15); color: #f87171; border: 1px solid rgba(248,113,113,0.4); display: block; }
+    .statusMessage.info    { background: rgba(33,150,243,0.12); color: var(--fg); border: 1px solid rgba(33,150,243,0.35); display: block; }
+    body.dark-mode .statusMessage.info { color: #fff; }
+
+    /* ── Confirm modal (replaces native confirm() so it matches the UI) ── */
+    .confirm-modal-backdrop {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.55);
+      backdrop-filter: blur(3px);
+      z-index: 9000;
+      display: flex; align-items: center; justify-content: center;
+      padding: 24px;
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.18s ease;
+    }
+    .confirm-modal-backdrop.open { opacity: 1; pointer-events: all; }
+    .confirm-modal-card {
+      width: min(480px, 100%);
+      background: var(--panel);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 22px;
+      padding: 28px 32px 24px;
+      box-shadow: 0 32px 64px rgba(0,0,0,0.5);
+      display: flex; flex-direction: column; gap: 16px;
+      transform: translateY(10px);
+      transition: transform 0.18s ease;
+    }
+    .confirm-modal-backdrop.open .confirm-modal-card { transform: translateY(0); }
+    .confirm-modal-title { font-size: 1.05rem; font-weight: 700; color: var(--fg); }
+    .confirm-modal-body { font-size: 0.9rem; line-height: 1.6; color: var(--muted); }
+    .confirm-modal-footer { display: flex; justify-content: flex-end; gap: 10px; }
+  </style>
+</head>
+<body class="dark-mode">
+  <script>if (localStorage.getItem("tpRailExpanded") === "true") document.body.classList.add("tp-rail-expanded");</script>
+  <api-tools-header basepath="../../"></api-tools-header>
+
+  <main>
+    <div class="wrap wide contentWrap">
+      <section class="wizard-card">
+        <h1 class="wizard-title">Contact Center Setup Wizard</h1>
+        <p class="wizard-subtitle">Step 5 of 5 · Users</p>
+        <div class="progress-bar">
+          <div class="progress-step complete"></div>
+          <div class="progress-step complete"></div>
+          <div class="progress-step complete"></div>
+          <div class="progress-step complete"></div>
+          <div class="progress-step active"></div>
+        </div>
+
+        <!-- ===== Stage: User Selection ===== -->
+        <div id="stageSelect">
+          <div class="form-panel">
+            <div class="step-label form-heading">Step 5 · Assign Users</div>
+
+            <!-- Toolbar -->
+            <div class="user-toolbar">
+              <div class="search-wrap">
+                <input id="userSearch" type="search" placeholder="Search by name or email…" autocomplete="off">
+              </div>
+              <div class="toolbar-right">
+                <select id="ccLicensePicker" class="license-pick">
+                  <option value="">Detecting CC license…</option>
+                </select>
+                <button type="button" class="btn secondary sm" id="bulkBtn">Bulk →</button>
+              </div>
+            </div>
+
+            <!-- Load status -->
+            <div class="load-status" id="loadStatus">
+              <div class="spinner" id="loadSpinner"></div>
+              <span id="loadStatusText">Loading users from Control Hub…</span>
+            </div>
+
+            <!-- User table -->
+            <div class="user-table-wrap" id="userTableWrap">
+              <table class="user-table">
+                <thead>
+                  <tr>
+                    <th class="ut-check"><input type="checkbox" class="ut-cb" id="selectAll" title="Select all visible"></th>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>CC Status</th>
+                    <th>Role</th>
+                  </tr>
+                </thead>
+                <tbody id="userTableBody">
+                  <tr><td colspan="5" style="text-align:center; color:var(--muted); padding:24px;">Loading users…</td></tr>
+                </tbody>
+              </table>
+              <div class="load-more-row hidden" id="loadMoreRow">
+                <button type="button" class="btn secondary sm" id="loadMoreBtn">Load more users</button>
+              </div>
+            </div>
+
+            <!-- Bottom bar -->
+            <div class="button-row">
+              <button type="button" class="btn secondary" id="prevBtn">← Back</button>
+              <div style="display:flex; align-items:center; gap:16px;">
+                <button type="button" class="btn secondary" id="skipUsersBtn">Skip this step →</button>
+                <span class="selection-count" id="selectionCount">0 selected</span>
+                <button type="button" class="btn primary" id="provisionBtn" disabled>Provision Selected →</button>
+              </div>
+            </div>
+            <p id="selectStatus" class="statusMessage hidden"></p>
+          </div>
+        </div>
+
+        <!-- ===== Stage: Bulk CSV Import ===== -->
+        <div id="stageBulk" class="hidden">
+          <div class="form-panel bulk-panel">
+            <div class="step-label form-heading">Bulk Import by Email</div>
+            <p style="margin:0; color:var(--muted); font-size:0.9rem;">
+              Paste one email per line (or upload a CSV with a single <strong>email</strong> column).
+              These users will be provisioned using the same wizard settings.
+            </p>
+            <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+              <button type="button" class="btn secondary sm" id="downloadTemplateBtn">⬇ Download CSV Template</button>
+              <label class="btn secondary sm" style="cursor:pointer;">
+                Upload CSV <input type="file" id="bulkFileInput" accept="text/csv,.csv" class="hidden">
+              </label>
+            </div>
+            <textarea id="bulkTextarea" class="bulk-textarea" rows="8" placeholder="user1@company.com&#10;user2@company.com&#10;user3@company.com"></textarea>
+            <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+              <select id="bulkRolePicker" class="license-pick" style="min-width:160px;">
+                <option value="agent">Role: Agent</option>
+                <option value="supervisor">Role: Supervisor</option>
+              </select>
+              <button type="button" class="btn primary" id="bulkProvisionBtn">Provision These →</button>
+              <button type="button" class="btn secondary" id="bulkBackBtn">← Back</button>
+            </div>
+            <p id="bulkStatus" class="statusMessage hidden"></p>
+          </div>
+        </div>
+
+        <!-- ===== Stage: Provisioning Progress ===== -->
+        <div id="stageProgress" class="hidden">
+          <div class="form-panel">
+            <div class="step-label form-heading">Provisioning Users</div>
+            <div class="prov-bar-track"><div class="prov-bar-fill" id="provBarFill"></div></div>
+            <div class="prov-meta" id="provMeta">Preparing…</div>
+            <div class="prov-user-list" id="provUserList"></div>
+            <div class="prov-results-box hidden" id="provResultsBox">
+              <div class="prov-results-title" id="provResultsTitle"></div>
+              <p id="provResultsDetail" style="font-size:0.85rem; color:var(--muted); margin:8px 0 16px;"></p>
+              <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                <button type="button" class="btn secondary" id="provBackBtn">← Back to users</button>
+                <button type="button" class="btn primary" id="provDoneBtn">Done ✓</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </section>
+    </div>
+  </main>
+
+  <div class="confirm-modal-backdrop" id="confirmModalBackdrop">
+    <div class="confirm-modal-card">
+      <div class="confirm-modal-title" id="confirmModalTitle"></div>
+      <div class="confirm-modal-body" id="confirmModalBody"></div>
+      <div class="confirm-modal-footer">
+        <button type="button" class="btn secondary" id="confirmModalCancel">Cancel</button>
+        <button type="button" class="btn primary" id="confirmModalOk">Skip this step</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="../../assets/js/orbit-config.js"></script>
+
+  <script src="../../assets/js/components.js"></script>
+
+  <script src="../../assets/js/theme.js"></script>
+  <script>
+    /* ── Wizard state helpers ──────────────────────────────────────── */
+    const WIZARD_STATE_KEY = 'wxcc_wizard_state';
+    /* Fields Webex requires in a PUT /v1/people/{id} — mirrors the working wxc/user.html approach */
+    const WEBEX_PUT_FIELDS = [
+      'emails', 'displayName', 'firstName', 'lastName', 'avatar', 'orgId', 'roles', 'licenses',
+      'department', 'title', 'addresses', 'manager', 'siteUrls', 'loginEnabled', 'pronouns',
+      'city', 'state', 'country', 'zipCode'
+    ];
+    function getWizardState() {
+      try { return JSON.parse(localStorage.getItem(WIZARD_STATE_KEY) || '{}'); } catch { return {}; }
+    }
+    function decodeWebexId(raw) {
+      if (!raw) return '';
+      if (/^[0-9a-fA-F-]{30,}$/.test(raw)) return raw;
+      if (/^Y2lz/i.test(raw)) {
+        try {
+          const padded = raw.replace(/-/g,'+').replace(/_/g,'/').padEnd(Math.ceil(raw.length/4)*4,'=');
+          const decoded = atob(padded);
+          const parts = decoded.split('/');
+          return parts[parts.length - 1] || decoded;
+        } catch { return raw; }
+      }
+      return raw;
+    }
+    function resolveOrgId() {
+      /* Returns plain UUID — used for WxCC API base URL */
+      const stored = (localStorage.getItem('authOrgId') || '').trim();
+      if (stored) return decodeWebexId(stored) || stored;
+      const raw = (localStorage.getItem('authOrg') || '').trim();
+      return raw ? (decodeWebexId(raw) || raw) : '';
+    }
+    function resolveWebexOrgId() {
+      /* Returns base64-encoded orgId — required by Webex People API (/v1/people?orgId=) */
+      const stored = (localStorage.getItem('authOrgId') || '').trim();
+      if (/^Y2lz/i.test(stored)) return stored;  // already base64
+      const raw = (localStorage.getItem('authOrg') || '').trim();
+      if (/^Y2lz/i.test(raw)) return raw;
+      /* UUID → encode to Webex base64 format */
+      const uuid = resolveOrgId();
+      try {
+        return btoa(`ciscospark://us/ORGANIZATION/${uuid}`)
+          .replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+      } catch { return uuid; }
+    }
+
+    const ORG_ID        = resolveOrgId();
+    const WEBEX_ORG_ID  = resolveWebexOrgId();   // base64 form for Webex People API
+    const WXCC_BASE     = `https://api.wxcc-us1.cisco.com/organization/${encodeURIComponent(ORG_ID)}`;
+    const WEBEX_BASE    = 'https://webexapis.com';
+    const AUTH_TOKEN  = (localStorage.getItem('authBearer') || '').trim();
+    const wxccHeaders = { Accept: 'application/json', ...(AUTH_TOKEN && { Authorization: `Bearer ${AUTH_TOKEN}` }) };
+    const webexHeaders = { Accept: 'application/json', ...(AUTH_TOKEN && { Authorization: `Bearer ${AUTH_TOKEN}` }) };
+
+    /* ── State ────────────────────────────────────────────────────── */
+    let allUsers     = [];   // Webex person objects
+    let nextUrl      = '';   // Pagination
+    let orgLicenses  = [];   // All org licenses from /v1/licenses
+    let ccLicenses   = [];   // Filtered CC licenses [{id, name, isSupervisor}]
+    let wxccUserMap  = new Map(); // email (lower) → WxCC user object
+    let siteId       = '';
+    let searchResults = null; // null = browsing loaded pages; array = org-wide search match
+    let searchTimer   = null;
+    let searchSeq     = 0;    // guards against a slow, stale search overwriting a newer one
+
+    /* ── Helpers ──────────────────────────────────────────────────── */
+    function isCC(name) {
+      const n = (name || '').toLowerCase();
+      return (n.includes('contact center') || n.includes('wxcc')) && (n.includes('agent') || n.includes('supervisor'));
+    }
+    function isSupervisorLic(name) {
+      const n = (name || '').toLowerCase();
+      return n.includes('supervisor');
+    }
+    function getCCStatus(person) {
+      const lics = person.licenses || [];
+      for (const lic of ccLicenses) {
+        if (lics.includes(lic.id)) return lic.isSupervisor ? 'super' : 'agent';
+      }
+      return 'none';
+    }
+    function setLoadStatus(text, isError = false, showSpinner = false) {
+      document.getElementById('loadStatusText').textContent = text;
+      document.getElementById('loadSpinner').classList.toggle('hidden', !showSpinner);
+      document.getElementById('loadStatus').className = `load-status${isError ? ' error' : ''}`;
+    }
+    function showStage(id) {
+      ['stageSelect','stageBulk','stageProgress'].forEach(s => document.getElementById(s).classList.add('hidden'));
+      document.getElementById(id).classList.remove('hidden');
+    }
+
+    /* ── Load org licenses ────────────────────────────────────────── */
+    async function loadLicenses() {
+      try {
+        const r = await fetch(`${WEBEX_BASE}/v1/licenses`, { headers: webexHeaders });
+        const d = await r.json().catch(() => ({}));
+        orgLicenses = Array.isArray(d.items) ? d.items : [];
+        ccLicenses = orgLicenses
+          .filter(l => isCC(l.name || l.displayName || ''))
+          .map(l => ({
+            id:           l.id,
+            name:         l.name || l.displayName || l.id,
+            isSupervisor: isSupervisorLic(l.name || l.displayName || ''),
+            available:    l.totalUnits != null && l.consumedUnits != null ? l.totalUnits - l.consumedUnits : null
+          }));
+        const picker = document.getElementById('ccLicensePicker');
+        if (!ccLicenses.length) {
+          picker.innerHTML = '<option value="">No CC licenses found</option>';
+        } else {
+          picker.innerHTML = ccLicenses.map(l =>
+            `<option value="${l.id}" data-is-super="${l.isSupervisor}">${l.name}${l.available != null ? ` (${l.available} avail.)` : ''}</option>`
+          ).join('');
+        }
+      } catch (e) {
+        console.warn('License load failed:', e);
+        document.getElementById('ccLicensePicker').innerHTML = '<option value="">Could not load licenses</option>';
+      }
+    }
+
+    /* ── Load WxCC users for cross-reference ─────────────────────── */
+    async function loadWxccUsers() {
+      try {
+        let page = 0;
+        while (true) {
+          const r = await fetch(`${WXCC_BASE}/v2/user?page=${page}&pageSize=200`, { headers: wxccHeaders });
+          const d = await r.json().catch(() => ({}));
+          const items = Array.isArray(d) ? d : (d?.data ?? []);
+          items.forEach(u => { if (u.email) wxccUserMap.set(u.email.toLowerCase(), u); });
+          if (!items.length || items.length < 200) break;
+          page++;
+        }
+      } catch (e) { console.warn('WxCC user load failed:', e); }
+    }
+
+    /* ── Load WxCC site ───────────────────────────────────────────── */
+    async function loadSite() {
+      try {
+        const r = await fetch(`${WXCC_BASE}/v2/site`, { headers: wxccHeaders });
+        const d = await r.json().catch(() => ({}));
+        const sites = Array.isArray(d) ? d : (d?.data ?? []);
+        if (sites.length) siteId = sites[0].id;
+      } catch (e) { console.warn('Site load failed:', e); }
+    }
+
+    /* ── Load Webex users (paginated) ────────────────────────────── */
+    async function loadUsers(url = '') {
+      setLoadStatus('Loading users from Control Hub…', false, true);
+      try {
+        const endpoint = url || `${WEBEX_BASE}/v1/people?max=200&orgId=${encodeURIComponent(WEBEX_ORG_ID)}`;
+        const r = await fetch(endpoint, { headers: webexHeaders });
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        const d = await r.json().catch(() => ({}));
+        const items = Array.isArray(d.items) ? d.items : [];
+        allUsers = url ? [...allUsers, ...items] : items;
+
+        /* Parse Link header for next page */
+        const link = r.headers.get('Link') || '';
+        const nextMatch = link.match(/<([^>]+)>;\s*rel="next"/);
+        nextUrl = nextMatch ? nextMatch[1] : (d.next || '');
+
+        renderTable();
+        document.getElementById('loadMoreRow').classList.toggle('hidden', !nextUrl);
+        setLoadStatus(`${allUsers.length} users loaded${nextUrl ? ' — more available' : ''}`, false, false);
+      } catch (e) {
+        setLoadStatus(`Failed to load users: ${e.message}`, true, false);
+      }
+    }
+
+    /* ── Search across the whole org (not just loaded pages) ───────
+       Webex People API supports server-side filtering by displayName
+       (partial match) or exact email — this is what actually finds a
+       user in a tenant with hundreds/thousands of contacts, instead of
+       relying on "Load more" to eventually page past them. ───────── */
+    async function searchUsersServer(query) {
+      const mySeq = ++searchSeq;
+      setLoadStatus(`Searching for "${query}"…`, false, true);
+      try {
+        const param = query.includes('@')
+          ? `email=${encodeURIComponent(query)}`
+          : `displayName=${encodeURIComponent(query)}`;
+        const endpoint = `${WEBEX_BASE}/v1/people?max=200&orgId=${encodeURIComponent(WEBEX_ORG_ID)}&${param}`;
+        const r = await fetch(endpoint, { headers: webexHeaders });
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        const d = await r.json().catch(() => ({}));
+        const items = Array.isArray(d.items) ? d.items : [];
+        if (mySeq !== searchSeq) return; // a newer search superseded this one
+
+        searchResults = items;
+        /* Merge into allUsers so selection / role-picker / provisioning keep working normally */
+        items.forEach(p => { if (!allUsers.some(u => u.id === p.id)) allUsers.push(p); });
+
+        document.getElementById('loadMoreRow').classList.add('hidden');
+        setLoadStatus(`${items.length} match${items.length === 1 ? '' : 'es'} for "${query}" (org-wide)`, false, false);
+        renderTable();
+      } catch (e) {
+        if (mySeq !== searchSeq) return;
+        setLoadStatus(`Search failed: ${e.message}`, true, false);
+      }
+    }
+
+    /* ── Render table ─────────────────────────────────────────────── */
+    function renderTable() {
+      const tbody = document.getElementById('userTableBody');
+      const search = (document.getElementById('userSearch')?.value || '').toLowerCase();
+      const source = searchResults !== null ? searchResults : allUsers;
+      const filtered = source.filter(p => {
+        if (!search) return true;
+        const name = (p.displayName || '').toLowerCase();
+        const email = ((p.emails || [])[0] || '').toLowerCase();
+        return name.includes(search) || email.includes(search);
+      });
+
+      if (!filtered.length) {
+        const emptyMsg = searchResults !== null
+          ? `No org-wide match for "${search}". Check the spelling or try just the email.`
+          : (allUsers.length ? 'No match in the users loaded so far — still searching the org…' : 'No users loaded.');
+        tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:24px;">${escHtml(emptyMsg)}</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = filtered.map(person => {
+        const email = ((person.emails || [])[0] || '').toLowerCase();
+        const ccStatus = getCCStatus(person);
+        const inWxcc   = wxccUserMap.has(email);
+        const badge    = ccStatus === 'agent'
+          ? `<span class="cc-badge agent">✓ Agent</span>${inWxcc ? ' <span class="cc-badge wxcc">In WxCC</span>' : ''}`
+          : ccStatus === 'super'
+            ? `<span class="cc-badge super">✓ Supervisor</span>${inWxcc ? ' <span class="cc-badge wxcc">In WxCC</span>' : ''}`
+            : inWxcc
+              ? `<span class="cc-badge wxcc">In WxCC</span>`
+              : `<span class="cc-badge none">No CC License</span>`;
+        return `
+          <tr data-id="${person.id}" data-email="${email}">
+            <td class="ut-check"><input type="checkbox" class="ut-cb row-cb" data-id="${person.id}" data-email="${email}"></td>
+            <td class="ut-name"><strong>${escHtml(person.displayName || '—')}</strong></td>
+            <td class="ut-email">${escHtml(email)}</td>
+            <td>${badge}</td>
+            <td class="ut-role">
+              <select class="role-sel" data-id="${person.id}">
+                <option value="agent">Agent</option>
+                <option value="supervisor">Supervisor</option>
+              </select>
+            </td>
+          </tr>`;
+      }).join('');
+
+      tbody.querySelectorAll('.row-cb').forEach(cb => cb.addEventListener('change', updateSelectionCount));
+      updateSelectionCount();
+    }
+
+    function escHtml(s) {
+      return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    function updateSelectionCount() {
+      const checked = document.querySelectorAll('.row-cb:checked').length;
+      document.getElementById('selectionCount').textContent = `${checked} selected`;
+      document.getElementById('provisionBtn').disabled = checked === 0;
+      const selectAll = document.getElementById('selectAll');
+      const total = document.querySelectorAll('.row-cb').length;
+      selectAll.indeterminate = checked > 0 && checked < total;
+      selectAll.checked = total > 0 && checked === total;
+    }
+
+    /* ── Select All ───────────────────────────────────────────────── */
+    document.getElementById('selectAll').addEventListener('change', function() {
+      document.querySelectorAll('.row-cb').forEach(cb => cb.checked = this.checked);
+      updateSelectionCount();
+    });
+
+    /* ── Search ───────────────────────────────────────────────────── */
+    document.getElementById('userSearch').addEventListener('input', function() {
+      const query = this.value.trim();
+      clearTimeout(searchTimer);
+      searchSeq++; // invalidate any in-flight search immediately
+      searchResults = null; // fall back to instant local filtering while we wait to search the org
+      renderTable();
+      if (!query) {
+        document.getElementById('loadMoreRow').classList.toggle('hidden', !nextUrl);
+        setLoadStatus(`${allUsers.length} users loaded${nextUrl ? ' — more available' : ''}`, false, false);
+        return;
+      }
+      searchTimer = setTimeout(() => searchUsersServer(query), 350);
+    });
+
+    /* ── Load more ────────────────────────────────────────────────── */
+    document.getElementById('loadMoreBtn').addEventListener('click', () => loadUsers(nextUrl));
+
+    /* ── Bulk btn ─────────────────────────────────────────────────── */
+    document.getElementById('bulkBtn').addEventListener('click', () => showStage('stageBulk'));
+    document.getElementById('bulkBackBtn').addEventListener('click', () => showStage('stageSelect'));
+
+    /* ── Download CSV template ────────────────────────────────────── */
+    document.getElementById('downloadTemplateBtn').addEventListener('click', () => {
+      const blob = new Blob(['email\n'], { type: 'text/csv' });
+      const a = Object.assign(document.createElement('a'), { href: URL.createObjectURL(blob), download: 'wxcc_users_template.csv' });
+      a.click(); URL.revokeObjectURL(a.href);
+    });
+
+    /* ── Bulk file upload ─────────────────────────────────────────── */
+    document.getElementById('bulkFileInput').addEventListener('change', async function() {
+      if (!this.files[0]) return;
+      const text = await this.files[0].text();
+      document.getElementById('bulkTextarea').value = text;
+    });
+
+    /* ── Prev btn ─────────────────────────────────────────────────── */
+    document.getElementById('prevBtn').addEventListener('click', () => { window.location.href = 'S4_DesktopProfile.html'; });
+    document.getElementById('provBackBtn').addEventListener('click', () => showStage('stageSelect'));
+
+    function finishWizard() {
+      /* Clear wizard state so the next run starts fresh. The team, queue, flow,
+         channel, and desktop profile created in earlier steps are NOT affected —
+         this only resets the wizard's own bookkeeping. */
+      localStorage.removeItem(WIZARD_STATE_KEY);
+      localStorage.removeItem('wizardTeamId');
+      localStorage.removeItem('wizardTeamName');
+      window.location.href = 'S1_Teams.html';
+    }
+    document.getElementById('provDoneBtn').addEventListener('click', finishWizard);
+
+    /* ── Confirm modal (in-app replacement for the native confirm()) ─── */
+    function showConfirmModal({ title, body, okLabel = 'OK' }) {
+      return new Promise((resolve) => {
+        const backdrop = document.getElementById('confirmModalBackdrop');
+        document.getElementById('confirmModalTitle').textContent = title;
+        document.getElementById('confirmModalBody').textContent = body;
+        const okBtn = document.getElementById('confirmModalOk');
+        const cancelBtn = document.getElementById('confirmModalCancel');
+        okBtn.textContent = okLabel;
+        function close(result) {
+          backdrop.classList.remove('open');
+          okBtn.removeEventListener('click', onOk);
+          cancelBtn.removeEventListener('click', onCancel);
+          backdrop.removeEventListener('click', onBackdrop);
+          resolve(result);
+        }
+        function onOk() { close(true); }
+        function onCancel() { close(false); }
+        function onBackdrop(e) { if (e.target === backdrop) close(false); }
+        okBtn.addEventListener('click', onOk);
+        cancelBtn.addEventListener('click', onCancel);
+        backdrop.addEventListener('click', onBackdrop);
+        backdrop.classList.add('open');
+      });
+    }
+
+    document.getElementById('skipUsersBtn').addEventListener('click', async () => {
+      const confirmed = await showConfirmModal({
+        title: 'Skip assigning users?',
+        body: 'The team, queue, and flow you already set up will be kept — you can assign users to them later from the Contact Center Users page.',
+        okLabel: 'Skip this step'
+      });
+      if (confirmed) finishWizard();
+    });
+
+    /* ── Build provision list from selection ──────────────────────── */
+    function getSelectedItems() {
+      return Array.from(document.querySelectorAll('.row-cb:checked')).map(cb => {
+        const row  = cb.closest('tr');
+        const id   = cb.dataset.id;
+        const email = cb.dataset.email;
+        const role = row?.querySelector('.role-sel')?.value || 'agent';
+        const person = allUsers.find(p => p.id === id);
+        return { id, email, role, person };
+      }).filter(x => x.person);
+    }
+
+    /* ── Parse bulk textarea ──────────────────────────────────────── */
+    function parseBulkEmails(text) {
+      return text.split('\n').map(l => l.trim().toLowerCase())
+        .filter(l => l && l.includes('@') && !l.startsWith('email'));
+    }
+
+    /* ── Provision selected (main) ────────────────────────────────── */
+    document.getElementById('provisionBtn').addEventListener('click', async () => {
+      const items = getSelectedItems();
+      if (!items.length) return;
+      await runProvisioning(items);
+    });
+
+    /* ── Provision bulk ───────────────────────────────────────────── */
+    document.getElementById('bulkProvisionBtn').addEventListener('click', async () => {
+      const emails = parseBulkEmails(document.getElementById('bulkTextarea').value);
+      const role   = document.getElementById('bulkRolePicker').value;
+      if (!emails.length) {
+        showBulkStatus('No valid emails found.', 'error'); return;
+      }
+      const items = emails.map(email => ({ email, role, id: null, person: null }));
+      await runProvisioning(items);
+    });
+
+    function showBulkStatus(msg, type) {
+      const el = document.getElementById('bulkStatus');
+      el.textContent = msg; el.className = `statusMessage ${type}`;
+    }
+
+    /* ══════════════════════════════════════════════════════════════
+       PROVISIONING ENGINE
+    ═══════════════════════════════════════════════════════════════ */
+    async function runProvisioning(items) {
+      showStage('stageProgress');
+      document.getElementById('provResultsBox').classList.add('hidden');
+
+      const wizState        = getWizardState();
+      const agentProfileId  = wizState.latestDesktopProfileId || '';
+      const teamId          = localStorage.getItem('wizardTeamId') || wizState.latestCreatedTeam?.id || '';
+      const ccLicId         = document.getElementById('ccLicensePicker')?.value || '';
+
+      /* Build per-user progress rows */
+      const provList = document.getElementById('provUserList');
+      provList.innerHTML = items.map(it =>
+        `<div class="prov-user-row" id="prow_${it.email.replace(/[@.]/g,'_')}">
+          <div class="prov-icon" id="picon_${it.email.replace(/[@.]/g,'_')}">○</div>
+          <div class="prov-user-info">
+            <div class="prov-user-name">${escHtml(it.person?.displayName || it.email)}</div>
+            <div class="prov-user-detail" id="pdet_${it.email.replace(/[@.]/g,'_')}">${escHtml(it.email)} · Waiting…</div>
+          </div>
+        </div>`
+      ).join('');
+
+      const results = [];
+      for (let i = 0; i < items.length; i++) {
+        const item = items[i];
+        const safeId = item.email.replace(/[@.]/g,'_');
+        setProvRow(safeId, 'active', 'Processing…');
+        setProvBar((i / items.length) * 100);
+        document.getElementById('provMeta').textContent = `Provisioning ${i+1} of ${items.length}: ${item.email}`;
+
+        try {
+          await provisionUser(item, agentProfileId, teamId, ccLicId, safeId);
+          setProvRow(safeId, 'done', 'Provisioned ✓');
+          results.push({ email: item.email, ok: true });
+        } catch (err) {
+          setProvRow(safeId, 'error', err.message);
+          results.push({ email: item.email, ok: false, detail: err.message });
+        }
+      }
+
+      setProvBar(100);
+      document.getElementById('provMeta').textContent = 'Done.';
+      showProvResults(results);
+    }
+
+    async function provisionUser(item, agentProfileId, teamId, ccLicId, safeId) {
+      const email = item.email;
+      let licenseJustAssigned = false;
+
+      /* Step 1: Assign CC license if missing and a license is selected */
+      const person = item.person || (allUsers.find(p => ((p.emails||[])[0]||'').toLowerCase() === email) || null);
+      /* Consider already licensed if: license detected on person object, OR user is already in WxCC */
+      const alreadyHasCC =
+        (person && ccLicenses.some(l => (person.licenses||[]).includes(l.id))) ||
+        wxccUserMap.has(email);
+
+      if (!alreadyHasCC && ccLicId) {
+        setProvRow(safeId, 'active', 'Assigning CC license…');
+        let personDetail = person;
+        if (!personDetail) {
+          /* fetch person from Webex if not in allUsers (bulk flow) */
+          const pr = await fetch(`${WEBEX_BASE}/v1/people?email=${encodeURIComponent(email)}&max=1`, { headers: webexHeaders });
+          const pd = await pr.json().catch(() => ({}));
+          personDetail = (pd.items || [])[0];
+          if (!personDetail) throw new Error('User not found in Webex — check the email address');
+        }
+        /* GET full person detail to preserve all fields */
+        const dr = await fetch(`${WEBEX_BASE}/v1/people/${encodeURIComponent(personDetail.id)}`, { headers: webexHeaders });
+        const dd = await dr.json().catch(() => ({}));
+        const existingLicenses = Array.isArray(dd.licenses) ? dd.licenses : [];
+        if (!existingLicenses.includes(ccLicId)) {
+          /* Build PUT payload copying all known Webex person fields (same as wxc/user.html).
+             Webex returns 206 and silently drops the license update if orgId or other fields are missing. */
+          const putBody = {};
+          WEBEX_PUT_FIELDS.forEach(key => {
+            if (key === 'licenses') { putBody.licenses = [...existingLicenses, ccLicId]; return; }
+            if (Object.prototype.hasOwnProperty.call(dd, key)) putBody[key] = dd[key];
+          });
+          if (!putBody.orgId) putBody.orgId = dd.orgId || personDetail.orgId || '';
+          const lr = await fetch(`${WEBEX_BASE}/v1/people/${encodeURIComponent(personDetail.id)}`, {
+            method: 'PUT',
+            headers: { ...webexHeaders, 'Content-Type': 'application/json' },
+            body: JSON.stringify(putBody)
+          });
+          if (!lr.ok) {
+            const le = await lr.json().catch(() => ({}));
+            const msg = le?.message || le?.errors?.[0]?.description || `License assignment failed (HTTP ${lr.status})`;
+            throw new Error(msg);
+          }
+          /* Webex returns 206 when it accepts some fields but rejects others (e.g. license).
+             Verify the CC license actually appears in the response before proceeding. */
+          const lrBody = await lr.json().catch(() => ({}));
+          const appliedLicenses = Array.isArray(lrBody.licenses) ? lrBody.licenses : [];
+          if (!appliedLicenses.includes(ccLicId)) {
+            throw new Error(
+              `Webex did not apply the CC license (HTTP ${lr.status}) — the token may lack license-management permissions. ` +
+              `Assign the CC license manually in Control Hub, then provision again.`
+            );
+          }
+          licenseJustAssigned = true;
+        }
+      }
+
+      /* Step 2: Find user in WxCC — retry with delays if license was just assigned */
+      setProvRow(safeId, 'active', 'Looking up in WxCC…');
+      let wxccUser = wxccUserMap.get(email);
+      if (!wxccUser) {
+        /* When a license is freshly assigned, WxCC takes time to provision the user.
+           Retry up to 6 times (30s total) before giving up. */
+        const maxAttempts = licenseJustAssigned ? 6 : 1;
+        for (let attempt = 0; attempt < maxAttempts; attempt++) {
+          if (attempt > 0) {
+            setProvRow(safeId, 'active', `Waiting for WxCC sync… (${attempt}/${maxAttempts - 1})`);
+            await new Promise(r => setTimeout(r, 5000));
+          }
+          const wr = await fetch(`${WXCC_BASE}/v2/user?filter=${encodeURIComponent(`email=="${email}"`)}&page=0&pageSize=1`, { headers: wxccHeaders });
+          const wd = await wr.json().catch(() => ({}));
+          const wus = Array.isArray(wd) ? wd : (wd?.data ?? []);
+          if (wus[0]?.id) { wxccUser = wus[0]; break; }
+        }
+      }
+      if (!wxccUser?.id) {
+        const hint = licenseJustAssigned
+          ? 'License was assigned but WxCC sync is taking longer than expected — try again in a few minutes'
+          : 'Not yet in WxCC — if you just assigned a license, wait a moment and try again';
+        throw new Error(hint);
+      }
+
+      /* Step 3: Configure WxCC */
+      setProvRow(safeId, 'active', 'Configuring WxCC…');
+      /* firstName/lastName are required by WxCC PUT — carry over from existing record,
+         fall back to Webex person fields if the WxCC record has blanks */
+      const firstName = wxccUser.firstName || person?.firstName || '';
+      const lastName  = wxccUser.lastName  || person?.lastName  || '';
+      const updateBody = { loginEnabled: true, firstName, lastName };
+      /* userProfileId is required — carry over existing value */
+      if (wxccUser.userProfileId) updateBody.userProfileId = wxccUser.userProfileId;
+      if (agentProfileId) updateBody.agentProfileId = agentProfileId;
+      if (teamId)         updateBody.teamIds = [teamId];
+      if (siteId)         updateBody.siteId = siteId;
+
+      const ur = await fetch(`${WXCC_BASE}/user/${wxccUser.id}`, {
+        method: 'PUT',
+        headers: { ...wxccHeaders, 'Content-Type': 'application/json' },
+        body: JSON.stringify(updateBody)
+      });
+      if (!ur.ok) {
+        const ue = await ur.json().catch(() => ({}));
+        const msg = ue?.error?.message?.[0]?.description || ue?.error?.reason || ue?.message || `WxCC config failed (HTTP ${ur.status})`;
+        throw new Error(msg);
+      }
+      /* Update local WxCC map */
+      wxccUserMap.set(email, { ...wxccUser, ...updateBody });
+    }
+
+    /* ── Progress helpers ─────────────────────────────────────────── */
+    function setProvBar(pct) {
+      document.getElementById('provBarFill').style.width = `${Math.round(pct)}%`;
+    }
+    function setProvRow(safeId, state, detail) {
+      const row  = document.getElementById(`prow_${safeId}`);
+      const icon = document.getElementById(`picon_${safeId}`);
+      const det  = document.getElementById(`pdet_${safeId}`);
+      if (!row) return;
+      row.className = `prov-user-row prov-${state}`;
+      icon.textContent = state === 'active' ? '⟳' : state === 'done' ? '✓' : state === 'error' ? '✗' : '○';
+      if (det) det.textContent = det.textContent.split(' · ')[0] + ` · ${detail}`;
+    }
+    function showProvResults(results) {
+      const ok  = results.filter(r => r.ok).length;
+      const err = results.filter(r => !r.ok).length;
+      const box = document.getElementById('provResultsBox');
+      document.getElementById('provResultsTitle').innerHTML =
+        `<span class="prov-ok">${ok} provisioned</span>${err ? ` &nbsp;·&nbsp; <span class="prov-err">${err} failed</span>` : ''}`;
+      const details = results.filter(r => !r.ok).map(r => `${r.email}: ${r.detail}`).join('<br>');
+      document.getElementById('provResultsDetail').innerHTML = details || 'All users provisioned successfully.';
+      box.classList.remove('hidden');
+      /* refresh table to show updated WxCC status */
+      renderTable();
+    }
+
+    /* ── Auth indicator ───────────────────────────────────────────── */
+    function updateAuthIndicators() {
+      const token   = (localStorage.getItem('authBearer') || '').trim();
+      const orgName = localStorage.getItem('authOrgName') || localStorage.getItem('authOrg') || '';
+      const userName = localStorage.getItem('authUserName') || '';
+      const el = document.getElementById('userName');
+      const oe = document.getElementById('userOrg');
+      if (el) el.textContent = token ? (userName || 'Signed in') : 'Not authenticated';
+      if (oe) oe.textContent = token ? orgName : '';
+    }
+    updateAuthIndicators();
+    const signOutBtn = document.getElementById('signOutBtn');
+    if (signOutBtn) {
+      signOutBtn.addEventListener('click', () => {
+        ['authBearer','authOrg','authOrgName','authOrgId','authUserName','authRefreshToken','authExpiresAt','authLoginMethod','authScopes']
+          .forEach(k => localStorage.removeItem(k));
+        window.location.href = '../../index.html';
+      });
+    }
+
+    /* ── Boot ─────────────────────────────────────────────────────── */
+    (async () => {
+      if (!AUTH_TOKEN) {
+        setLoadStatus('Not authenticated — please sign in first.', true, false);
+        return;
+      }
+      await Promise.all([loadLicenses(), loadWxccUsers(), loadSite()]);
+      await loadUsers();
+    })();
+  </script>
+</body>
+</html>

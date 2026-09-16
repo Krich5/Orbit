@@ -1,0 +1,1603 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="light" />
+  <title>WxCC — Channels</title>
+  <link rel="stylesheet" href="../../assets/css/theme.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/png" href="../../assets/images/WxCC_Icon-192.png" />
+  <style>
+    main { padding:32px 0 80px; display:flex; justify-content:flex-start; }
+    .card { width:100%; max-width:100%; margin:0 auto; }
+    .section-title { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:12px; font-size:15px; letter-spacing:.02em; color:var(--muted); text-transform:uppercase; }
+    .pageHeader {
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      gap:16px;
+    }
+    .pageHeader > div {
+      flex:1;
+      min-width:0;
+    }
+    .pageHeader h1 { margin:0; }
+    .pageHeader .lead { margin:4px 0 0; }
+    .exportBtn {
+      min-width:150px;
+      border-radius:12px;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:6px;
+    }
+    .exportBtn:disabled {
+      opacity:.65;
+      cursor:not-allowed;
+      box-shadow:none;
+    }
+    .addEntrySection {
+      border:1px solid var(--border);
+      border-radius:16px;
+      padding:18px;
+      background:var(--panel);
+      box-shadow:var(--shadow);
+      margin-bottom:20px;
+    }
+    .addEntryGrid {
+      margin-top:12px;
+      display:grid;
+      gap:14px;
+      grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+    }
+    .addEntryGrid label {
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+      font-size:12px;
+      color:var(--muted);
+    }
+    .addEntryGrid input,
+    .addEntryGrid select {
+      border-radius:10px;
+      border:1px solid var(--border);
+      background:var(--input);
+      color:var(--fg);
+      padding:10px 12px;
+      font-size:13px;
+      min-height:40px;
+    }
+    .addEntrySection .actionsRow {
+      margin-top:16px;
+      justify-content:flex-end;
+    }
+    .addEntryStatus {
+      flex:1;
+      min-width:0;
+      text-align:right;
+    }
+    .hint {
+      font-size:11px;
+      color:var(--muted);
+      margin-top:4px;
+      display:block;
+    }
+    label { display:block; font-size:13px; color:var(--muted); margin:8px 0 6px; }
+    select { width:100%; border-radius:12px; border:1px solid var(--border); background:var(--input); color:var(--fg); padding:10px 12px; font-size:14px; }
+    .actionsRow { display:flex; gap:10px; flex-wrap:wrap; margin-top:10px; align-items:center; }
+    .response { background:var(--input); border:1px solid var(--border); border-radius:10px; padding:12px; color:var(--fg); font-family:ui-monospace,SFMono-Regular,Menlo,Monospace,Consolas,"Liberation Mono","Courier New"; white-space:pre-wrap; min-height:200px; resize:vertical; overflow:auto; }
+    .response-wrap { position:relative; }
+    .response-wrap .response { padding-right:48px; margin:0; }
+    .copy-fab { position:absolute; top:8px; right:8px; padding:0; background:transparent; border:none; border-radius:6px; width:32px; height:32px; min-width:32px; display:flex; align-items:center; justify-content:center; color:var(--muted); }
+    .copy-fab svg { width:16px; height:16px; }
+    .status { color:var(--muted); font-size:13px; }
+    .queueTable { margin-top:16px; border:1px solid var(--border); border-radius:14px; overflow:hidden; box-shadow:var(--shadow); }
+    .queueHeader, .queueRow { display:grid; grid-template-columns:1.4fr 1.3fr 1.8fr; align-items:center; }
+    .queueHeader { background:var(--panel); color:var(--accent); font-weight:700; font-size:12px; letter-spacing:.01em; }
+    .queueRow { background:var(--card); border-top:1px solid var(--border); }
+    .queueRow:nth-child(even) { background:var(--input); }
+    .queueRow:hover { background:rgba(8,172,242,.08); }
+    .queueCell { padding:12px; display:flex; align-items:center; gap:8px; min-height:46px; min-width:0; }
+    .queueCell[data-label="Dial Numbers"],
+    .queueCell[data-label="Extensions"] { align-items:flex-start; }
+    .headerCell { padding:12px; min-height:46px; display:flex; flex-direction:column; gap:6px; align-items:flex-start; justify-content:center; }
+    .headLabel { font-weight:700; }
+    .headerFilter { width:100%; border-radius:10px; border:1px solid var(--border); background:var(--input); color:var(--fg); padding:8px 10px; font-size:12px; }
+    .queueName { font-weight:700; color:var(--fg); margin:0; font-size:14px; }
+    .queueId { color:var(--muted); font-size:12px; margin:0; word-break:break-all; }
+    .queuePill { display:inline-flex; align-items:center; gap:6px; padding:4px 8px; border-radius:10px; background:var(--card); border:1px solid var(--border); color:var(--accent); font-size:12px; }
+    .copyInline { background:transparent; border:1px solid var(--border); border-radius:8px; color:var(--muted); width:26px; height:26px; min-width:26px; display:inline-flex; align-items:center; justify-content:center; cursor:pointer; }
+    .copyInline:hover { color:var(--fg); border-color:rgba(0,0,0,.2); }
+    .headerSearch { width:100%; border-radius:10px; border:1px solid var(--border); background:var(--input); color:var(--fg); padding:8px 10px; font-size:12px; }
+    .dialNumbersList { display:flex; flex-wrap:wrap; gap:6px 10px; align-items:flex-start; min-width:0; width:100%; }
+    .dialNumberRow { display:inline-flex; align-items:center; gap:6px; min-width:0; max-width:100%; }
+    .dialNumberLink { color:var(--accentA); text-decoration:none; cursor:pointer; overflow-wrap:anywhere; word-break:break-word; max-width:100%; white-space:normal; }
+    .dialNumbersMore { display:none; }
+    .dialNumbersList.is-expanded .dialNumbersMore { display:flex; flex-wrap:wrap; gap:6px 10px; }
+    .dialToggle { align-self:flex-start; background:transparent; border:none; padding:2px 0; color:var(--accentA); font-size:12px; cursor:pointer; }
+    a:hover { text-decoration:underline; }
+
+    @media (max-width: 900px) {
+      .queueHeader { display:none; }
+      .queueRow { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: 12px; }
+      .queueCell { flex-direction:column; align-items:flex-start; gap:6px; width:100%; }
+      .queueCell[data-label="Name"],
+      .queueCell[data-label="Flow Name"],
+      .queueCell[data-label="Asset ID"] { grid-column: 1 / -1; }
+      .queueCell[data-label="Name"] .queueNameWrap { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+      .queueCell::before {
+        content: attr(data-label);
+        font-size: 11px;
+        letter-spacing: .08em;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+    }
+  </style>
+</head>
+<body class="dark-mode">
+  <script>if (localStorage.getItem("tpRailExpanded") === "true") document.body.classList.add("tp-rail-expanded");</script>
+  <api-tools-header basepath="../../"></api-tools-header>
+
+  <main>
+    <div class="wrap wide contentWrap">
+      <section class="card">
+        <div class="pageHeader">
+          <div>
+            <h1>Channels</h1>
+            <p class="lead">Browse entry points with linked flow names.</p>
+          </div>
+          <div style="display:flex; justify-content:flex-end;">
+            <button class="btn primary exportBtn" id="exportChannelsBtn" type="button" disabled>Export CSV</button>
+          </div>
+        </div>
+        <div class="addEntrySection">
+          <div class="section-title">
+            <div>
+              <p class="lead" style="margin:0;">Create entry point + dial number</p>
+            </div>
+          </div>
+          <div class="addEntryGrid">
+            <label for="newChannelName">
+              Name
+              <input id="newChannelName" type="text" placeholder="e.g., Support Inbound" />
+            </label>
+            <label for="newChannelDescription">
+              Description
+              <input id="newChannelDescription" type="text" placeholder="Optional description" />
+            </label>
+            <label for="newChannelEntryType">
+              Entry Point Type
+              <select id="newChannelEntryType">
+                <option value="INBOUND">INBOUND</option>
+                <option value="OUTBOUND">OUTBOUND</option>
+              </select>
+            </label>
+            <label for="newChannelChannelType">
+              Channel Type
+              <select id="newChannelChannelType">
+                <option value="TELEPHONY">TELEPHONY</option>
+                <option value="CHAT">CHAT</option>
+                <option value="EMAIL">EMAIL</option>
+                <option value="SOCIAL">SOCIAL</option>
+                <option value="SMS">SMS</option>
+              </select>
+            </label>
+            <label for="newChannelServiceLevel">
+              Service Level Threshold
+              <input id="newChannelServiceLevel" type="number" min="0" value="30" />
+            </label>
+            <label for="newChannelDialNumber">
+              Dialled Number
+              <input id="newChannelDialNumber" type="text" placeholder="+12025550123" />
+            </label>
+            <label for="newChannelExtension">
+              Extension
+              <input id="newChannelExtension" type="text" placeholder="1234" />
+            </label>
+            <label for="newChannelLocation">
+              Location ID
+              <input id="newChannelLocation" type="text" list="locationOptionsList" placeholder="Optional location ID" />
+              <datalist id="locationOptionsList"></datalist>
+              <span class="hint" id="locationHint">Loading location IDs…</span>
+            </label>
+            <label for="newChannelRegion">
+              Region ID
+              <input id="newChannelRegion" type="text" list="regionOptionsList" placeholder="Optional region ID" />
+              <datalist id="regionOptionsList"></datalist>
+              <span class="hint" id="regionHint">Loading region IDs…</span>
+            </label>
+          </div>
+          <div class="actionsRow">
+            <button class="btn primary" id="createChannelBtn" type="button" disabled>Create entry point</button>
+            <div class="status addEntryStatus" id="createChannelStatus" aria-live="polite"></div>
+          </div>
+        </div>
+        <div class="grid" style="grid-template-columns:1fr;">
+          <div>
+            <div id="queueList" class="queueList"></div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+    <script src="../../assets/js/orbit-config.js"></script>
+    <script src="../../assets/js/components.js"></script>
+    <script src="../../assets/js/theme.js"></script>
+<script>
+    const queueListEl = document.getElementById('queueList');
+    queueListEl.addEventListener('click', (e) => {
+      const toggle = e.target.closest('.dialToggle');
+      if (!toggle) return;
+      const epKey = toggle.getAttribute('data-ep');
+      const list = queueListEl.querySelector(`.dialNumbersList[data-ep="${epKey}"]`);
+      if (!list) return;
+      const expanded = list.classList.toggle('is-expanded');
+      toggle.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+      const hiddenCount = list.querySelectorAll('.dialNumbersMore .dialNumberRow').length;
+      toggle.textContent = expanded ? 'Show less' : `Show ${hiddenCount} more`;
+    });
+
+    const cacheKeyBearer = 'authBearer';
+    const cacheKeyOrg = 'authOrg';
+    const cacheKeyOrgName = 'authOrgName';
+    const cacheKeyUser = 'authUserName';
+
+    function formatDateForFilename(date) {
+      const pad = (value) => String(value).padStart(2, '0');
+      return `${pad(date.getMonth() + 1)}${pad(date.getDate())}${date.getFullYear()}`;
+    }
+
+    const ENDPOINT = (orgId) => `https://api.wxcc-us1.cisco.com/organization/${encodeURIComponent(orgId)}/v2/entry-point?page=0&pageSize=200`;
+    const DIAL_NUMBER_EXPORT_ENDPOINT = (orgId) => `https://api.wxcc-us1.cisco.com/organization/${encodeURIComponent(orgId)}/dial-number/bulk-export`;
+    const DIAL_NUMBER_POST_ENDPOINT = (orgId) => `https://api.wxcc-us1.cisco.com/organization/${encodeURIComponent(orgId)}/dial-number`;
+    const LOCATION_LIST_ENDPOINT = 'https://webexapis.com/v1/locations?max=500';
+    const REGION_LIST_ENDPOINT = (orgId) => `https://api.wxcc-us1.cisco.com/organization/${encodeURIComponent(orgId)}/region?page=0&pageSize=200`;
+    const FLOW_LIST_ENDPOINT = (orgId, projectId, idsParam) => {
+      const base = `https://api.wxcc-us1.cisco.com/flow-store/${encodeURIComponent(orgId)}/project/${encodeURIComponent(projectId)}/flows`;
+      const apiUrl = idsParam ? `${base}?ids=${idsParam}` : base;
+      
+      const proxyUrl = window.ORBIT_PROXY_BASE + '/flows';
+      return `${proxyUrl}?url=${encodeURIComponent(apiUrl)}`;
+    };
+    const filterKeyMap = {};
+    const CREATE_ENTRY_ENDPOINT = (orgId) => `https://api.wxcc-us1.cisco.com/organization/${encodeURIComponent(orgId)}/entry-point`;
+    const newChannelNameInput = document.getElementById('newChannelName');
+    const newChannelDescriptionInput = document.getElementById('newChannelDescription');
+    const newChannelEntryTypeSelect = document.getElementById('newChannelEntryType');
+    const newChannelChannelTypeSelect = document.getElementById('newChannelChannelType');
+    const newChannelServiceLevelInput = document.getElementById('newChannelServiceLevel');
+    const newChannelDialInput = document.getElementById('newChannelDialNumber');
+    const newChannelExtensionInput = document.getElementById('newChannelExtension');
+    const newChannelLocationInput = document.getElementById('newChannelLocation');
+    const newChannelRegionInput = document.getElementById('newChannelRegion');
+    const createChannelBtn = document.getElementById('createChannelBtn');
+    const createChannelStatus = document.getElementById('createChannelStatus');
+    const locationOptionsList = document.getElementById('locationOptionsList');
+    const regionOptionsList = document.getElementById('regionOptionsList');
+    const locationHint = document.getElementById('locationHint');
+    const regionHint = document.getElementById('regionHint');
+    const CREATE_CHANNEL_DEFAULT_LABEL = createChannelBtn?.textContent?.trim() || 'Create entry point';
+    let creationInFlight = false;
+    let locationAutoOptions = [];
+    let locationFallbackOptions = [];
+    let regionAutoOptions = [];
+    let regionFallbackOptions = [];
+    let locationLoadError = false;
+    let regionLoadError = false;
+
+    function getColumnsForChannelType(channelType) {
+      const channelLower = (channelType || '').toLowerCase();
+      const isChat = channelLower.includes('chat');
+      const isEmail = channelLower.includes('email');
+      const isSocial = channelLower.includes('social');
+      
+      // Chat, Email, and Social only show Name and Asset ID
+      if (isChat || isEmail || isSocial) {
+        return [
+          { id:'name', label:'Name', width:'1fr', render:(ep)=>{
+            return `
+              <span class="queueNameWrap">
+                <span class="queueName">${ep.name || 'Unnamed entry point'}</span>
+                ${copyButton(ep.name || '', 'Copy name')}
+              </span>
+            `;
+          }},
+          { id:'assetId', label:'Asset ID', width:'1fr', render:(ep)=>{
+            const assetId = getAssetId(ep);
+            if (!assetId) return '<span style="color:var(--muted);">—</span>';
+            return `
+              <div style="display:flex; align-items:center; gap:6px;">
+                <span>${assetId}</span>
+                ${copyButton(assetId, 'Copy asset ID')}
+              </div>
+            `;
+          }},
+        ];
+      }
+      
+      // Telephony shows all columns
+      return [
+        { id:'name', label:'Name', width:'1.4fr', render:(ep)=>{
+          const channelType = getChannelType(ep);
+          const channelTypeLower = (channelType || '').toLowerCase();
+          
+          const isTelephony = channelTypeLower.includes('telephony');
+          
+          // Direction indicator for telephony only
+          let directionIcon = '';
+          if (isTelephony) {
+            const isInbound = channelTypeLower.includes('inbound');
+            const isOutbound = channelTypeLower.includes('outbound');
+            
+            if (isInbound) {
+              directionIcon = '<span style="color:#159DD8; margin-right:6px; font-size:16px;" title="Inbound">↓</span>';
+            } else if (isOutbound) {
+              directionIcon = '<span style="color:#f59e0b; margin-right:6px; font-size:16px;" title="Outbound">↑</span>';
+            }
+          }
+          
+          return `
+            <span class="queueNameWrap">
+              ${directionIcon}<span class="queueName">${ep.name || 'Unnamed entry point'}</span>
+              ${copyButton(ep.name || '', 'Copy name')}
+            </span>
+          `;
+        }},
+        { id:'dialNumber', label:'Dial Numbers', width:'1.1fr', render:(ep)=> renderDialNumbers(ep)},
+        { id:'extension', label:'Extensions', width:'0.9fr', render:(ep)=> renderExtensions(ep)},
+        { id:'version', label:'Version', width:'0.5fr', render:(ep)=> renderVersionLabel(ep)},
+        { id:'flow', label:'Flow Name', width:'1.3fr', render:(ep)=> renderFlowName(ep)},
+      ];
+    }
+
+    let lastQueues = [];
+    let filters = {};
+    let searchTerm = '';
+    let searchIdTerm = '';
+    let searchFlowTerm = '';
+    let searchDialTerm = '';
+    let searchVersionTerm = '';
+    let searchModifiedByTerm = '';
+    let flowNames = {};
+    let flowModified = {};
+    let flowModifiedBy = {};
+    let flowVersionLabels = {}; // versionId -> label name (Live/Latest/Dev/Test)
+    let dialNumberLookup = {}; // entryPointName -> [{dialledNumber, extension, region}]
+    const exportBtn = document.getElementById('exportChannelsBtn');
+
+    function getDescriptionValue(entry) {
+      return entry?.description || entry?.desc || entry?.details || '';
+    }
+
+    function getServiceLevelThreshold(entry) {
+      if (entry?.serviceLevelThreshold != null) return entry.serviceLevelThreshold;
+      if (entry?.serviceLevel?.threshold != null) return entry.serviceLevel.threshold;
+      if (entry?.serviceLevel?.serviceLevelThreshold != null) return entry.serviceLevel.serviceLevelThreshold;
+      return '';
+    }
+
+    function getTimezoneValue(entry) {
+      return entry?.timezone || entry?.timeZone || entry?.timezoneId || entry?.timeZoneId || '';
+    }
+
+    function getSocialChannelType(entry) {
+      return entry?.socialChannelType || entry?.socialChannel?.type || '';
+    }
+
+    function getMusicOnHoldValue(entry) {
+      return entry?.musicOnHoldName || entry?.musicOnHold?.name || '';
+    }
+
+    function getPhoneNumbersForEntry(entry) {
+      const dialRecords = dialNumberLookup[entry?.name] || [];
+      return dialRecords
+        .map(record => record?.dialledNumber)
+        .filter(Boolean);
+    }
+
+    function getExtensionsForEntry(entry) {
+      const dialRecords = dialNumberLookup[entry?.name] || [];
+      return dialRecords
+        .map(record => record?.extension)
+        .filter(Boolean);
+    }
+
+    function escapeCsvValue(value) {
+      if (value == null) return '';
+      const str = typeof value === 'string' ? value : String(value);
+      if (!str.includes('"') && !str.includes(',') && !str.includes('\n')) return str;
+      return `"${str.replace(/"/g, '""')}"`;
+    }
+
+    function escapeAttrValue(value) {
+      if (value == null) return '';
+      return String(value)
+        .replace(/&/g, '&amp;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+    }
+
+    function renderDatalistOptions(listEl, options) {
+      if (!listEl) return;
+      listEl.innerHTML = (options || []).map(opt => {
+        const labelText = opt?.label ? `${opt.label} (${opt.value})` : opt?.value || '';
+        const attrs = [`value="${escapeAttrValue(opt.value)}"`];
+        if (labelText) attrs.push(`label="${escapeAttrValue(labelText)}"`);
+        return `<option ${attrs.join(' ')}></option>`;
+      }).join('');
+    }
+
+    function mergeOptions(primary, fallback) {
+      const map = new Map();
+      (primary || []).forEach(opt => {
+        if (opt?.value) map.set(opt.value, opt);
+      });
+      (fallback || []).forEach(opt => {
+        if (!opt?.value) return;
+        if (!map.has(opt.value)) map.set(opt.value, opt);
+      });
+      return Array.from(map.values());
+    }
+
+    function updateLocationDatalist() {
+      renderDatalistOptions(locationOptionsList, mergeOptions(locationAutoOptions, locationFallbackOptions));
+    }
+
+    function updateRegionDatalist() {
+      renderDatalistOptions(regionOptionsList, mergeOptions(regionAutoOptions, regionFallbackOptions));
+    }
+
+    function updateLocationHint() {
+      if (!locationHint) return;
+      if (locationAutoOptions.length) {
+        locationHint.textContent = `Loaded ${locationAutoOptions.length} location(s).`;
+      } else if (locationFallbackOptions.length) {
+        locationHint.textContent = `Using ${locationFallbackOptions.length} known location ID(s).`;
+      } else if (locationLoadError) {
+        locationHint.textContent = 'Location IDs unavailable; enter one manually.';
+      } else {
+        locationHint.textContent = 'Enter a location ID.';
+      }
+    }
+
+    function updateRegionHint() {
+      if (!regionHint) return;
+      if (regionAutoOptions.length) {
+        regionHint.textContent = `Loaded ${regionAutoOptions.length} region(s).`;
+      } else if (regionFallbackOptions.length) {
+        regionHint.textContent = `Using ${regionFallbackOptions.length} known region ID(s).`;
+      } else if (regionLoadError) {
+        regionHint.textContent = 'Region IDs unavailable; enter one manually.';
+      } else {
+        regionHint.textContent = 'Enter a region ID.';
+      }
+    }
+
+    function appendOrgIdParam(url, orgId) {
+      if (!orgId) return url;
+      if (url.includes('orgId=')) return url;
+      return `${url}${url.includes('?') ? '&' : '?'}orgId=${encodeURIComponent(orgId)}`;
+    }
+
+    function refreshDialNumberDerivedOptions() {
+      const locationMap = new Map();
+      const regionMap = new Map();
+      Object.values(dialNumberLookup).forEach(records => {
+        records.forEach(record => {
+          const locValue = record.locationId || record.location || '';
+          const regionValue = record.regionId || record.region || '';
+          if (locValue && !locationMap.has(locValue)) {
+            const label = record.locationName || record.location || locValue;
+            locationMap.set(locValue, { value: locValue, label });
+          }
+          if (regionValue && !regionMap.has(regionValue)) {
+            const label = record.regionName || record.region || regionValue;
+            regionMap.set(regionValue, { value: regionValue, label });
+          }
+        });
+      });
+      locationFallbackOptions = Array.from(locationMap.values());
+      regionFallbackOptions = Array.from(regionMap.values());
+      updateLocationDatalist();
+      updateRegionDatalist();
+      updateLocationHint();
+      updateRegionHint();
+    }
+
+    async function fetchLocationOptions(bearer, orgId) {
+      if (!bearer) return;
+      locationLoadError = false;
+      if (locationHint) locationHint.textContent = 'Loading location IDs…';
+      try {
+        const url = appendOrgIdParam(LOCATION_LIST_ENDPOINT, orgId);
+        const res = await fetch(url, { headers: { Authorization: `Bearer ${bearer}` } });
+        if (!res.ok) {
+          throw new Error(`Location list failed (${res.status})`);
+        }
+        const data = await res.json();
+        const items = Array.isArray(data.items)
+          ? data.items
+          : Array.isArray(data.locations)
+            ? data.locations
+            : Array.isArray(data)
+              ? data
+              : [];
+        locationAutoOptions = items
+          .map(item => {
+            const id = item?.id || item?.locationId || item?.locationGUID;
+            const label = item?.name || item?.displayName || item?.locationName || '';
+            if (!id) return null;
+            return { value: id, label: label || id };
+          })
+          .filter(Boolean);
+      } catch (err) {
+        console.warn('Location options error', err);
+        locationAutoOptions = [];
+        locationLoadError = true;
+      } finally {
+        updateLocationDatalist();
+        updateLocationHint();
+      }
+    }
+
+    async function fetchRegionOptions(bearer, orgId) {
+      if (!bearer) return;
+      regionLoadError = false;
+      if (regionHint) regionHint.textContent = 'Loading region IDs…';
+      try {
+        const url = REGION_LIST_ENDPOINT(orgId);
+        const res = await fetch(url, { headers: { Authorization: `Bearer ${bearer}` } });
+        if (!res.ok) {
+          throw new Error(`Region list failed (${res.status})`);
+        }
+        const data = await res.json();
+        const items = Array.isArray(data.items)
+          ? data.items
+          : Array.isArray(data.regions)
+            ? data.regions
+            : Array.isArray(data)
+              ? data
+              : [];
+        regionAutoOptions = items
+          .map(item => {
+            const id = item?.id || item?.regionId || item?.code;
+            const label = item?.name || item?.displayName || item?.region || '';
+            if (!id) return null;
+            return { value: id, label: label || id };
+          })
+          .filter(Boolean);
+      } catch (err) {
+        console.warn('Region options error', err);
+        regionAutoOptions = [];
+        regionLoadError = true;
+      } finally {
+        updateRegionDatalist();
+        updateRegionHint();
+      }
+    }
+
+    function ensureCreationOptions(bearer, orgId) {
+      if (!bearer) {
+        if (locationHint) locationHint.textContent = 'Sign in to load locations.';
+        if (regionHint) regionHint.textContent = 'Sign in to load regions.';
+        return;
+      }
+      fetchLocationOptions(bearer, orgId);
+      fetchRegionOptions(bearer, orgId);
+    }
+
+    const CSV_COLUMNS = [
+      { label: 'NAME', accessor: entry => entry?.name || entry?.displayName || '' },
+      { label: 'DESCRIPTION', accessor: getDescriptionValue },
+      { label: 'SERVICE LEVEL THRESHOLD', accessor: getServiceLevelThreshold },
+      { label: 'TIMEZONE', accessor: getTimezoneValue },
+      { label: 'CHANNEL TYPE', accessor: entry => formatEnum(getChannelType(entry)) },
+      { label: 'SOCIAL CHANNEL TYPE', accessor: getSocialChannelType },
+      { label: 'FLOW NAME', accessor: entry => getFlowNameForEntry(entry) },
+      { label: 'MUSIC ON HOLD NAME', accessor: getMusicOnHoldValue },
+      { label: 'VERSION LABEL', accessor: entry => getVersionLabelForEntry(entry) },
+      { label: 'PHONE NUMBERS', accessor: entry => getPhoneNumbersForEntry(entry).join('; ') },
+      { label: 'EXTENSIONS', accessor: entry => getExtensionsForEntry(entry).join('; ') },
+    ];
+
+    function readCreationInputs() {
+      return {
+        name: newChannelNameInput?.value?.trim() || '',
+        description: newChannelDescriptionInput?.value?.trim() || '',
+        entryPointType: newChannelEntryTypeSelect?.value || '',
+        channelType: newChannelChannelTypeSelect?.value || '',
+        serviceLevelThreshold: Number(newChannelServiceLevelInput?.value) || 30,
+        dialledNumber: newChannelDialInput?.value?.trim() || '',
+        extension: newChannelExtensionInput?.value?.trim() || '',
+        locationId: newChannelLocationInput?.value?.trim() || '',
+        regionId: newChannelRegionInput?.value?.trim() || '',
+      };
+    }
+
+    function isCreationFormValid(values) {
+      if (!values) return false;
+      return Boolean(values.name && values.entryPointType && values.channelType && values.dialledNumber);
+    }
+
+    function getDialNumberPayload(entry, values) {
+      const payload = {
+        dialledNumber: values.dialledNumber,
+        entryPointId: entry.id,
+        entryPointName: entry.name || values.name,
+      };
+      if (values.extension) payload.extension = values.extension;
+      if (values.locationId) payload.location = values.locationId;
+      if (values.regionId) payload.regionId = values.regionId;
+      return payload;
+    }
+
+    function updateCreateChannelButtonState() {
+      if (!createChannelBtn) return;
+      const values = readCreationInputs();
+      createChannelBtn.disabled = creationInFlight || !isCreationFormValid(values);
+    }
+
+    async function handleCreateChannel() {
+      if (creationInFlight) return;
+      const values = readCreationInputs();
+      if (!isCreationFormValid(values)) return;
+      const bearer = (localStorage.getItem(cacheKeyBearer) || '').trim();
+      const orgId = getOrgIdValue();
+      if (!bearer || !orgId) {
+        if (createChannelStatus) {
+          createChannelStatus.textContent = 'Authenticate before creating channels.';
+        }
+        return;
+      }
+
+      creationInFlight = true;
+      updateCreateChannelButtonState();
+      if (createChannelBtn) createChannelBtn.textContent = 'Creating…';
+      if (createChannelStatus) createChannelStatus.textContent = 'Creating entry point…';
+
+      try {
+        const entryPayload = {
+          name: values.name,
+          description: values.description,
+          entryPointType: values.entryPointType,
+          channelType: values.channelType,
+          active: true,
+          serviceLevelThreshold: values.serviceLevelThreshold,
+          maximumActiveContacts: 0,
+        };
+        const entryRes = await fetch(CREATE_ENTRY_ENDPOINT(orgId), {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${bearer}`,
+          },
+          body: JSON.stringify(entryPayload),
+        });
+        if (!entryRes.ok) {
+          throw new Error(`Entry point creation failed (${entryRes.status})`);
+        }
+        const entryData = await entryRes.json();
+
+        const dialPayload = getDialNumberPayload(entryData, values);
+        const dialRes = await fetch(DIAL_NUMBER_POST_ENDPOINT(orgId), {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${bearer}`,
+          },
+          body: JSON.stringify(dialPayload),
+        });
+        if (!dialRes.ok) {
+          throw new Error(`Dial number assignment failed (${dialRes.status})`);
+        }
+
+        if (createChannelStatus) {
+          createChannelStatus.textContent = `Created '${entryData.name || values.name}' and assigned ${values.dialledNumber}. Refreshing…`;
+        }
+        newChannelNameInput && (newChannelNameInput.value = '');
+        newChannelDescriptionInput && (newChannelDescriptionInput.value = '');
+        newChannelServiceLevelInput && (newChannelServiceLevelInput.value = '30');
+        newChannelDialInput && (newChannelDialInput.value = '');
+        newChannelExtensionInput && (newChannelExtensionInput.value = '');
+        newChannelLocationInput && (newChannelLocationInput.value = '');
+        newChannelRegionInput && (newChannelRegionInput.value = '');
+        updateCreateChannelButtonState();
+        await fetchQueues();
+      } catch (err) {
+        console.error(err);
+        if (createChannelStatus) {
+          createChannelStatus.textContent = typeof err === 'string' ? err : `Error: ${err.message || 'Unknown error'}`;
+        }
+      } finally {
+        creationInFlight = false;
+        if (createChannelBtn) createChannelBtn.textContent = CREATE_CHANNEL_DEFAULT_LABEL;
+        updateCreateChannelButtonState();
+      }
+    }
+
+    function getOrgIdValue() {
+      const cached = localStorage.getItem('authOrgId') || '';
+      if (cached) {
+        if (/^Y2lz/i.test(cached)) {
+          try {
+            const padded = cached.replace(/-/g, '+').replace(/_/g, '/').padEnd(Math.ceil(cached.length / 4) * 4, '=');
+            const decoded = atob(padded);
+            const parts = decoded.split('/');
+            const result = parts[parts.length - 1] || decoded;
+            localStorage.setItem('authOrgId', result);
+            return result;
+          } catch {
+            return cached;
+          }
+        }
+        const orgPathIdx = cached.toLowerCase().indexOf('organization/');
+        if (orgPathIdx !== -1) {
+          const candidate = cached.slice(orgPathIdx + 'organization/'.length);
+          if (candidate) {
+            localStorage.setItem('authOrgId', candidate);
+            return candidate;
+          }
+        }
+        return cached;
+      }
+      const raw = localStorage.getItem(cacheKeyOrg) || '';
+      if (!raw) return '';
+
+      if (/^Y2lz/i.test(raw)) {
+        try {
+          const padded = raw.replace(/-/g, '+').replace(/_/g, '/').padEnd(Math.ceil(raw.length / 4) * 4, '=');
+          const decoded = atob(padded);
+          const parts = decoded.split('/');
+          return parts[parts.length - 1] || decoded;
+        } catch {
+          return raw;
+        }
+      }
+
+      const orgPathIdx = raw.toLowerCase().indexOf('organization/');
+      if (orgPathIdx !== -1) {
+        const candidate = raw.slice(orgPathIdx + 'organization/'.length);
+        return candidate || raw;
+      }
+
+      return raw;
+    }
+
+    function formatEnum(val) {
+      if (!val) return '';
+      return val
+        .toString()
+        .split('_')
+        .filter(Boolean)
+        .map(w => w.charAt(0) + w.slice(1).toLowerCase())
+        .join(' ');
+    }
+
+    function getChannelType(entry) {
+      if (!entry) return '';
+      return entry.channelType || entry.channel || entry.mediaType || entry.type || entry.channel?.type || entry.channel?.channelType || '';
+    }
+
+    function formatDateTime(val) {
+      if (!val) return '—';
+      const date = new Date(val);
+      if (Number.isNaN(date.getTime())) return '—';
+      return date.toLocaleString();
+    }
+
+    function copyButton(val, title) {
+      if (!val) return '';
+      return `<button class="copyInline" title="${title}" data-copy-value="${String(val).replace(/"/g,'&quot;')}">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="9" y="9" width="13" height="13" rx="2"></rect>
+          <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+        </svg>
+      </button>`;
+    }
+
+    function getFlowId(entry) {
+      if (!entry) return '';
+      return entry.flowId || entry.flowID || entry.flow?.id || entry.flow?.flowId || entry.flow?.flowID || '';
+    }
+
+    function getFlowTagId(entry) {
+      if (!entry) return '';
+      return entry.flowTagId || entry.flowTagID || entry.versionLabel || '';
+    }
+
+    function getAssetId(entry) {
+      if (!entry) return '';
+      return entry.assetId || entry.assetID || entry.asset?.id || '';
+    }
+
+    function getDialNumbersForEntry(ep) {
+      const dialNumbers = dialNumberLookup[ep.name] || [];
+      return dialNumbers.map(d => {
+        if (d.dialledNumber) return d.dialledNumber;
+        if (d.extension) return d.extension;
+        return '';
+      }).filter(Boolean).join(' ');
+    }
+
+    function renderDialNumbers(ep) {
+      const dialNumbers = (dialNumberLookup[ep.name] || []).filter(d => d.dialledNumber);
+      if (!dialNumbers.length) return '<span style="color:var(--muted);">—</span>';
+
+      const maxVisible = 4;
+      const visible = dialNumbers.slice(0, maxVisible);
+      const hidden = dialNumbers.slice(maxVisible);
+      const moreCount = hidden.length;
+      const epKey = encodeURIComponent(ep.name || '');
+
+      const renderDial = (d) => {
+        const val = d.dialledNumber;
+        return `<div class="dialNumberRow">
+          <a class="dialNumberLink" href="tel:${val}" title="Call ${val}">
+            ${val}
+          </a>
+          ${copyButton(val, 'Copy number')}
+        </div>`;
+      };
+
+      return `<div class="dialNumbersList" data-ep="dial-${epKey}">
+        ${visible.map(renderDial).filter(Boolean).join('')}
+        ${moreCount ? `<div class="dialNumbersMore">${hidden.map(renderDial).filter(Boolean).join('')}</div>` : ''}
+        ${moreCount ? `<button type="button" class="dialToggle" data-ep="dial-${epKey}" aria-expanded="false">Show ${moreCount} more</button>` : ''}
+      </div>`;
+    }
+
+    function renderExtensions(ep) {
+      const extensions = (dialNumberLookup[ep.name] || []).filter(d => d.extension);
+      if (!extensions.length) return '<span style="color:var(--muted);">—</span>';
+
+      const maxVisible = 4;
+      const visible = extensions.slice(0, maxVisible);
+      const hidden = extensions.slice(maxVisible);
+      const moreCount = hidden.length;
+      const epKey = encodeURIComponent(ep.name || '');
+
+      const renderExt = (d) => {
+        const val = d.extension;
+        return `<div class="dialNumberRow">
+          <a class="dialNumberLink" href="tel:${val}" title="Call extension ${val}">
+            ${val}
+          </a>
+          ${copyButton(val, 'Copy extension')}
+        </div>`;
+      };
+
+      return `<div class="dialNumbersList" data-ep="ext-${epKey}">
+        ${visible.map(renderExt).filter(Boolean).join('')}
+        ${moreCount ? `<div class="dialNumbersMore">${hidden.map(renderExt).filter(Boolean).join('')}</div>` : ''}
+        ${moreCount ? `<button type="button" class="dialToggle" data-ep="ext-${epKey}" aria-expanded="false">Show ${moreCount} more</button>` : ''}
+      </div>`;
+    }
+
+    function getVersionLabelForEntry(ep) {
+      return getFlowTagId(ep);
+    }
+
+    function getModifiedByForEntry(ep) {
+      const flowId = getFlowId(ep);
+      return flowId ? (flowModifiedBy[flowId] || '') : '';
+    }
+
+    function renderVersionLabel(ep) {
+      const versionLabel = getVersionLabelForEntry(ep);
+      
+      if (!versionLabel) return '<span style="color:var(--muted);">—</span>';
+      
+      return `<span>${versionLabel}</span>`;
+    }
+
+    function renderFlowModifiedBy(ep) {
+      const flowId = getFlowId(ep);
+      const modified = flowId ? flowModified[flowId] : '';
+      const modifiedBy = flowId ? (flowModifiedBy[flowId] || '') : '';
+      
+      if (!modified && !modifiedBy) {
+        return '<span style="color:var(--muted);">—</span>';
+      }
+      
+      return `
+        <div style="display:flex; flex-direction:column; gap:4px;">
+          <div style="font-size:12px;">${formatDateTime(modified)}</div>
+          <div style="font-size:11px; color:var(--muted);">${modifiedBy || '—'}</div>
+        </div>
+      `;
+    }
+
+    function renderFlowModifiedInfo(ep) {
+      const flowId = getFlowId(ep);
+      const modified = flowId ? flowModified[flowId] : '';
+      const modifiedBy = flowId ? (flowModifiedBy[flowId] || '') : '';
+      
+      if (!modified && !modifiedBy) {
+        return '<span style="color:var(--muted);">—</span>';
+      }
+      
+      return `
+        <div style="display:flex; flex-direction:column; gap:4px;">
+          <div style="font-size:12px;">${formatDateTime(modified)}</div>
+          <div style="font-size:11px; color:var(--muted);">${modifiedBy || '—'}</div>
+        </div>
+      `;
+    }
+
+    function getFlowNameForEntry(ep) {
+      const flowId = getFlowId(ep);
+      return flowId ? (flowNames[flowId] || '') : '';
+    }
+
+    function renderFlowName(ep) {
+      const flowId = getFlowId(ep);
+      const flowName = getFlowNameForEntry(ep);
+      
+      if (!flowName) return '<span style="color:var(--muted);">—</span>';
+      
+      // Get org ID for the flow link
+      const orgId = getOrgIdValue();
+      const flowUrl = `https://flow-control.produs1.ciscoccservice.com/flow/${flowId}?orgId=${orgId}`;
+      
+      return `
+        <div style="display:flex; align-items:center; gap:6px;">
+          <a href="${flowUrl}" target="_blank" rel="noopener noreferrer" style="color:var(--accentA); text-decoration:none; cursor:pointer;" title="Open in Flow Designer">
+            ${flowName}
+          </a>
+          ${copyButton(flowName, 'Copy flow name')}
+        </div>
+      `;
+    }
+
+    function applyFilters(data) {
+      return (data || []).filter(q => {
+        if (searchTerm && !(q.name || '').toLowerCase().includes(searchTerm)) return false;
+        if (searchIdTerm && !(q.id || '').toLowerCase().includes(searchIdTerm)) return false;
+        if (searchFlowTerm) {
+          const flowName = getFlowNameForEntry(q).toLowerCase();
+          if (!flowName.includes(searchFlowTerm)) return false;
+        }
+        if (searchDialTerm) {
+          const dialText = getDialNumbersForEntry(q).toLowerCase();
+          if (!dialText.includes(searchDialTerm)) return false;
+        }
+        if (searchVersionTerm) {
+          const version = getVersionLabelForEntry(q).toLowerCase();
+          if (!version.includes(searchVersionTerm)) return false;
+        }
+        return true;
+      });
+    }
+
+    function renderQueues(queues) {
+      if (!queueListEl) return;
+      
+      // Don't show "No queues found" if we have data but filters exclude everything
+      const hasData = lastQueues && lastQueues.length > 0;
+      
+      if (!queues?.length && !hasData) {
+        queueListEl.innerHTML = '<div style="color:var(--muted); padding:10px 0;">No entry points found.</div>';
+        return;
+      }
+
+      // Group by channel type
+      const grouped = {};
+      queues.forEach(q => {
+        const channelType = formatEnum(getChannelType(q)) || 'Unknown';
+        if (!grouped[channelType]) {
+          grouped[channelType] = [];
+        }
+        grouped[channelType].push(q);
+      });
+
+      // Sort telephony entries by direction (inbound first, then outbound)
+      Object.keys(grouped).forEach(channelType => {
+        if (channelType.toLowerCase().includes('telephony')) {
+          grouped[channelType].sort((a, b) => {
+            const aType = getChannelType(a).toLowerCase();
+            const bType = getChannelType(b).toLowerCase();
+            const aInbound = aType.includes('inbound');
+            const bInbound = bType.includes('inbound');
+            const aOutbound = aType.includes('outbound');
+            const bOutbound = bType.includes('outbound');
+            
+            if (aInbound && !bInbound) return -1;
+            if (!aInbound && bInbound) return 1;
+            if (aOutbound && !bOutbound) return 1;
+            if (!aOutbound && bOutbound) return -1;
+            return (a.name || '').localeCompare(b.name || '');
+          });
+        }
+      });
+
+      // Specific order: Telephony, Chat, Email, Social, then others alphabetically
+      const channelOrder = ['Telephony', 'Chat', 'Email', 'Social'];
+      const channelTypes = Object.keys(grouped).sort((a, b) => {
+        const aIndex = channelOrder.indexOf(a);
+        const bIndex = channelOrder.indexOf(b);
+        
+        if (aIndex !== -1 && bIndex !== -1) return aIndex - bIndex;
+        if (aIndex !== -1) return -1;
+        if (bIndex !== -1) return 1;
+        return a.localeCompare(b);
+      });
+
+      let html = '<div style="display:flex; flex-direction:column; gap:24px;">';
+
+      // If filtering resulted in no results but we have data, show all channel types with empty state
+      if (!queues.length && hasData) {
+        // Get all channel types from original data
+        const allGrouped = {};
+        lastQueues.forEach(q => {
+          const channelType = formatEnum(getChannelType(q)) || 'Unknown';
+          if (!allGrouped[channelType]) {
+            allGrouped[channelType] = [];
+          }
+        });
+        
+        const allChannelTypes = Object.keys(allGrouped).sort((a, b) => {
+          const aIndex = channelOrder.indexOf(a);
+          const bIndex = channelOrder.indexOf(b);
+          
+          if (aIndex !== -1 && bIndex !== -1) return aIndex - bIndex;
+          if (aIndex !== -1) return -1;
+          if (bIndex !== -1) return 1;
+          return a.localeCompare(b);
+        });
+        
+        allChannelTypes.forEach(channelType => {
+          const activeCols = getColumnsForChannelType(channelType);
+          const template = activeCols.map(c => c.width || '1fr').join(' ');
+          
+          const header = `
+            <div class="queueHeader" style="grid-template-columns:${template};">
+              ${activeCols.map(col => {
+                if (col.id === 'name') {
+                  return `
+                    <div class="headerCell">
+                      <div class="headLabel">${col.label}</div>
+                      <input class="headerSearch" data-search="name" type="text" placeholder="Search by name..." value="${filters._nameSearch || ''}">
+                    </div>
+                  `;
+                }
+                if (col.id === 'dialNumber' || col.id === 'extension') {
+                  return `
+                    <div class="headerCell">
+                      <div class="headLabel">${col.label}</div>
+                      <input class="headerSearch" data-search="dial" type="text" placeholder="Search number/ext..." value="${filters._dialSearch || ''}">
+                    </div>
+                  `;
+                }
+                if (col.id === 'flow') {
+                  return `
+                    <div class="headerCell">
+                      <div class="headLabel">${col.label}</div>
+                      <input class="headerSearch" data-search="flow" type="text" placeholder="Search by flow..." value="${filters._flowSearch || ''}">
+                    </div>
+                  `;
+                }
+                if (col.id === 'version') {
+                  return `
+                    <div class="headerCell">
+                      <div class="headLabel">${col.label}</div>
+                      <input class="headerSearch" data-search="version" type="text" placeholder="Search version..." value="${filters._versionSearch || ''}">
+                    </div>
+                  `;
+                }
+                return `<div class="headerCell"><div class="headLabel">${col.label}</div></div>`;
+              }).join('')}
+            </div>`;
+          
+          html += `
+            <div>
+              <div style="font-size:15px; font-weight:700; margin-bottom:12px; padding:10px 16px; background:rgba(255,255,255,.03); border-left:4px solid var(--accentB); color:var(--fg);">
+                ${channelType} <span style="opacity:0.6; font-weight:400;">(0)</span>
+              </div>
+              <div class="queueTable">
+                ${header}
+                <div style="padding:20px; text-align:center; color:var(--muted); grid-column:1/-1;">
+                  No results found. Clear filters to see all entry points.
+                </div>
+              </div>
+            </div>
+          `;
+        });
+        
+        html += '</div>';
+        queueListEl.innerHTML = html;
+        bindCopyValueButtons();
+        bindHeaderFilters();
+        return;
+      }
+
+      channelTypes.forEach(channelType => {
+        const items = grouped[channelType];
+        const activeCols = getColumnsForChannelType(channelType);
+        const template = activeCols.map(c => c.width || '1fr').join(' ');
+        
+        const header = `
+          <div class="queueHeader" style="grid-template-columns:${template};">
+            ${activeCols.map(col => {
+              if (col.id === 'name') {
+                return `
+                  <div class="headerCell">
+                    <div class="headLabel">${col.label}</div>
+                    <input class="headerSearch" data-search="name" type="text" placeholder="Search by name..." value="${filters._nameSearch || ''}">
+                  </div>
+                `;
+              }
+              if (col.id === 'dialNumber' || col.id === 'extension') {
+                return `
+                  <div class="headerCell">
+                    <div class="headLabel">${col.label}</div>
+                    <input class="headerSearch" data-search="dial" type="text" placeholder="Search number/ext..." value="${filters._dialSearch || ''}">
+                  </div>
+                `;
+              }
+              if (col.id === 'flow') {
+                return `
+                  <div class="headerCell">
+                    <div class="headLabel">${col.label}</div>
+                    <input class="headerSearch" data-search="flow" type="text" placeholder="Search by flow..." value="${filters._flowSearch || ''}">
+                  </div>
+                `;
+              }
+              if (col.id === 'version') {
+                return `
+                  <div class="headerCell">
+                    <div class="headLabel">${col.label}</div>
+                    <input class="headerSearch" data-search="version" type="text" placeholder="Search version..." value="${filters._versionSearch || ''}">
+                  </div>
+                `;
+              }
+              return `<div class="headerCell"><div class="headLabel">${col.label}</div></div>`;
+            }).join('')}
+          </div>`;
+        
+        // For telephony, group by inbound/outbound
+        const isTelephony = channelType.toLowerCase().includes('telephony');
+        
+        if (isTelephony) {
+          const inboundItems = items.filter(q => getChannelType(q).toLowerCase().includes('inbound'));
+          const outboundItems = items.filter(q => getChannelType(q).toLowerCase().includes('outbound'));
+          const otherItems = items.filter(q => {
+            const ct = getChannelType(q).toLowerCase();
+            return !ct.includes('inbound') && !ct.includes('outbound');
+          });
+          
+          html += `
+            <div>
+              <div style="font-size:15px; font-weight:700; margin-bottom:12px; padding:10px 16px; background:rgba(255,255,255,.03); border-left:4px solid var(--accentB); color:var(--fg);">
+                ${channelType} <span style="opacity:0.6; font-weight:400;">(${items.length})</span>
+              </div>`;
+          
+          // Inbound section
+          if (inboundItems.length > 0) {
+            html += `
+              <div style="margin-bottom:16px;">
+                <div style="font-size:13px; font-weight:600; padding:6px 12px; background:rgba(34,211,238,.1); color:#159DD8; border-left:3px solid #159DD8; margin-bottom:8px;">
+                  ↓ Inbound (${inboundItems.length})
+                </div>
+                <div class="queueTable">
+                  ${header}
+                  ${inboundItems.map(q => `
+                    <div class="queueRow" style="grid-template-columns:${template};">
+                      ${activeCols.map(col => `<div class="queueCell" data-label="${col.label}">${col.render(q)}</div>`).join('')}
+                    </div>
+                  `).join('')}
+                </div>
+              </div>`;
+          }
+          
+          // Outbound section
+          if (outboundItems.length > 0) {
+            html += `
+              <div style="margin-bottom:16px;">
+                <div style="font-size:13px; font-weight:600; padding:6px 12px; background:rgba(245,158,11,.1); color:#f59e0b; border-left:3px solid #f59e0b; margin-bottom:8px;">
+                  ↑ Outbound (${outboundItems.length})
+                </div>
+                <div class="queueTable">
+                  ${header}
+                  ${outboundItems.map(q => `
+                    <div class="queueRow" style="grid-template-columns:${template};">
+                      ${activeCols.map(col => `<div class="queueCell" data-label="${col.label}">${col.render(q)}</div>`).join('')}
+                    </div>
+                  `).join('')}
+                </div>
+              </div>`;
+          }
+          
+          // Other telephony items (no direction specified)
+          if (otherItems.length > 0) {
+            html += `
+              <div>
+                <div class="queueTable">
+                  ${header}
+                  ${otherItems.map(q => `
+                    <div class="queueRow" style="grid-template-columns:${template};">
+                      ${activeCols.map(col => `<div class="queueCell" data-label="${col.label}">${col.render(q)}</div>`).join('')}
+                    </div>
+                  `).join('')}
+                </div>
+              </div>`;
+          }
+          
+          html += `</div>`;
+        } else {
+          // Non-telephony channels
+          html += `
+            <div>
+              <div style="font-size:15px; font-weight:700; margin-bottom:12px; padding:10px 16px; background:rgba(255,255,255,.03); border-left:4px solid var(--accentB); color:var(--fg);">
+                ${channelType} <span style="opacity:0.6; font-weight:400;">(${items.length})</span>
+              </div>
+              <div class="queueTable">
+                ${header}
+                ${items.map(q => `
+                  <div class="queueRow" style="grid-template-columns:${template};">
+                    ${activeCols.map(col => `<div class="queueCell" data-label="${col.label}">${col.render(q)}</div>`).join('')}
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+          `;
+        }
+      });
+
+      html += '</div>';
+
+      queueListEl.innerHTML = html;
+      bindCopyValueButtons();
+      bindHeaderFilters();
+      updateExportButtonState();
+    }
+
+    function bindCopyValueButtons() {
+      document.querySelectorAll('[data-copy-value]').forEach(btn => {
+        if (btn._copyBound) return;
+        btn._copyBound = true;
+        btn.addEventListener('click', async () => {
+          const val = btn.getAttribute('data-copy-value') || '';
+          if (!val) return;
+          const original = btn.innerHTML;
+          try {
+            await navigator.clipboard.writeText(val);
+            btn.innerHTML = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"></path></svg>';
+            setTimeout(() => btn.innerHTML = original, 900);
+          } catch (err) {
+            console.error('Copy failed', err);
+          }
+        });
+      });
+    }
+
+    function bindHeaderFilters() {
+      queueListEl.querySelectorAll('.headerSearch[data-search="name"]').forEach(inp => {
+        if (inp._searchBound) return;
+        inp._searchBound = true;
+        inp.addEventListener('input', (e)=>{
+          e.preventDefault();
+          filters._nameSearch = e.target.value;
+          searchTerm = (e.target.value || '').toLowerCase().trim();
+          rerenderFilteredWithFocus('name');
+        });
+        inp.addEventListener('keydown', (e)=>{
+          if (e.key === 'Enter') e.preventDefault();
+        });
+      });
+
+      queueListEl.querySelectorAll('.headerSearch[data-search="dial"]').forEach(inp => {
+        if (inp._searchBound) return;
+        inp._searchBound = true;
+        inp.addEventListener('input', (e)=>{
+          e.preventDefault();
+          filters._dialSearch = e.target.value;
+          searchDialTerm = (e.target.value || '').toLowerCase().trim();
+          rerenderFilteredWithFocus('dial');
+        });
+        inp.addEventListener('keydown', (e)=>{
+          if (e.key === 'Enter') e.preventDefault();
+        });
+      });
+
+      queueListEl.querySelectorAll('.headerSearch[data-search="flow"]').forEach(inp => {
+        if (inp._searchBound) return;
+        inp._searchBound = true;
+        inp.addEventListener('input', (e)=>{
+          e.preventDefault();
+          filters._flowSearch = e.target.value;
+          searchFlowTerm = (e.target.value || '').toLowerCase().trim();
+          rerenderFilteredWithFocus('flow');
+        });
+        inp.addEventListener('keydown', (e)=>{
+          if (e.key === 'Enter') e.preventDefault();
+        });
+      });
+
+      queueListEl.querySelectorAll('.headerSearch[data-search="version"]').forEach(inp => {
+        if (inp._searchBound) return;
+        inp._searchBound = true;
+        inp.addEventListener('input', (e)=>{
+          e.preventDefault();
+          filters._versionSearch = e.target.value;
+          searchVersionTerm = (e.target.value || '').toLowerCase().trim();
+          rerenderFilteredWithFocus('version');
+        });
+        inp.addEventListener('keydown', (e)=>{
+          if (e.key === 'Enter') e.preventDefault();
+        });
+      });
+    }
+
+    function rerenderFilteredWithFocus(preserveKey) {
+      let caret = null;
+      const active = document.activeElement;
+      if (active && active.dataset && active.dataset.search === preserveKey) {
+        caret = {
+          key: preserveKey,
+          start: active.selectionStart,
+          end: active.selectionEnd
+        };
+      }
+      const filtered = applyFilters(lastQueues);
+      renderQueues(filtered);
+      if (caret) {
+        const input = queueListEl.querySelector(`.headerSearch[data-search="${caret.key}"]`);
+        if (input) {
+          input.focus();
+          if (caret.start != null && caret.end != null) {
+            input.setSelectionRange(caret.start, caret.end);
+          }
+        }
+      }
+    }
+
+    async function fetchQueues() {
+      const bearer = (localStorage.getItem(cacheKeyBearer) || '').trim();
+      const orgId = getOrgIdValue();
+      if (!bearer || !orgId) {
+        queueListEl.innerHTML = '';
+        return;
+      }
+
+      const url = ENDPOINT(orgId);
+      const opts = { method: 'GET', headers: { Authorization: `Bearer ${bearer}` } };
+      queueListEl.innerHTML = '<div style="grid-column:1/-1; color:var(--muted); padding:10px 0;">Loading…</div>';
+
+      try {
+        const res = await fetch(url, opts);
+        const parsed = await res.json();
+        const queues = parsed?.data || parsed?.items || parsed?.queues || [];
+        lastQueues = Array.isArray(queues) ? queues : [];
+        
+        // Fetch dial numbers and flow names in parallel for speed
+        await Promise.all([
+          fetchDialNumbers(bearer, orgId),
+          fetchFlowNames(bearer, orgId, lastQueues)
+        ]);
+        ensureCreationOptions(bearer, orgId);
+        
+        const filtered = applyFilters(lastQueues);
+        renderQueues(filtered);
+        if (!res.ok) {
+          queueListEl.innerHTML = `<div style="grid-column:1/-1; color:#ef4444; padding:10px 0;">Error (${res.status}) loading queues.</div>`;
+        }
+      } catch (err) {
+        queueListEl.innerHTML = '<div style="grid-column:1/-1; color:#ef4444; padding:10px 0;">Network error loading queues.</div>';
+      }
+    }
+
+    async function fetchDialNumbers(bearer, orgId) {
+      dialNumberLookup = {};
+      locationFallbackOptions = [];
+      regionFallbackOptions = [];
+      updateLocationDatalist();
+      updateRegionDatalist();
+      try {
+        const url = DIAL_NUMBER_EXPORT_ENDPOINT(orgId);
+        const res = await fetch(url, { 
+          method: 'GET', 
+          headers: { Authorization: `Bearer ${bearer}` } 
+        });
+        
+        if (!res.ok) {
+          console.warn('Dial numbers API failed:', res.status);
+          return;
+        }
+        
+        const data = await res.json();
+        const dialNumbers = data?.resources || [];
+        
+        console.log('✓ Loaded', dialNumbers.length, 'dial numbers');
+        
+        // Build lookup by entry point name
+        dialNumbers.forEach(dial => {
+          const epName = dial.entryPointName;
+          if (!epName) return;
+          
+          if (!dialNumberLookup[epName]) {
+            dialNumberLookup[epName] = [];
+          }
+          
+          const locationId = dial.locationId || dial.location || '';
+          const locationName = dial.locationName || dial.locationDisplayName || (dial.location || '');
+          const regionId = dial.regionId || dial.region?.id || dial.region || '';
+          const regionName = dial.regionName || dial.region?.name || (dial.region || '');
+          dialNumberLookup[epName].push({
+            dialledNumber: dial.dialledNumber || null,
+            extension: dial.extension || null,
+            region: dial.region || '',
+            regionId,
+            regionName,
+            locationId,
+            locationName,
+          });
+        });
+        refreshDialNumberDerivedOptions();
+        
+        console.log('✓ Mapped dial numbers for', Object.keys(dialNumberLookup).length, 'entry points');
+      } catch (err) {
+        console.warn('Error fetching dial numbers:', err);
+      }
+    }
+
+
+    function updateAuthIndicators() {
+      const b = localStorage.getItem(cacheKeyBearer) || '';
+      const org = localStorage.getItem(cacheKeyOrgName) || localStorage.getItem(cacheKeyOrg) || '';
+      const user = localStorage.getItem(cacheKeyUser) || '';
+      const userNameEl = document.getElementById('userName');
+      const userOrgEl = document.getElementById('userOrg');
+      if (userNameEl) userNameEl.textContent = b ? (user || 'Authenticated') : 'Not authenticated';
+      if (userOrgEl) userOrgEl.textContent = org || '';
+    }
+    updateAuthIndicators();
+
+    const signOutBtn = document.getElementById('signOutBtn');
+    if (signOutBtn) {
+      signOutBtn.addEventListener('click', () => {
+        localStorage.removeItem(cacheKeyBearer);
+        localStorage.removeItem(cacheKeyOrg);
+        localStorage.removeItem(cacheKeyOrgName);
+        localStorage.removeItem(cacheKeyUser);
+        localStorage.removeItem('authRefreshToken');
+        localStorage.removeItem('authExpiresAt');
+        window.location.href = '../../index.html';
+      });
+    }
+
+
+    document.addEventListener('click', (event) => {
+    });
+
+    document.addEventListener('keydown', (event) => {
+    });
+
+    async function fetchFlowNames(bearer, orgId, entries) {
+      const ids = Array.from(new Set((entries || []).map(getFlowId).filter(Boolean)));
+      console.log('Entry point flow IDs:', ids.length, 'unique IDs');
+      
+      if (!ids.length) {
+        console.log('No flow IDs found in entry points');
+        return;
+      }
+      
+      try {
+        const defaultProjectId = '5e5c9ad6d61f870d6d778c1b';
+        
+        console.log(`Fetching ${ids.length} flows in parallel...`);
+        
+        // Fetch all flows in parallel for speed
+        const flowPromises = ids.map(async (flowId) => {
+          try {
+            const url = FLOW_LIST_ENDPOINT(orgId, defaultProjectId, flowId);
+            const res = await fetch(url, { headers:{ Authorization:`Bearer ${bearer}` } });
+            
+            if (!res.ok) return null;
+            
+            const data = await res.json();
+            const flows = Array.isArray(data) ? data : (data?.items || data?.data || []);
+            
+            return flows.length > 0 ? flows[0] : null;
+          } catch (err) {
+            console.warn(`Failed to fetch flow ${flowId}:`, err.message);
+            return null;
+          }
+        });
+        
+        const flows = (await Promise.all(flowPromises)).filter(Boolean);
+        
+        console.log(`✓ Received ${flows.length} flows out of ${ids.length} requests`);
+        
+        // Build lookup maps
+        flows.forEach(flow => {
+          if (!flow || !flow.id) return;
+          
+          // Map base flow ID
+          flowNames[flow.id] = flow.name;
+          
+          // Also map version IDs to the same info
+          (flow.tags || []).forEach(tag => {
+            if (tag?.flowVersionId) {
+              const versionId = tag.flowVersionId;
+              flowNames[versionId] = flow.name;
+            }
+          });
+        });
+        
+        console.log(`✓ Successfully mapped ${flows.length} flows`);
+      } catch (err) {
+        console.error('Flow fetch error:', err);
+      }
+    }
+
+    function buildChannelsCsv(entries) {
+      const header = CSV_COLUMNS.map(col => col.label).join(',');
+      const rows = (entries || []).map(entry => {
+        return CSV_COLUMNS.map(col => escapeCsvValue(col.accessor(entry))).join(',');
+      });
+      return [header, ...rows].join('\n');
+    }
+
+    function updateExportButtonState() {
+      if (!exportBtn) return;
+      exportBtn.disabled = !lastQueues?.length;
+    }
+
+    function handleExportChannels() {
+      if (!lastQueues?.length) return;
+      const csv = buildChannelsCsv(lastQueues);
+      const stamp = formatDateForFilename(new Date());
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement('a');
+      anchor.href = url;
+      anchor.download = `channels_${stamp}.csv`;
+      document.body.appendChild(anchor);
+      anchor.click();
+      document.body.removeChild(anchor);
+      setTimeout(() => URL.revokeObjectURL(url), 2000);
+    }
+
+    const creationInputs = [
+      newChannelNameInput,
+      newChannelDescriptionInput,
+      newChannelEntryTypeSelect,
+      newChannelChannelTypeSelect,
+      newChannelServiceLevelInput,
+      newChannelDialInput,
+      newChannelExtensionInput,
+      newChannelLocationInput,
+      newChannelRegionInput,
+    ];
+    creationInputs.forEach(el => {
+      if (!el) return;
+      el.addEventListener('input', updateCreateChannelButtonState);
+      el.addEventListener('change', updateCreateChannelButtonState);
+    });
+    if (createChannelBtn) {
+      createChannelBtn.addEventListener('click', handleCreateChannel);
+    }
+    updateCreateChannelButtonState();
+    updateLocationDatalist();
+    updateRegionDatalist();
+    updateLocationHint();
+    updateRegionHint();
+    if (exportBtn) {
+      exportBtn.addEventListener('click', () => {
+        if (exportBtn.disabled) return;
+        handleExportChannels();
+      });
+    }
+
+    fetchQueues();
+  </script>
+
+
+  </body>
+</html>
