@@ -17,5 +17,7 @@ window.ORBIT_OAUTH_SCOPES = [
   'cjp:user',
   'spark-admin:licenses_read',
   'spark-admin:locations_read',
-  'spark-admin:telephony_config_read'
+  'spark-admin:telephony_config_read',
+  'cjds:admin_org_read',
+  'cjds:admin_org_write'
 ].join(' ');
