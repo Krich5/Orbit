@@ -1231,20 +1231,22 @@
     ];
 
     function buildOrbitTemplateLayout() {
+      // Dashboard nav is a toggle in the preview — omitted by default so it
+      // stays off until the user clicks + in the preview nav rail to add it.
       return {
         agent: orbitTemplateRoleShell({
           advancedHeader: cloneJson(ORBIT_TEMPLATE_AGENT_HEADER),
-          navigation: [orbitTemplateDashboardNav()]
+          navigation: []
         }),
         supervisor: orbitTemplateRoleShell({
           advancedHeader: cloneJson(ORBIT_TEMPLATE_SUP_HEADER),
           homepage: orbitTemplateSupHomepage(),
-          navigation: [orbitTemplateTpwNav('sup'), orbitTemplateDashboardNav(), orbitTemplateQmwNav()]
+          navigation: [orbitTemplateTpwNav('sup'), orbitTemplateQmwNav()]
         }),
         supervisorAgent: orbitTemplateRoleShell({
           advancedHeader: cloneJson(ORBIT_TEMPLATE_AGENT_HEADER),
           homepage: orbitTemplateSupHomepage(),
-          navigation: [orbitTemplateTpwNav('sup-agent'), orbitTemplateDashboardNav(), orbitTemplateQmwNav()]
+          navigation: [orbitTemplateTpwNav('sup-agent'), orbitTemplateQmwNav()]
         })
       };
     }
@@ -1834,6 +1836,28 @@
       $('taskPageIllustration').focus();
     }
 
+    function applyPreviewRoleFlag(field, value) {
+      if (!field) return;
+      const fieldMap = {
+        stopNavigateOnAcceptTask: 'stopNavigateOnAcceptTask',
+        dragDropEnabled: 'dragDropEnabled',
+        wxmConfigured: 'wxmConfigured',
+        'desktopChatApp.webexConfigured': 'webexConfigured',
+        notificationTimer: 'notificationTimer',
+        maximumNotificationCount: 'maximumToasterCount'
+      };
+      const formId = fieldMap[field];
+      if (!formId) return;
+      const el = $(formId);
+      if (!el) return;
+      if (typeof value === 'boolean') {
+        el.value = String(value);
+      } else {
+        el.value = String(value ?? 0);
+      }
+      applyFormSilently();
+    }
+
     const ICON_PRESET_LABELS = {
       'dashboard': 'Dashboard',
       'breakout-session': 'Breakout',
@@ -1968,6 +1992,14 @@
       const headerWidgets = Array.isArray(roleConfig.area?.advancedHeader) ? roleConfig.area.advancedHeader : [];
       const navigation = getNavigationArray(roleConfig);
       const navItems = navigation.slice(0, 6);
+      const roleFlagValues = {
+        stopNavigateOnAcceptTask: Boolean(roleConfig.stopNavigateOnAcceptTask),
+        dragDropEnabled: Boolean(roleConfig.dragDropEnabled),
+        wxmConfigured: Boolean(roleConfig.wxmConfigured),
+        'desktopChatApp.webexConfigured': Boolean(roleConfig.desktopChatApp?.webexConfigured),
+        notificationTimer: Number(roleConfig.notificationTimer ?? 0),
+        maximumNotificationCount: Number(roleConfig.maximumToasterCount ?? roleConfig.maximumNotificationCount ?? 3)
+      };
       const navData = navItems.map((item, index) => {
         const widgets = item?.page?.widgets || {};
         const firstWidget = Object.values(widgets)[0] || null;
@@ -2118,6 +2150,48 @@
               display: flex;
               align-items: center;
               gap: 14px;
+            }
+            .roleFlagRow {
+              display: inline-flex;
+              gap: 6px;
+              padding: 4px 6px;
+              border-radius: 999px;
+              background: rgba(31, 41, 55, 0.06);
+              border: 1px solid rgba(15, 23, 42, 0.1);
+            }
+            .roleFlagChip {
+              min-width: 28px;
+              height: 24px;
+              padding: 0 8px;
+              border-radius: 999px;
+              border: 1px solid rgba(15, 23, 42, 0.15);
+              background: #fff;
+              color: #6b7280;
+              font-size: 11px;
+              font-weight: 700;
+              cursor: pointer;
+              display: inline-flex;
+              align-items: center;
+              justify-content: center;
+              gap: 4px;
+              line-height: 1;
+            }
+            .roleFlagChip.on {
+              background: #16a34a;
+              color: #fff;
+              border-color: #16a34a;
+            }
+            .roleFlagChip.off {
+              background: #fff;
+              color: #6b7280;
+            }
+            .roleFlagChip.number {
+              background: #1f2937;
+              color: #fff;
+              border-color: #1f2937;
+            }
+            .roleFlagChip .flagValue {
+              font-weight: 800;
             }
             .headerIcons {
               display: flex;
@@ -2565,6 +2639,14 @@
                 </div>
               </div>
               <div class="headerRight">
+                <div class="roleFlagRow" role="group" aria-label="Role settings">
+                  <button class="roleFlagChip" data-flag-id="7" data-flag-field="stopNavigateOnAcceptTask" data-flag-type="bool" title="Stop navigation on accept task" type="button">7</button>
+                  <button class="roleFlagChip" data-flag-id="9" data-flag-field="notificationTimer" data-flag-type="number" title="Notification timer (seconds)" type="button">9</button>
+                  <button class="roleFlagChip" data-flag-id="10" data-flag-field="dragDropEnabled" data-flag-type="bool" title="Drag and drop enabled" type="button">10</button>
+                  <button class="roleFlagChip" data-flag-id="11" data-flag-field="maximumNotificationCount" data-flag-type="number" title="Max notification count" type="button">11</button>
+                  <button class="roleFlagChip" data-flag-id="12" data-flag-field="wxmConfigured" data-flag-type="bool" title="Webex Messaging enabled" type="button">12</button>
+                  <button class="roleFlagChip" data-flag-id="14" data-flag-field="desktopChatApp.webexConfigured" data-flag-type="bool" title="Webex chat app enabled" type="button">14</button>
+                </div>
                 <div class="headerIcons">
                   <button class="headerIconButton" type="button" aria-label="Webex">
                     <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -2595,7 +2677,7 @@
                   <div class="navGlyph"><img src="https://momentum.design/icons/inbox-filled.svg" alt="My workspace"></div>
                 </button>
                 ${navMarkup}
-                <button class="navItem addNav" id="addNavFromPreview" title="Add navigation tab" type="button">+</button>
+                <button class="navItem addNav" id="addNavFromPreview" title="Add Dashboard tab" type="button">+</button>
                 <div style="margin-top:auto;" class="helpIcon">?</div>
               </div>
               <div class="sidebar" id="workspaceSidebar">
@@ -2635,6 +2717,7 @@
             const navItems = Array.from(document.querySelectorAll('.navItem'));
             const navData = ${JSON.stringify(navData)};
             const initialIndex = ${JSON.stringify(state.selectedNavigationIndex)};
+            const roleFlagValues = ${JSON.stringify(roleFlagValues)};
             const illustrationHtml = ${JSON.stringify(
               illustration
                 ? `<div class="illustrationWrap" id="editableIllustration"><img src="${escapeHtml(illustration)}" alt="${escapeHtml(firstTab)}"><button class="editPencil" id="editableIllustrationPencil" type="button" aria-label="Edit illustration">✎</button></div>`
@@ -2683,35 +2766,86 @@
                 openInlineEditor('illustration', 'Edit Illustration URL', ${JSON.stringify(editableIllustrationUrl)});
               });
             }
-            function openInlineEditor(mode, label, value) {
+            let inlineEditorField = '';
+            function openInlineEditor(mode, label, value, opts = {}) {
               inlineEditorMode = mode;
+              inlineEditorField = opts.field || '';
               inlineEditorTitle.textContent = label;
-              inlineEditorInput.value = value || '';
-              inlineEditorInput.placeholder = mode === 'title' ? 'Enter value' : 'Enter Url';
+              if (mode === 'role-number') {
+                inlineEditorInput.type = 'number';
+                inlineEditorInput.min = '0';
+                inlineEditorInput.step = '1';
+                inlineEditorInput.placeholder = 'Enter number';
+              } else {
+                inlineEditorInput.type = 'text';
+                inlineEditorInput.removeAttribute('min');
+                inlineEditorInput.removeAttribute('step');
+                inlineEditorInput.placeholder = mode === 'title' ? 'Enter value' : 'Enter Url';
+              }
+              inlineEditorInput.value = value != null ? String(value) : '';
               inlineEditor.classList.add('open');
               window.setTimeout(() => inlineEditorInput.focus(), 0);
             }
             function closeInlineEditor() {
               inlineEditor.classList.remove('open');
               inlineEditorMode = '';
+              inlineEditorField = '';
             }
             function saveInlineEditor() {
               if (!window.parent || !inlineEditorMode) return;
-              const value = inlineEditorInput.value.trim();
+              const raw = inlineEditorInput.value;
+              const value = typeof raw === 'string' ? raw.trim() : raw;
               if (inlineEditorMode === 'title') {
                 window.parent.postMessage({ type: 'desktop-layout-preview-edit-title', value }, '*');
               } else if (inlineEditorMode === 'logo') {
                 window.parent.postMessage({ type: 'desktop-layout-preview-edit-logo', value }, '*');
               } else if (inlineEditorMode === 'illustration') {
                 window.parent.postMessage({ type: 'desktop-layout-preview-edit-illustration', value }, '*');
+              } else if (inlineEditorMode === 'role-number') {
+                const num = Math.max(0, Number(value) || 0);
+                window.parent.postMessage({ type: 'desktop-layout-preview-edit-role-flag', field: inlineEditorField, value: num }, '*');
               }
               closeInlineEditor();
             }
+            function refreshRoleFlagChip(chip) {
+              const field = chip.dataset.flagField;
+              const type = chip.dataset.flagType;
+              chip.classList.remove('on', 'off', 'number');
+              if (type === 'bool') {
+                const on = Boolean(roleFlagValues[field]);
+                chip.classList.add(on ? 'on' : 'off');
+                chip.title = chip.getAttribute('title')?.replace(/ \(.*\)$/, '') + ' (' + (on ? 'ON' : 'OFF') + ')';
+              } else if (type === 'number') {
+                chip.classList.add('number');
+                const label = chip.dataset.flagId;
+                const val = Number(roleFlagValues[field] ?? 0);
+                chip.innerHTML = label + ' <span class="flagValue">' + val + '</span>';
+              }
+            }
+            Array.from(document.querySelectorAll('.roleFlagChip')).forEach((chip) => {
+              refreshRoleFlagChip(chip);
+              chip.addEventListener('click', (event) => {
+                event.stopPropagation();
+                const field = chip.dataset.flagField;
+                const type = chip.dataset.flagType;
+                if (type === 'bool') {
+                  const newValue = !roleFlagValues[field];
+                  roleFlagValues[field] = newValue;
+                  refreshRoleFlagChip(chip);
+                  if (window.parent) {
+                    window.parent.postMessage({ type: 'desktop-layout-preview-edit-role-flag', field, value: newValue }, '*');
+                  }
+                } else if (type === 'number') {
+                  const label = chip.getAttribute('title') || field;
+                  openInlineEditor('role-number', 'Edit ' + label, roleFlagValues[field] ?? 0, { field });
+                }
+              });
+            });
             navItems.forEach((item) => {
               item.addEventListener('click', () => {
                 if (item.id === 'addNavFromPreview') {
                   if (window.parent) {
-                    window.parent.postMessage({ type: 'desktop-layout-preview-add-nav' }, '*');
+                    window.parent.postMessage({ type: 'desktop-layout-preview-toggle-dashboard' }, '*');
                   }
                   return;
                 }
@@ -2934,6 +3068,28 @@
       syncFormFromJson();
       $('tenantLayoutSelect').value = '__new__';
       if ($('previewTenantLayoutSelect')) $('previewTenantLayoutSelect').value = '__new__';
+    }
+
+    function toggleDashboardNav() {
+      const roleConfig = getRoleConfig(state.currentJsonObject, state.currentRole);
+      const navigation = getNavigationArray(roleConfig);
+      const idx = navigation.findIndex((item) => item?.nav?.navigateTo === 'AnalyzerDashboard-widget');
+      if (idx >= 0) {
+        navigation.splice(idx, 1);
+        if (state.selectedNavigationIndex >= navigation.length) {
+          state.selectedNavigationIndex = Math.max(0, navigation.length - 1);
+        }
+        setStatus('Dashboard tab removed. Toggle it back on with the + button.', 'success');
+      } else {
+        navigation.push(orbitTemplateDashboardNav());
+        state.selectedNavigationIndex = navigation.length - 1;
+        setStatus('Dashboard tab added. Fill in the iframe src URL below or in the JSON.', 'success');
+      }
+      roleConfig.area = roleConfig.area || {};
+      roleConfig.area.navigation = navigation;
+      updateJsonEditor();
+      renderNavigationEditor();
+      renderPreview();
     }
 
     function startFromOrbitTemplate() {
@@ -3173,9 +3329,12 @@
           applyPreviewIllustration(event.data.value || '');
           return;
         }
-        if (event?.data?.type === 'desktop-layout-preview-add-nav') {
-          addTab();
-          openPreviewNavModal(state.selectedNavigationIndex);
+        if (event?.data?.type === 'desktop-layout-preview-toggle-dashboard') {
+          toggleDashboardNav();
+          return;
+        }
+        if (event?.data?.type === 'desktop-layout-preview-edit-role-flag') {
+          applyPreviewRoleFlag(event.data.field, event.data.value);
           return;
         }
         if (event?.data?.type === 'desktop-layout-preview-remove-nav') {
