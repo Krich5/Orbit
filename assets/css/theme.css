@@ -2667,7 +2667,7 @@ body.api-home main {
   grid-template-columns: minmax(280px, 320px) minmax(0, 1fr);
   gap: 0;
   width: 100%;
-  min-height: 100vh;
+  min-height: calc(100vh - var(--tp-header-h, 96px));
   align-items: stretch;
   background: transparent;
 }
@@ -2675,7 +2675,7 @@ body.api-home main {
 .home-sidebar {
   position: sticky;
   top: var(--tp-header-h, 96px);
-  min-height: 100vh;
+  min-height: calc(100vh - var(--tp-header-h, 96px));
   padding: 28px 12px;
   border-radius: 0;
   border: 0;
