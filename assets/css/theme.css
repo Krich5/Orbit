@@ -2914,6 +2914,13 @@ body.pre-auth .tp-side-rail {
   gap: 12px;
   align-items: center;
 }
+.pwa-install-app-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  flex-shrink: 0;
+  display: block;
+}
 .pwa-install-title {
   font-size: 1rem;
   font-weight: 700;

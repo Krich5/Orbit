@@ -981,22 +981,11 @@
       const toast = document.createElement('div');
       toast.id = PWA_PROMPT_ID;
       toast.className = 'pwa-install-toast';
+      const iconSrc = `${getToolsRootPath()}/assets/images/Orbit_Icon-192.png`;
       toast.innerHTML = `
-        <style>
-          .pwa-install-btn .pwa-install-icon {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            margin-right: 8px;
-            vertical-align: middle;
-            background-image: url('/assets/images/Orbit_Icon-192.png');
-            background-size: contain;
-            background-repeat: no-repeat;
-            background-position: center;
-          }
-        </style>
         <button class="pwa-install-close" type="button" aria-label="Dismiss install prompt">×</button>
         <div class="pwa-install-message">
+          <img class="pwa-install-app-icon" src="${iconSrc}" alt="" aria-hidden="true">
           <div>
             <strong class="pwa-install-title">Install as an app</strong>
             <p class="pwa-install-desc">Launch Orbit in its own window.</p>
@@ -1004,7 +993,6 @@
         </div>
         <div class="pwa-install-actions">
           <button class="pwa-install-btn" type="button">
-            <span class="pwa-install-icon" aria-hidden="true"></span>
             <span>Open in app</span>
           </button>
         </div>
