@@ -126,19 +126,6 @@
         <main>
           <div class="home-layout">
             <aside class="home-sidebar" aria-label="Tool categories">
-              <div class="tp-user-menu home-sidebar__account">
-                <button class="tp-user-avatar-btn" id="tpUserMenuBtn" type="button" aria-haspopup="true" aria-expanded="false" aria-label="Account menu">
-                  <img class="tp-user-avatar" id="tpUserAvatar" alt="" aria-hidden="true">
-                </button>
-                <div class="tp-user-dropdown" id="tpUserMenuDropdown" role="menu">
-                  <div class="tp-user-dropdown__identity">
-                    <div class="tp-user-name" id="userName">Signed in</div>
-                    <div class="tp-user-org" id="userOrg"></div>
-                  </div>
-                  <button class="tp-dropdown-item" id="tpStatusToggle" type="button">Webex Status: Off</button>
-                  <button class="tp-dropdown-item" id="signOutBtn" type="button">Sign Out</button>
-                </div>
-              </div>
               <nav class="tp-rail-nav" aria-label="Webex Contact Center">
                 ${HOME_SECTIONS.map((section) => `
                   <div class="tp-rail-group">
