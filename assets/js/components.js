@@ -105,7 +105,7 @@
       this.innerHTML = `
         <section class="surface-card surface-card--hero">
           <div class="hero-brand">
-            <span class="hero-logo-text">${title}</span>
+            <img class="hero-logo" src="assets/images/Orbit.png" alt="${title}">
           </div>
           <button class="auth-button" id="authBtn" type="button">
             <img src="assets/images/Webex.png" alt="Webex icon">
@@ -151,7 +151,7 @@
               </nav>
             </aside>
             <section class="home-content">
-              <span class="home-content__logo-text">Orbit</span>
+              <img class="home-content__logo" src="assets/images/Orbit.png" alt="Orbit">
             </section>
           </div>
         </main>

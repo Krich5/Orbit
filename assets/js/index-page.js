@@ -20,6 +20,10 @@
       redirect_uri: window.ORBIT_REDIRECT_URI,
       scope: window.ORBIT_OAUTH_SCOPES || '',
       state,
+      // Force a fresh consent screen so newly-added scopes are actually
+      // included in the token — Webex otherwise silently reuses whatever
+      // scopes the user already approved, ignoring anything new we ask for.
+      prompt: 'consent',
     });
     window.location.href = `https://webexapis.com/v1/authorize?${params.toString()}`;
   }
