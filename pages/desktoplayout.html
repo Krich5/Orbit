@@ -997,7 +997,11 @@
       'queue-contact',
       'participant-list'
     ];
-    const LOCKED_NAV_COUNT = 1;
+    // How many leading nav items are considered "locked" (not editable from
+    // the preview). Cisco's canonical layouts don't have any locked entries —
+    // every nav entry (including supervisor's TPW / QMW built-ins) is
+    // editable — so this is 0 by default.
+    const LOCKED_NAV_COUNT = 0;
 
     function createStockAnalyticsNav() {
       return {
@@ -3013,7 +3017,7 @@
                   <div class="navGlyph"><img src="https://momentum.design/icons/inbox-filled.svg" alt="My workspace"></div>
                 </button>
                 ${navMarkup}
-                <button class="navItem addNav" id="addNavFromPreview" title="Add Dashboard tab" type="button">+</button>
+                <button class="navItem addNav" id="addNavFromPreview" title="Add tab" type="button">+</button>
                 <div style="margin-top:auto;" class="helpIcon">?</div>
               </div>
               <div class="sidebar" id="workspaceSidebar">
@@ -3201,7 +3205,7 @@
               item.addEventListener('click', () => {
                 if (item.id === 'addNavFromPreview') {
                   if (window.parent) {
-                    window.parent.postMessage({ type: 'desktop-layout-preview-toggle-dashboard' }, '*');
+                    window.parent.postMessage({ type: 'desktop-layout-preview-add-nav' }, '*');
                   }
                   return;
                 }
@@ -3696,8 +3700,11 @@
           applyPreviewIllustration(event.data.value || '');
           return;
         }
-        if (event?.data?.type === 'desktop-layout-preview-toggle-dashboard') {
-          toggleDashboardNav();
+        if (event?.data?.type === 'desktop-layout-preview-add-nav') {
+          addTab();
+          // The new tab is now selected; open the edit modal so the user can
+          // pick an icon and enter the source URL immediately.
+          openPreviewNavModal(state.selectedNavigationIndex);
           return;
         }
         if (event?.data?.type === 'desktop-layout-preview-toggle-header-comp') {
