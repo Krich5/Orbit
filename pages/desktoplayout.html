@@ -318,6 +318,55 @@
     .srOnlySelect {
       display: none;
     }
+    .livePreviewJson {
+      margin-top: 12px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: var(--panel);
+      overflow: hidden;
+    }
+    .livePreviewJson summary {
+      list-style: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 14px;
+      font-weight: 600;
+      color: var(--fg);
+      background: rgba(15, 23, 42, 0.04);
+      user-select: none;
+    }
+    body.dark-mode .livePreviewJson summary {
+      background: rgba(255, 255, 255, 0.04);
+    }
+    .livePreviewJson summary::-webkit-details-marker { display: none; }
+    .livePreviewJson summary::before {
+      content: '▸';
+      display: inline-block;
+      margin-right: 8px;
+      transition: transform .15s ease;
+      color: var(--muted);
+    }
+    .livePreviewJson[open] summary::before {
+      transform: rotate(90deg);
+    }
+    .livePreviewJson summary .btn {
+      padding: 4px 10px;
+      font-size: 12px;
+    }
+    .livePreviewJson__code {
+      margin: 0;
+      padding: 14px;
+      max-height: 340px;
+      overflow: auto;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 12px;
+      line-height: 1.5;
+      color: var(--fg);
+      background: var(--panel);
+      white-space: pre;
+    }
     .previewFrame {
       display: block;
       width: 100%;
@@ -846,6 +895,13 @@
                 </div>
               </div>
               <iframe id="previewFrame" class="previewFrame" title="Desktop Layout Preview"></iframe>
+              <details class="livePreviewJson" id="livePreviewJsonWrap" open>
+                <summary>
+                  <span>Live JSON</span>
+                  <button class="btn" id="livePreviewJsonCopy" type="button">Copy</button>
+                </summary>
+                <pre class="livePreviewJson__code" id="livePreviewJsonCode"></pre>
+              </details>
             </div>
             <textarea id="jsonEditor" class="jsonEditor hidden" spellcheck="false"></textarea>
           </section>
@@ -1653,7 +1709,10 @@
     }
 
     function updateJsonEditor() {
-      $('jsonEditor').value = JSON.stringify(state.currentJsonObject, null, 2);
+      const text = JSON.stringify(state.currentJsonObject, null, 2);
+      $('jsonEditor').value = text;
+      const mirror = $('livePreviewJsonCode');
+      if (mirror) mirror.textContent = text;
     }
 
     function parseEditorJson() {
@@ -3356,6 +3415,17 @@
       $('removeTabBtn').addEventListener('click', removeSelectedTab);
       $('formatJsonBtn').addEventListener('click', formatJson);
       $('copyJsonBtn').addEventListener('click', copyJson);
+      const liveCopyBtn = $('livePreviewJsonCopy');
+      if (liveCopyBtn) {
+        liveCopyBtn.addEventListener('click', (event) => {
+          // The copy button lives inside the <summary>, so a plain click would
+          // also toggle the details open/closed. Swallow the event so it only
+          // copies, no matter which state the panel is in.
+          event.preventDefault();
+          event.stopPropagation();
+          copyJson();
+        });
+      }
       $('exportJsonBtn').addEventListener('click', downloadJson);
       $('importJsonBtn').addEventListener('click', () => $('jsonUploadInput').click());
       $('previewNewBtn').addEventListener('click', startFromGlobal);
