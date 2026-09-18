@@ -931,7 +931,7 @@
     };
 
     const DEFAULT_PREVIEW_LOGO = '../../assets/images/WxCC_Icon-192.png';
-    const DEFAULT_PREVIEW_ILLUSTRATION = '../../assets/images/support-contact-threetwozero-default.png';
+    const DEFAULT_PREVIEW_ILLUSTRATION = '../../assets/images/desktoplayout/desktoplayout_defaultlogo.png';
     const ICON_PRESETS = [
       'dashboard',
       'breakout-session',
@@ -1836,26 +1836,59 @@
       $('taskPageIllustration').focus();
     }
 
-    function applyPreviewRoleFlag(field, value) {
-      if (!field) return;
-      const fieldMap = {
-        stopNavigateOnAcceptTask: 'stopNavigateOnAcceptTask',
-        dragDropEnabled: 'dragDropEnabled',
-        wxmConfigured: 'wxmConfigured',
-        'desktopChatApp.webexConfigured': 'webexConfigured',
-        notificationTimer: 'notificationTimer',
-        maximumNotificationCount: 'maximumToasterCount'
-      };
-      const formId = fieldMap[field];
-      if (!formId) return;
-      const el = $(formId);
-      if (!el) return;
-      if (typeof value === 'boolean') {
-        el.value = String(value);
+    // Default component definitions for the header toggle icons. When the
+    // user turns an icon on, we insert the appropriate component into the
+    // role's advancedHeader array. Digital-outbound needs its full attribute
+    // block; the rest are simple {comp} entries.
+    const HEADER_COMP_DEFAULTS = {
+      'digital-outbound': {
+        comp: 'digital-outbound',
+        script: 'https://wc.imiengage.io/AIC/engage_aic.js',
+        attributes: {
+          darkmode: '$STORE.app.darkMode',
+          accessToken: '$STORE.auth.accessToken',
+          orgId: '$STORE.agent.orgId',
+          dataCenter: '$STORE.app.datacenter',
+          emailCount: '$STORE.agent.channels.emailCount',
+          socialCount: '$STORE.agent.channels.socialCount'
+        }
+      },
+      'ai-assistant': { comp: 'ai-assistant' },
+      'agentx-webex': { comp: 'agentx-webex' },
+      'agentx-outdial': { comp: 'agentx-outdial' },
+      'agentx-notification': { comp: 'agentx-notification' }
+    };
+    // Preserves the visual left-to-right order Cisco uses when we insert new
+    // components into an existing array.
+    const HEADER_COMP_ORDER = [
+      'digital-outbound', 'ai-assistant', 'agentx-webex',
+      'agentx-outdial', 'agentx-notification', 'agentx-state-selector'
+    ];
+
+    function applyPreviewHeaderCompToggle(comp, enabled) {
+      if (!comp) return;
+      const roleConfig = getRoleConfig(state.currentJsonObject, state.currentRole);
+      roleConfig.area = roleConfig.area || {};
+      const arr = Array.isArray(roleConfig.area.advancedHeader) ? roleConfig.area.advancedHeader : [];
+      const existingIdx = arr.findIndex((w) => w?.comp === comp);
+      if (enabled) {
+        if (existingIdx >= 0) return; // already there
+        const entry = HEADER_COMP_DEFAULTS[comp] ? cloneJson(HEADER_COMP_DEFAULTS[comp]) : { comp };
+        // Insert in canonical order so the toolbar stays visually consistent.
+        const targetPos = HEADER_COMP_ORDER.indexOf(comp);
+        let insertAt = arr.length;
+        for (let i = 0; i < arr.length; i++) {
+          const pos = HEADER_COMP_ORDER.indexOf(arr[i]?.comp);
+          if (pos > targetPos) { insertAt = i; break; }
+        }
+        arr.splice(insertAt, 0, entry);
       } else {
-        el.value = String(value ?? 0);
+        if (existingIdx < 0) return;
+        arr.splice(existingIdx, 1);
       }
-      applyFormSilently();
+      roleConfig.area.advancedHeader = arr;
+      updateJsonEditor();
+      renderPreview();
     }
 
     const ICON_PRESET_LABELS = {
@@ -2000,6 +2033,7 @@
         notificationTimer: Number(roleConfig.notificationTimer ?? 0),
         maximumNotificationCount: Number(roleConfig.maximumToasterCount ?? roleConfig.maximumNotificationCount ?? 3)
       };
+      const advancedHeaderComps = new Set(headerWidgets.map((w) => w?.comp).filter(Boolean));
       const navData = navItems.map((item, index) => {
         const widgets = item?.page?.widgets || {};
         const firstWidget = Object.values(widgets)[0] || null;
@@ -2151,47 +2185,37 @@
               align-items: center;
               gap: 14px;
             }
-            .roleFlagRow {
-              display: inline-flex;
-              gap: 6px;
-              padding: 4px 6px;
-              border-radius: 999px;
-              background: rgba(31, 41, 55, 0.06);
-              border: 1px solid rgba(15, 23, 42, 0.1);
-            }
-            .roleFlagChip {
-              min-width: 28px;
-              height: 24px;
-              padding: 0 8px;
-              border-radius: 999px;
-              border: 1px solid rgba(15, 23, 42, 0.15);
-              background: #fff;
-              color: #6b7280;
-              font-size: 11px;
-              font-weight: 700;
+            .headerIconToggle {
+              position: relative;
+              width: 32px;
+              height: 32px;
+              border: 1px solid transparent;
+              border-radius: 10px;
+              background: transparent;
+              padding: 4px;
               cursor: pointer;
               display: inline-flex;
               align-items: center;
               justify-content: center;
-              gap: 4px;
-              line-height: 1;
+              opacity: 0.32;
+              transition: opacity .15s ease, background .15s ease, border-color .15s ease;
             }
-            .roleFlagChip.on {
-              background: #16a34a;
-              color: #fff;
-              border-color: #16a34a;
+            .headerIconToggle.on {
+              opacity: 1;
             }
-            .roleFlagChip.off {
-              background: #fff;
-              color: #6b7280;
+            .headerIconToggle:hover {
+              background: rgba(15, 23, 42, 0.06);
+              border-color: rgba(15, 23, 42, 0.14);
             }
-            .roleFlagChip.number {
-              background: #1f2937;
-              color: #fff;
-              border-color: #1f2937;
+            .headerIconToggle img {
+              width: 22px;
+              height: 22px;
+              object-fit: contain;
+              display: block;
             }
-            .roleFlagChip .flagValue {
-              font-weight: 800;
+            .headerIconToggle img.webexIcon {
+              width: 26px;
+              height: 22px;
             }
             .headerIcons {
               display: flex;
@@ -2639,30 +2663,22 @@
                 </div>
               </div>
               <div class="headerRight">
-                <div class="roleFlagRow" role="group" aria-label="Role settings">
-                  <button class="roleFlagChip" data-flag-id="7" data-flag-field="stopNavigateOnAcceptTask" data-flag-type="bool" title="Stop navigation on accept task" type="button">7</button>
-                  <button class="roleFlagChip" data-flag-id="9" data-flag-field="notificationTimer" data-flag-type="number" title="Notification timer (seconds)" type="button">9</button>
-                  <button class="roleFlagChip" data-flag-id="10" data-flag-field="dragDropEnabled" data-flag-type="bool" title="Drag and drop enabled" type="button">10</button>
-                  <button class="roleFlagChip" data-flag-id="11" data-flag-field="maximumNotificationCount" data-flag-type="number" title="Max notification count" type="button">11</button>
-                  <button class="roleFlagChip" data-flag-id="12" data-flag-field="wxmConfigured" data-flag-type="bool" title="Webex Messaging enabled" type="button">12</button>
-                  <button class="roleFlagChip" data-flag-id="14" data-flag-field="desktopChatApp.webexConfigured" data-flag-type="bool" title="Webex chat app enabled" type="button">14</button>
-                </div>
                 <div class="headerIcons">
-                  <button class="headerIconButton" type="button" aria-label="Webex">
-                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                      <path d="M12 4.2a7.8 7.8 0 1 0 7.8 7.8" stroke="#06b6d4" stroke-width="2.2" stroke-linecap="round"/>
-                      <path d="M19.1 12A7.1 7.1 0 0 1 7.2 17.2" stroke="#2563eb" stroke-width="2.2" stroke-linecap="round"/>
-                    </svg>
+                  <button class="headerIconToggle${advancedHeaderComps.has('digital-outbound') ? ' on' : ''}" data-comp="digital-outbound" title="Digital Outbound (chat)" type="button">
+                    <img src="../../assets/images/desktoplayout/desktoplayout_chat.png" alt="">
                   </button>
-                  <button class="headerIconButton" type="button" aria-label="Phone">
-                    <img src="https://momentum.design/icons/handset-regular.svg" alt="">
+                  <button class="headerIconToggle${advancedHeaderComps.has('ai-assistant') ? ' on' : ''}" data-comp="ai-assistant" title="AI Assistant" type="button">
+                    <img src="../../assets/images/desktoplayout/desktoplayout_ai.png" alt="">
                   </button>
-                  <button class="headerIconButton" type="button" aria-label="Notifications">
-                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                      <path d="M12 5.25a4.25 4.25 0 0 0-4.25 4.25v2.33c0 .72-.24 1.42-.68 1.99l-1.03 1.33h11.92l-1.03-1.33a3.22 3.22 0 0 1-.68-1.99V9.5A4.25 4.25 0 0 0 12 5.25Z" stroke="#111827" stroke-width="1.7" stroke-linejoin="round"/>
-                      <path d="M10.2 17.2a1.95 1.95 0 0 0 3.6 0" stroke="#111827" stroke-width="1.7" stroke-linecap="round"/>
-                    </svg>
-                    <span class="notificationBadge">8</span>
+                  <button class="headerIconToggle${advancedHeaderComps.has('agentx-webex') ? ' on' : ''}" data-comp="agentx-webex" title="Webex" type="button">
+                    <img src="../../assets/images/desktoplayout/desktoplayout_webex.png" alt="" class="webexIcon">
+                  </button>
+                  <button class="headerIconToggle${advancedHeaderComps.has('agentx-outdial') ? ' on' : ''}" data-comp="agentx-outdial" title="Outdial (phone)" type="button">
+                    <img src="../../assets/images/desktoplayout/desktoplayout_handset.png" alt="">
+                  </button>
+                  <button class="headerIconToggle${advancedHeaderComps.has('agentx-notification') ? ' on' : ''}" data-comp="agentx-notification" title="Notifications" type="button">
+                    <img src="../../assets/images/desktoplayout/desktoplayout_bell.png" alt="">
+                    <span class="notificationBadge">${Number(roleConfig.maximumToasterCount ?? roleConfig.maximumNotificationCount ?? 3)}</span>
                   </button>
                 </div>
                 <div class="timer">
@@ -2807,38 +2823,14 @@
               }
               closeInlineEditor();
             }
-            function refreshRoleFlagChip(chip) {
-              const field = chip.dataset.flagField;
-              const type = chip.dataset.flagType;
-              chip.classList.remove('on', 'off', 'number');
-              if (type === 'bool') {
-                const on = Boolean(roleFlagValues[field]);
-                chip.classList.add(on ? 'on' : 'off');
-                chip.title = chip.getAttribute('title')?.replace(/ \(.*\)$/, '') + ' (' + (on ? 'ON' : 'OFF') + ')';
-              } else if (type === 'number') {
-                chip.classList.add('number');
-                const label = chip.dataset.flagId;
-                const val = Number(roleFlagValues[field] ?? 0);
-                chip.innerHTML = label + ' <span class="flagValue">' + val + '</span>';
-              }
-            }
-            Array.from(document.querySelectorAll('.roleFlagChip')).forEach((chip) => {
-              refreshRoleFlagChip(chip);
-              chip.addEventListener('click', (event) => {
+            Array.from(document.querySelectorAll('.headerIconToggle')).forEach((btn) => {
+              btn.addEventListener('click', (event) => {
                 event.stopPropagation();
-                const field = chip.dataset.flagField;
-                const type = chip.dataset.flagType;
-                if (type === 'bool') {
-                  const newValue = !roleFlagValues[field];
-                  roleFlagValues[field] = newValue;
-                  refreshRoleFlagChip(chip);
-                  if (window.parent) {
-                    window.parent.postMessage({ type: 'desktop-layout-preview-edit-role-flag', field, value: newValue }, '*');
-                  }
-                } else if (type === 'number') {
-                  const label = chip.getAttribute('title') || field;
-                  openInlineEditor('role-number', 'Edit ' + label, roleFlagValues[field] ?? 0, { field });
-                }
+                const comp = btn.dataset.comp;
+                if (!comp || !window.parent) return;
+                const willEnable = !btn.classList.contains('on');
+                btn.classList.toggle('on', willEnable);
+                window.parent.postMessage({ type: 'desktop-layout-preview-toggle-header-comp', comp, enabled: willEnable }, '*');
               });
             });
             navItems.forEach((item) => {
@@ -3333,8 +3325,8 @@
           toggleDashboardNav();
           return;
         }
-        if (event?.data?.type === 'desktop-layout-preview-edit-role-flag') {
-          applyPreviewRoleFlag(event.data.field, event.data.value);
+        if (event?.data?.type === 'desktop-layout-preview-toggle-header-comp') {
+          applyPreviewHeaderCompToggle(event.data.comp, Boolean(event.data.enabled));
           return;
         }
         if (event?.data?.type === 'desktop-layout-preview-remove-nav') {
