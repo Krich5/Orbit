@@ -406,54 +406,84 @@
       display: flex;
     }
     .previewModalCard {
-      width: min(560px, calc(100vw - 32px));
-      border-radius: 28px;
-      border: 1px solid rgba(15, 23, 42, 0.12);
-      background: rgba(255, 255, 255, 0.98);
-      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.28);
-      padding: 22px 28px 28px;
+      width: min(520px, calc(100vw - 32px));
+      border-radius: 12px;
+      border: 1px solid rgba(15, 23, 42, 0.14);
+      background: #ffffff;
+      box-shadow: 0 24px 48px rgba(15, 23, 42, 0.32);
+      padding: 14px;
       color: #111827;
     }
     .previewModalHeader {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 12px;
-      margin-bottom: 16px;
+      gap: 10px;
+      margin-bottom: 10px;
     }
     .previewModalHeader h3 {
       margin: 0;
-      font-size: 1.2rem;
+      font-size: 13px;
+      font-weight: 700;
       color: #111827;
     }
     .hiddenField {
       display: none;
     }
     .previewModalClose {
-      width: 42px;
-      height: 42px;
-      border-radius: 16px;
-      border: 1px solid rgba(15, 23, 42, 0.12);
-      background:var(--card);
-      color: #111827;
+      width: 22px;
+      height: 22px;
+      border-radius: 6px;
+      border: none;
+      background: transparent;
+      color: #6b7280;
       cursor: pointer;
       font: inherit;
-      font-weight: 700;
+      font-size: 18px;
+      line-height: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+    }
+    .previewModalClose:hover {
+      background: #f3f4f6;
+      color: #111827;
+    }
+    body.dark-mode .previewModal .previewModalClose {
+      background: transparent !important;
+      color: #6b7280 !important;
+      border: none !important;
+    }
+    body.dark-mode .previewModal .previewModalClose:hover {
+      background: #f3f4f6 !important;
+      color: #111827 !important;
+    }
+    .previewModal .editorGrid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+    }
+    .previewModal .field {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
     }
     .previewModal .field label {
       color: #4b5563;
-      font-weight: 600;
+      font-weight: 500;
+      font-size: 12px;
     }
     .previewModal .field input,
     .previewModal .field select {
       background: #ffffff;
       color: #111827;
-      border: 1px solid rgba(15, 23, 42, 0.14);
-      border-radius: 12px;
-      min-height: 44px;
-      font-size: 15px;
-      font-weight: 500;
-      padding: 0 12px;
+      border: 1px solid rgba(15, 23, 42, 0.16);
+      border-radius: 8px;
+      min-height: 32px;
+      font-size: 13px;
+      font-weight: 400;
+      padding: 6px 10px;
     }
     .previewModal .field select,
     .previewModal .field input {
@@ -471,20 +501,21 @@
     }
     .previewModal .buttonRow {
       justify-content: flex-end;
-      margin-top: 20px;
-      gap: 12px;
+      margin-top: 12px;
+      gap: 8px;
+      display: flex;
     }
     .previewModal .btn {
-      min-width: 84px;
-      min-height: 44px;
-      border-radius: 10px;
+      min-width: 0;
+      min-height: 0;
+      border-radius: 8px;
       background: #ffffff;
       color: #111827;
-      border: 1px solid rgba(15, 23, 42, 0.18);
+      border: 1px solid rgba(15, 23, 42, 0.15);
       box-shadow: none;
-      font-size: 14px;
-      font-weight: 700;
-      padding: 0 16px;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 6px 12px;
     }
     .previewModal .btn:hover {
       background: #f3f4f6;
@@ -501,7 +532,7 @@
     body.dark-mode .previewModal .btn {
       background: #ffffff !important;
       color: #111827 !important;
-      border: 1px solid rgba(15, 23, 42, 0.18) !important;
+      border: 1px solid rgba(15, 23, 42, 0.15) !important;
       box-shadow: none !important;
     }
     body.dark-mode .previewModal .btn:hover {
@@ -516,11 +547,19 @@
     body.dark-mode .previewModal .field input {
       background: #ffffff !important;
       color: #111827 !important;
-      border-color: rgba(15, 23, 42, 0.14) !important;
+      border-color: rgba(15, 23, 42, 0.16) !important;
       -webkit-text-fill-color: #111827 !important;
     }
     body.dark-mode .previewModal .field label {
       color: #4b5563 !important;
+    }
+    body.dark-mode .previewModal .previewModalCard {
+      background: #ffffff !important;
+      color: #111827 !important;
+      border-color: rgba(15, 23, 42, 0.14) !important;
+    }
+    body.dark-mode .previewModal .previewModalHeader h3 {
+      color: #111827 !important;
     }
     /* Modal select arrow — dark stroke for light background */
     .previewModal .field.selectField::after {
@@ -543,17 +582,17 @@
     }
     .iconPickerTrigger {
       width: 100%;
-      min-height: 44px;
-      border: 1px solid rgba(15, 23, 42, 0.14);
-      border-radius: 12px;
+      min-height: 32px;
+      border: 1px solid rgba(15, 23, 42, 0.16);
+      border-radius: 8px;
       background: #ffffff;
       color: #111827;
       display: flex;
       align-items: center;
-      gap: 8px;
-      padding: 8px 10px 8px 10px;
+      gap: 6px;
+      padding: 6px 8px;
       cursor: pointer;
-      font: 500 14px/1 inherit;
+      font: 400 13px/1 inherit;
       text-align: left;
       transition: border-color 0.15s;
     }
@@ -589,8 +628,9 @@
       position: absolute;
       top: calc(100% + 4px);
       left: 0;
-      right: 0;
-      background:var(--card);
+      min-width: 260px;
+      max-width: min(320px, calc(100vw - 40px));
+      background: #ffffff;
       border: 1px solid rgba(15, 23, 42, 0.12);
       border-radius: 16px;
       box-shadow: 0 8px 28px rgba(15,23,42,0.18);
@@ -3016,7 +3056,6 @@
                     <strong class="editable" id="editableTitle" title="Edit title">${escapeHtml(title)}</strong>
                     <button class="editPencil" id="editableTitlePencil" type="button" aria-label="Edit title">✎</button>
                   </div>
-                  <span>${escapeHtml(state.currentRole.replace(/([A-Z])/g, ' $1').replace(/^./, s => s.toUpperCase()))}</span>
                 </div>
               </div>
               <div class="headerRight">
