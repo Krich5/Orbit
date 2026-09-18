@@ -1251,6 +1251,30 @@
       };
     }
 
+    // Full "everything on" header for both agent + supervisor roles. Used by
+    // the default template so new layouts start with every icon lit up.
+    function defaultFullAdvancedHeader() {
+      return [
+        {
+          comp: 'digital-outbound',
+          script: 'https://wc.imiengage.io/AIC/engage_aic.js',
+          attributes: {
+            darkmode: '$STORE.app.darkMode',
+            accessToken: '$STORE.auth.accessToken',
+            orgId: '$STORE.agent.orgId',
+            dataCenter: '$STORE.app.datacenter',
+            emailCount: '$STORE.agent.channels.emailCount',
+            socialCount: '$STORE.agent.channels.socialCount'
+          }
+        },
+        { comp: 'ai-assistant' },
+        { comp: 'agentx-webex' },
+        { comp: 'agentx-outdial' },
+        { comp: 'agentx-notification' },
+        { comp: 'agentx-state-selector' }
+      ];
+    }
+
     const DEFAULT_LAYOUT_CONTENT = {
       agent: {
         version: '0.1.0',
@@ -1268,11 +1292,7 @@
           createStockAnalyticsNav()
         ],
         area: {
-          advancedHeader: [
-            { comp: 'ai-assistant' },
-            { comp: 'agentx-webex' },
-            { comp: 'agentx-state-selector' }
-          ],
+          advancedHeader: defaultFullAdvancedHeader(),
           panel: {
             comp: 'md-tabs',
             attributes: { class: 'widget-tabs' },
@@ -1299,10 +1319,7 @@
           createStockAnalyticsNav()
         ],
         area: {
-          advancedHeader: [
-            { comp: 'agentx-webex' },
-            { comp: 'agentx-notification' }
-          ],
+          advancedHeader: defaultFullAdvancedHeader(),
           panel: {
             comp: 'md-tabs',
             attributes: { class: 'widget-tabs' },
@@ -1329,11 +1346,7 @@
           createStockAnalyticsNav()
         ],
         area: {
-          advancedHeader: [
-            { comp: 'ai-assistant' },
-            { comp: 'agentx-webex' },
-            { comp: 'agentx-notification' }
-          ],
+          advancedHeader: defaultFullAdvancedHeader(),
           panel: {
             comp: 'md-tabs',
             attributes: { class: 'widget-tabs' },
@@ -2217,6 +2230,80 @@
               width: 26px;
               height: 22px;
             }
+            .headerTimerButton {
+              width: 26px;
+              height: 26px;
+              border: 1px solid rgba(15, 23, 42, 0.14);
+              border-radius: 8px;
+              background: #fff;
+              cursor: pointer;
+              display: inline-flex;
+              align-items: center;
+              justify-content: center;
+              padding: 0;
+              margin-left: 4px;
+            }
+            .headerTimerButton:hover { background: rgba(15,23,42,0.05); }
+            .headerTimerButton svg { width: 16px; height: 16px; display: block; }
+            .timersPopover {
+              position: fixed;
+              top: 68px;
+              right: 20px;
+              z-index: 40;
+              display: none;
+            }
+            .timersPopover.open { display: block; }
+            .timersPopoverCard {
+              background: #fff;
+              border: 1px solid rgba(15,23,42,0.14);
+              border-radius: 12px;
+              box-shadow: 0 12px 28px rgba(15,23,42,0.18);
+              padding: 14px;
+              min-width: 260px;
+              display: flex;
+              flex-direction: column;
+              gap: 10px;
+              color: #111827;
+            }
+            .timersPopoverCard strong {
+              font-size: 13px;
+              font-weight: 700;
+            }
+            .timersPopoverCard label {
+              display: flex;
+              flex-direction: column;
+              gap: 4px;
+              font-size: 12px;
+              color: #4b5563;
+            }
+            .timersPopoverCard input {
+              padding: 6px 10px;
+              border: 1px solid rgba(15,23,42,0.16);
+              border-radius: 8px;
+              font-size: 13px;
+              color: #111827;
+              background: #fff;
+            }
+            .timersPopoverActions {
+              display: flex;
+              justify-content: flex-end;
+              gap: 8px;
+              margin-top: 4px;
+            }
+            .timersPopoverActions button {
+              padding: 6px 12px;
+              border-radius: 8px;
+              border: 1px solid rgba(15,23,42,0.15);
+              background: #fff;
+              cursor: pointer;
+              font-size: 12px;
+              color: #111827;
+            }
+            .timersPopoverActions button.primary {
+              background: #2563eb;
+              color: #fff;
+              border-color: #2563eb;
+            }
             .headerIcons {
               display: flex;
               align-items: center;
@@ -2680,6 +2767,25 @@
                     <img src="../assets/images/desktoplayout/desktoplayout_bell.png" alt="">
                     <span class="notificationBadge">${Number(roleConfig.maximumToasterCount ?? roleConfig.maximumNotificationCount ?? 3)}</span>
                   </button>
+                  <button class="headerTimerButton" id="openTimersPopover" title="Notification timers" type="button" aria-label="Edit notification timers">
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                      <circle cx="12" cy="13" r="7" stroke="#111827" stroke-width="1.7"/>
+                      <path d="M12 9v4l2.5 2" stroke="#111827" stroke-width="1.7" stroke-linecap="round"/>
+                      <path d="M9 3h6" stroke="#111827" stroke-width="1.7" stroke-linecap="round"/>
+                    </svg>
+                  </button>
+                </div>
+                <div class="timersPopover" id="timersPopover" role="dialog" aria-label="Notification timers">
+                  <div class="timersPopoverCard">
+                    <strong>Notification Timers</strong>
+                    <label>Auto-dismiss timer (sec)<input type="number" min="0" step="1" id="timerAutoDismiss"></label>
+                    <label>Max concurrent notifications<input type="number" min="0" step="1" id="timerMaxCount"></label>
+                    <label>Browser notification timer (sec)<input type="number" min="0" step="1" id="timerBrowser"></label>
+                    <div class="timersPopoverActions">
+                      <button type="button" id="timersPopoverCancel">Cancel</button>
+                      <button type="button" class="primary" id="timersPopoverSave">Save</button>
+                    </div>
+                  </div>
                 </div>
                 <div class="timer">
                   <span class="timerLeft"><span class="timerDot"></span><span>Login</span></span>
@@ -2833,6 +2939,38 @@
                 window.parent.postMessage({ type: 'desktop-layout-preview-toggle-header-comp', comp, enabled: willEnable }, '*');
               });
             });
+
+            const timersPopover = document.getElementById('timersPopover');
+            const openTimersBtn = document.getElementById('openTimersPopover');
+            if (openTimersBtn && timersPopover) {
+              const autoInput = document.getElementById('timerAutoDismiss');
+              const maxInput = document.getElementById('timerMaxCount');
+              const browserInput = document.getElementById('timerBrowser');
+              openTimersBtn.addEventListener('click', (event) => {
+                event.stopPropagation();
+                autoInput.value = roleFlagValues.notificationTimer ?? 8;
+                maxInput.value = roleFlagValues.maximumNotificationCount ?? 3;
+                browserInput.value = ${JSON.stringify(Number(roleConfig.browserNotificationTimer ?? 8))};
+                timersPopover.classList.add('open');
+              });
+              document.getElementById('timersPopoverCancel').addEventListener('click', () => timersPopover.classList.remove('open'));
+              document.getElementById('timersPopoverSave').addEventListener('click', () => {
+                if (window.parent) {
+                  window.parent.postMessage({
+                    type: 'desktop-layout-preview-edit-timers',
+                    notificationTimer: Math.max(0, Number(autoInput.value) || 0),
+                    maximumNotificationCount: Math.max(0, Number(maxInput.value) || 0),
+                    browserNotificationTimer: Math.max(0, Number(browserInput.value) || 0)
+                  }, '*');
+                }
+                timersPopover.classList.remove('open');
+              });
+              document.addEventListener('click', (event) => {
+                if (!timersPopover.contains(event.target) && event.target !== openTimersBtn) {
+                  timersPopover.classList.remove('open');
+                }
+              });
+            }
             navItems.forEach((item) => {
               item.addEventListener('click', () => {
                 if (item.id === 'addNavFromPreview') {
@@ -3327,6 +3465,13 @@
         }
         if (event?.data?.type === 'desktop-layout-preview-toggle-header-comp') {
           applyPreviewHeaderCompToggle(event.data.comp, Boolean(event.data.enabled));
+          return;
+        }
+        if (event?.data?.type === 'desktop-layout-preview-edit-timers') {
+          $('notificationTimer').value = String(event.data.notificationTimer ?? 0);
+          $('maximumToasterCount').value = String(event.data.maximumNotificationCount ?? 0);
+          $('browserNotificationTimer').value = String(event.data.browserNotificationTimer ?? 0);
+          applyFormSilently();
           return;
         }
         if (event?.data?.type === 'desktop-layout-preview-remove-nav') {
