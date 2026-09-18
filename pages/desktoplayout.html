@@ -441,17 +441,19 @@
       font-weight: 700;
     }
     .previewModal .field label {
-      color: #64748b;
+      color: #4b5563;
+      font-weight: 600;
     }
     .previewModal .field input,
     .previewModal .field select {
-      background:var(--card);
+      background: #ffffff;
       color: #111827;
-      border: 1px solid rgba(15, 23, 42, 0.12);
-      border-radius: 18px;
+      border: 1px solid rgba(15, 23, 42, 0.14);
+      border-radius: 12px;
       min-height: 44px;
       font-size: 15px;
       font-weight: 500;
+      padding: 0 12px;
     }
     .previewModal .field select,
     .previewModal .field input {
@@ -459,12 +461,13 @@
     }
     .previewModal select option {
       color: #111827;
-      background:var(--card);
+      background: #ffffff;
     }
     .previewModal .field input:focus,
     .previewModal .field select:focus {
       border-color: #2563eb;
       box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.14);
+      outline: none;
     }
     .previewModal .buttonRow {
       justify-content: flex-end;
@@ -473,27 +476,36 @@
     }
     .previewModal .btn {
       min-width: 84px;
-      min-height: 52px;
-      border-radius: 18px;
-      background:var(--card);
+      min-height: 44px;
+      border-radius: 10px;
+      background: #ffffff;
       color: #111827;
-      border: 1px solid rgba(15, 23, 42, 0.12);
+      border: 1px solid rgba(15, 23, 42, 0.18);
       box-shadow: none;
-      font-size: 15px;
+      font-size: 14px;
       font-weight: 700;
-      padding: 0 18px;
+      padding: 0 16px;
+    }
+    .previewModal .btn:hover {
+      background: #f3f4f6;
     }
     .previewModal .btn.primary {
       background: #2563eb;
       color: #fff;
       border-color: #2563eb;
     }
-    /* Override dark-mode !important rules so modal stays light-themed */
+    .previewModal .btn.primary:hover {
+      background: #1e50cc;
+    }
+    /* Force these values regardless of dark-mode overrides */
     body.dark-mode .previewModal .btn {
-      background:var(--input) !important;
+      background: #ffffff !important;
       color: #111827 !important;
       border: 1px solid rgba(15, 23, 42, 0.18) !important;
       box-shadow: none !important;
+    }
+    body.dark-mode .previewModal .btn:hover {
+      background: #f3f4f6 !important;
     }
     body.dark-mode .previewModal .btn.primary {
       background: #2563eb !important;
@@ -502,10 +514,13 @@
     }
     body.dark-mode .previewModal .field select,
     body.dark-mode .previewModal .field input {
-      background:var(--card) !important;
+      background: #ffffff !important;
       color: #111827 !important;
-      border-color: rgba(15, 23, 42, 0.12) !important;
+      border-color: rgba(15, 23, 42, 0.14) !important;
       -webkit-text-fill-color: #111827 !important;
+    }
+    body.dark-mode .previewModal .field label {
+      color: #4b5563 !important;
     }
     /* Modal select arrow — dark stroke for light background */
     .previewModal .field.selectField::after {
@@ -529,9 +544,9 @@
     .iconPickerTrigger {
       width: 100%;
       min-height: 44px;
-      border: 1px solid rgba(15, 23, 42, 0.12);
-      border-radius: 18px;
-      background:var(--card);
+      border: 1px solid rgba(15, 23, 42, 0.14);
+      border-radius: 12px;
+      background: #ffffff;
       color: #111827;
       display: flex;
       align-items: center;
@@ -660,9 +675,9 @@
     body.dark-mode .previewModal .iconPickerPanel,
     body.dark-mode .previewModal .iconPickerGridBtn,
     body.dark-mode .previewModal .iconPickerUrlBtn {
-      background:var(--card) !important;
+      background: #ffffff !important;
       color: #111827 !important;
-      border-color: rgba(15,23,42,0.1) !important;
+      border-color: rgba(15,23,42,0.14) !important;
     }
     body.dark-mode .previewModal .iconPickerGridBtn.selected,
     body.dark-mode .previewModal .iconPickerUrlBtn.selected {
@@ -2235,6 +2250,11 @@
       const navigation = getNavigationArray(roleConfig);
       if (index < 0 || index >= navigation.length) return;
       if (index < LOCKED_NAV_COUNT) return;
+      // Locked system defaults (e.g. Customer Experience Analytics with
+      // visibility WXM_METRICS) are read-only in the preview.
+      const target = navigation[index];
+      if (target?.visibility === 'WXM_METRICS'
+          || target?.nav?.navigateTo === 'Customer-Experience-Analytics-widget') return;
       state.modalNavigationIndex = index;
       state.selectedNavigationIndex = index;
       const { item, firstWidgetKey } = ensureNavigationStructure(roleConfig, index);
@@ -2289,6 +2309,12 @@
         maximumNotificationCount: Number(roleConfig.maximumToasterCount ?? roleConfig.maximumNotificationCount ?? 3)
       };
       const advancedHeaderComps = new Set(headerWidgets.map((w) => w?.comp).filter(Boolean));
+      // Cisco-provided default nav items that shouldn't be edited/removed from
+      // the preview: identified by their visibility flag (WXM_METRICS) or their
+      // canonical navigateTo values. New user-added tabs are always editable.
+      const LOCKED_NAV_FINGERPRINTS = new Set(['Customer-Experience-Analytics-widget']);
+      const isLockedNav = (item) => item?.visibility === 'WXM_METRICS'
+        || LOCKED_NAV_FINGERPRINTS.has(item?.nav?.navigateTo);
       const navData = navItems.map((item, index) => {
         const widgets = item?.page?.widgets || {};
         const firstWidget = Object.values(widgets)[0] || null;
@@ -2297,7 +2323,7 @@
           label: item?.nav?.label || item?.page?.id || `Item ${index + 1}`,
           src: firstWidget?.attributes?.src || '',
           hasIframe: Boolean(firstWidget?.attributes?.src),
-          editable: index >= LOCKED_NAV_COUNT
+          editable: !isLockedNav(item)
         };
       });
 
@@ -2308,7 +2334,7 @@
       const navMarkup = navItems.map((item, index) => {
         const label = item?.nav?.label || item?.page?.id || `Item ${index + 1}`;
         const previewIcon = resolvePreviewIcon(item);
-        const isLocked = index < LOCKED_NAV_COUNT;
+        const isLocked = isLockedNav(item);
         return `
           <div class="navEntry${index === state.selectedNavigationIndex ? ' active' : ''}">
             ${isLocked ? '' : `<button class="navRemove" data-remove-index="${index}" type="button" title="Remove tab">×</button>`}
