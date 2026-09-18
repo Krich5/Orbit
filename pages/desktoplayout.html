@@ -711,7 +711,7 @@
           <div class="layoutGrid">
           <section class="panel editorPanel" aria-hidden="true">
             <h2>Basic Editor</h2>
-            <p class="panelHelp">The controls here only touch the currently selected role so we can keep the workflow simple.</p>
+            <p class="panelHelp">The controls here only touch the currently selected role so we can keep the workflow simple. For the full JSON schema and field descriptions, see Cisco's guide: <a href="https://help.webex.com/en-us/article/ng08gqeb/Create-custom-desktop-layout" target="_blank" rel="noopener">Create a custom desktop layout</a>.</p>
 
             <div class="editorGrid">
             <div class="field span-4 selectField">
@@ -2114,21 +2114,34 @@
       const arr = Array.isArray(roleConfig.area.advancedHeader) ? roleConfig.area.advancedHeader : [];
       const existingIdx = arr.findIndex((w) => w?.comp === comp);
       if (enabled) {
-        if (existingIdx >= 0) return; // already there
-        const entry = HEADER_COMP_DEFAULTS[comp] ? cloneJson(HEADER_COMP_DEFAULTS[comp]) : { comp };
-        // Insert in canonical order so the toolbar stays visually consistent.
-        const targetPos = HEADER_COMP_ORDER.indexOf(comp);
-        let insertAt = arr.length;
-        for (let i = 0; i < arr.length; i++) {
-          const pos = HEADER_COMP_ORDER.indexOf(arr[i]?.comp);
-          if (pos > targetPos) { insertAt = i; break; }
+        if (existingIdx < 0) {
+          const entry = HEADER_COMP_DEFAULTS[comp] ? cloneJson(HEADER_COMP_DEFAULTS[comp]) : { comp };
+          // Insert in canonical order so the toolbar stays visually consistent.
+          const targetPos = HEADER_COMP_ORDER.indexOf(comp);
+          let insertAt = arr.length;
+          for (let i = 0; i < arr.length; i++) {
+            const pos = HEADER_COMP_ORDER.indexOf(arr[i]?.comp);
+            if (pos > targetPos) { insertAt = i; break; }
+          }
+          arr.splice(insertAt, 0, entry);
         }
-        arr.splice(insertAt, 0, entry);
       } else {
-        if (existingIdx < 0) return;
-        arr.splice(existingIdx, 1);
+        if (existingIdx >= 0) arr.splice(existingIdx, 1);
       }
       roleConfig.area.advancedHeader = arr;
+      // The agentx-webex icon is the visible surface of the two Webex-related
+      // role flags, so keep them in lockstep with the toggle — Cisco's docs
+      // treat them as a single "Webex App enabled" choice.
+      if (comp === 'agentx-webex') {
+        roleConfig.wxmConfigured = !!enabled;
+        roleConfig.desktopChatApp = roleConfig.desktopChatApp || {};
+        roleConfig.desktopChatApp.webexConfigured = !!enabled;
+        // Reflect the change in the sidebar form so it stays in sync.
+        const wxm = $('wxmConfigured');
+        const wx = $('webexConfigured');
+        if (wxm) wxm.value = String(!!enabled);
+        if (wx) wx.value = String(!!enabled);
+      }
       updateJsonEditor();
       renderPreview();
     }
@@ -2982,19 +2995,19 @@
               </div>
               <div class="headerRight">
                 <div class="headerIcons">
-                  <button class="headerIconToggle${advancedHeaderComps.has('digital-outbound') ? ' on' : ''}" data-comp="digital-outbound" title="Digital Outbound (chat)" type="button">
+                  <button class="headerIconToggle${advancedHeaderComps.has('digital-outbound') ? ' on' : ''}" data-comp="digital-outbound" title="Digital Outbound — Webex Engage widget for email &amp; social messaging channels" type="button">
                     <img src="../assets/images/desktoplayout/desktoplayout_chat.png" alt="">
                   </button>
-                  <button class="headerIconToggle${advancedHeaderComps.has('ai-assistant') ? ' on' : ''}" data-comp="ai-assistant" title="AI Assistant" type="button">
+                  <button class="headerIconToggle${advancedHeaderComps.has('ai-assistant') ? ' on' : ''}" data-comp="ai-assistant" title="AI Assistant — Cisco AI Assistant for Webex Contact Center (transcripts, wrap-up summaries, coaching)" type="button">
                     <img src="../assets/images/desktoplayout/desktoplayout_ai.png" alt="">
                   </button>
-                  <button class="headerIconToggle${advancedHeaderComps.has('agentx-webex') ? ' on' : ''}" data-comp="agentx-webex" title="Webex" type="button">
+                  <button class="headerIconToggle${advancedHeaderComps.has('agentx-webex') ? ' on' : ''}" data-comp="agentx-webex" title="Webex App — messaging, calling, and Webex Experience Management. Enabling this also sets wxmConfigured and desktopChatApp.webexConfigured to true." type="button">
                     <img src="../assets/images/desktoplayout/desktoplayout_webex.png" alt="" class="webexIcon">
                   </button>
-                  <button class="headerIconToggle${advancedHeaderComps.has('agentx-outdial') ? ' on' : ''}" data-comp="agentx-outdial" title="Outdial (phone)" type="button">
+                  <button class="headerIconToggle${advancedHeaderComps.has('agentx-outdial') ? ' on' : ''}" data-comp="agentx-outdial" title="Outdial — click-to-call phone icon for placing outbound calls" type="button">
                     <img src="../assets/images/desktoplayout/desktoplayout_handset.png" alt="">
                   </button>
-                  <button class="headerIconToggle${advancedHeaderComps.has('agentx-notification') ? ' on' : ''}" data-comp="agentx-notification" title="Notifications" type="button">
+                  <button class="headerIconToggle${advancedHeaderComps.has('agentx-notification') ? ' on' : ''}" data-comp="agentx-notification" title="Notifications — toaster + browser notifications. Adjust the timer + max count via the settings gear." type="button">
                     <img src="../assets/images/desktoplayout/desktoplayout_bell.png" alt="">
                     <span class="notificationBadge">${Number(roleConfig.maximumToasterCount ?? roleConfig.maximumNotificationCount ?? 3)}</span>
                   </button>
