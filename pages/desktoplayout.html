@@ -1331,88 +1331,65 @@
       ];
     }
 
+    // Key order here mirrors the stock Cisco WxCC layout JSON so the
+    // serialized output stays visually consistent with the reference doc
+    // (version → appTitle → logo → taskPageIllustration → flags →
+    // wxmConfigured → desktopChatApp → area{advancedHeader, panel, navigation}).
+    function defaultRoleShell({ panel, navigation }) {
+      return {
+        version: '0.1.0',
+        appTitle: 'Webex Contact Center',
+        logo: DEFAULT_PREVIEW_LOGO,
+        taskPageIllustration: DEFAULT_PREVIEW_ILLUSTRATION,
+        stopNavigateOnAcceptTask: false,
+        dragDropEnabled: false,
+        notificationTimer: 8,
+        maximumNotificationCount: 3,
+        browserNotificationTimer: 8,
+        wxmConfigured: false,
+        desktopChatApp: { webexConfigured: false },
+        area: {
+          advancedHeader: defaultFullAdvancedHeader(),
+          panel,
+          navigation
+        }
+      };
+    }
+
     const DEFAULT_LAYOUT_CONTENT = {
-      agent: {
-        version: '0.1.0',
-        appTitle: 'Webex Contact Center',
-        logo: DEFAULT_PREVIEW_LOGO,
-        stopNavigateOnAcceptTask: false,
-        dragDropEnabled: false,
-        notificationTimer: 8,
-        maximumNotificationCount: 3,
-        browserNotificationTimer: 8,
-        wxmConfigured: false,
-        taskPageIllustration: DEFAULT_PREVIEW_ILLUSTRATION,
-        desktopChatApp: { webexConfigured: false },
-        navigation: [
-          createStockAnalyticsNav()
-        ],
-        area: {
-          advancedHeader: defaultFullAdvancedHeader(),
-          panel: {
-            comp: 'md-tabs',
-            attributes: { class: 'widget-tabs' },
-            children: [
-              { comp: 'md-tab', attributes: { slot: 'tab', class: 'widget-pane-tab' }, children: [{ comp: 'slot', attributes: { name: 'CONTACT_HISTORY_TAB' } }] },
-              { comp: 'md-tab-panel', attributes: { slot: 'panel', class: 'widget-pane' }, children: [{ comp: 'slot', attributes: { name: 'CONTACT_HISTORY' } }] }
-            ]
-          }
-        }
-      },
-      supervisor: {
-        version: '0.1.0',
-        appTitle: 'Webex Contact Center',
-        logo: DEFAULT_PREVIEW_LOGO,
-        stopNavigateOnAcceptTask: false,
-        dragDropEnabled: false,
-        notificationTimer: 8,
-        maximumNotificationCount: 3,
-        browserNotificationTimer: 8,
-        wxmConfigured: false,
-        taskPageIllustration: DEFAULT_PREVIEW_ILLUSTRATION,
-        desktopChatApp: { webexConfigured: false },
-        navigation: [
-          createStockAnalyticsNav()
-        ],
-        area: {
-          advancedHeader: defaultFullAdvancedHeader(),
-          panel: {
-            comp: 'md-tabs',
-            attributes: { class: 'widget-tabs' },
-            children: [
-              { comp: 'md-tab', attributes: { slot: 'tab', class: 'widget-pane-tab' }, children: [{ comp: 'slot', attributes: { name: 'TEAM_PERFORMANCE_TAB' } }] },
-              { comp: 'md-tab-panel', attributes: { slot: 'panel', class: 'widget-pane' }, children: [{ comp: 'slot', attributes: { name: 'TEAM_PERFORMANCE' } }] }
-            ]
-          }
-        }
-      },
-      supervisorAgent: {
-        version: '0.1.0',
-        appTitle: 'Webex Contact Center',
-        logo: DEFAULT_PREVIEW_LOGO,
-        stopNavigateOnAcceptTask: false,
-        dragDropEnabled: false,
-        notificationTimer: 8,
-        maximumNotificationCount: 3,
-        browserNotificationTimer: 8,
-        wxmConfigured: false,
-        taskPageIllustration: DEFAULT_PREVIEW_ILLUSTRATION,
-        desktopChatApp: { webexConfigured: false },
-        navigation: [
-          createStockAnalyticsNav()
-        ],
-        area: {
-          advancedHeader: defaultFullAdvancedHeader(),
-          panel: {
-            comp: 'md-tabs',
-            attributes: { class: 'widget-tabs' },
-            children: [
-              { comp: 'md-tab', attributes: { slot: 'tab', class: 'widget-pane-tab' }, children: [{ comp: 'slot', attributes: { name: 'HOME_TAB' } }] },
-              { comp: 'md-tab-panel', attributes: { slot: 'panel', class: 'widget-pane' }, children: [{ comp: 'slot', attributes: { name: 'HOME' } }] }
-            ]
-          }
-        }
-      }
+      agent: defaultRoleShell({
+        panel: {
+          comp: 'md-tabs',
+          attributes: { class: 'widget-tabs' },
+          children: [
+            { comp: 'md-tab', attributes: { slot: 'tab', class: 'widget-pane-tab' }, children: [{ comp: 'slot', attributes: { name: 'CONTACT_HISTORY_TAB' } }] },
+            { comp: 'md-tab-panel', attributes: { slot: 'panel', class: 'widget-pane' }, children: [{ comp: 'slot', attributes: { name: 'CONTACT_HISTORY' } }] }
+          ]
+        },
+        navigation: [createStockAnalyticsNav()]
+      }),
+      supervisor: defaultRoleShell({
+        panel: {
+          comp: 'md-tabs',
+          attributes: { class: 'widget-tabs' },
+          children: [
+            { comp: 'md-tab', attributes: { slot: 'tab', class: 'widget-pane-tab' }, children: [{ comp: 'slot', attributes: { name: 'TEAM_PERFORMANCE_TAB' } }] },
+            { comp: 'md-tab-panel', attributes: { slot: 'panel', class: 'widget-pane' }, children: [{ comp: 'slot', attributes: { name: 'TEAM_PERFORMANCE' } }] }
+          ]
+        },
+        navigation: [createStockAnalyticsNav()]
+      }),
+      supervisorAgent: defaultRoleShell({
+        panel: {
+          comp: 'md-tabs',
+          attributes: { class: 'widget-tabs' },
+          children: [
+            { comp: 'md-tab', attributes: { slot: 'tab', class: 'widget-pane-tab' }, children: [{ comp: 'slot', attributes: { name: 'HOME_TAB' } }] },
+            { comp: 'md-tab-panel', attributes: { slot: 'panel', class: 'widget-pane' }, children: [{ comp: 'slot', attributes: { name: 'HOME' } }] }
+          ]
+        },
+        navigation: [createStockAnalyticsNav()]
+      })
     };
 
     const state = {
@@ -1520,9 +1497,19 @@
     }
 
     function getNavigationArray(roleConfig) {
-      if (Array.isArray(roleConfig?.area?.navigation)) return roleConfig.area.navigation;
-      roleConfig.navigation ||= [];
-      return roleConfig.navigation;
+      // Canonical shape puts navigation inside `area` — always. Older layouts
+      // (or partial imports) sometimes put it at the role root; migrate those
+      // in place so subsequent writes land in the right spot and the JSON
+      // ordering stays stable.
+      roleConfig.area = roleConfig.area || {};
+      if (Array.isArray(roleConfig.navigation) && !Array.isArray(roleConfig.area.navigation)) {
+        roleConfig.area.navigation = roleConfig.navigation;
+        delete roleConfig.navigation;
+      }
+      if (!Array.isArray(roleConfig.area.navigation)) {
+        roleConfig.area.navigation = [];
+      }
+      return roleConfig.area.navigation;
     }
 
     function slugifySegment(value) {
