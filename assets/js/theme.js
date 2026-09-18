@@ -42,44 +42,44 @@
     {
       title: 'Administration',
       items: [
-        { label: 'Bulk Import', path: '/pages/wxcc/bulkimport.html' },
-        { label: 'Setup Wizard', path: '/pages/wxcc/S1_Teams.html' },
-        { label: 'Search API', path: '/pages/wxcc/searchapi.html' },
-        { label: 'Supervisor Controls', path: '/pages/wxcc/supervisorcontrols.html' }
+        { label: 'Bulk Import', path: '/pages/bulkimport.html' },
+        { label: 'Setup Wizard', path: '/pages/S1_Teams.html' },
+        { label: 'Search API', path: '/pages/searchapi.html' },
+        { label: 'Supervisor Controls', path: '/pages/supervisorcontrols.html' }
       ]
     },
     {
       title: 'Customer Experience',
       items: [
-        { label: 'Entry Point', path: '/pages/wxcc/channels.html' },
-        { label: 'Queues', path: '/pages/wxcc/queues.html' },
-        { label: 'Business Hours', path: '/pages/wxcc/businesshours.html' },
-        { label: 'Flows', path: '/pages/wxcc/flows.html' },
-        { label: 'Functions', path: '/pages/wxcc/functions.html' },
-        { label: 'Function Builder', path: '/pages/wxcc/functionbuilder.html' },
-        { label: 'AI Agent', path: '/pages/wxcc/aiagent.html' }
+        { label: 'Entry Point', path: '/pages/channels.html' },
+        { label: 'Queues', path: '/pages/queues.html' },
+        { label: 'Business Hours', path: '/pages/businesshours.html' },
+        { label: 'Flows', path: '/pages/flows.html' },
+        { label: 'Functions', path: '/pages/functions.html' },
+        { label: 'Function Builder', path: '/pages/functionbuilder.html' },
+        { label: 'AI Agent', path: '/pages/aiagent.html' }
       ]
     },
     {
       title: 'User Management',
       items: [
-        { label: 'Contact Center Users', path: '/pages/wxcc/contactcenterusers.html' },
-        { label: 'Skills', path: '/pages/wxcc/skills.html' }
+        { label: 'Contact Center Users', path: '/pages/contactcenterusers.html' },
+        { label: 'Skills', path: '/pages/skills.html' }
       ]
     },
     {
       title: 'Desktop Experience',
       items: [
-        { label: 'Desktop Layout', path: '/pages/wxcc/desktoplayout.html' },
-        { label: 'Address Book', path: '/pages/wxcc/addressbook.html' },
-        { label: 'Desktop Profiles', path: '/pages/wxcc/desktopprofiles.html' }
+        { label: 'Desktop Layout', path: '/pages/desktoplayout.html' },
+        { label: 'Address Book', path: '/pages/addressbook.html' },
+        { label: 'Desktop Profiles', path: '/pages/desktopprofiles.html' }
       ]
     },
     {
       title: 'Statistics',
       items: [
-        { label: 'Realtime Dashboard', path: '/pages/wxcc/realtime-dashboard.html' },
-        { label: 'Historical Data', path: '/pages/wxcc/historical-data.html' }
+        { label: 'Realtime Dashboard', path: '/pages/realtime-dashboard.html' },
+        { label: 'Historical Data', path: '/pages/historical-data.html' }
       ]
     }
   ];

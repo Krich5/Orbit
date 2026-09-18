@@ -5,11 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="color-scheme" content="light" />
   <title>WxCC - Flows</title>
-  <link rel="stylesheet" href="../../assets/css/theme.css">
+  <link rel="stylesheet" href="../assets/css/theme.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="icon" type="image/png" href="../../assets/images/Orbit_Icon-192.png" />
+  <link rel="icon" type="image/png" href="../assets/images/Orbit_Icon-192.png" />
   <style>
     main { padding:32px 0 80px; display:flex; justify-content:flex-start; }
     .actionsRow { display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
@@ -344,7 +344,7 @@
 </head>
 <body class="dark-mode">
   <script>if (localStorage.getItem("tpRailExpanded") === "true") document.body.classList.add("tp-rail-expanded");</script>
-  <api-tools-header basepath="../../"></api-tools-header>
+  <api-tools-header basepath="../"></api-tools-header>
 
   <main>
     <div class="wrap wide contentWrap">
@@ -365,15 +365,15 @@
       </section>
     </div>
   </main>
-    <script src="../../assets/js/orbit-config.js"></script>
-    <script src="../../assets/js/components.js"></script>
-    <script src="../../assets/js/theme.js"></script>
+    <script src="../assets/js/orbit-config.js"></script>
+    <script src="../assets/js/components.js"></script>
+    <script src="../assets/js/theme.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/canvg/3.0.9/umd.min.js"></script>
 <script type="module">
-  import { getLayoutedElements } from '../../assets/flow_visulizer/autoLayout.js';
-  import { NODE_COLORS } from '../../assets/flow_visulizer/nodeColors.js';
+  import { getLayoutedElements } from '../assets/flow_visulizer/autoLayout.js';
+  import { NODE_COLORS } from '../assets/flow_visulizer/nodeColors.js';
 
   window.getAutoLayoutedElements = getLayoutedElements;
   window.FlowVisualizerNodeColors = NODE_COLORS;
@@ -1391,7 +1391,7 @@
       if (!flowId) return;
       const token = getToken();
       if (!token) {
-        window.location.href = '../../index.html';
+        window.location.href = '../index.html';
         return;
       }
       const existing = dissectCache.get(flowId);
@@ -2035,7 +2035,7 @@
       currentProjectId = localStorage.getItem('wxccFlowProjectId') || DEFAULT_PROJECT_ID;
 
       if (!bearer) {
-        window.location.href = '../../index.html';
+        window.location.href = '../index.html';
         return;
       }
 
@@ -3813,7 +3813,7 @@
     async function openFlowDiagram(flowId) {
       const token = getToken();
       if (!token) {
-        window.location.href = '../../index.html';
+        window.location.href = '../index.html';
         return;
       }
       const flow = flows.find(f => f?.id === flowId);
@@ -4235,7 +4235,7 @@
     async function exportSelectedFlows() {
       const bearer = getToken();
       if (!bearer) {
-        window.location.href = '../../index.html';
+        window.location.href = '../index.html';
         return;
       }
 
@@ -4357,7 +4357,7 @@
         if (!flowId) return;
         const bearer = getToken();
         if (!bearer) {
-          window.location.href = '../../index.html';
+          window.location.href = '../index.html';
           return;
         }
         const flow = flows.find(f => f?.id === flowId);
@@ -4506,7 +4506,7 @@
         localStorage.removeItem(cacheKeyUser);
         localStorage.removeItem('authRefreshToken');
         localStorage.removeItem('authExpiresAt');
-        window.location.href = '../../index.html';
+        window.location.href = '../index.html';
       });
     }
 

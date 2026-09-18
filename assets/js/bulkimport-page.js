@@ -1,6 +1,6 @@
 /* Bulk Import — bulk multi-row import for WxCC Teams / Queues / Entry Points /
    Desktop Profiles / Users. Reuses the exact create-call shapes from the Setup
-   Wizard (pages/wxcc/S1..S5), just looped over N grid rows instead of one
+   Wizard (pages/S1..S5), just looped over N grid rows instead of one
    item at a time, with per-row failures never blocking the rest of the run. */
 (function () {
   'use strict';

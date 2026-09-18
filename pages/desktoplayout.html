@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="color-scheme" content="light" />
   <title>WxCC Desktop Layout</title>
-  <link rel="icon" type="image/png" href="../../assets/images/Orbit_Icon-192.png" />
-  <link rel="stylesheet" href="../../assets/css/theme.css">
+  <link rel="icon" type="image/png" href="../assets/images/Orbit_Icon-192.png" />
+  <link rel="stylesheet" href="../assets/css/theme.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -650,7 +650,7 @@
 </head>
 <body class="dark-mode">
   <script>if (localStorage.getItem("tpRailExpanded") === "true") document.body.classList.add("tp-rail-expanded");</script>
-  <api-tools-header basepath="../../"></api-tools-header>
+  <api-tools-header basepath="../"></api-tools-header>
 
   <main>
     <div class="wrap wide contentWrap">
@@ -910,11 +910,11 @@
       </div>
   </main>
 
-  <script src="../../assets/js/orbit-config.js"></script>
+  <script src="../assets/js/orbit-config.js"></script>
 
-  <script src="../../assets/js/components.js"></script>
+  <script src="../assets/js/components.js"></script>
 
-  <script src="../../assets/js/theme.js"></script>
+  <script src="../assets/js/theme.js"></script>
   <script>
     const cacheKeyBearer = 'authBearer';
     const cacheKeyOrg = 'authOrg';
@@ -930,8 +930,8 @@
       ca1: 'https://api.wxcc-ca1.cisco.com'
     };
 
-    const DEFAULT_PREVIEW_LOGO = '../../assets/images/WxCC_Icon-192.png';
-    const DEFAULT_PREVIEW_ILLUSTRATION = '../../assets/images/desktoplayout/desktoplayout_defaultlogo.png';
+    const DEFAULT_PREVIEW_LOGO = '../assets/images/WxCC_Icon-192.png';
+    const DEFAULT_PREVIEW_ILLUSTRATION = '../assets/images/desktoplayout/desktoplayout_defaultlogo.png';
     const ICON_PRESETS = [
       'dashboard',
       'breakout-session',
@@ -1567,7 +1567,7 @@
     function isInternalAssetValue(value) {
       const normalized = String(value || '').trim();
       if (!normalized) return false;
-      return normalized.startsWith('../../assets/')
+      return normalized.startsWith('../assets/')
         || normalized === DEFAULT_PREVIEW_LOGO
         || normalized === DEFAULT_PREVIEW_ILLUSTRATION;
     }
@@ -2665,19 +2665,19 @@
               <div class="headerRight">
                 <div class="headerIcons">
                   <button class="headerIconToggle${advancedHeaderComps.has('digital-outbound') ? ' on' : ''}" data-comp="digital-outbound" title="Digital Outbound (chat)" type="button">
-                    <img src="../../assets/images/desktoplayout/desktoplayout_chat.png" alt="">
+                    <img src="../assets/images/desktoplayout/desktoplayout_chat.png" alt="">
                   </button>
                   <button class="headerIconToggle${advancedHeaderComps.has('ai-assistant') ? ' on' : ''}" data-comp="ai-assistant" title="AI Assistant" type="button">
-                    <img src="../../assets/images/desktoplayout/desktoplayout_ai.png" alt="">
+                    <img src="../assets/images/desktoplayout/desktoplayout_ai.png" alt="">
                   </button>
                   <button class="headerIconToggle${advancedHeaderComps.has('agentx-webex') ? ' on' : ''}" data-comp="agentx-webex" title="Webex" type="button">
-                    <img src="../../assets/images/desktoplayout/desktoplayout_webex.png" alt="" class="webexIcon">
+                    <img src="../assets/images/desktoplayout/desktoplayout_webex.png" alt="" class="webexIcon">
                   </button>
                   <button class="headerIconToggle${advancedHeaderComps.has('agentx-outdial') ? ' on' : ''}" data-comp="agentx-outdial" title="Outdial (phone)" type="button">
-                    <img src="../../assets/images/desktoplayout/desktoplayout_handset.png" alt="">
+                    <img src="../assets/images/desktoplayout/desktoplayout_handset.png" alt="">
                   </button>
                   <button class="headerIconToggle${advancedHeaderComps.has('agentx-notification') ? ' on' : ''}" data-comp="agentx-notification" title="Notifications" type="button">
-                    <img src="../../assets/images/desktoplayout/desktoplayout_bell.png" alt="">
+                    <img src="../assets/images/desktoplayout/desktoplayout_bell.png" alt="">
                     <span class="notificationBadge">${Number(roleConfig.maximumToasterCount ?? roleConfig.maximumNotificationCount ?? 3)}</span>
                   </button>
                 </div>
@@ -3386,7 +3386,7 @@
         localStorage.removeItem(cacheKeyOrgId);
         localStorage.removeItem('authRefreshToken');
         localStorage.removeItem('authExpiresAt');
-        window.location.href = '../../index.html';
+        window.location.href = '../index.html';
       });
     }
 

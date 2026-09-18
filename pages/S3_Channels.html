@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="color-scheme" content="light" />
   <title>WxCC Wizard - Channels</title>
-  <link rel="icon" type="image/png" href="../../assets/images/Orbit_Icon-192.png" />
-  <link rel="stylesheet" href="../../assets/css/theme.css">
+  <link rel="icon" type="image/png" href="../assets/images/Orbit_Icon-192.png" />
+  <link rel="stylesheet" href="../assets/css/theme.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
@@ -833,7 +833,7 @@
 </head>
 <body class="dark-mode">
   <script>if (localStorage.getItem("tpRailExpanded") === "true") document.body.classList.add("tp-rail-expanded");</script>
-  <api-tools-header basepath="../../"></api-tools-header>
+  <api-tools-header basepath="../"></api-tools-header>
 
   <main>
     <div class="wrap wide contentWrap">
@@ -888,8 +888,8 @@
                 <div class="flow-template-grid" id="fspTemplateGrid">
                   <button type="button" class="flow-template-card"
                     data-template="agent_team"
-                    data-preview-dark="../../assets/images/Wizard/Flow_Example_Team_Agent_dark.png"
-                    data-preview-light="../../assets/images/Wizard/Flow_Example_Team_Agent_light.png">
+                    data-preview-dark="../assets/images/Wizard/Flow_Example_Team_Agent_dark.png"
+                    data-preview-light="../assets/images/Wizard/Flow_Example_Team_Agent_light.png">
                     <div class="flow-card-radio"></div>
                     <span class="flow-card-badge">📞 Voice</span>
                     <span class="flow-card-title">Simple Call Flow</span>
@@ -1146,11 +1146,11 @@
     </div>
   </main>
 
-  <script src="../../assets/js/orbit-config.js"></script>
+  <script src="../assets/js/orbit-config.js"></script>
 
-  <script src="../../assets/js/components.js"></script>
+  <script src="../assets/js/components.js"></script>
 
-  <script src="../../assets/js/theme.js"></script>
+  <script src="../assets/js/theme.js"></script>
   <script>
     /* ─────────────── Wizard state helpers ─────────────── */
     const WIZARD_STATE_KEY = 'wxcc_wizard_state';
@@ -1657,13 +1657,13 @@
       signOutBtn.addEventListener('click', () => {
         ['authBearer','authOrg','authOrgName','authOrgId','authUserName','authRefreshToken','authExpiresAt','authLoginMethod','authScopes']
           .forEach((k) => localStorage.removeItem(k));
-        window.location.href = '../../index.html';
+        window.location.href = '../index.html';
       });
     }
 
     /* ─────────────── Flow template loader ─────────────── */
     const FLOW_TEMPLATE_URLS = {
-      agent_team: '../../assets/templates/API_Tools_Skills_to_Queue_Template.json'
+      agent_team: '../assets/templates/API_Tools_Skills_to_Queue_Template.json'
     };
     const templateCache = {};
     async function loadFlowTemplate(key) {

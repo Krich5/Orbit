@@ -3,44 +3,44 @@
     {
       title: 'Administration',
       items: [
-        { title: 'Bulk Import', desc: 'Bulk-create Teams, Queues, Entry Points, Desktop Profiles, and Users from fillable rows.', href: 'pages/wxcc/bulkimport.html' },
-        { title: 'Setup Wizard', desc: 'Step-by-step guided setup for Contact Center configuration.', href: 'pages/wxcc/S1_Teams.html' },
-        { title: 'Search API', desc: 'Run contact searches with custom filters and payloads.', href: 'pages/wxcc/searchapi.html' },
-        { title: 'Supervisor Controls', desc: 'Supervisor-facing contact center controls.', href: 'pages/wxcc/supervisorcontrols.html' }
+        { title: 'Bulk Import', desc: 'Bulk-create Teams, Queues, Entry Points, Desktop Profiles, and Users from fillable rows.', href: 'pages/bulkimport.html' },
+        { title: 'Setup Wizard', desc: 'Step-by-step guided setup for Contact Center configuration.', href: 'pages/S1_Teams.html' },
+        { title: 'Search API', desc: 'Run contact searches with custom filters and payloads.', href: 'pages/searchapi.html' },
+        { title: 'Supervisor Controls', desc: 'Supervisor-facing contact center controls.', href: 'pages/supervisorcontrols.html' }
       ]
     },
     {
       title: 'Customer Experience',
       items: [
-        { title: 'Entry Point', desc: 'Browse entry points and linked flows.', href: 'pages/wxcc/channels.html' },
-        { title: 'Queues', desc: 'List inbound queues and dependencies.', href: 'pages/wxcc/queues.html' },
-        { title: 'Business Hours', desc: 'View and manage business hours schedules and shifts.', href: 'pages/wxcc/businesshours.html' },
-        { title: 'Flows', desc: 'List flows, export, and Flow Visualizations.', href: 'pages/wxcc/flows.html' },
-        { title: 'Functions', desc: 'Browse hidden Functions, edit fnCode, and save updates back through the BFF.', href: 'pages/wxcc/functions.html' },
-        { title: 'Function Builder', desc: 'Build a lookup-table function from an input variable and a set of rows.', href: 'pages/wxcc/functionbuilder.html' },
-        { title: 'AI Agent', desc: 'Review AI call summaries, endpoints, and auth guidance.', href: 'pages/wxcc/aiagent.html' }
+        { title: 'Entry Point', desc: 'Browse entry points and linked flows.', href: 'pages/channels.html' },
+        { title: 'Queues', desc: 'List inbound queues and dependencies.', href: 'pages/queues.html' },
+        { title: 'Business Hours', desc: 'View and manage business hours schedules and shifts.', href: 'pages/businesshours.html' },
+        { title: 'Flows', desc: 'List flows, export, and Flow Visualizations.', href: 'pages/flows.html' },
+        { title: 'Functions', desc: 'Browse hidden Functions, edit fnCode, and save updates back through the BFF.', href: 'pages/functions.html' },
+        { title: 'Function Builder', desc: 'Build a lookup-table function from an input variable and a set of rows.', href: 'pages/functionbuilder.html' },
+        { title: 'AI Agent', desc: 'Review AI call summaries, endpoints, and auth guidance.', href: 'pages/aiagent.html' }
       ]
     },
     {
       title: 'User Management',
       items: [
-        { title: 'Contact Center Users', desc: 'List users, status, and team assignments.', href: 'pages/wxcc/contactcenterusers.html' },
-        { title: 'Skills', desc: 'View skill profiles and skill definitions.', href: 'pages/wxcc/skills.html' }
+        { title: 'Contact Center Users', desc: 'List users, status, and team assignments.', href: 'pages/contactcenterusers.html' },
+        { title: 'Skills', desc: 'View skill profiles and skill definitions.', href: 'pages/skills.html' }
       ]
     },
     {
       title: 'Desktop Experience',
       items: [
-        { title: 'Desktop Layout', desc: 'Build and preview agent desktop layouts.', href: 'pages/wxcc/desktoplayout.html' },
-        { title: 'Address Book', desc: 'Search and manage address book entries.', href: 'pages/wxcc/addressbook.html' },
-        { title: 'Desktop Profiles', desc: 'Review every desktop profile with routing, wrap-up, and stats.', href: 'pages/wxcc/desktopprofiles.html' }
+        { title: 'Desktop Layout', desc: 'Build and preview agent desktop layouts.', href: 'pages/desktoplayout.html' },
+        { title: 'Address Book', desc: 'Search and manage address book entries.', href: 'pages/addressbook.html' },
+        { title: 'Desktop Profiles', desc: 'Review every desktop profile with routing, wrap-up, and stats.', href: 'pages/desktopprofiles.html' }
       ]
     },
     {
       title: 'Statistics',
       items: [
-        { title: 'Realtime Dashboard', desc: 'Jump straight into a live Dashboard!', href: 'pages/wxcc/realtime-dashboard.html' },
-        { title: 'Historical Data', desc: 'Reconstruct a queue and team snapshot for a specific time.', href: 'pages/wxcc/historical-data.html' }
+        { title: 'Realtime Dashboard', desc: 'Jump straight into a live Dashboard!', href: 'pages/realtime-dashboard.html' },
+        { title: 'Historical Data', desc: 'Reconstruct a queue and team snapshot for a specific time.', href: 'pages/historical-data.html' }
       ]
     }
   ];
