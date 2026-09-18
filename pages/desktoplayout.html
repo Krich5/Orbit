@@ -1307,8 +1307,8 @@
       };
     }
 
-    // Full "everything on" header for both agent + supervisor roles. Used by
-    // the default template so new layouts start with every icon lit up.
+    // Full agent-style advancedHeader (all 6 components). Used by agent and
+    // supervisorAgent per Cisco's default.
     function defaultFullAdvancedHeader() {
       return [
         {
@@ -1331,13 +1331,195 @@
       ];
     }
 
-    // Key order here mirrors the stock Cisco WxCC layout JSON so the
-    // serialized output stays visually consistent with the reference doc
-    // (version → appTitle → logo → taskPageIllustration → flags →
-    // wxmConfigured → desktopChatApp → area{advancedHeader, panel, navigation}).
-    function defaultRoleShell({ panel, navigation }) {
+    // Cisco's default supervisor advancedHeader has only these two.
+    function defaultSupervisorAdvancedHeader() {
+      return [
+        { comp: 'agentx-webex' },
+        { comp: 'agentx-notification' }
+      ];
+    }
+
+    // The canonical 5-tab / 5-panel widget bar every role uses.
+    function defaultLayoutPanel() {
+      const pair = (name) => ([
+        {
+          comp: 'md-tab',
+          attributes: { slot: 'tab', class: 'widget-pane-tab' },
+          children: [{ comp: 'slot', attributes: { name: `${name}_TAB` } }],
+          visibility: name
+        },
+        {
+          comp: 'md-tab-panel',
+          attributes: { slot: 'panel', class: 'widget-pane' },
+          children: [{ comp: 'slot', attributes: { name } }],
+          visibility: name
+        }
+      ]);
       return {
-        version: '0.1.0',
+        comp: 'md-tabs',
+        attributes: { class: 'widget-tabs' },
+        children: [
+          ...pair('IVR_TRANSCRIPT'),
+          ...pair('CUSTOMER_JOURNEY_WIDGET'),
+          ...pair('CONTACT_HISTORY'),
+          ...pair('RT_TRANSCRIPT'),
+          ...pair('SCREEN_POP')
+        ]
+      };
+    }
+
+    // Cisco's default supervisor homepage: 8 analyzer widgets + queue/channel/team filters.
+    function defaultSupervisorHomepage() {
+      const widgetIds = [
+        ['c04c307c-71fd-41f4-828f-a196f94ce08a', 3, 5],
+        ['bc3f908d-11fa-4f86-be9b-7edfe76eaa59', 3, 5],
+        ['3e4555a5-be23-46e6-8450-8ebf3f1c35e1', 3, 5],
+        ['2902a699-bf70-4568-afa1-6857db3e0dc4', 3, 5],
+        ['21716c3a-09a9-476a-bab1-5fbcff226ac6', 4, 5],
+        ['0136c56b-c40f-47a0-af1c-1a180db1fd64', 4, 5],
+        ['e5e19275-0465-4e8c-923d-c9c06002330f', 4, 5],
+        ['9d80a068-099c-48e3-b8a8-207eb38c47c5', 6, 7]
+      ];
+      const widgets = {};
+      widgetIds.forEach(([id, width, height], i) => {
+        widgets[`comp${i + 1}`] = {
+          comp: 'analyzer-widget',
+          width,
+          height,
+          attributes: {
+            'is-dark-mode': '$STORE.app.darkMode',
+            'theme': '$STORE.app.theme',
+            'filter': '$STORE.agent.analyzerInteractionFilter',
+            'access-token': '$STORE.auth.accessToken',
+            'user-id': '$STORE.agent.agentId',
+            'org-id': '$STORE.agent.orgId',
+            'dashboard-id': 'a4e99697-06d8-4575-b25d-82ef348e2410',
+            'widget-id': id
+          }
+        };
+      });
+      const filterCol = (label, comp, extraProps = {}) => ({
+        comp: 'div',
+        children: [
+          {
+            comp: 'md-label',
+            textContent: `$I18N.pageSubHeader.${label}`,
+            attributes: { style: 'margin-bottom:8px;' },
+            properties: { htmlFor: `inp-${label}` }
+          },
+          { comp, properties: extraProps }
+        ],
+        attributes: { style: label === 'queueName' ? 'display:block;width:260px;' : 'display:block;margin-left:16px;width:260px;' }
+      });
+      return {
+        nav: {
+          label: '$I18N.common.homePageLabel',
+          icon: 'home',
+          iconActive: 'home-active',
+          iconType: 'momentum',
+          navigateTo: 'home',
+          align: 'top'
+        },
+        page: {
+          id: 'landing',
+          pageHeader: {
+            comp: 'div',
+            children: [{ comp: 'page-title', attributes: { pageTitle: '$STORE.page.getDefaultPageTitle' } }],
+            attributes: { style: 'margin: 25px 16px 25px 16px' }
+          },
+          useFlexLayout: true,
+          pageSubHeader: {
+            comp: 'div',
+            attributes: { style: 'display: flex; float:right;' },
+            children: [
+              filterCol('queueName', 'agentx-wc-queue-filter', {
+                selectedQueueList: '$STORE.agent.selectedQueueList',
+                managedQueues: '$STORE.agent.managedQueues',
+                isLoading: '$STORE.agent.isManagedQueueLoading',
+                isError: '$STORE.agent.isManagedQueuesError'
+              }),
+              filterCol('channelType', 'agentx-wc-channel-filter', {
+                selectedChannelList: '$STORE.agent.selectedChannelList'
+              }),
+              filterCol('managedTeams', 'agentx-wc-team-filter', {
+                selectedTeamList: '$STORE.agent.selectedTeamList',
+                managedTeams: '$STORE.agent.managedTeams',
+                isLoading: '$STORE.agent.isManagedTeamLoading',
+                isError: '$STORE.agent.isManagedTeamsError'
+              }),
+              {
+                comp: 'div',
+                children: [{
+                  comp: 'agentx-more-actions-wrapper',
+                  properties: { actionList: [{ comp: 'agentx-wc-goto-analyzer' }] }
+                }],
+                attributes: { style: 'display:block;margin-top: 20px;' }
+              }
+            ]
+          },
+          widgets
+        }
+      };
+    }
+
+    // Cisco default supervisor nav: TPW + QMW at role root (NOT inside area).
+    function defaultSupervisorNavigation(idSuffix) {
+      return [
+        {
+          nav: {
+            label: '$I18N.tpw.widgetTitle',
+            icon: 'team',
+            iconActive: 'team-active',
+            iconType: 'momentum',
+            navigateTo: 'tpw',
+            align: 'top'
+          },
+          page: {
+            id: `tpw-${idSuffix}`,
+            useFlexLayout: true,
+            widgets: {
+              comp1: {
+                comp: 'agentx-wc-team-performance-widget',
+                width: 12,
+                height: 19,
+                wrapper: { title: '$I18N.tpw.widgetTitle', id: 'tpw-1' },
+                properties: { tpwConfigs: '$STORE.agent.tpwConfigs' }
+              }
+            }
+          }
+        },
+        {
+          nav: {
+            label: '$I18N.qmw.recordings',
+            icon: 'waveform',
+            iconType: 'momentum',
+            navigateTo: 'recordings',
+            align: 'top'
+          },
+          page: {
+            id: 'qmw-sup',
+            useFlexLayout: true,
+            widgets: {
+              comp1: {
+                comp: 'agentx-wc-quality-monitoring-widget',
+                width: 12,
+                height: 19,
+                wrapper: { title: '$I18N.qmw.recordings', id: 'qmw-1' }
+              }
+            }
+          }
+        }
+      ];
+    }
+
+    // Cisco's default layout, matched shape-for-shape from the authoritative
+    // reference JSON. Key order is intentional and mirrors that reference.
+    // Note: `taskPageIllustration` is an Orbit-only addition (Cisco's default
+    // omits it) — kept here so the preview's workspace center renders
+    // something useful. Everything else matches Cisco's default exactly.
+    const DEFAULT_LAYOUT_CONTENT = {
+      agent: {
+        version: '0.1.1',
         appTitle: 'Webex Contact Center',
         logo: DEFAULT_PREVIEW_LOGO,
         taskPageIllustration: DEFAULT_PREVIEW_ILLUSTRATION,
@@ -1350,46 +1532,47 @@
         desktopChatApp: { webexConfigured: false },
         area: {
           advancedHeader: defaultFullAdvancedHeader(),
-          panel,
-          navigation
+          panel: defaultLayoutPanel()
         }
-      };
-    }
-
-    const DEFAULT_LAYOUT_CONTENT = {
-      agent: defaultRoleShell({
-        panel: {
-          comp: 'md-tabs',
-          attributes: { class: 'widget-tabs' },
-          children: [
-            { comp: 'md-tab', attributes: { slot: 'tab', class: 'widget-pane-tab' }, children: [{ comp: 'slot', attributes: { name: 'CONTACT_HISTORY_TAB' } }] },
-            { comp: 'md-tab-panel', attributes: { slot: 'panel', class: 'widget-pane' }, children: [{ comp: 'slot', attributes: { name: 'CONTACT_HISTORY' } }] }
-          ]
+      },
+      supervisor: {
+        version: '0.1.1',
+        appTitle: 'Webex Contact Center',
+        logo: DEFAULT_PREVIEW_LOGO,
+        taskPageIllustration: DEFAULT_PREVIEW_ILLUSTRATION,
+        stopNavigateOnAcceptTask: false,
+        dragDropEnabled: false,
+        notificationTimer: 8,
+        maximumNotificationCount: 3,
+        browserNotificationTimer: 8,
+        wxmConfigured: false,
+        desktopChatApp: { webexConfigured: false },
+        area: {
+          advancedHeader: defaultSupervisorAdvancedHeader(),
+          panel: defaultLayoutPanel(),
+          homepage: defaultSupervisorHomepage()
         },
-        navigation: [createStockAnalyticsNav()]
-      }),
-      supervisor: defaultRoleShell({
-        panel: {
-          comp: 'md-tabs',
-          attributes: { class: 'widget-tabs' },
-          children: [
-            { comp: 'md-tab', attributes: { slot: 'tab', class: 'widget-pane-tab' }, children: [{ comp: 'slot', attributes: { name: 'TEAM_PERFORMANCE_TAB' } }] },
-            { comp: 'md-tab-panel', attributes: { slot: 'panel', class: 'widget-pane' }, children: [{ comp: 'slot', attributes: { name: 'TEAM_PERFORMANCE' } }] }
-          ]
+        navigation: defaultSupervisorNavigation('sup')
+      },
+      supervisorAgent: {
+        version: '0.1.1',
+        appTitle: 'Webex Contact Center',
+        logo: DEFAULT_PREVIEW_LOGO,
+        taskPageIllustration: DEFAULT_PREVIEW_ILLUSTRATION,
+        stopNavigateOnAcceptTask: false,
+        dragDropEnabled: false,
+        notificationTimer: 8,
+        maximumNotificationCount: 3,
+        browserNotificationTimer: 8,
+        wxmConfigured: false,
+        desktopChatApp: { webexConfigured: false },
+        area: {
+          advancedHeader: defaultFullAdvancedHeader(),
+          panel: defaultLayoutPanel(),
+          homepage: defaultSupervisorHomepage()
         },
-        navigation: [createStockAnalyticsNav()]
-      }),
-      supervisorAgent: defaultRoleShell({
-        panel: {
-          comp: 'md-tabs',
-          attributes: { class: 'widget-tabs' },
-          children: [
-            { comp: 'md-tab', attributes: { slot: 'tab', class: 'widget-pane-tab' }, children: [{ comp: 'slot', attributes: { name: 'HOME_TAB' } }] },
-            { comp: 'md-tab-panel', attributes: { slot: 'panel', class: 'widget-pane' }, children: [{ comp: 'slot', attributes: { name: 'HOME' } }] }
-          ]
-        },
-        navigation: [createStockAnalyticsNav()]
-      })
+        navigation: defaultSupervisorNavigation('sup-agent')
+      }
     };
 
     const state = {
@@ -1497,19 +1680,15 @@
     }
 
     function getNavigationArray(roleConfig) {
-      // Canonical shape puts navigation inside `area` — always. Older layouts
-      // (or partial imports) sometimes put it at the role root; migrate those
-      // in place so subsequent writes land in the right spot and the JSON
-      // ordering stays stable.
+      // Cisco's default layout puts navigation at the ROLE root for
+      // supervisor/supervisorAgent (never inside `area`), but some third-party
+      // templates nest it under `area`. Preserve whichever location the
+      // loaded layout already uses; create at role root when neither exists
+      // (matching Cisco's default pattern).
       roleConfig.area = roleConfig.area || {};
-      if (Array.isArray(roleConfig.navigation) && !Array.isArray(roleConfig.area.navigation)) {
-        roleConfig.area.navigation = roleConfig.navigation;
-        delete roleConfig.navigation;
-      }
-      if (!Array.isArray(roleConfig.area.navigation)) {
-        roleConfig.area.navigation = [];
-      }
-      return roleConfig.area.navigation;
+      if (Array.isArray(roleConfig?.area?.navigation)) return roleConfig.area.navigation;
+      if (!Array.isArray(roleConfig.navigation)) roleConfig.navigation = [];
+      return roleConfig.navigation;
     }
 
     function slugifySegment(value) {
