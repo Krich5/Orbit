@@ -2129,17 +2129,16 @@
         if (existingIdx >= 0) arr.splice(existingIdx, 1);
       }
       roleConfig.area.advancedHeader = arr;
-      // The agentx-webex icon is the visible surface of the two Webex-related
-      // role flags, so keep them in lockstep with the toggle — Cisco's docs
-      // treat them as a single "Webex App enabled" choice.
+      // Per Cisco's docs (Create custom desktop layout, "webexConfigured"):
+      // if desktopChatApp.webexConfigured is false, the agentx-webex icon
+      // will not render on the header even when it's in advancedHeader. So
+      // keep the flag in lockstep with the icon toggle. wxmConfigured is a
+      // separate feature (Webex Experience Management / customer surveys)
+      // and is NOT linked to this icon.
       if (comp === 'agentx-webex') {
-        roleConfig.wxmConfigured = !!enabled;
         roleConfig.desktopChatApp = roleConfig.desktopChatApp || {};
         roleConfig.desktopChatApp.webexConfigured = !!enabled;
-        // Reflect the change in the sidebar form so it stays in sync.
-        const wxm = $('wxmConfigured');
         const wx = $('webexConfigured');
-        if (wxm) wxm.value = String(!!enabled);
         if (wx) wx.value = String(!!enabled);
       }
       updateJsonEditor();
@@ -3001,13 +3000,13 @@
                   <button class="headerIconToggle${advancedHeaderComps.has('ai-assistant') ? ' on' : ''}" data-comp="ai-assistant" title="AI Assistant — Cisco AI Assistant for Webex Contact Center (transcripts, wrap-up summaries, coaching)" type="button">
                     <img src="../assets/images/desktoplayout/desktoplayout_ai.png" alt="">
                   </button>
-                  <button class="headerIconToggle${advancedHeaderComps.has('agentx-webex') ? ' on' : ''}" data-comp="agentx-webex" title="Webex App — messaging, calling, and Webex Experience Management. Enabling this also sets wxmConfigured and desktopChatApp.webexConfigured to true." type="button">
+                  <button class="headerIconToggle${advancedHeaderComps.has('agentx-webex') ? ' on' : ''}" data-comp="agentx-webex" title="Webex App — messaging &amp; meetings inside the desktop. Cisco won't render this icon unless desktopChatApp.webexConfigured is also true, so toggling it here flips that flag too." type="button">
                     <img src="../assets/images/desktoplayout/desktoplayout_webex.png" alt="" class="webexIcon">
                   </button>
-                  <button class="headerIconToggle${advancedHeaderComps.has('agentx-outdial') ? ' on' : ''}" data-comp="agentx-outdial" title="Outdial — click-to-call phone icon for placing outbound calls" type="button">
+                  <button class="headerIconToggle${advancedHeaderComps.has('agentx-outdial') ? ' on' : ''}" data-comp="agentx-outdial" title="Outdial — click-to-call icon for placing outbound calls" type="button">
                     <img src="../assets/images/desktoplayout/desktoplayout_handset.png" alt="">
                   </button>
-                  <button class="headerIconToggle${advancedHeaderComps.has('agentx-notification') ? ' on' : ''}" data-comp="agentx-notification" title="Notifications — toaster + browser notifications. Adjust the timer + max count via the settings gear." type="button">
+                  <button class="headerIconToggle${advancedHeaderComps.has('agentx-notification') ? ' on' : ''}" data-comp="agentx-notification" title="Notification Center — desktop toaster + browser notifications. Adjust the timer + max count via the settings gear." type="button">
                     <img src="../assets/images/desktoplayout/desktoplayout_bell.png" alt="">
                     <span class="notificationBadge">${Number(roleConfig.maximumToasterCount ?? roleConfig.maximumNotificationCount ?? 3)}</span>
                   </button>
