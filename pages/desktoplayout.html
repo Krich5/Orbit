@@ -1537,7 +1537,8 @@
         area: {
           advancedHeader: defaultFullAdvancedHeader(),
           panel: defaultLayoutPanel()
-        }
+        },
+        navigation: [createStockAnalyticsNav()]
       },
       supervisor: {
         version: '0.1.1',
@@ -1556,7 +1557,7 @@
           panel: defaultLayoutPanel(),
           homepage: defaultSupervisorHomepage()
         },
-        navigation: defaultSupervisorNavigation('sup')
+        navigation: [createStockAnalyticsNav(), ...defaultSupervisorNavigation('sup')]
       },
       supervisorAgent: {
         version: '0.1.1',
@@ -1575,7 +1576,7 @@
           panel: defaultLayoutPanel(),
           homepage: defaultSupervisorHomepage()
         },
-        navigation: defaultSupervisorNavigation('sup-agent')
+        navigation: [createStockAnalyticsNav(), ...defaultSupervisorNavigation('sup-agent')]
       }
     };
 
