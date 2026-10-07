@@ -15,31 +15,32 @@ window.ORBIT_REDIRECT_URI = 'https://krich5.github.io/Orbit/callback.html';
 window.OPSHUB_IS_ADMIN_USER = window.OPSHUB_IS_ADMIN_USER || false;
 
 window.ORBIT_OAUTH_SCOPES = [
-  // Orbit baseline — Contact Center + CJDS read/write
+  // Orbit baseline — Contact Center + CJDS (all verified working with the
+  // Orbit Webex OAuth app before the OpsHub merge).
   'cjp:config',
   'cjp:config_read',
   'cjp:config_write',
   'cjp:user',
   'cjds:admin_org_read',
   'cjds:admin_org_write',
-  // Webex / Control Hub read scopes needed by every WxCC + WxC page
   'spark-admin:organizations_read',
   'spark-admin:people_read',
   'spark-admin:licenses_read',
   'spark-admin:locations_read',
   'spark-admin:telephony_config_read',
+  // WxC read scopes the imported pages need
   'spark-admin:devices_read',
   'spark-admin:workspace_locations_read',
   'spark-admin:places_read',
-  'spark:organizations_read',
-  // Write scopes needed by the WxC / wizard pages that mutate tenant config
+  // WxC write scopes for wizard / tenant-mutating pages
   'spark-admin:locations_write',
   'spark-admin:workspace_locations_write',
   'spark-admin:places_write',
   'spark-admin:devices_write',
-  'spark-admin:telephony_config_write',
-  // Supporting
-  'spark:all',
-  'spark:kms',
-  'audit:events_read'
+  'spark-admin:telephony_config_write'
+  // Dropped from the OpsHub list: `spark:all`, `spark:kms`,
+  // `audit:events_read`, `spark:organizations_read`. These were rejected
+  // by Webex as invalid_scope for the Orbit OAuth app — add them back
+  // one at a time only if you register them with the Orbit integration
+  // and need them for a specific page.
 ].join(' ');
