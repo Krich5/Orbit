@@ -1074,9 +1074,9 @@
 (function initAuthModal() {
   if (document.getElementById('authModal')) return;
 
-  const CLIENT_ID    = 'Cc604fe2354b93ecd1eb3d799e69a4ce981649161c1e31253ae91805e95b54e64';
-  const REDIRECT_URI = 'https://cxasteam.bitbucket.io/opshub/callback.html';
-  const SCOPES       = 'spark-admin:locations_write spark:all spark-admin:locations_read spark-admin:organizations_read spark:organizations_read spark-admin:workspace_locations_read spark-admin:places_read cjp:config_read spark:kms spark-admin:devices_read cjp:config_write spark-admin:workspace_locations_write spark-admin:places_write cjp:config spark-admin:devices_write spark-admin:telephony_config_read spark-admin:telephony_config_write audit:events_read spark-admin:licenses_read';
+  const CLIENT_ID = window.ORBIT_CLIENT_ID;
+  const REDIRECT_URI = window.ORBIT_REDIRECT_URI;
+  const SCOPES = window.ORBIT_OAUTH_SCOPES;
 
   const style = document.createElement('style');
   style.textContent = `

@@ -830,7 +830,8 @@
     .phone-card-inner .field-group { flex: 1; margin: 0; }
     .phone-card-inner .field-group.ext { flex: 0 0 140px; }
   </style>
-</head>
+  <script src="../../../assets/js/orbit-config.js"></script>
+  </head>
 <body class="dark-mode">
   <script>if (localStorage.getItem("tpRailExpanded") === "true") document.body.classList.add("tp-rail-expanded");</script>
   <api-tools-header basepath="../../../"></api-tools-header>
@@ -1660,7 +1661,7 @@
       signOutBtn.addEventListener('click', () => {
         ['authBearer','authOrg','authOrgName','authOrgId','authUserName','authRefreshToken','authExpiresAt','authLoginMethod','authScopes']
           .forEach((k) => localStorage.removeItem(k));
-        window.location.href = '../../index.html';
+        window.location.href = '../../../index.html';
       });
     }
 

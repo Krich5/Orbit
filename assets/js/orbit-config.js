@@ -15,15 +15,31 @@ window.ORBIT_REDIRECT_URI = 'https://krich5.github.io/Orbit/callback.html';
 window.OPSHUB_IS_ADMIN_USER = window.OPSHUB_IS_ADMIN_USER || false;
 
 window.ORBIT_OAUTH_SCOPES = [
-  'spark-admin:organizations_read',
-  'spark-admin:people_read',
+  // Orbit baseline — Contact Center + CJDS read/write
   'cjp:config',
   'cjp:config_read',
   'cjp:config_write',
   'cjp:user',
+  'cjds:admin_org_read',
+  'cjds:admin_org_write',
+  // Webex / Control Hub read scopes needed by every WxCC + WxC page
+  'spark-admin:organizations_read',
+  'spark-admin:people_read',
   'spark-admin:licenses_read',
   'spark-admin:locations_read',
   'spark-admin:telephony_config_read',
-  'cjds:admin_org_read',
-  'cjds:admin_org_write'
+  'spark-admin:devices_read',
+  'spark-admin:workspace_locations_read',
+  'spark-admin:places_read',
+  'spark:organizations_read',
+  // Write scopes needed by the WxC / wizard pages that mutate tenant config
+  'spark-admin:locations_write',
+  'spark-admin:workspace_locations_write',
+  'spark-admin:places_write',
+  'spark-admin:devices_write',
+  'spark-admin:telephony_config_write',
+  // Supporting
+  'spark:all',
+  'spark:kms',
+  'audit:events_read'
 ].join(' ');

@@ -924,7 +924,7 @@
       signOutBtn.addEventListener('click', () => {
         ['authBearer','authOrg','authOrgName','authOrgId','authUserName','authRefreshToken','authExpiresAt','authLoginMethod','authScopes']
           .forEach(k => localStorage.removeItem(k));
-        window.location.href = '../../index.html';
+        window.location.href = '../../../index.html';
       });
     }
 
