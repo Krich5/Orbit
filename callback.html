@@ -65,6 +65,22 @@
           return window.completeOAuthSignIn(data);
         })
         .then(() => {
+          // Popup flow: if we were opened by an opener window waiting on a
+          // storage event, notify it (so it can route itself to home) and
+          // close this popup. Fallback for the direct-navigation flow:
+          // this window becomes the signed-in session itself.
+          const hasOpener = (() => {
+            try { return window.opener && !window.opener.closed; } catch (_) { return false; }
+          })();
+          if (hasOpener) {
+            try {
+              window.opener.postMessage({ source: 'orbit-oauth', status: 'signed-in' }, window.location.origin);
+            } catch (_) {}
+            // The storage event the token write triggered in the opener is
+            // usually enough on its own; postMessage is a belt-and-braces nudge.
+            setTimeout(() => { try { window.close(); } catch (_) {} }, 150);
+            return;
+          }
           window.location.href = 'home.html';
         })
         .catch((err) => fail('Could not complete sign-in.', err));

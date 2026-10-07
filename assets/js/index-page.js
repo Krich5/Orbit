@@ -48,14 +48,38 @@
     if (event.origin !== window.location.origin) return;
 
     const data = event.data || {};
-    if (data.source !== 'api-popup') return;
 
-    const expectedState = localStorage.getItem(STATE_KEY);
-    if (expectedState && data.state && data.state !== expectedState) return;
+    // Flow A — popup landed on popup-callback.html and forwarded the raw
+    // code+state back to us: we take over the token exchange on this window.
+    if (data.source === 'api-popup') {
+      const expectedState = localStorage.getItem(STATE_KEY);
+      if (expectedState && data.state && data.state !== expectedState) return;
+      localStorage.removeItem(AUTH_IN_PROGRESS);
+      localStorage.removeItem(STATE_KEY);
+      window.location.href = `callback.html?code=${encodeURIComponent(data.code || '')}&error=${encodeURIComponent(data.error || '')}`;
+      return;
+    }
 
+    // Flow B — popup landed on callback.html (our registered redirect_uri),
+    // did the token exchange itself, and is just nudging us that we're
+    // signed in. The authBearer is already in localStorage at this point.
+    if (data.source === 'orbit-oauth' && data.status === 'signed-in') {
+      localStorage.removeItem(AUTH_IN_PROGRESS);
+      localStorage.removeItem(STATE_KEY);
+      window.location.href = 'home.html';
+    }
+  }
+
+  // Even without the postMessage nudge, the opener window can detect the
+  // popup writing to localStorage via the 'storage' event — this covers
+  // the case where the popup closes before postMessage lands or the user
+  // blocks popups entirely and callback.html ran in the main window instead.
+  function handleStorage(event) {
+    if (event.key !== 'authBearer') return;
+    if (!event.newValue) return;
     localStorage.removeItem(AUTH_IN_PROGRESS);
     localStorage.removeItem(STATE_KEY);
-    window.location.href = `callback.html?code=${encodeURIComponent(data.code || '')}&error=${encodeURIComponent(data.error || '')}`;
+    window.location.href = 'home.html';
   }
 
   function initAuthButton() {
@@ -146,6 +170,7 @@
     initHeaderMenus();
     initStatus();
     window.addEventListener('message', handleMessage);
+    window.addEventListener('storage', handleStorage);
   }
 
   if (document.readyState === 'loading') {
