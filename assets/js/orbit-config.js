@@ -37,10 +37,14 @@ window.ORBIT_OAUTH_SCOPES = [
   'spark-admin:workspace_locations_write',
   'spark-admin:places_write',
   'spark-admin:devices_write',
-  'spark-admin:telephony_config_write'
-  // Dropped from the OpsHub list: `spark:all`, `spark:kms`,
-  // `audit:events_read`, `spark:organizations_read`. These were rejected
-  // by Webex as invalid_scope for the Orbit OAuth app — add them back
-  // one at a time only if you register them with the Orbit integration
-  // and need them for a specific page.
+  // The telephony_config write scope is only registered in the
+  // user-tier `spark:` namespace on the Orbit integration, not the
+  // admin tier. Keep it `spark:…` here to match what the app allows.
+  'spark:telephony_config_write'
+  // Not currently requested (dropped from the OpsHub list because they
+  // either aren't registered on the Orbit integration or duplicate a
+  // scope we already have): `spark:all`, `spark:kms`, `audit:events_read`,
+  // `spark:organizations_read`, and the admin tier of `telephony_config_write`.
+  // If a specific page errors out with `insufficient_scope`, register the
+  // missing scope on the integration first, then add it back here.
 ].join(' ');

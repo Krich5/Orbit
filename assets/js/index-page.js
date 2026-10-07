@@ -67,6 +67,16 @@
       localStorage.removeItem(AUTH_IN_PROGRESS);
       localStorage.removeItem(STATE_KEY);
       window.location.href = 'home.html';
+      return;
+    }
+
+    // Flow C — popup landed on callback.html with an error (invalid_scope,
+    // cancelled, state mismatch, token-exchange failure). The popup closed
+    // itself; surface the message on this window so the user can retry.
+    if (data.source === 'orbit-oauth' && data.status === 'error') {
+      localStorage.removeItem(AUTH_IN_PROGRESS);
+      localStorage.removeItem(STATE_KEY);
+      setStatus(data.message || 'Sign-in failed. Please try again.');
     }
   }
 

@@ -26,9 +26,22 @@
       const STATE_KEY = 'orbitOAuthState';
       const statusEl = document.getElementById('callbackStatus');
 
+      function hasOpener() {
+        try { return window.opener && !window.opener.closed; } catch (_) { return false; }
+      }
+
       function fail(message, detail) {
         statusEl.textContent = message;
         if (detail) console.error(detail);
+        // Popup flow: hand the error back to the opener window and close
+        // the popup so the user isn't stuck inside a dead-end popup.
+        if (hasOpener()) {
+          try {
+            window.opener.postMessage({ source: 'orbit-oauth', status: 'error', message }, window.location.origin);
+          } catch (_) {}
+          setTimeout(() => { try { window.close(); } catch (_) {} }, 300);
+          return;
+        }
         setTimeout(() => {
           window.location.href = `index.html?error=${encodeURIComponent(message)}`;
         }, 2500);
@@ -65,19 +78,14 @@
           return window.completeOAuthSignIn(data);
         })
         .then(() => {
-          // Popup flow: if we were opened by an opener window waiting on a
-          // storage event, notify it (so it can route itself to home) and
-          // close this popup. Fallback for the direct-navigation flow:
-          // this window becomes the signed-in session itself.
-          const hasOpener = (() => {
-            try { return window.opener && !window.opener.closed; } catch (_) { return false; }
-          })();
-          if (hasOpener) {
+          // Popup flow: nudge the opener (which may already have heard the
+          // storage event from the localStorage.setItem('authBearer', …)
+          // during completeOAuthSignIn) and close ourselves so the user
+          // doesn't end up inside a dead popup window.
+          if (hasOpener()) {
             try {
               window.opener.postMessage({ source: 'orbit-oauth', status: 'signed-in' }, window.location.origin);
             } catch (_) {}
-            // The storage event the token write triggered in the opener is
-            // usually enough on its own; postMessage is a belt-and-braces nudge.
             setTimeout(() => { try { window.close(); } catch (_) {} }, 150);
             return;
           }
