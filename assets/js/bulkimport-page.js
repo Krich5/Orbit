@@ -1,6 +1,6 @@
 /* Bulk Import — bulk multi-row import for WxCC Teams / Queues / Entry Points /
    Desktop Profiles / Users. Reuses the exact create-call shapes from the Setup
-   Wizard (pages/S1..S5), just looped over N grid rows instead of one
+   Wizard (pages/wxcc/wizard/S1..S5), just looped over N grid rows instead of one
    item at a time, with per-row failures never blocking the rest of the run. */
 (function () {
   'use strict';
@@ -580,7 +580,7 @@
   // more than one flow-store project, and the working page's fetch always
   // reads whichever one was last picked there rather than the hardcoded default.
   const FLOW_STORE_PROJECT = localStorage.getItem('wxccFlowProjectId') || '5e5c9ad6d61f870d6d778c1b';
-  const FLOW_PROXY = window.ORBIT_PROXY_BASE + '/flows';
+  const FLOW_PROXY = (window.ORBIT_PROXY_BASE || '') + '/flows';
   const FLOW_TEMPLATE_URL = '../../assets/templates/API_Tools_Skills_to_Queue_Template.json';
   const FLOW_OUTDIAL_TEMPLATE_URL = '../../assets/templates/Template_Outdial.json';
   const ACTIVITY_IDS = {

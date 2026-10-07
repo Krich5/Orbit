@@ -40,46 +40,62 @@
   const USE_SERVER_AUTH = window.API_TOOLS_AUTH_FORCE === true || Boolean(window.API_TOOLS_AUTH_ROOT) || window.location.host.includes(OAUTH_SERVER_HOST);
   const CONTACT_CENTER_NAV_GROUPS = [
     {
-      title: 'Administration',
+      title: 'Webex Calling',
       items: [
-        { label: 'Bulk Import', path: '/pages/bulkimport.html' },
-        { label: 'Setup Wizard', path: '/pages/S1_Teams.html' },
-        { label: 'Search API', path: '/pages/searchapi.html' },
-        { label: 'Supervisor Controls', path: '/pages/supervisorcontrols.html' }
+        { label: 'Workspaces', path: '/pages/wxc/workspaces.html' },
+        { label: 'Locations', path: '/pages/wxc/locations.html' },
+        { label: 'Numbers', path: '/pages/wxc/number.html' },
+        { label: 'Usage & Activity', path: '/pages/wxc/usage.html' },
+        { label: 'Devices', path: '/pages/wxc/devices.html' },
+        { label: 'Users', path: '/pages/wxc/user.html' },
+        { label: 'Virtual Lines', path: '/pages/wxc/virtuallines.html' },
+        { label: 'Auto Attendant', path: '/pages/wxc/autoattendant.html' }
       ]
     },
     {
-      title: 'Customer Experience',
+      title: 'Webex Contact Center',
       items: [
-        { label: 'Entry Point', path: '/pages/channels.html' },
-        { label: 'Queues', path: '/pages/queues.html' },
-        { label: 'Business Hours', path: '/pages/businesshours.html' },
-        { label: 'Flows', path: '/pages/flows.html' },
-        { label: 'Functions', path: '/pages/functions.html' },
-        { label: 'Function Builder', path: '/pages/functionbuilder.html' },
-        { label: 'AI Agent', path: '/pages/aiagent.html' }
+        { label: 'Queues', path: '/pages/wxcc/queues.html' },
+        { label: 'Business Hours', path: '/pages/wxcc/businesshours.html' },
+        { label: 'Contact Center Users', path: '/pages/wxcc/contactcenterusers.html' },
+        { label: 'Skills', path: '/pages/wxcc/skills.html' },
+        { label: 'Desktop Profiles', path: '/pages/wxcc/desktopprofiles.html' },
+        { label: 'Desktop Layout', path: '/pages/wxcc/desktoplayout.html' },
+        { label: 'Channels', path: '/pages/wxcc/channels.html' },
+        { label: 'Flows', path: '/pages/wxcc/flows.html' },
+        { label: 'Functions', path: '/pages/wxcc/functions.html' },
+        { label: 'Function Builder', path: '/pages/wxcc/functionbuilder.html' },
+        { label: 'Address Book', path: '/pages/wxcc/addressbook.html' },
+        { label: 'Search API', path: '/pages/wxcc/searchapi.html' },
+        { label: 'Realtime Dashboard', path: '/pages/wxcc/realtime-dashboard.html' },
+        { label: 'Historical Data', path: '/pages/wxcc/historical-data.html' },
+        { label: 'Supervisor Controls', path: '/pages/wxcc/supervisorcontrols.html' },
+        { label: 'Outbound Campaign Manager', path: '/pages/wxcc/ocm.html' },
+        { label: 'Epoch Time', path: '/pages/wxcc/epochtime.html' },
+        { label: 'Contact Center Wizard', path: '/pages/wxcc/wizard/S1_Teams.html' },
+        { label: 'Bulk Import', path: '/pages/wxcc/bulkimport.html' }
       ]
     },
     {
-      title: 'User Management',
+      title: 'AI Agent',
       items: [
-        { label: 'Contact Center Users', path: '/pages/contactcenterusers.html' },
-        { label: 'Skills', path: '/pages/skills.html' }
+        { label: 'AI Bot Visualizer', path: '/pages/aiagent/visualizer.html' },
+        { label: 'AI Call Transcript Summary', path: '/pages/aiagent/summary.html' },
+        { label: 'AI Utilization', path: '/pages/aiagent/utilization.html' },
+        { label: 'Autonomous Instructions', path: '/pages/aiagent/autonomous.html' },
+        { label: 'AI Agent Calculator', path: '/pages/aiagent/agent-calculator.html' }
       ]
     },
     {
-      title: 'Desktop Experience',
+      title: 'Webex Meetings',
       items: [
-        { label: 'Desktop Layout', path: '/pages/desktoplayout.html' },
-        { label: 'Address Book', path: '/pages/addressbook.html' },
-        { label: 'Desktop Profiles', path: '/pages/desktopprofiles.html' }
+        { label: 'Meeting Transcriptions', path: '/pages/meetings/transcriptions.html' }
       ]
     },
     {
-      title: 'Statistics',
+      title: 'Webex Messages',
       items: [
-        { label: 'Realtime Dashboard', path: '/pages/realtime-dashboard.html' },
-        { label: 'Historical Data', path: '/pages/historical-data.html' }
+        { label: 'Space History Export', path: '/pages/wxmessages/spacehistory.html' }
       ]
     }
   ];

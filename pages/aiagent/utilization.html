@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="light" />
+  <title>WxCC - AI Utilization</title>
+  <link rel="icon" type="image/png" href="../../assets/images/Orbit_Icon-192.png" />
+  <link rel="stylesheet" href="../../assets/css/theme.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+<body class="dark-mode api-aiagent" data-aiagent-mode="utilization">
+  <script>if (localStorage.getItem("tpRailExpanded") === "true") document.body.classList.add("tp-rail-expanded");</script>
+  <api-tools-header basepath="../../"></api-tools-header>
+  <main>
+    <div class="wrap wide aiagent-page-stack">
+      <section class="card aiagent-card">
+        <div class="pageHeader aiagent-page-header">
+          <div>
+            <h1>AI Utilization</h1>
+            <p class="lead">Use the guided setup to import the AI utilization assets first, then follow the next-step instructions for where to place them in WxCC.</p>
+          </div>
+        </div>
+
+        <section class="aiagent-mode-panel" data-mode-panel="utilization">
+          <div class="aiagent-util-layout">
+            <div class="aiagent-request-card aiagent-util-step-card">
+              <div class="aiagent-util-step-header">
+                <div class="aiagent-util-step-number">Step 1</div>
+                <div>
+                  <h2>Import Assets</h2>
+                  <p class="aiagent-request-desc">This runs the full asset import for the current tenant: 4 global variables, 3 subflow imports, then 3 subflow publishes.</p>
+                </div>
+              </div>
+              <div class="aiagent-util-status-line" id="aiUtilPackageSummary">Ready to import built-in AI utilization assets.</div>
+              <div class="actionsRow">
+                <button class="btn primary" id="runAiUtilBtn" type="button">Run Step 1 Import</button>
+              </div>
+              <div class="aiagent-inline-error hidden" id="aiUtilErrorBox"></div>
+              <div class="aiagent-util-log hidden" id="aiUtilLogBox">Import log will appear here…</div>
+            </div>
+
+            <div class="aiagent-request-card aiagent-util-step-card">
+              <div class="aiagent-util-step-header">
+                <div class="aiagent-util-step-number">Step 2</div>
+                <div>
+                  <h2>Place the Assets</h2>
+                  <p class="aiagent-request-desc">Add your instructions here for where each imported variable and subflow should be used in the tenant.</p>
+                </div>
+              </div>
+              <div class="aiagent-util-instructions">
+                <div class="aiagent-util-instruction-note">Instruction placeholder</div>
+                <p>Use this area to explain where the new variables and subflows should be referenced after Step 1 completes.</p>
+                <ul class="aiagent-util-instruction-list">
+                  <li>Add the specific flow or entry point placement notes here.</li>
+                  <li>Document where each subflow should be called from.</li>
+                  <li>Document any variable mapping or reporting follow-up here.</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <div class="aiagent-util-overlay hidden" id="aiUtilOverlay" aria-live="polite" aria-busy="true">
+            <div class="aiagent-util-overlay-card">
+              <div class="aiagent-util-spinner"></div>
+              <div class="aiagent-util-overlay-label" id="aiUtilOverlayLabel">Preparing import…</div>
+              <div class="aiagent-util-overlay-detail" id="aiUtilOverlayDetail">Connecting to the current tenant.</div>
+              <div class="aiagent-util-phase-list">
+                <div class="aiagent-util-phase-row" id="aiUtilPhaseGlobals">Importing Global Variables</div>
+                <div class="aiagent-util-phase-row" id="aiUtilPhaseSubflows">Importing Subflows</div>
+                <div class="aiagent-util-phase-row" id="aiUtilPhasePublish">Publishing Subflows</div>
+              </div>
+              <div class="aiagent-util-task-log" id="aiUtilTaskLog">Task progress will appear here…</div>
+            </div>
+          </div>
+        </section>
+      </section>
+    </div>
+  </main>
+
+  <script src="../../assets/js/theme.js"></script>
+  <script src="../../assets/js/aiagent-page.js"></script>
+</body>
+</html>

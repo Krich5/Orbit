@@ -528,6 +528,50 @@
     document.body.appendChild(a); a.click(); document.body.removeChild(a);
   }
 
+  // ── Auth modal ──
+  (function initAuthModal() {
+    if (document.getElementById('authModal')) return;
+    const style = document.createElement('style');
+    style.textContent = `
+      .authModalOverlay{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;z-index:9999;padding:16px;}
+      .authModalOverlay.open{display:flex;}
+      .authCard{width:100%;max-width:520px;background:#131a2a;border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:18px;box-shadow:0 18px 36px rgba(0,0,0,.45);position:relative;}
+      .authCard h2{margin:0 0 8px;font-size:1.2rem;}
+      .authCard p{margin:0 0 12px;color:#92a0b8;line-height:1.4;}
+      .authClose{position:absolute;right:10px;top:10px;background:transparent;border:none;color:#92a0b8;font-size:18px;cursor:pointer;}
+      .authStatus{margin-top:8px;font-size:13px;color:#92a0b8;}
+      .authCard .btn.webex{display:inline-flex;align-items:center;gap:8px;width:100%;justify-content:center;background:#07C;color:white;border:none;border-radius:12px;padding:11px 20px;font-size:14px;font-weight:700;cursor:pointer;}
+      .authCard .btn.webex:hover{background:#0069CC;}
+    `;
+    document.head.appendChild(style);
+    const overlay = document.createElement('div');
+    overlay.className = 'authModalOverlay'; overlay.id = 'authModal';
+    overlay.innerHTML = `
+      <div class="authCard">
+        <button class="authClose" aria-label="Close">×</button>
+        <h2>Sign in with Webex</h2>
+        <p>Click below to authenticate with your Webex account.</p>
+        <button class="btn webex" id="authWebex">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M19.7 7.3c-1.2-1.2-2.7-2-4.5-2.3-.3-1.6-1.2-3-2.5-4-1.4-1-3-1.6-4.7-1.6-2.2 0-4.2.8-5.7 2.3C.8 3.2 0 5.2 0 7.4c0 1.7.6 3.3 1.6 4.7 1 1.3 2.4 2.2 4 2.5.3 1.6 1.2 3 2.5 4 1.5 1 3.1 1.6 4.9 1.6 2.2 0 4.2-.8 5.7-2.3 1.5-1.5 2.3-3.5 2.3-5.7 0-1.8-.6-3.4-1.6-4.7-.1 0-.2-.1-.2-.2z"/></svg>
+          Sign in with Webex
+        </button>
+        <div class="authStatus" id="authStatus"></div>
+      </div>`;
+    document.body.appendChild(overlay);
+    const CLIENT_ID    = 'Cc604fe2354b93ecd1eb3d799e69a4ce981649161c1e31253ae91805e95b54e64';
+    const REDIRECT_URI = 'https://cxasteam.bitbucket.io/opshub/callback.html';
+    const SCOPES       = 'spark-admin:locations_write spark:all spark-admin:locations_read spark-admin:organizations_read spark:organizations_read spark-admin:workspace_locations_read spark-admin:places_read cjp:config_read spark:kms spark-admin:devices_read cjp:config_write spark-admin:workspace_locations_write spark-admin:places_write cjp:config spark-admin:devices_write spark-admin:telephony_config_read spark-admin:telephony_config_write audit:events_read spark-admin:licenses_read';
+    const close = () => overlay.classList.remove('open');
+    overlay.querySelector('.authClose').addEventListener('click', close);
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
+    window.addEventListener('keydown', (e) => { if (e.key === 'Escape') close(); });
+    overlay.querySelector('#authWebex').addEventListener('click', () => {
+      window.location.href = `https://webexapis.com/v1/authorize?client_id=${CLIENT_ID}&response_type=code&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&scope=${encodeURIComponent(SCOPES)}&state=${Date.now()}&prompt=consent`;
+    });
+    document.querySelectorAll('.authLink').forEach((el) => {
+      el.addEventListener('click', (e) => { e.preventDefault(); overlay.classList.add('open'); });
+    });
+  })();
 
   // ── Init ──
   document.addEventListener('DOMContentLoaded', () => {

@@ -1,0 +1,1557 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="light dark" />
+  <title>Webex Calling - Users</title>
+  <link rel="icon" type="image/png" href="../../assets/images/Orbit_Icon-192.png" />
+  <link rel="stylesheet" href="../../assets/css/theme.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    main { padding:32px 0 80px; display:flex; justify-content:flex-start; }
+    .actionsRow { display:flex; gap:12px; flex-wrap:wrap; align-items:flex-start; }
+    .searchWrapper { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+    .searchControl { display:flex; align-items:center; gap:10px; flex:1; min-width:260px; max-width:860px; }
+    .searchControl .searchInput { flex:1; }
+    .searchLabel { font-size:13px; color:var(--muted); font-weight:600; margin:0; }
+    .actionsRight { margin-left:auto; display:flex; flex-direction:column; gap:10px; align-items:flex-end; }
+    .actionRow { display:flex; gap:10px; align-items:center; justify-content:flex-end; }
+    .actionRow--pager { margin-top:-6px; }
+
+    /* Table */
+    .userTable { margin-top:16px; border:1px solid var(--border); border-radius:14px; overflow:hidden; box-shadow:var(--shadow); }
+    .userHeader, .userRow { display:grid; grid-template-columns:52px minmax(200px,1.2fr) 110px minmax(160px,1fr) minmax(220px,1.4fr) minmax(130px,0.7fr) 130px; align-items:center; }
+    .userHeader { background:var(--panel); color:var(--accent); font-weight:700; font-size:12px; letter-spacing:.01em; }
+    .userHeader .headerCell { position:relative; }
+    .userRow { background:var(--card); border-top:1px solid var(--border); cursor:pointer; }
+    .userRow:nth-child(even) { background:var(--input); }
+    .userRow:hover { background:rgba(8,172,242,.08); }
+    .userRow.selected { background:rgba(8,172,242,.12) !important; }
+    .userCell { padding:12px; display:flex; align-items:center; gap:8px; min-height:46px; min-width:0; }
+    .userCell.nameCol { flex-direction:column; gap:2px; align-items:flex-start; justify-content:center; }
+    .userCell.tagsCol { flex-wrap:wrap; align-items:flex-start; align-content:flex-start; }
+    .headerCell { padding:12px; min-height:46px; display:flex; flex-direction:column; gap:6px; align-items:flex-start; justify-content:center; }
+    .headLabel { font-weight:700; }
+    body.dark-mode .userRow { background:var(--card); }
+    body.dark-mode .userRow:nth-child(even) { background:var(--panel); }
+    body.dark-mode .userRow.selected { background:rgba(8,172,242,.18) !important; }
+
+    /* User name */
+    .userName { font-weight:700; color:var(--fg); font-size:14px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:100%; }
+    .userEmail { color:var(--muted); font-size:12px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:100%; }
+
+    /* Row button */
+    .rowBtn { display:inline-flex; align-items:center; justify-content:center; padding:6px 12px; border-radius:10px; border:1px solid var(--border); background:var(--card); color:var(--accent); font-size:12px; font-weight:700; cursor:pointer; white-space:nowrap; }
+    .rowBtn:hover { border-color:rgba(0,0,0,.2); background:var(--input); }
+    .rowBtn:disabled { opacity:.6; cursor:not-allowed; }
+    body.dark-mode .rowBtn { background:rgba(255,255,255,.08); color:var(--fg); border-color:rgba(255,255,255,.18); }
+    body.dark-mode .rowBtn:hover { background:rgba(255,255,255,.14); border-color:rgba(255,255,255,.26); }
+
+    /* Checkboxes */
+    .rowCheckbox, .selectAllCheckbox { width:16px; height:16px; appearance:none; -webkit-appearance:none; border:1.5px solid #7f8ba3; background:var(--card); border-radius:4px; position:relative; cursor:pointer; flex-shrink:0; }
+    .rowCheckbox:checked, .selectAllCheckbox:checked { background:#159DD8; border-color:#159DD8; }
+    .rowCheckbox::after, .selectAllCheckbox::after { content:''; position:absolute; inset:0; background:center / 11px 11px no-repeat; opacity:0; transition:opacity .12s ease; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='none' stroke='white' stroke-linecap='round' stroke-linejoin='round' stroke-width='2.2' d='M3.5 8.5 6.5 11.5 12.5 4.5'/%3E%3C/svg%3E"); }
+    .rowCheckbox:checked::after, .selectAllCheckbox:checked::after { opacity:1; }
+    .rowCheckbox:focus-visible, .selectAllCheckbox:focus-visible { outline:none; box-shadow:0 0 0 3px rgba(21,157,216,.18); }
+    body.dark-mode .rowCheckbox, body.dark-mode .selectAllCheckbox { background:#0f172a; border-color:#64748b; }
+    body.dark-mode .rowCheckbox:checked, body.dark-mode .selectAllCheckbox:checked { background:#159DD8; border-color:#159DD8; }
+
+    /* Tags */
+    .muted { color:var(--muted); }
+    .tagWrap { display:flex; gap:6px; flex-wrap:wrap; }
+    .tag { display:inline-flex; align-items:center; padding:4px 9px; border-radius:999px; border:1px solid rgba(8,172,242,.18); background:rgba(8,172,242,.08); color:var(--accent); font-size:12px; }
+    .tag.warn { border-color:rgba(245,158,11,.28); background:rgba(245,158,11,.12); color:#b45309; }
+    .tag.none { border-style:dashed; background:transparent; color:var(--muted); }
+    .tag.role { border-color:rgba(139,92,246,.3); background:rgba(139,92,246,.1); color:#7c3aed; font-weight:700; }
+    body.dark-mode .tag.warn { color:#fbbf24; }
+    body.dark-mode .tag.role { color:#a78bfa; border-color:rgba(139,92,246,.4); background:rgba(139,92,246,.15); }
+
+    /* Filter */
+
+    /* Buttons */
+    .btn.save { background:#2563eb; color:#fff; border:none; }
+    .btn.save:hover { background:#1d4ed8; }
+    body.dark-mode .btn.save { background:#3b82f6; }
+    body.dark-mode .btn.save:hover { background:#2563eb; }
+    .pagerControls { display:flex; align-items:center; gap:10px; color:var(--fg); font-size:12px; }
+    .pageBtn { border:1px solid var(--border); background:var(--panel); color:var(--fg); padding:6px 10px; border-radius:10px; cursor:pointer; font-size:12px; }
+    .pageBtn:disabled { opacity:.5; cursor:not-allowed; }
+
+    /* Search */
+    .searchInput { border-radius:10px; border:1px solid var(--border); background:var(--input); color:var(--fg); padding:8px 10px; font-size:13px; outline:none; min-width:220px; }
+    .searchInput:focus { box-shadow:0 0 0 3px rgba(59,130,246,.25); }
+    .licenseSearchInput { width:min(420px,100%); border-radius:12px; border:1px solid var(--border); background:var(--input); color:var(--fg); padding:10px 12px; outline:none; font-size:14px; }
+    .licenseSearchInput:focus { box-shadow:0 0 0 3px rgba(59,130,246,.25); }
+
+    /* Modal */
+    .modalOverlay { position:fixed; inset:0; background:rgba(0,0,0,.45); display:none; align-items:center; justify-content:center; z-index:10000; padding:18px; }
+    .modalOverlay.open { display:flex; }
+    .modalCard { width:min(1120px,100%); max-height:min(88vh,980px); overflow:auto; border-radius:20px; background:var(--card); border:1px solid var(--border); box-shadow:0 30px 70px rgba(0,0,0,.28); padding:22px; }
+    .modalHeader { display:flex; justify-content:space-between; gap:12px; align-items:flex-start; margin-bottom:14px; }
+    .modalHeader h2 { margin:0; font-size:1.3rem; }
+    .closeBtn { background:transparent; border:none; color:var(--muted); font-size:24px; cursor:pointer; line-height:1; }
+    .toolbar { display:flex; gap:12px; align-items:center; justify-content:space-between; flex-wrap:wrap; }
+    .toolbarLeft, .toolbarRight { display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
+    .modalSections { display:flex; flex-direction:column; gap:18px; margin-top:14px; }
+    .licenseSection { border:1px solid var(--border); border-radius:16px; padding:16px; background:var(--panel); }
+    .licenseSectionHeader { display:flex; justify-content:space-between; gap:12px; align-items:center; margin-bottom:12px; flex-wrap:wrap; }
+    .licenseSectionTitle { font-size:14px; font-weight:700; color:var(--fg); }
+    .licenseSectionMeta { font-size:12px; color:var(--muted); }
+    .licenseGrid { display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:12px; }
+    .licenseCard { border:1px solid var(--border); border-radius:16px; background:var(--card); padding:14px; display:flex; gap:12px; align-items:flex-start; transition:border-color .15s ease, background .15s ease, box-shadow .15s ease; }
+    .licenseCard input[type="checkbox"] { width:18px; height:18px; margin-top:2px; appearance:none; -webkit-appearance:none; border:1.5px solid #7f8ba3; background:var(--card); border-radius:4px; position:relative; cursor:pointer; }
+    .licenseCard input[type="checkbox"]:checked { background:#159DD8; border-color:#159DD8; }
+    .licenseCard input[type="checkbox"]::after { content:''; position:absolute; inset:0; background:center / 12px 12px no-repeat; opacity:0; transition:opacity .12s ease; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='none' stroke='white' stroke-linecap='round' stroke-linejoin='round' stroke-width='2.2' d='M3.5 8.5 6.5 11.5 12.5 4.5'/%3E%3C/svg%3E"); }
+    .licenseCard input[type="checkbox"]:checked::after { opacity:1; }
+    .licenseCard input[type="checkbox"]:focus-visible { outline:none; box-shadow:0 0 0 3px rgba(21,157,216,.18); }
+    .licenseName { font-weight:700; color:var(--fg); }
+    .licenseMeta { margin-top:4px; font-size:12px; color:var(--muted); }
+    .modalFooter { display:flex; justify-content:flex-end; gap:10px; margin-top:18px; }
+    .statusLine { font-size:13px; color:var(--muted); }
+    body.dark-mode .licenseCard input[type="checkbox"] { background:#0f172a; border-color:#64748b; }
+    body.dark-mode .licenseCard input[type="checkbox"]:checked { background:#159DD8; border-color:#159DD8; }
+    .licenseCard:hover:not(.ccSelected) { border-color:rgba(8,172,242,.45); background:rgba(8,172,242,.05); }
+    .licenseCard[data-cc-select] { cursor:pointer; user-select:none; }
+    .licenseCard[data-cc-select]:hover:not(.ccSelected) { border-color:rgba(8,172,242,.45); background:rgba(8,172,242,.05); }
+    .licenseCard.ccSelected { border-color:#159DD8; background:rgba(8,172,242,.10); box-shadow:0 0 0 1px rgba(8,172,242,.18), 0 10px 24px rgba(8,172,242,.10); }
+    .licenseCard.ccSelected input[type="checkbox"] { background:#159DD8; border-color:#159DD8; }
+    .licenseCard.ccSelected input[type="checkbox"]::after { opacity:1; }
+    body.dark-mode .licenseCard.ccSelected { background:rgba(8,172,242,.18); }
+
+    /* Progress */
+    .progressOverlay { position:fixed; inset:0; background:rgba(0,0,0,.55); display:none; align-items:center; justify-content:center; z-index:20000; padding:18px; }
+    .progressOverlay.open { display:flex; }
+    .progressCard { width:min(480px,100%); border-radius:20px; background:var(--card); border:1px solid var(--border); box-shadow:0 30px 70px rgba(0,0,0,.28); padding:28px 24px 20px; display:flex; flex-direction:column; gap:14px; }
+    .progressTitle { font-size:1.1rem; font-weight:700; color:var(--fg); }
+    .progressLog { display:flex; flex-direction:column; gap:7px; min-height:40px; }
+    .progressStep { font-size:13px; color:var(--muted); display:flex; gap:8px; align-items:flex-start; }
+    .progressStep.done { color:var(--fg); }
+    .progressStep.done::before { content:'✓'; color:#22c55e; flex-shrink:0; }
+    .progressStep.error { color:#ef4444; }
+    .progressStep.error::before { content:'✗'; flex-shrink:0; }
+    .progressStep.active { color:var(--accent); }
+    .progressStep.active::before { content:'…'; flex-shrink:0; }
+    .progressStep:not(.done):not(.error):not(.active)::before { content:'•'; flex-shrink:0; }
+    .progressFooter { display:flex; justify-content:flex-end; }
+    .userWrapper { position:relative; }
+    .userWrapper.loading-users #userList { visibility:hidden; }
+    .userWrapper.loading-users { min-height:420px; }
+    .tableLoader {
+      position:absolute;
+      inset:0;
+      background:linear-gradient(180deg, rgba(255,255,255,.97), rgba(248,250,252,.94));
+      border-radius:14px;
+      display:flex;
+      align-items:flex-start;
+      justify-content:center;
+      opacity:0;
+      pointer-events:none;
+      transition:opacity .2s ease;
+      border:1px solid var(--border);
+      padding-top:36px;
+    }
+    .tableLoader.open { opacity:1; }
+    .loaderInner { display:flex; align-items:center; gap:10px; }
+    .tableLoader .loaderInner {
+      width:min(420px, calc(100% - 32px));
+      flex-direction:column;
+      gap:14px;
+      text-align:center;
+      padding:28px 24px;
+      background:var(--card);
+      border:1px solid var(--border);
+      border-radius:18px;
+      box-shadow:0 24px 60px rgba(15,23,42,.14);
+    }
+    .loaderHint { font-size:12px; color:var(--muted); line-height:1.45; margin:0; }
+    .loaderTitle { font-size:1.25rem; font-weight:700; color:var(--fg); margin:0; }
+    .loaderText { font-size:14px; color:var(--muted); line-height:1.5; margin:0; }
+    .loaderSpinner { width:32px; height:32px; border:4px solid rgba(15,23,42,0.1); border-top-color:var(--accent); border-radius:50%; animation:spin 1s linear infinite; }
+    body.dark-mode .tableLoader {
+      background:linear-gradient(180deg, rgba(3,9,37,.82), rgba(3,9,37,.74));
+      border-color:rgba(255,255,255,.08);
+    }
+    body.dark-mode .tableLoader .loaderInner {
+      background:#0d1730;
+      border-color:rgba(255,255,255,.08);
+      box-shadow:0 28px 70px rgba(0,0,0,.45);
+    }
+    @keyframes spin { from { transform:rotate(0deg); } to { transform:rotate(360deg); } }
+  </style>
+</head>
+<body class="dark-mode">
+  <script>if (localStorage.getItem("tpRailExpanded") === "true") document.body.classList.add("tp-rail-expanded");</script>
+  <api-tools-header basepath="../../"></api-tools-header>
+  <main>
+    <div class="wrap wide contentWrap">
+      <section class="card">
+        <div class="pageHeader">
+          <h1>Webex Users</h1>
+          <p class="lead">List Control Hub users and manage licenses.</p>
+        </div>
+        <div class="actionsRow">
+          <div class="searchWrapper">
+            <label class="searchLabel" for="searchInput">Search</label>
+            <div class="searchControl">
+              <input id="searchInput" class="searchInput" type="text" placeholder="Search users..." />
+            </div>
+          </div>
+          <div class="actionsRight">
+            <div class="actionRow">
+              <span class="pill" id="userCountPill">0 users</span>
+              <span class="pill" id="selectedCountPill" style="display:none;">0 selected</span>
+              <button id="refreshBtn" class="btn primary" type="button">Refresh</button>
+              <button id="bulkModifyBtn" class="btn primary" style="display:none;" type="button">Bulk Modify</button>
+            </div>
+            <div class="actionRow actionRow--pager">
+              <div class="pagerControls">
+                <button id="prevPageBtn" class="pageBtn" type="button">Prev</button>
+                <span id="pagePill">1/1</span>
+                <button id="nextPageBtn" class="pageBtn" type="button">Next</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="status" id="statusText"></div>
+        <div class="userWrapper" id="userWrapper">
+          <div id="userList"></div>
+          <div class="tableLoader" id="tableLoader" role="status" aria-live="assertive">
+            <div class="loaderInner">
+              <p class="loaderTitle">Loading Webex users</p>
+              <div class="loaderSpinner" aria-hidden="true"></div>
+              <p class="loaderText" id="loaderText">Please wait while the user list is loaded.</p>
+              <p class="loaderHint">You can keep using the header while loading continues.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <div class="modalOverlay" id="licenseModal" aria-hidden="true">
+    <div class="modalCard">
+      <div class="modalHeader">
+        <div>
+          <h2 id="modalTitle">Edit Licenses</h2>
+          <div class="muted" id="modalSubtitle"></div>
+        </div>
+        <button id="closeModalBtn" class="closeBtn" type="button" aria-label="Close">×</button>
+      </div>
+      <div class="toolbar" style="margin-bottom:6px;">
+        <div class="toolbarLeft">
+          <input id="licenseSearchInput" class="licenseSearchInput" type="search" placeholder="Filter licenses in this editor" />
+        </div>
+        <div class="toolbarRight">
+          <button id="selectVisibleBtn" class="btn secondary" type="button">Select visible</button>
+          <button id="clearVisibleBtn" class="btn secondary" type="button">Clear visible</button>
+        </div>
+      </div>
+      <div class="statusLine" id="modalStatus"></div>
+      <div id="modalSections" class="modalSections"></div>
+      <div id="ccRolesSection"></div>
+      <div class="modalFooter">
+        <button id="cancelModalBtn" class="btn secondary" type="button">Cancel</button>
+        <button id="saveLicensesBtn" class="btn save" type="button">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="progressOverlay" id="progressOverlay" aria-hidden="true">
+    <div class="progressCard">
+      <div class="progressTitle" id="progressTitle">Saving...</div>
+      <div class="progressLog" id="progressLog"></div>
+      <div class="progressFooter">
+        <button id="progressCloseBtn" class="btn secondary" type="button" style="display:none;">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="../../assets/js/theme.js"></script>
+  <script>
+(function () {
+  const BASE_URL = 'https://webexapis.com';
+  const SCIM_BASE_URL = 'https://identity-b-us.webex.com/identity/scim';
+  const PEOPLE_PAGE_SIZE = 100;
+  const PEOPLE_ENDPOINT = `/v1/people?max=${PEOPLE_PAGE_SIZE}`;
+  const LICENSES_ENDPOINT = '/v1/licenses';
+  const TOKEN_KEY = 'authBearer';
+  const ORG_KEY = 'authOrg';
+  const PUT_PERSON_FIELDS = [
+    'emails', 'displayName', 'firstName', 'lastName', 'avatar', 'orgId', 'roles', 'licenses',
+    'department', 'title', 'addresses', 'manager', 'siteUrls', 'loginEnabled', 'pronouns',
+    'city', 'state', 'country', 'zipCode'
+  ];
+  const CATEGORY_ORDER = ['messaging', 'meetings', 'calling', 'contactCenter', 'other'];
+  const CATEGORY_LABELS = {
+    messaging: 'Messaging',
+    meetings: 'Meetings',
+    calling: 'Calling',
+    contactCenter: 'Contact Center',
+    other: 'Other'
+  };
+  const FILTER_NONE_TOKEN = '__NONE__';
+
+  const els = {
+    statusText: document.getElementById('statusText'),
+    userCountPill: document.getElementById('userCountPill'),
+    pagePill: document.getElementById('pagePill'),
+    selectedCountPill: document.getElementById('selectedCountPill'),
+    searchInput: document.getElementById('searchInput'),
+    prevPageBtn: document.getElementById('prevPageBtn'),
+    nextPageBtn: document.getElementById('nextPageBtn'),
+    refreshBtn: document.getElementById('refreshBtn'),
+    bulkModifyBtn: document.getElementById('bulkModifyBtn'),
+    userList: document.getElementById('userList'),
+    modal: document.getElementById('licenseModal'),
+    modalTitle: document.getElementById('modalTitle'),
+    modalSubtitle: document.getElementById('modalSubtitle'),
+    modalStatus: document.getElementById('modalStatus'),
+    modalSections: document.getElementById('modalSections'),
+    licenseSearchInput: document.getElementById('licenseSearchInput'),
+    selectVisibleBtn: document.getElementById('selectVisibleBtn'),
+    clearVisibleBtn: document.getElementById('clearVisibleBtn'),
+    closeModalBtn: document.getElementById('closeModalBtn'),
+    cancelModalBtn: document.getElementById('cancelModalBtn'),
+    saveLicensesBtn: document.getElementById('saveLicensesBtn'),
+    ccRolesSection: document.getElementById('ccRolesSection'),
+    progressOverlay: document.getElementById('progressOverlay'),
+    progressTitle: document.getElementById('progressTitle'),
+    progressLog: document.getElementById('progressLog'),
+    progressCloseBtn: document.getElementById('progressCloseBtn'),
+    userWrapper: document.getElementById('userWrapper'),
+    tableLoader: document.getElementById('tableLoader'),
+    loaderText: document.getElementById('loaderText'),
+  };
+
+  let users = [];
+  let licenses = [];
+  let licenseMap = new Map();
+  let selectedUserIds = new Set();
+  let activeEditorUserIds = [];
+  let activeLicenseSelection = new Set();
+  let activeCCRole = null; // 'STANDARD' | 'PREMIUM' | 'SUPERVISOR' | 'ADMIN' | null
+  let isSaving = false;
+  let scimUserMap = new Map(); // email (lowercase) → roles string[]
+  let activeFilterKey = '';
+  let peopleCurrentUrl = PEOPLE_ENDPOINT;
+  let peopleNextUrl = '';
+  let peoplePrevUrls = [];
+  let peoplePageNumber = 1;
+  let peopleHasLoadedAtLeastOnce = false;
+  let activeSearchTerm = '';
+  let searchDebounceTimer = null;
+  const filterValues = { status: [], calling: [], contactCenter: [] };
+  const filterSelections = { status: new Set(), calling: new Set(), contactCenter: new Set() };
+  const filterSearchTerms = { status: '', calling: '', contactCenter: '' };
+  let activePopoverState = null;
+
+  function isContactCenterStandard(name) {
+    const lowered = String(name || '').toLowerCase();
+    return lowered.includes('contact center') && lowered.includes('standard') && lowered.includes('agent');
+  }
+
+  function isContactCenterPremium(name) {
+    const lowered = String(name || '').toLowerCase();
+    return lowered.includes('contact center') && lowered.includes('premium') && lowered.includes('agent');
+  }
+
+  function getLicenseById(id) {
+    return licenses.find((license) => license.id === id) || null;
+  }
+
+  function normalizeLicenseSelection(selectionSet) {
+    const next = new Set(selectionSet);
+    const selectedLicenses = [...next].map(getLicenseById).filter(Boolean);
+    const standard = selectedLicenses.find((license) => isContactCenterStandard(license.name));
+    const premium = selectedLicenses.find((license) => isContactCenterPremium(license.name));
+    const removed = [];
+
+    if (standard && premium) {
+      next.delete(standard.id);
+      removed.push(standard.name);
+    }
+
+    return { selection: next, removed };
+  }
+
+  function applyLicenseSelectionNormalization(messagePrefix = '') {
+    const result = normalizeLicenseSelection(activeLicenseSelection);
+    activeLicenseSelection = result.selection;
+    if (result.removed.length) {
+      const removedText = result.removed.join(', ');
+      els.modalStatus.textContent = `${messagePrefix}Removed conflicting license: ${removedText}.`;
+    } else {
+      els.modalStatus.textContent = `${activeLicenseSelection.size} selected.`;
+    }
+  }
+
+  function validateLicenseSelectionBeforeSave() {
+    const selectedLicenses = [...activeLicenseSelection].map(getLicenseById).filter(Boolean);
+    const hasStandard = selectedLicenses.some((license) => isContactCenterStandard(license.name));
+    const hasPremium = selectedLicenses.some((license) => isContactCenterPremium(license.name));
+    if (hasStandard && hasPremium) {
+      throw new Error('Contact Center Standard Agent and Contact Center Premium Agent cannot both be assigned. Select only one.');
+    }
+  }
+
+  function updateHeaderIndicators() {
+    const bearer = getToken();
+    const org = localStorage.getItem('authOrgName') || localStorage.getItem('authOrg') || '';
+    const user = localStorage.getItem('authUserName') || '';
+    const userNameEl = document.getElementById('userName');
+    const userOrgEl = document.getElementById('userOrg');
+    if (userNameEl) userNameEl.textContent = bearer ? (user || 'Authenticated') : 'Not authenticated';
+    if (userOrgEl) userOrgEl.textContent = org || '';
+  }
+
+  function initHeaderMenus() {
+    const signOutBtn = document.getElementById('signOutBtn') || document.getElementById('tpSignOut');
+
+    if (signOutBtn && !signOutBtn.dataset.userPageSignoutBound) {
+      signOutBtn.dataset.userPageSignoutBound = 'true';
+      signOutBtn.addEventListener('click', () => {
+        localStorage.removeItem('authBearer');
+        localStorage.removeItem('authOrg');
+        localStorage.removeItem('authOrgName');
+        localStorage.removeItem('authUserName');
+        localStorage.removeItem('authRefreshToken');
+        localStorage.removeItem('authExpiresAt');
+        localStorage.removeItem('authLoginMethod');
+        window.location.href = '../../index.html';
+      });
+    }
+  }
+
+  function getToken() {
+    return (localStorage.getItem(TOKEN_KEY) || '').replace(/^Bearer\s+/i, '').trim();
+  }
+
+  function getOrgId() {
+    return (localStorage.getItem(ORG_KEY) || '').trim();
+  }
+
+  // Returns the raw UUID org ID used by atlas-a.wbx2.com and identity SCIM APIs
+  function getRawOrgId() {
+    return (localStorage.getItem('authOrgId') || getOrgId()).trim();
+  }
+
+  function updateStatus(message) {
+    if (els.statusText) els.statusText.textContent = message;
+  }
+
+  function setUserTableLoading(active, message = 'Please wait while the user list is loaded.') {
+    if (!els.tableLoader || !els.userWrapper) return;
+    els.userWrapper.classList.toggle('loading-users', active);
+    els.tableLoader.classList.toggle('open', active);
+    if (els.loaderText) els.loaderText.textContent = message;
+  }
+
+  function escapeHtml(value) {
+    return String(value ?? '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  function withOrgParam(url) {
+    const orgId = getOrgId();
+    if (!orgId || String(url).includes('orgId=')) return url;
+    return url + (String(url).includes('?') ? '&' : '?') + `orgId=${encodeURIComponent(orgId)}`;
+  }
+
+  function getNextLink(response) {
+    const link = response.headers.get('Link') || '';
+    const match = link.match(/<([^>]+)>;\s*rel="?next"?/i);
+    return match ? match[1] : '';
+  }
+
+  async function fetchPaged(path) {
+    const token = getToken();
+    if (!token) throw new Error('Authentication required. Sign in again with People scopes.');
+    let nextUrl = path.startsWith('http') ? path : `${BASE_URL}${path}`;
+    const items = [];
+    while (nextUrl) {
+      const response = await fetch(withOrgParam(nextUrl), {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const text = await response.text();
+      let data = {};
+      try {
+        data = text ? JSON.parse(text) : {};
+      } catch {
+        data = {};
+      }
+      if (!response.ok) {
+        throw new Error(data.message || text || `HTTP ${response.status}`);
+      }
+      items.push(...(Array.isArray(data.items) ? data.items : []));
+      nextUrl = data.next || getNextLink(response) || '';
+      if (nextUrl && !/^https?:/i.test(nextUrl)) nextUrl = `${BASE_URL}${nextUrl}`;
+    }
+    return items;
+  }
+
+  async function fetchJson(pathOrUrl) {
+    const token = getToken();
+    if (!token) throw new Error('Authentication required. Sign in again with People scopes.');
+    const targetUrl = pathOrUrl.startsWith('http') ? pathOrUrl : `${BASE_URL}${pathOrUrl}`;
+    const response = await fetch(withOrgParam(targetUrl), {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    const text = await response.text();
+    let data = {};
+    try {
+      data = text ? JSON.parse(text) : {};
+    } catch {
+      data = {};
+    }
+    if (!response.ok) {
+      throw new Error(data.message || text || `HTTP ${response.status}`);
+    }
+    return { response, data };
+  }
+
+  function buildPeopleRequestUrl(term = '', pageUrl = '') {
+    if (pageUrl) return pageUrl;
+    const trimmed = String(term || '').trim();
+    if (!trimmed) return PEOPLE_ENDPOINT;
+    const params = new URLSearchParams();
+    params.set('max', String(PEOPLE_PAGE_SIZE));
+    if (trimmed.includes('@')) params.set('email', trimmed);
+    else params.set('displayName', trimmed);
+    return `/v1/people?${params.toString()}`;
+  }
+
+  async function loadPeoplePage({ url = '', resetHistory = false, pageNumber = 1, searchTerm = activeSearchTerm } = {}) {
+    const requestUrl = buildPeopleRequestUrl(searchTerm, url);
+    const { response, data } = await fetchJson(requestUrl);
+    peopleCurrentUrl = requestUrl;
+    peopleNextUrl = data.next || getNextLink(response) || '';
+    if (peopleNextUrl && !/^https?:/i.test(peopleNextUrl)) peopleNextUrl = `${BASE_URL}${peopleNextUrl}`;
+    if (resetHistory) peoplePrevUrls = [];
+    peoplePageNumber = pageNumber;
+    return Array.isArray(data.items) ? data.items : [];
+  }
+
+  function categorizeLicense(name) {
+    const lowered = String(name || '').toLowerCase();
+    if (lowered.includes('contact center') || lowered.includes('agent')) return 'contactCenter';
+    if (lowered.includes('call on webex') || lowered.includes('webex calling') || lowered.includes('calling') || lowered.includes('ucm') || lowered.includes('hot desk')) return 'calling';
+    if (lowered.includes('meeting')) return 'meetings';
+    if (lowered.includes('messaging')) return 'messaging';
+    return 'other';
+  }
+
+  function formatLicenseDisplayName(name) {
+    return String(name || '')
+      .replace(/^contact center\b/i, 'Contact Center')
+      .replace(/^contact center premium agent\b/i, 'Contact Center Premium Agent')
+      .replace(/^contact center standard agent\b/i, 'Contact Center Standard Agent');
+  }
+
+  function normalizeLicense(item) {
+    const name = formatLicenseDisplayName(item.name || item.displayName || item.id || 'License');
+    const total = Number(item.totalUnits);
+    const consumed = Number(item.consumedUnits);
+    const available = Number.isFinite(total) && Number.isFinite(consumed) ? total - consumed : null;
+    return {
+      id: item.id || '',
+      name,
+      available,
+      category: categorizeLicense(name)
+    };
+  }
+
+  async function fetchScimUsers() {
+    const token = getToken();
+    const orgId = localStorage.getItem('authOrg') || getRawOrgId();
+    if (!token || !orgId) return;
+    try {
+      const response = await fetch(USER_PROXY_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'scimUsers', orgId, bearer: token })
+      });
+      if (!response.ok) return;
+      const data = await response.json();
+      const resources = Array.isArray(data.Resources) ? data.Resources : [];
+      resources.forEach((u) => {
+        const email = (u.userName || '').toLowerCase();
+        if (!email) return;
+        const roles = Array.isArray(u.roles) ? u.roles.map((r) => (typeof r === 'string' ? r : r.value || r.type || '')).filter(Boolean) : [];
+        if (roles.length) scimUserMap.set(email, roles);
+      });
+    } catch { /* silently ignore — roles will fall back to people API */ }
+  }
+
+  const SCIM_ROLE_LABELS = {
+    'id_full_admin': 'Full Admin',
+    'cjp.supervisor': 'Supervisor',
+    'cjp.premium_agent': 'Premium Agent',
+    'cjp.standard_agent': 'Standard Agent',
+    'audit.readonly_admin': 'Readonly Admin',
+  };
+
+  function formatScimRole(role) {
+    return SCIM_ROLE_LABELS[role] || null;
+  }
+
+  function buildEmptyCategoryMap() {
+    return {
+      messaging: [],
+      meetings: [],
+      calling: [],
+      contactCenter: [],
+      other: []
+    };
+  }
+
+  function normalizeUser(item) {
+    const email = Array.isArray(item.emails) && item.emails.length ? item.emails[0] : '';
+    const licenseIds = Array.isArray(item.licenses) ? item.licenses.filter(Boolean) : [];
+    const categories = buildEmptyCategoryMap();
+    licenseIds.forEach((id) => {
+      const license = licenses.find((entry) => entry.id === id);
+      if (!license) return;
+      categories[license.category].push(license.name);
+    });
+    Object.keys(categories).forEach((key) => categories[key].sort((a, b) => a.localeCompare(b)));
+    // Decode base64 role IDs from the people API (e.g. "ciscospark://us/ROLE:id_full_admin")
+    const peopleRoles = [];
+    if (Array.isArray(item.roles)) {
+      item.roles.forEach((roleId) => {
+        try {
+          const decoded = atob(roleId);
+          const match = decoded.match(/ROLE:(.+)$/);
+          if (match) peopleRoles.push(match[1]);
+        } catch { /* ignore invalid base64 */ }
+      });
+    }
+    // Merge SCIM roles (source of truth) with decoded people API roles as fallback
+    const scimRoles = [...new Set([
+      ...(scimUserMap.get((email || '').toLowerCase()) || []),
+      ...peopleRoles
+    ])];
+    return {
+      id: item.id || '',
+      displayName: item.displayName || [item.firstName, item.lastName].filter(Boolean).join(' ') || email || 'Unnamed user',
+      email,
+      status: item.status || (item.loginEnabled === false ? 'inactive' : 'active'),
+      licenses: licenseIds,
+      categories,
+      scimRoles
+    };
+  }
+
+  function formatFilterValue(value) {
+    return value === FILTER_NONE_TOKEN ? 'None' : value;
+  }
+
+  function getCategoryDisplayValues(categoryList) {
+    return categoryList.length ? categoryList : [FILTER_NONE_TOKEN];
+  }
+
+  function getFilteredUsers() {
+    return users.filter((user) => {
+      if (filterSelections.status.size && !filterSelections.status.has(String(user.status || '').trim())) return false;
+      for (const key of ['calling', 'contactCenter']) {
+        const selected = filterSelections[key];
+        if (!selected.size) return false;
+        const values = getCategoryDisplayValues(user.categories[key] || []);
+        if (!values.some((value) => selected.has(value))) return false;
+      }
+      return true;
+    });
+  }
+
+  function updateSelectionUi(filtered) {
+    const count = selectedUserIds.size;
+    const visibleCount = (filtered || getFilteredUsers()).length;
+    els.userCountPill.textContent = `${visibleCount} users`;
+    const totalPagesText = peopleNextUrl ? `${peoplePageNumber}+` : `${peoplePageNumber}`;
+    els.pagePill.textContent = activeSearchTerm ? `${peoplePageNumber}/${totalPagesText}` : `${peoplePageNumber}/${totalPagesText}`;
+    els.prevPageBtn.disabled = peoplePrevUrls.length === 0;
+    els.nextPageBtn.disabled = !peopleNextUrl;
+    if (count > 0) {
+      els.selectedCountPill.textContent = `${count} selected`;
+      els.selectedCountPill.style.display = '';
+      els.bulkModifyBtn.style.display = 'inline-flex';
+    } else {
+      els.selectedCountPill.style.display = 'none';
+      els.bulkModifyBtn.style.display = 'none';
+    }
+  }
+
+  function renderTagList(items) {
+    if (!items.length) return '<span class="tag none">None</span>';
+    return items.map((name) => `<span class="tag">${escapeHtml(name)}</span>`).join('');
+  }
+
+  function renderCCColumn(user) {
+    const roleTags = (user.scimRoles || [])
+      .map((r) => {
+        const label = formatScimRole(r);
+        return label ? `<span class="tag role">${escapeHtml(label)}</span>` : '';
+      })
+      .filter(Boolean);
+    const licTags = (user.categories.contactCenter || []).map((name) => `<span class="tag">${escapeHtml(name)}</span>`);
+    const all = [...roleTags, ...licTags];
+    return all.length ? all.join('') : '<span class="tag none">None</span>';
+  }
+
+  function renderRoleColumn(user) {
+    const roles = user.scimRoles || [];
+    const tags = [];
+    if (roles.includes('cjp.supervisor')) tags.push('<span class="tag role">Supervisor</span>');
+    if (roles.includes('id_full_admin')) tags.push('<span class="tag role">Admin</span>');
+    return tags.length ? tags.join('') : '<span class="tag none">—</span>';
+  }
+
+  function isFiltersActive() {
+    return Object.keys(filterValues).some((key) => filterSelections[key].size !== filterValues[key].length);
+  }
+
+  function renderUsers() {
+    const filtered = getFilteredUsers();
+    // Save and close active popover before DOM replacement
+    const savedFilterKey = activeFilterKey;
+    if (activePopoverState) closePopover();
+
+    updateSelectionUi(filtered);
+
+    const allSelected = filtered.length > 0 && filtered.every((u) => selectedUserIds.has(u.id));
+    const anySelected = filtered.some((u) => selectedUserIds.has(u.id));
+
+    function filterBtn(key) {
+      const isActive = filterSelections[key].size !== (filterValues[key] || []).length;
+      return `
+        <button class="filterIconBtn${isActive ? ' active' : ''}" data-filter-btn="${key}" aria-expanded="false" title="Filter">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 5h18l-7 8v5l-4 2v-7L3 5z"></path></svg>
+        </button>
+        <div class="filterPopover" data-filter-popover="${key}">
+          <input class="filterSearch" data-filter-search="${key}" type="text" placeholder="Search..." />
+          <div class="filterList" data-filter-list="${key}"></div>
+          <div class="filterMeta" data-filter-summary="${key}"></div>
+        </div>
+      `;
+    }
+
+    const header = `
+      <div class="userHeader">
+        <div class="headerCell">
+          <input class="selectAllCheckbox" id="selectAllUsersToggle" type="checkbox" aria-label="Select all visible users">
+        </div>
+        <div class="headerCell"><div class="headerTop"><span class="headLabel">User</span></div></div>
+        <div class="headerCell"><div class="headerTop">${filterBtn('status')}<span class="headLabel">Status</span></div></div>
+        <div class="headerCell"><div class="headerTop">${filterBtn('calling')}<span class="headLabel">Calling</span></div></div>
+        <div class="headerCell"><div class="headerTop">${filterBtn('contactCenter')}<span class="headLabel">Contact Center</span></div></div>
+        <div class="headerCell"><span class="headLabel">Role</span></div>
+        <div class="headerCell"><span class="headLabel">Actions</span></div>
+      </div>
+    `;
+
+    if (!filtered.length) {
+      const msg = (activeSearchTerm || isFiltersActive()) ? 'No users match your current search and filters.' : 'No users found.';
+      els.userList.innerHTML = `
+        <div class="userTable">
+          ${header}
+          <div class="userRow" style="cursor:default;">
+            <div class="userCell" style="grid-column:1/-1; justify-content:center; color:var(--muted);">${escapeHtml(msg)}</div>
+          </div>
+        </div>
+      `;
+      const toggle = document.getElementById('selectAllUsersToggle');
+      if (toggle) { toggle.checked = false; toggle.indeterminate = false; }
+      return;
+    }
+
+    const rows = filtered.map((user) => {
+      const statusClass = String(user.status || '').toLowerCase() === 'active' ? '' : ' warn';
+      return `
+        <div class="userRow${selectedUserIds.has(user.id) ? ' selected' : ''}" data-user-row="${escapeHtml(user.id)}">
+          <div class="userCell">
+            <input class="rowCheckbox" type="checkbox" data-select-user="${escapeHtml(user.id)}" ${selectedUserIds.has(user.id) ? 'checked' : ''}>
+          </div>
+          <div class="userCell nameCol">
+            <span class="userName">${escapeHtml(user.displayName)}</span>
+            <span class="userEmail">${escapeHtml(user.email || 'No email')}</span>
+          </div>
+          <div class="userCell">
+            <span class="tag${statusClass}">${escapeHtml(user.status || 'Unknown')}</span>
+          </div>
+          <div class="userCell tagsCol"><div class="tagWrap">${renderTagList(user.categories.calling)}</div></div>
+          <div class="userCell tagsCol"><div class="tagWrap">${renderTagList(user.categories.contactCenter)}</div></div>
+          <div class="userCell tagsCol"><div class="tagWrap">${renderRoleColumn(user)}</div></div>
+          <div class="userCell">
+            <button class="rowBtn" type="button" data-edit-user="${escapeHtml(user.id)}">Edit licenses</button>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    els.userList.innerHTML = `<div class="userTable">${header}${rows}</div>`;
+
+    const toggle = document.getElementById('selectAllUsersToggle');
+    if (toggle) {
+      toggle.checked = allSelected;
+      toggle.indeterminate = anySelected && !allSelected;
+    }
+
+    // Re-open filter popover if one was active before re-render
+    if (savedFilterKey) {
+      const btn = els.userList.querySelector(`[data-filter-btn="${savedFilterKey}"]`);
+      const popover = els.userList.querySelector(`[data-filter-popover="${savedFilterKey}"]`);
+      if (btn && popover) openPopover(savedFilterKey, btn, popover);
+    }
+  }
+
+  function renderFilterOptions() {
+    const valuesByKey = {
+      status: Array.from(new Set(users.map((user) => String(user.status || '').trim()).filter(Boolean))).sort((a, b) => a.localeCompare(b)),
+      calling: Array.from(new Set(users.flatMap((user) => getCategoryDisplayValues(user.categories.calling || [])))).sort((a, b) => formatFilterValue(a).localeCompare(formatFilterValue(b))),
+      contactCenter: Array.from(new Set(users.flatMap((user) => getCategoryDisplayValues(user.categories.contactCenter || [])))).sort((a, b) => formatFilterValue(a).localeCompare(formatFilterValue(b))),
+    };
+
+    Object.entries(valuesByKey).forEach(([key, values]) => {
+      filterValues[key] = values;
+      const current = filterSelections[key];
+      filterSelections[key] = current.size ? new Set([...current].filter((value) => values.includes(value))) : new Set(values);
+      if (!filterSelections[key].size && values.length) filterSelections[key] = new Set(values);
+      if (activeFilterKey === key) renderFilterPopover(key);
+    });
+    updateFilterButtonState();
+  }
+
+  function renderFilterPopover(key) {
+    const scope = activePopoverState?.key === key ? activePopoverState.popover : els.userList;
+    const listEl = scope.querySelector(`[data-filter-list="${key}"]`);
+    const summaryEl = scope.querySelector(`[data-filter-summary="${key}"]`);
+    if (!listEl || !summaryEl) return;
+    const term = (filterSearchTerms[key] || '').toLowerCase();
+    const values = filterValues[key] || [];
+    const filteredValues = values.filter((value) => formatFilterValue(value).toLowerCase().includes(term));
+    const selected = filterSelections[key] || new Set();
+    const allSelected = values.length > 0 && selected.size === values.length;
+    listEl.innerHTML = [
+      `
+        <label class="filterItem selectAll">
+          <input type="checkbox" data-filter-key="${key}" data-filter-value="__ALL__" ${allSelected ? 'checked' : ''}>
+          <span>Select all</span>
+        </label>
+      `,
+      ...filteredValues.map((value) => `
+        <label class="filterItem">
+          <input type="checkbox" data-filter-key="${key}" data-filter-value="${escapeHtml(value)}" ${selected.has(value) ? 'checked' : ''}>
+          <span>${escapeHtml(formatFilterValue(value))}</span>
+        </label>
+      `)
+    ].join('');
+    summaryEl.textContent = allSelected ? `All ${values.length} values selected` : `${selected.size} of ${values.length} values selected`;
+  }
+
+  function updateFilterButtonState() {
+    Object.keys(filterValues).forEach((key) => {
+      const button = els.userList.querySelector(`[data-filter-btn="${key}"]`);
+      if (!button) return;
+      const active = filterSelections[key].size !== filterValues[key].length;
+      button.classList.toggle('active', active);
+    });
+  }
+
+  function setFilterValue(key, value, checked) {
+    if (value === '__ALL__') {
+      filterSelections[key] = checked ? new Set(filterValues[key]) : new Set();
+      renderFilterPopover(key);
+      updateFilterButtonState();
+      renderUsers();
+      return;
+    }
+    if (checked) filterSelections[key].add(value);
+    else filterSelections[key].delete(value);
+    renderFilterPopover(key);
+    updateFilterButtonState();
+    renderUsers();
+  }
+
+  function positionPopover(btn, popover) {
+    window.CXASFloatingFilters?.position(btn, popover);
+  }
+
+  function openPopover(key, btn, popover) {
+    const nextState = window.CXASFloatingFilters?.open({
+      button: btn,
+      panel: popover,
+      parent: popover.parentElement,
+    });
+    if (!nextState) return;
+    renderFilterPopover(key);
+    activeFilterKey = key;
+    activePopoverState = { key, btn: nextState.button, popover: nextState.panel, parent: nextState.parent };
+    popover.querySelector('input')?.focus();
+  }
+
+  function closePopover() {
+    if (!activePopoverState) return;
+    window.CXASFloatingFilters?.close({
+      button: activePopoverState.btn,
+      panel: activePopoverState.popover,
+      parent: activePopoverState.parent,
+    });
+    activeFilterKey = '';
+    activePopoverState = null;
+  }
+
+  function getEditorVisibleLicenses() {
+    const term = (els.licenseSearchInput.value || '').trim().toLowerCase();
+    return licenses.filter((license) => {
+      const text = `${license.name} ${CATEGORY_LABELS[license.category] || ''}`.toLowerCase();
+      return !term || text.includes(term);
+    });
+  }
+
+  function renderLicenseEditor() {
+    const visibleIds = new Set(getEditorVisibleLicenses().map((license) => license.id));
+    const sections = CATEGORY_ORDER
+      .map((category) => {
+        if (category === 'messaging') return '';
+        if (category === 'meetings') return '';
+        if (category === 'contactCenter') return '';
+        if (category === 'other') return '';
+        const items = licenses.filter((license) => license.category === category && visibleIds.has(license.id));
+        if (!items.length) return '';
+        return `
+          <section class="licenseSection">
+            <div class="licenseSectionHeader">
+              <div>
+                <div class="licenseSectionTitle">${escapeHtml(CATEGORY_LABELS[category])}</div>
+                <div class="licenseSectionMeta">${items.length} visible license${items.length === 1 ? '' : 's'}</div>
+              </div>
+            </div>
+            <div class="licenseGrid">
+              ${items.map((license) => {
+                const checked = activeLicenseSelection.has(license.id) ? 'checked' : '';
+                const availableText = license.available === null ? 'Availability unknown' : `${license.available} available`;
+                return `
+                  <label class="licenseCard${checked ? ' ccSelected' : ''}">
+                    <input type="checkbox" data-license-id="${escapeHtml(license.id)}" ${checked}>
+                    <div>
+                      <div class="licenseName">${escapeHtml(license.name)}</div>
+                      <div class="licenseMeta">${escapeHtml(CATEGORY_LABELS[license.category])}</div>
+                      <div class="licenseMeta">${escapeHtml(availableText)}</div>
+                    </div>
+                  </label>
+                `;
+              }).join('')}
+            </div>
+          </section>
+        `;
+      })
+      .filter(Boolean)
+      .join('');
+    els.modalSections.innerHTML = sections || '<div class="muted">No licenses matched the current editor filter.</div>';
+    if (!String(els.modalStatus.textContent || '').trim()) {
+      els.modalStatus.textContent = `${activeLicenseSelection.size} selected.`;
+    }
+  }
+
+  function openEditorForUsers(targetIds) {
+    activeEditorUserIds = [...targetIds];
+    activeCCRole = null;
+    els.licenseSearchInput.value = '';
+    if (activeEditorUserIds.length === 1) {
+      const user = users.find((entry) => entry.id === activeEditorUserIds[0]);
+      activeLicenseSelection = new Set(user?.licenses || []);
+      // Detect current CC role — SCIM roles are the source of truth, fall back to licenses
+      const scimRoles = user ? (scimUserMap.get((user.email || '').toLowerCase()) || []) : [];
+      const userLicenses = [...(user?.licenses || [])].map(getLicenseById).filter(Boolean);
+      if (scimRoles.includes('cjp.supervisor')) activeCCRole = 'SUPERVISOR';
+      else if (scimRoles.includes('id_full_admin')) activeCCRole = 'ADMIN';
+      else if (scimRoles.includes('cjp.premium_agent')) activeCCRole = 'PREMIUM';
+      else if (scimRoles.includes('cjp.standard_agent')) activeCCRole = 'STANDARD';
+      else if (userLicenses.some((l) => isContactCenterPremium(l.name))) activeCCRole = 'PREMIUM';
+      else if (userLicenses.some((l) => isContactCenterStandard(l.name))) activeCCRole = 'STANDARD';
+      els.modalTitle.textContent = `Edit licenses for ${user?.displayName || 'User'}`;
+      els.modalSubtitle.textContent = user?.email || '';
+    } else {
+      const selectedUsers = users.filter((user) => activeEditorUserIds.includes(user.id));
+      const common = selectedUsers.length
+        ? selectedUsers.reduce((acc, user, index) => {
+            const current = new Set(user.licenses);
+            return index === 0 ? current : new Set([...acc].filter((id) => current.has(id)));
+          }, new Set())
+        : new Set();
+      activeLicenseSelection = common;
+      els.modalTitle.textContent = `Bulk edit licenses`;
+      els.modalSubtitle.textContent = `${selectedUsers.length} users selected. Saving applies the exact selected license set to all selected users.`;
+    }
+    els.modalStatus.textContent = '';
+    applyLicenseSelectionNormalization();
+    renderLicenseEditor();
+    renderCCRolesSection();
+    els.modal.classList.add('open');
+    els.modal.setAttribute('aria-hidden', 'false');
+  }
+
+  function closeModal() {
+    activeEditorUserIds = [];
+    activeLicenseSelection = new Set();
+    activeCCRole = null;
+    els.ccRolesSection.innerHTML = '';
+    els.modal.classList.remove('open');
+    els.modal.setAttribute('aria-hidden', 'true');
+  }
+
+  function renderCCRolesSection() {
+    if (!els.ccRolesSection) return;
+    const isBulk = activeEditorUserIds.length > 1;
+
+    function card(role, title, meta, detail) {
+      const sel = activeCCRole === role;
+      return `
+        <label class="licenseCard${sel ? ' ccSelected' : ''}" data-cc-select="${role}" style="cursor:pointer;">
+          <input type="checkbox" ${sel ? 'checked' : ''} style="pointer-events:none;" tabindex="-1">
+          <div>
+            <div class="licenseName">${title}</div>
+            <div class="licenseMeta">${meta}</div>
+            <div class="licenseMeta" style="margin-top:2px;">${detail}</div>
+          </div>
+        </label>
+      `;
+    }
+
+    els.ccRolesSection.innerHTML = `
+      <section class="licenseSection">
+        <div class="licenseSectionHeader">
+          <div>
+            <div class="licenseSectionTitle">Contact Center</div>
+            <div class="licenseSectionMeta">Select one · License &amp; role applied on save${isBulk ? ` · Applied to all ${activeEditorUserIds.length} selected users` : ''}</div>
+          </div>
+        </div>
+        <div class="licenseGrid">
+          ${card('STANDARD', 'Standard Agent', 'Applies Standard Agent license', 'Basic contact center access.')}
+          ${card('PREMIUM', 'Premium Agent', 'Applies Premium Agent license', 'Full agent capabilities.')}
+          ${card('SUPERVISOR', 'Supervisor', 'Applies Premium Agent license + sets Supervisor role', 'Premium license required.')}
+          ${card('ADMIN', 'Admin', 'Applies Standard Agent license + sets Full Admin role', 'Full Control Hub admin access.')}
+        </div>
+      </section>
+    `;
+  }
+
+  const USER_PROXY_URL = window.ORBIT_PROXY_BASE + '/user';
+
+  async function patchContactCenterRoles(email, roleNames) {
+    const response = await fetch(USER_PROXY_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: 'ccRoles',
+        orgId: localStorage.getItem('authOrg') || getRawOrgId(),
+        bearer: getToken(),
+        users: [{
+          userRoles: roleNames.map((roleName) => ({ roleName, roleState: 'ACTIVE' })),
+          email
+        }]
+      })
+    });
+    const text = await response.text();
+    let data = {};
+    try { data = text ? JSON.parse(text) : {}; } catch { data = {}; }
+    if (!response.ok) {
+      throw new Error(data.message || data.error || data.errors?.[0]?.description || text || `HTTP ${response.status}`);
+    }
+  }
+
+  async function patchUserRoles(email) {
+    const response = await fetch(USER_PROXY_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: 'adminRoles',
+        orgId: localStorage.getItem('authOrg') || getRawOrgId(),
+        bearer: getToken(),
+        users: [{
+          email,
+          userRoles: [
+            { roleName: 'Full_Admin', roleState: 'ACTIVE' },
+            { roleName: 'Readonly_Admin', roleState: 'INACTIVE' },
+            { roleName: 'Provision_Admin', roleState: 'INACTIVE' },
+            { roleName: 'Support', roleState: 'INACTIVE' },
+            { roleName: 'User_Admin', roleState: 'INACTIVE' },
+            { roleName: 'Device_Admin', roleState: 'INACTIVE' },
+            { roleName: 'Spark_KmsOrgAgent', roleState: 'INACTIVE' },
+            { roleName: 'Meeting_Content_Admin', roleState: 'INACTIVE' },
+            { roleName: 'Troubleshooting_Advanced', roleState: 'INACTIVE' },
+            { roleName: 'WXC_Cdr_Rest_ReadOrgRole', roleState: 'INACTIVE' }
+          ]
+        }]
+      })
+    });
+    const text = await response.text();
+    let data = {};
+    try { data = text ? JSON.parse(text) : {}; } catch { data = {}; }
+    if (!response.ok) {
+      throw new Error(data.message || data.error || data.errors?.[0]?.description || text || `HTTP ${response.status}`);
+    }
+  }
+
+  async function fetchPersonDetail(userId) {
+    const token = getToken();
+    const response = await fetch(withOrgParam(`${BASE_URL}/v1/people/${encodeURIComponent(userId)}`), {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    const text = await response.text();
+    let data = {};
+    try {
+      data = text ? JSON.parse(text) : {};
+    } catch {
+      data = {};
+    }
+    if (!response.ok) {
+      throw new Error(data.message || data.errors?.[0]?.description || text || `HTTP ${response.status}`);
+    }
+    return data;
+  }
+
+  function buildPersonPutPayload(person, selectedLicenses) {
+    const payload = {};
+    PUT_PERSON_FIELDS.forEach((key) => {
+      if (key === 'licenses') {
+        payload.licenses = selectedLicenses;
+        return;
+      }
+      if (Object.prototype.hasOwnProperty.call(person, key)) {
+        payload[key] = person[key];
+      }
+    });
+    if (!payload.orgId && person.orgId) payload.orgId = person.orgId;
+    if (!payload.orgId && getOrgId()) payload.orgId = getOrgId();
+    if (!payload.displayName) payload.displayName = person.displayName || [person.firstName, person.lastName].filter(Boolean).join(' ');
+    if (!Array.isArray(payload.emails) || !payload.emails.length) {
+      throw new Error('Webex did not return email data for this user, so a safe PUT payload could not be built.');
+    }
+    return payload;
+  }
+
+  async function putUserLicenses(userId, selectedLicenses) {
+    const token = getToken();
+    const person = await fetchPersonDetail(userId);
+    const payload = buildPersonPutPayload(person, selectedLicenses);
+    const response = await fetch(withOrgParam(`${BASE_URL}/v1/people/${encodeURIComponent(userId)}`), {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`
+      },
+      body: JSON.stringify(payload)
+    });
+    const text = await response.text();
+    let data = {};
+    try {
+      data = text ? JSON.parse(text) : {};
+    } catch {
+      data = {};
+    }
+    if (!response.ok) {
+      throw new Error(data.message || data.errors?.[0]?.description || text || `HTTP ${response.status}`);
+    }
+  }
+
+  function showProgress(title) {
+    els.progressTitle.textContent = title;
+    els.progressLog.innerHTML = '';
+    els.progressCloseBtn.style.display = 'none';
+    els.progressOverlay.classList.add('open');
+    els.progressOverlay.setAttribute('aria-hidden', 'false');
+  }
+
+  function hideProgress() {
+    els.progressOverlay.classList.remove('open');
+    els.progressOverlay.setAttribute('aria-hidden', 'true');
+  }
+
+  function addProgressStep(message, state) {
+    const step = document.createElement('div');
+    step.className = `progressStep ${state || 'active'}`;
+    step.textContent = message;
+    els.progressLog.appendChild(step);
+    return step;
+  }
+
+  function updateProgressStep(stepEl, message, state) {
+    stepEl.className = `progressStep ${state}`;
+    stepEl.textContent = message;
+  }
+
+  function finishProgress(hasError) {
+    els.progressCloseBtn.style.display = '';
+    els.progressTitle.textContent = hasError ? 'Completed with errors' : 'Done!';
+  }
+
+  async function saveActiveLicenses() {
+    if (!activeEditorUserIds.length) return;
+    const token = getToken();
+    if (!token) {
+      els.modalStatus.textContent = 'Authentication required. Sign in again.';
+      return;
+    }
+
+    // Build the final license set. CC licenses are only modified when a CC role card is selected.
+    // If activeCCRole is null, pass through the user's existing CC licenses unchanged.
+    const licenseSet = new Set(activeLicenseSelection);
+    if (activeCCRole !== null) {
+      const stdCCLic = licenses.find((l) => isContactCenterStandard(l.name));
+      const premCCLic = licenses.find((l) => isContactCenterPremium(l.name));
+      if (stdCCLic) licenseSet.delete(stdCCLic.id);
+      if (premCCLic) licenseSet.delete(premCCLic.id);
+      if (activeCCRole === 'STANDARD' || activeCCRole === 'ADMIN') {
+        if (stdCCLic) licenseSet.add(stdCCLic.id);
+        else { els.modalStatus.textContent = 'No Standard Agent license found in this org.'; return; }
+      } else if (activeCCRole === 'PREMIUM' || activeCCRole === 'SUPERVISOR') {
+        if (premCCLic) licenseSet.add(premCCLic.id);
+        else { els.modalStatus.textContent = 'No Premium Agent license found in this org.'; return; }
+      }
+    }
+    const selectedLicenses = Array.from(licenseSet);
+
+    const targets = [...activeEditorUserIds];
+    const label = targets.length === 1 ? 'user' : 'users';
+
+    isSaving = true;
+    els.saveLicensesBtn.disabled = true;
+    const titleUser = targets.length === 1
+      ? (users.find((u) => u.id === targets[0])?.displayName || 'User')
+      : `${targets.length} users`;
+    showProgress(`Saving ${titleUser}...`);
+
+    let hasError = false;
+
+    for (let index = 0; index < targets.length; index += 1) {
+      const userId = targets[index];
+      const user = users.find((u) => u.id === userId);
+      const userName = user?.displayName || userId;
+      const userEmail = user?.email || '';
+      const stepPrefix = targets.length > 1 ? `[${index + 1}/${targets.length}] ${userName}: ` : '';
+
+      const licLabel = activeCCRole === 'STANDARD' ? 'Standard Agent license'
+        : activeCCRole === 'PREMIUM' ? 'Premium Agent license'
+        : activeCCRole === 'SUPERVISOR' ? 'Premium Agent license'
+        : activeCCRole === 'ADMIN' ? 'Standard Agent license'
+        : 'licenses';
+
+      const licStep = addProgressStep(`${stepPrefix}Applying ${licLabel}...`, 'active');
+      try {
+        await putUserLicenses(userId, selectedLicenses);
+        updateProgressStep(licStep, `${stepPrefix}${licLabel.charAt(0).toUpperCase() + licLabel.slice(1)} applied`, 'done');
+      } catch (error) {
+        updateProgressStep(licStep, `${stepPrefix}License save failed: ${error.message}`, 'error');
+        hasError = true;
+        continue;
+      }
+
+      if (activeCCRole === 'SUPERVISOR') {
+        const roleStep = addProgressStep(`${stepPrefix}Setting Supervisor + Premium Agent roles...`, 'active');
+        if (!userEmail) {
+          updateProgressStep(roleStep, `${stepPrefix}Skipped roles: no email address`, 'error');
+          hasError = true;
+        } else {
+          try {
+            await patchContactCenterRoles(userEmail, ['CJP_PREMIUM_AGENT', 'CJP_SUPERVISOR']);
+            updateProgressStep(roleStep, `${stepPrefix}Supervisor role applied`, 'done');
+          } catch (error) {
+            updateProgressStep(roleStep, `${stepPrefix}Role failed: ${error.message}`, 'error');
+            hasError = true;
+          }
+        }
+      } else if (activeCCRole === 'ADMIN') {
+        const adminStep = addProgressStep(`${stepPrefix}Setting Full Admin role...`, 'active');
+        if (!userEmail) {
+          updateProgressStep(adminStep, `${stepPrefix}Skipped roles: no email address`, 'error');
+          hasError = true;
+        } else {
+          try {
+            await patchUserRoles(userEmail);
+            updateProgressStep(adminStep, `${stepPrefix}Full Admin role applied`, 'done');
+          } catch (error) {
+            updateProgressStep(adminStep, `${stepPrefix}Admin role failed: ${error.message}`, 'error');
+            hasError = true;
+          }
+        }
+      }
+    }
+
+    const refreshStep = addProgressStep('Refreshing user list...', 'active');
+    try {
+      await loadAllData();
+      updateProgressStep(refreshStep, 'User list refreshed', 'done');
+      updateStatus(`Updated ${targets.length} ${label}.`);
+    } catch {
+      updateProgressStep(refreshStep, 'Refresh failed', 'error');
+      hasError = true;
+    }
+
+    finishProgress(hasError);
+    isSaving = false;
+    els.saveLicensesBtn.disabled = false;
+    if (!hasError) {
+      hideProgress();
+      closeModal();
+    }
+  }
+
+  async function loadAllData() {
+    const token = getToken();
+    if (!token) {
+      users = [];
+      licenses = [];
+      licenseMap = new Map();
+      selectedUserIds.clear();
+      peopleCurrentUrl = PEOPLE_ENDPOINT;
+      peopleNextUrl = '';
+      peoplePrevUrls = [];
+      peoplePageNumber = 1;
+      renderFilterOptions();
+      renderUsers();
+      updateStatus('Authentication required. Sign in again to continue.');
+      return;
+    }
+    els.refreshBtn.disabled = true;
+    els.prevPageBtn.disabled = true;
+    els.nextPageBtn.disabled = true;
+    setUserTableLoading(true, activeSearchTerm ? `Searching users for "${activeSearchTerm}"...` : 'Please wait while the user list is loaded.');
+    updateStatus(activeSearchTerm ? `Searching users for "${activeSearchTerm}"...` : 'Loading users and licenses...');
+    try {
+      if (!licenses.length) {
+        const licenseItems = await fetchPaged(LICENSES_ENDPOINT);
+        licenses = licenseItems
+          .map(normalizeLicense)
+          .filter((license) => license.id)
+          .sort((a, b) => {
+            const categoryCompare = CATEGORY_ORDER.indexOf(a.category) - CATEGORY_ORDER.indexOf(b.category);
+            return categoryCompare || a.name.localeCompare(b.name);
+          });
+        licenseMap = new Map(licenses.map((license) => [license.id, license.name]));
+      }
+      scimUserMap = new Map();
+      const peopleItems = await loadPeoplePage({ url: peopleCurrentUrl, pageNumber: peoplePageNumber, searchTerm: activeSearchTerm });
+      users = peopleItems
+        .map(normalizeUser)
+        .filter((user) => user.id)
+        .sort((a, b) => a.displayName.localeCompare(b.displayName));
+      selectedUserIds = new Set([...selectedUserIds].filter((id) => users.some((user) => user.id === id)));
+      renderFilterOptions();
+      renderUsers();
+      peopleHasLoadedAtLeastOnce = true;
+      updateStatus(activeSearchTerm
+        ? `Showing ${users.length} search results for "${activeSearchTerm}".`
+        : `Loaded page ${peoplePageNumber} with ${users.length} users and ${licenses.length} licenses.`);
+      // Fetch CC roles in background — re-render once available
+      fetchScimUsers().then(() => {
+        users.forEach((u) => {
+          const roles = scimUserMap.get((u.email || '').toLowerCase()) || [];
+          u.scimRoles = roles;
+        });
+        renderFilterOptions();
+        renderUsers();
+      });
+    } catch (error) {
+      users = [];
+      selectedUserIds.clear();
+      renderFilterOptions();
+      renderUsers();
+      updateStatus(error.message || 'Unable to load users.');
+    } finally {
+      els.refreshBtn.disabled = false;
+      setUserTableLoading(false);
+      updateSelectionUi(users);
+    }
+  }
+
+  els.searchInput.addEventListener('input', () => {
+    window.clearTimeout(searchDebounceTimer);
+    searchDebounceTimer = window.setTimeout(() => {
+      activeSearchTerm = (els.searchInput.value || '').trim();
+      peopleCurrentUrl = buildPeopleRequestUrl(activeSearchTerm);
+      peoplePrevUrls = [];
+      peoplePageNumber = 1;
+      selectedUserIds.clear();
+      loadAllData();
+    }, 250);
+  });
+  els.prevPageBtn.addEventListener('click', () => {
+    if (!peoplePrevUrls.length) return;
+    const previous = peoplePrevUrls.pop();
+    peopleCurrentUrl = previous.url;
+    peoplePageNumber = previous.pageNumber;
+    selectedUserIds.clear();
+    loadAllData();
+  });
+  els.nextPageBtn.addEventListener('click', () => {
+    if (!peopleNextUrl) return;
+    peoplePrevUrls.push({ url: peopleCurrentUrl, pageNumber: peoplePageNumber });
+    peopleCurrentUrl = peopleNextUrl;
+    peoplePageNumber += 1;
+    selectedUserIds.clear();
+    loadAllData();
+  });
+  els.refreshBtn.addEventListener('click', () => {
+    peopleCurrentUrl = buildPeopleRequestUrl(activeSearchTerm);
+    peoplePrevUrls = [];
+    peoplePageNumber = 1;
+    selectedUserIds.clear();
+    loadAllData();
+  });
+  els.closeModalBtn.addEventListener('click', closeModal);
+  els.cancelModalBtn.addEventListener('click', closeModal);
+  els.licenseSearchInput.addEventListener('input', renderLicenseEditor);
+  els.saveLicensesBtn.addEventListener('click', saveActiveLicenses);
+
+  els.bulkModifyBtn.addEventListener('click', () => {
+    if (!selectedUserIds.size) return;
+    openEditorForUsers(Array.from(selectedUserIds));
+  });
+
+  els.selectVisibleBtn.addEventListener('click', () => {
+    getEditorVisibleLicenses().forEach((license) => activeLicenseSelection.add(license.id));
+    applyLicenseSelectionNormalization();
+    renderLicenseEditor();
+  });
+
+  els.clearVisibleBtn.addEventListener('click', () => {
+    getEditorVisibleLicenses().forEach((license) => activeLicenseSelection.delete(license.id));
+    applyLicenseSelectionNormalization();
+    renderLicenseEditor();
+  });
+
+  els.modalSections.addEventListener('change', (event) => {
+    const target = event.target;
+    if (!target.matches('input[type="checkbox"][data-license-id]')) return;
+    const licenseId = target.getAttribute('data-license-id');
+    if (!licenseId) return;
+    if (target.checked) activeLicenseSelection.add(licenseId);
+    else activeLicenseSelection.delete(licenseId);
+    applyLicenseSelectionNormalization();
+    renderLicenseEditor();
+  });
+
+  els.ccRolesSection.addEventListener('click', (event) => {
+    const card = event.target.closest('[data-cc-select]');
+    if (!card) return;
+    const role = card.getAttribute('data-cc-select');
+    activeCCRole = activeCCRole === role ? null : role;
+    renderCCRolesSection();
+  });
+
+  els.progressCloseBtn.addEventListener('click', () => {
+    hideProgress();
+    closeModal();
+  });
+
+  // User list event delegation
+  els.userList.addEventListener('click', (event) => {
+    // Filter button toggle
+    const filterBtnEl = event.target.closest('[data-filter-btn]');
+    if (filterBtnEl) {
+      event.stopPropagation();
+      const key = filterBtnEl.dataset.filterBtn;
+      const popover = els.userList.querySelector(`[data-filter-popover="${key}"]`);
+      if (!popover) return;
+      if (activePopoverState?.key === key) closePopover();
+      else { closePopover(); openPopover(key, filterBtnEl, popover); }
+      return;
+    }
+    // Stop clicks inside an open popover from bubbling to row
+    if (event.target.closest('.filterPopover')) return;
+    // Select-all checkbox
+    const selectAllEl = event.target.closest('#selectAllUsersToggle');
+    if (selectAllEl) return; // handled by change event
+    // Row checkbox
+    const checkboxEl = event.target.closest('[data-select-user]');
+    if (checkboxEl) return; // handled by change event
+    // Edit button
+    const editBtn = event.target.closest('[data-edit-user]');
+    if (editBtn) {
+      const userId = editBtn.getAttribute('data-edit-user');
+      if (userId) openEditorForUsers([userId]);
+      return;
+    }
+    // Row click → open editor
+    const row = event.target.closest('[data-user-row]');
+    if (!row) return;
+    const userId = row.getAttribute('data-user-row');
+    if (userId) openEditorForUsers([userId]);
+  });
+
+  els.userList.addEventListener('change', (event) => {
+    const target = event.target;
+    // Select-all checkbox
+    if (target.id === 'selectAllUsersToggle') {
+      const filtered = getFilteredUsers();
+      if (target.checked) filtered.forEach((u) => selectedUserIds.add(u.id));
+      else filtered.forEach((u) => selectedUserIds.delete(u.id));
+      renderUsers();
+      return;
+    }
+    // Row checkbox
+    if (target.matches('[data-select-user]')) {
+      const userId = target.getAttribute('data-select-user');
+      if (!userId) return;
+      if (target.checked) selectedUserIds.add(userId);
+      else selectedUserIds.delete(userId);
+      renderUsers();
+      return;
+    }
+  });
+
+  document.addEventListener('input', (event) => {
+    const input = event.target;
+    if (!input.matches('[data-filter-search]')) return;
+    const key = input.dataset.filterSearch;
+    filterSearchTerms[key] = input.value || '';
+    renderFilterPopover(key);
+  });
+
+  document.addEventListener('change', (event) => {
+    const target = event.target;
+    if (!target.matches('input[data-filter-value][data-filter-key]')) return;
+    setFilterValue(target.dataset.filterKey, target.dataset.filterValue, target.checked);
+  });
+
+  // Close popover on outside click
+  document.addEventListener('click', (event) => {
+    if (!activePopoverState) return;
+    if (event.target.closest('.filterPopover')) return;
+    if (activePopoverState.btn.contains(event.target)) return;
+    closePopover();
+  });
+
+  window.addEventListener('scroll', () => {
+    if (activePopoverState) positionPopover(activePopoverState.btn, activePopoverState.popover);
+  }, true);
+
+  window.addEventListener('resize', () => {
+    if (activePopoverState) positionPopover(activePopoverState.btn, activePopoverState.popover);
+  });
+
+  window.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') {
+      if (activePopoverState) { closePopover(); return; }
+      if (els.modal.classList.contains('open') && !isSaving) closeModal();
+    }
+  });
+
+  els.modal.addEventListener('click', (event) => {
+    if (event.target === els.modal && !isSaving) closeModal();
+  });
+
+  updateHeaderIndicators();
+  initHeaderMenus();
+  loadAllData();
+})();
+  </script>
+</body>
+</html>

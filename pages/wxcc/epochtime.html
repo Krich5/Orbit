@@ -1,0 +1,302 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="light" />
+  <title>WxCC - EPOCH Time Only</title>
+  <link rel="stylesheet" href="../../assets/css/theme.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/png" href="../../assets/images/Orbit_Icon-192.png" />
+  <style>
+    main { padding:32px 0 80px; }
+    .section-title { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:12px; font-size:15px; letter-spacing:.02em; color:var(--muted); text-transform:uppercase; }
+    .epoch-display { display:grid; gap:12px; grid-template-columns:repeat(auto-fit,minmax(320px,1fr)); }
+    .epoch-row { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:12px 14px; border-radius:12px; background:var(--card); border:1px solid var(--border); }
+    .epoch-label { font-size:14px; color:var(--muted); }
+    .epoch-value { font-variant-numeric:tabular-nums; font-weight:600; font-size:26px; letter-spacing:0.03em; }
+    .range-bar { margin-top:14px; display:flex; flex-wrap:wrap; gap:12px; align-items:flex-end; justify-content:space-between; }
+    .range-group { display:flex; flex-direction:column; gap:8px; }
+    .button-row { display:flex; flex-wrap:wrap; gap:8px; }
+    .fetch-group { display:flex; align-items:flex-end; gap:10px; }
+    button.action { background:linear-gradient(135deg,var(--accentA),var(--accentB)); border:none; color:#ffffff; padding:10px 14px; border-radius:12px; cursor:pointer; font-weight:700; }
+    button.action.secondary { background:var(--input); color:var(--fg); border:1px solid var(--border); }
+    .range-btn.active { background:linear-gradient(135deg,var(--accentA),var(--accentB)) !important; color:#ffffff !important; border:1px solid rgba(8,172,242,0.6) !important; }
+    .copy-btn { background:rgba(8,172,242,0.12); border:1px solid rgba(8,172,242,0.4); color:var(--fg); border-radius:10px; padding:8px 10px; cursor:pointer; font-weight:600; }
+  </style>
+</head>
+<body class="dark-mode">
+  <script>if (localStorage.getItem("tpRailExpanded") === "true") document.body.classList.add("tp-rail-expanded");</script>
+  <api-tools-header basepath="../../"></api-tools-header>
+  <main>
+    <div class="wrap wide contentWrap">
+      <section class="card">
+        <div class="pageHeader">
+          <h1>Epoch Time Utility</h1>
+          <p class="lead">Convert timestamps and ranges for reporting queries.</p>
+        </div>
+        <div class="epoch-display">
+          <div class="epoch-row">
+            <div>
+              <div class="epoch-label">FROM</div>
+              <div class="epoch-value" id="fromMs">--</div>
+              <div class="epoch-label" id="fromLocal">--</div>
+            </div>
+            <button class="copy-btn" data-copy="from">Copy</button>
+          </div>
+          <div class="epoch-row">
+            <div>
+              <div class="epoch-label">TO</div>
+              <div class="epoch-value" id="toMs">--</div>
+              <div class="epoch-label" id="toLocal">--</div>
+            </div>
+            <button class="copy-btn" data-copy="to">Copy</button>
+          </div>
+        </div>
+        <div class="range-bar">
+          <div class="range-group">
+            <div class="control-label">Pick a window</div>
+            <div class="button-row compact">
+              <button class="action secondary range-btn" data-range="600000">10m</button>
+              <button class="action secondary range-btn" data-range="3600000">1h</button>
+              <button class="action secondary range-btn" data-range="86400000">24h</button>
+              <button class="action secondary range-btn" data-range="604800000">7d</button>
+              <button class="action secondary" id="customTimeBtn">Custom</button>
+            </div>
+          </div>
+          <div class="fetch-group">
+            <a class="action secondary" href="searchapi.html" style="text-decoration:none; display:inline-flex; align-items:center; gap:6px;">Open Search API</a>
+            <input type="datetime-local" id="customFrom" style="display:none;">
+            <input type="datetime-local" id="customTo" style="display:none;">
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+    <script src="../../assets/js/theme.js"></script>
+<script>
+    const fromMsEl = document.getElementById('fromMs');
+    const toMsEl = document.getElementById('toMs');
+    const fromLocalEl = document.getElementById('fromLocal');
+    const toLocalEl = document.getElementById('toLocal');
+    const customTimeBtn = document.getElementById('customTimeBtn');
+    const customFrom = document.getElementById('customFrom');
+    const customTo = document.getElementById('customTo');
+
+    const cacheKeyBearer = 'authBearer';
+    const cacheKeyOrg = 'authOrg';
+    const cacheKeyOrgName = 'authOrgName';
+    const cacheKeyUser = 'authUserName';
+    const userNameEl = document.getElementById('userName');
+    const userOrgEl = document.getElementById('userOrg');
+
+    let selectedRangeMs = 600000;
+    let fromMs = null;
+    let toMs = null;
+
+    const formatLocal = (ms, opts = {}) => new Intl.DateTimeFormat(undefined, {
+      year: 'numeric', month: 'short', day: '2-digit',
+      hour: '2-digit', minute: '2-digit', second: '2-digit',
+      fractionalSecondDigits: opts.ms ? 3 : undefined,
+      timeZoneName: 'short'
+    }).format(new Date(ms));
+
+    const highlightRangeButton = () => {
+      document.querySelectorAll('.range-btn').forEach(btn => {
+        const val = Number(btn.dataset.range);
+        const active = val === selectedRangeMs;
+        btn.classList.toggle('active', active);
+        btn.setAttribute('aria-pressed', String(active));
+      });
+    };
+    highlightRangeButton();
+
+    document.querySelectorAll('.range-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const val = Number(btn.dataset.range);
+        if (!Number.isNaN(val)) { selectedRangeMs = val; highlightRangeButton(); refreshEpochWindow(); }
+      });
+    });
+
+    function refreshEpochWindow() {
+      const now = Date.now();
+      toMs = now;
+      fromMs = now - selectedRangeMs;
+      fromMsEl.textContent = fromMs;
+      toMsEl.textContent = toMs;
+      fromLocalEl.textContent = formatLocal(fromMs, { ms:true });
+      toLocalEl.textContent = formatLocal(toMs, { ms:true });
+      const orgName = localStorage.getItem(cacheKeyOrgName) || '';
+      const orgId = localStorage.getItem(cacheKeyOrg) || '';
+      const userName = localStorage.getItem(cacheKeyUser) || '';
+      if (userNameEl) userNameEl.textContent = userName || 'Authenticated';
+      if (userOrgEl) userOrgEl.textContent = orgName || orgId || '';
+    }
+
+    function openCustomPicker() {
+      customFrom.style.display = '';
+      customTo.style.display = '';
+      customTimeBtn.classList.add('active');
+    }
+
+    if (customTimeBtn) {
+      customTimeBtn.addEventListener('click', openCustomPicker);
+    }
+
+    [customFrom, customTo].forEach(inp => {
+      if (!inp) return;
+      inp.addEventListener('change', () => {
+        const fromVal = new Date(customFrom.value);
+        const toVal = new Date(customTo.value);
+        if (!isNaN(fromVal) && !isNaN(toVal) && toVal > fromVal) {
+          fromMs = fromVal.getTime();
+          toMs = toVal.getTime();
+          selectedRangeMs = toMs - fromMs;
+          highlightRangeButton();
+          refreshEpochWindow();
+        }
+      });
+    });
+
+    refreshEpochWindow();
+
+    // Copy behavior with feedback
+    const copyActions = {
+      from: () => String(fromMs ?? ''),
+      to: () => String(toMs ?? '')
+    };
+    const flashCopyState = (btn) => {
+      const original = btn.textContent;
+      btn.textContent = 'Copied';
+      setTimeout(() => (btn.textContent = original), 1500);
+    };
+    document.querySelectorAll('.copy-btn').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        const kind = btn.dataset.copy;
+        const getter = copyActions[kind];
+        if (getter) {
+          const text = getter();
+          try {
+            await navigator.clipboard.writeText(text);
+            flashCopyState(btn);
+          } catch (err) {
+            console.error('Copy failed', err);
+          }
+        }
+      });
+    });
+
+    // Auth modal shared
+    (function initAuthModal(){
+      if (document.getElementById('authModal')) return;
+      const style = document.createElement('style');
+      style.textContent = `
+        .authModalOverlay{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;z-index:9999;padding:16px;}
+        .authModalOverlay.open{display:flex;}
+        .authCard{width:100%;max-width:520px;background:#131a2a;border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:18px;box-shadow:0 18px 36px rgba(0,0,0,.45);position:relative;}
+        .authCard h2{margin:0 0 8px;font-size:1.2rem;}
+        .authCard p{margin:0 0 12px;color:#92a0b8;line-height:1.4;}
+        .authCard label{display:block;font-size:13px;color:#92a0b8;margin:10px 0 6px;}
+        .authCard input{width:100%;border-radius:12px;border:1px solid rgba(255,255,255,.08);background:#0e1525;color:#e9edf5;padding:10px 12px;font-size:14px;}
+        .authCard input:focus{outline:none;box-shadow:0 0 0 3px rgba(59,130,246,.25);}
+        .authCard .actions{display:flex;gap:10px;justify-content:flex-end;margin-top:14px;}
+        .authCard .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:9px 14px;border-radius:12px;font-weight:700;border:1px solid rgba(255,255,255,.08);background:#0e1525;color:#e9edf5;cursor:pointer;text-decoration:none;}
+        .authCard .btn.primary{background:linear-gradient(135deg,#159DD8,#159DD8);color:#06111d;border:none;}
+        .authClose{position:absolute;right:10px;top:10px;background:transparent;border:none;color:#92a0b8;font-size:18px;cursor:pointer;}
+        .authStatus{margin-top:8px;font-size:13px;color:#92a0b8;}
+        .authCard .btn.webex{background:#07C;color:white;border:none;padding:11px 20px;}
+        .authCard .btn.webex:hover{background:#0069CC;}
+        .authDivider{display:flex;align-items:center;gap:12px;margin:16px 0;color:#92a0b8;font-size:13px;}
+        .authDivider::before,.authDivider::after{content:'';flex:1;height:1px;background:rgba(255,255,255,.08);}
+      `;
+      document.head.appendChild(style);
+
+      const overlay = document.createElement('div');
+      overlay.className = 'authModalOverlay';
+      overlay.id = 'authModal';
+      overlay.innerHTML = `
+                        <div class="authCard">
+          <button class="authClose" aria-label="Close">×</button>
+          <h2>Sign in with Webex</h2>
+          <p>Click below to authenticate with your Webex account.</p>
+          
+          <button class="btn webex" id="authWebex" style="width:100%;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M19.7 7.3c-1.2-1.2-2.7-2-4.5-2.3-.3-1.6-1.2-3-2.5-4-1.4-1-3-1.6-4.7-1.6-2.2 0-4.2.8-5.7 2.3C.8 3.2 0 5.2 0 7.4c0 1.7.6 3.3 1.6 4.7 1 1.3 2.4 2.2 4 2.5.3 1.6 1.2 3 2.5 4 1.5 1 3.1 1.6 4.9 1.6 2.2 0 4.2-.8 5.7-2.3 1.5-1.5 2.3-3.5 2.3-5.7 0-1.8-.6-3.4-1.6-4.7-.1 0-.2-.1-.2-.2zM13 18.4c-1.3 0-2.5-.4-3.5-1.2-.9-.7-1.6-1.7-2-2.8l5.5-2 2 5.5c-1.1.3-1.3.5-2 .5zM7.5 13l-5.3 1.9c-.1-.6-.2-1.2-.2-1.8 0-1.7.6-3.2 1.7-4.3C4.8 7.6 6.4 7 8 7c.6 0 1.2.1 1.8.2L7.5 13zm11.2 2.8c-1.1 1.1-2.6 1.7-4.2 1.7-.6 0-1.2-.1-1.8-.2l2.3-6.3 5.3-1.9c.1.6.2 1.2.2 1.8 0 1.6-.6 3.1-1.8 4.2v-.3zm-7-11.3c1.3 0 2.5.4 3.5 1.2.9.7 1.6 1.7 2 2.8l-5.5 2-2-5.5c.6-.3 1.3-.5 2-.5zM3.3 8.8C4.4 7.7 5.9 7.1 7.5 7.1c.6 0 1.2.1 1.8.2L7 13.6l-5.3 1.9c-.1-.6-.2-1.2-.2-1.8 0-1.7.6-3.2 1.8-4.3v-.6z"/>
+            </svg>
+            Sign in with Webex
+          </button>
+          
+          <div class="authStatus" id="authStatus"></div>
+        </div>
+      `;
+      document.body.appendChild(overlay);
+      const CLIENT_ID = 'Cc604fe2354b93ecd1eb3d799e69a4ce981649161c1e31253ae91805e95b54e64';
+      const REDIRECT_URI = 'https://cxasteam.bitbucket.io/opshub/callback.html';
+      const SCOPES = 'spark-admin:locations_write spark:all spark-admin:locations_read spark-admin:organizations_read spark:organizations_read spark-admin:workspace_locations_read spark-admin:places_read cjp:config_read spark:kms spark-admin:devices_read cjp:config_write spark-admin:workspace_locations_write spark-admin:places_write cjp:config spark-admin:devices_write spark-admin:telephony_config_read spark-admin:telephony_config_write audit:events_read spark-admin:licenses_read';const statusEl = overlay.querySelector('#authStatus');
+      const closeBtn = overlay.querySelector('.authClose');const webexBtn = overlay.querySelector('#authWebex');
+      const KEYS = { bearer:'authBearer', org:'authOrg', orgName:'authOrgName' };
+
+      const populate = ()=> {
+        bearerEl.value = localStorage.getItem(KEYS.bearer) || '';
+        orgEl.value = localStorage.getItem(KEYS.org) || '';
+        statusEl.textContent = localStorage.getItem(KEYS.orgName) ? `Org: ${localStorage.getItem(KEYS.orgName)}` : '';
+      };
+
+      const fetchOrgName = async (bearer, orgId) => {
+        try {
+          const res = await fetch(`https://webexapis.com/v1/organizations/${encodeURIComponent(orgId)}`, { headers:{Authorization:`Bearer ${bearer}`}});
+          const data = await res.json();
+          return data.displayName || data.name || data.organization?.displayName || data.organization?.name || orgId;
+        } catch { return ''; }
+      };
+
+      
+      // OAuth Sign in with Webex
+      webexBtn.addEventListener('click', () => {
+        const authUrl = `https://webexapis.com/v1/authorize?client_id=${CLIENT_ID}&response_type=code&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&scope=${encodeURIComponent(SCOPES)}&state=${Date.now()}&prompt=consent`;
+        window.location.href = authUrl;
+      });const close = ()=> overlay.classList.remove('open');
+      closeBtn.addEventListener('click', close);
+      overlay.addEventListener('click',(e)=>{ if (e.target === overlay) close(); });
+      window.addEventListener('keydown',(e)=>{ if (e.key === 'Escape') close(); });
+
+      const open = ()=> { overlay.classList.add('open'); };
+      document.querySelectorAll('.authLink').forEach(el=>{
+        el.addEventListener('click',(e)=>{ e.preventDefault(); open(); });
+      });
+    })();
+
+    function updateAuthIndicators() {
+      const b = localStorage.getItem('authBearer') || '';
+      const org = localStorage.getItem('authOrgName') || localStorage.getItem('authOrg') || '';
+      const tag = document.getElementById('orgTag');
+      if (tag) tag.textContent = org ? `Org: ${org}` : 'Not authenticated';
+    }
+    updateAuthIndicators();
+
+    const signOutBtn = document.getElementById('signOutBtn');
+    if (signOutBtn) {
+      signOutBtn.addEventListener('click', () => {
+        localStorage.removeItem('authBearer');
+        localStorage.removeItem('authOrg');
+        localStorage.removeItem('authOrgName');
+        localStorage.removeItem('authRefreshToken');
+        localStorage.removeItem('authExpiresAt');
+        window.location.href = '../../index.html';
+      });
+    }
+
+
+    document.addEventListener('click', (event) => {
+    });
+
+    document.addEventListener('keydown', (event) => {
+    });
+  </script>
+
+
+  </body>
+</html>

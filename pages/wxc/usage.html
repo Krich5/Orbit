@@ -1,0 +1,725 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="light dark" />
+  <title>Webex Calling - Usage &amp; Activity</title>
+  <link rel="icon" type="image/png" href="../../assets/images/Orbit_Icon-192.png" />
+  <link rel="stylesheet" href="../../assets/css/theme.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    main { padding:32px 0 80px; }
+    .lead-note { color:var(--muted); max-width:960px; }
+    .controls { display:grid; grid-template-columns:repeat(5, minmax(0, 1fr)); gap:14px; align-items:end; }
+    .field { display:flex; flex-direction:column; gap:8px; min-width:0; }
+    .field label { font-size:12px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.04em; }
+    .field input, .field select { width:100%; border:1px solid var(--border); background:var(--input); color:var(--fg); border-radius:12px; padding:11px 12px; font-size:14px; outline:none; }
+    .field input:focus, .field select:focus { box-shadow:0 0 0 3px rgba(21,157,216,.16); }
+    .action-cluster { display:flex; gap:10px; flex-wrap:wrap; justify-content:flex-end; }
+    .toolbar { display:flex; gap:12px; justify-content:space-between; align-items:center; flex-wrap:wrap; margin-top:14px; }
+    .toolbar .search { width:min(420px, 100%); border:1px solid var(--border); background:var(--input); color:var(--fg); border-radius:12px; padding:10px 12px; font-size:14px; }
+    .toolbar .search:focus { box-shadow:0 0 0 3px rgba(21,157,216,.16); outline:none; }
+    .summary-grid { display:grid; grid-template-columns:repeat(4, minmax(0, 1fr)); gap:14px; }
+    .stat { position:relative; border:1px solid var(--border); border-radius:18px; background:linear-gradient(180deg, rgba(255,255,255,.95), rgba(0,0,0,.02)), var(--card); box-shadow:var(--shadow); padding:18px; }
+    body.dark-mode .stat { background:linear-gradient(180deg, rgba(255,255,255,.035), rgba(255,255,255,.01)), var(--card); border:1px solid rgba(255,255,255,.08); box-shadow:0 30px 70px rgba(0,0,0,.7); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); }
+    .stat-label { font-size:12px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:var(--muted); }
+    .stat-value { margin-top:8px; font-size:2rem; font-weight:700; color:var(--fg); }
+    .stat-meta { margin-top:6px; font-size:13px; color:var(--muted); line-height:1.45; }
+    .table-wrap { overflow:auto; border:1px solid var(--border); border-radius:18px; }
+    .data-table { width:100%; border-collapse:collapse; min-width:1180px; background:var(--card); }
+    .data-table th, .data-table td { padding:13px 14px; text-align:left; border-bottom:1px solid var(--border); vertical-align:top; }
+    .data-table th { background:var(--panel); color:var(--accent); font-size:12px; text-transform:uppercase; letter-spacing:.04em; }
+    .data-table tr:nth-child(even) td { background:rgba(148,163,184,.05); }
+    body.dark-mode .data-table tr:nth-child(even) td { background:rgba(255,255,255,.02); }
+    .name { font-weight:700; color:var(--fg); }
+    .subtle { color:var(--muted); font-size:12px; margin-top:4px; }
+    .pill-row { display:flex; flex-wrap:wrap; gap:6px; }
+    .pill { display:inline-flex; align-items:center; padding:4px 9px; border-radius:999px; border:1px solid rgba(8,172,242,.18); background:rgba(8,172,242,.08); color:var(--accent); font-size:12px; }
+    .pill.warn { border-color:rgba(245,158,11,.28); background:rgba(245,158,11,.12); color:#b45309; }
+    .pill.danger { border-color:rgba(239,68,68,.28); background:rgba(239,68,68,.1); color:#b91c1c; }
+    .pill.success { border-color:rgba(34,197,94,.24); background:rgba(34,197,94,.1); color:#166534; }
+    body.dark-mode .pill.warn { color:#fcd34d; }
+    body.dark-mode .pill.danger { color:#fca5a5; }
+    body.dark-mode .pill.success { color:#86efac; }
+    .empty { padding:20px; color:var(--muted); font-size:14px; }
+    .meta-line { color:var(--muted); font-size:13px; line-height:1.5; }
+    .loader { display:none; align-items:center; gap:10px; color:var(--muted); font-size:13px; }
+    .loader.open { display:flex; }
+    .spinner { width:18px; height:18px; border-radius:50%; border:3px solid rgba(15,23,42,.12); border-top-color:var(--accent); animation:spin 1s linear infinite; }
+    @keyframes spin { from { transform:rotate(0deg); } to { transform:rotate(360deg); } }
+    @media (max-width: 1180px) {
+      .controls { grid-template-columns:repeat(2, minmax(0, 1fr)); }
+      .summary-grid { grid-template-columns:repeat(2, minmax(0, 1fr)); }
+    }
+    @media (max-width: 720px) {
+      .controls { grid-template-columns:1fr; }
+      .summary-grid { grid-template-columns:1fr; }
+      .action-cluster { justify-content:stretch; }
+      .action-cluster .btn { flex:1; }
+      .toolbar { align-items:stretch; }
+      .toolbar .search { width:100%; }
+    }
+  </style>
+</head>
+<body class="dark-mode">
+  <script>if (localStorage.getItem("tpRailExpanded") === "true") document.body.classList.add("tp-rail-expanded");</script>
+  <api-tools-header basepath="../../"></api-tools-header>
+  <main>
+    <div class="wrap wide contentWrap">
+      <section class="card">
+        <div class="pageHeader">
+          <h1>Usage &amp; Activity</h1>
+          <p class="lead">Find Webex Calling licensed users, disabled logins, and users with no recent calling activity.</p>
+        </div>
+        <p class="lead-note">This view always loads calling licensed users from Control Hub. If your token also has <code>analytics:read_all</code>, it can correlate those users with a Calling Engagement report to flag people who have not used the service in the selected date range.</p>
+        <div class="controls">
+          <div class="field">
+            <label for="startDate">Report Start</label>
+            <input id="startDate" type="date" />
+          </div>
+          <div class="field">
+            <label for="endDate">Report End</label>
+            <input id="endDate" type="date" />
+          </div>
+          <div class="field">
+            <label for="statusFilter">Usage Status</label>
+            <select id="statusFilter">
+              <option value="">All users</option>
+              <option value="noUsage">No recent usage</option>
+              <option value="active">Recent usage found</option>
+              <option value="noReportMatch">No report match</option>
+              <option value="disabledLogin">Login disabled</option>
+              <option value="usageUnavailable">Usage data unavailable</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="licenseFilter">Calling License</label>
+            <select id="licenseFilter">
+              <option value="">All calling licenses</option>
+            </select>
+          </div>
+          <div class="action-cluster">
+            <button class="btn" id="loadUsersBtn" type="button">Load Licensed Users</button>
+            <button class="btn primary" id="loadUsageBtn" type="button">Load Calling Usage</button>
+          </div>
+        </div>
+        <div class="toolbar">
+          <input id="searchInput" class="search" type="search" placeholder="Search by user, email, or location…" />
+          <div>
+            <div class="loader" id="loader">
+              <div class="spinner" aria-hidden="true"></div>
+              <span id="loaderText">Loading…</span>
+            </div>
+            <div class="meta-line" id="statusText">Ready.</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="summary-grid">
+        <article class="stat">
+          <div class="stat-label">Calling Licensed Users</div>
+          <div class="stat-value" id="licensedCount">0</div>
+          <div class="stat-meta" id="licensedMeta">Users with at least one calling-related license.</div>
+        </article>
+        <article class="stat">
+          <div class="stat-label">No Recent Usage</div>
+          <div class="stat-value" id="noUsageCount">0</div>
+          <div class="stat-meta" id="noUsageMeta">Requires a Calling Engagement report.</div>
+        </article>
+        <article class="stat">
+          <div class="stat-label">Disabled Login</div>
+          <div class="stat-value" id="disabledCount">0</div>
+          <div class="stat-meta" id="disabledMeta">Licensed users who cannot currently sign in.</div>
+        </article>
+        <article class="stat">
+          <div class="stat-label">Recent Usage Found</div>
+          <div class="stat-value" id="activeCount">0</div>
+          <div class="stat-meta" id="activeMeta">Users matched to activity inside the selected date range.</div>
+        </article>
+      </section>
+
+      <section class="card">
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>User</th>
+                <th>Calling Licenses</th>
+                <th>Login</th>
+                <th>Usage Status</th>
+                <th>Activity</th>
+                <th>Location / Notes</th>
+              </tr>
+            </thead>
+            <tbody id="tableBody">
+              <tr><td colspan="6" class="empty">Load users to see calling license assignment.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script src="../../assets/js/theme.js"></script>
+  <script>
+  (function () {
+    const BASE_URL = 'https://webexapis.com';
+    const PEOPLE_ENDPOINT = '/v1/people?max=100';
+    const LICENSES_ENDPOINT = '/v1/licenses';
+    const REPORT_TEMPLATES_ENDPOINT = '/v1/report/templates';
+    const REPORTS_ENDPOINT = '/v1/reports';
+    const TOKEN_KEY = 'authBearer';
+    const ORG_KEY = 'authOrg';
+    const state = {
+      users: [],
+      licenses: [],
+      reportLoaded: false,
+      usageAvailable: false,
+      lastReportSummary: '',
+      reportRangeLabel: ''
+    };
+
+    const els = {
+      startDate: document.getElementById('startDate'),
+      endDate: document.getElementById('endDate'),
+      statusFilter: document.getElementById('statusFilter'),
+      licenseFilter: document.getElementById('licenseFilter'),
+      searchInput: document.getElementById('searchInput'),
+      loadUsersBtn: document.getElementById('loadUsersBtn'),
+      loadUsageBtn: document.getElementById('loadUsageBtn'),
+      tableBody: document.getElementById('tableBody'),
+      statusText: document.getElementById('statusText'),
+      loader: document.getElementById('loader'),
+      loaderText: document.getElementById('loaderText'),
+      licensedCount: document.getElementById('licensedCount'),
+      noUsageCount: document.getElementById('noUsageCount'),
+      disabledCount: document.getElementById('disabledCount'),
+      activeCount: document.getElementById('activeCount'),
+      licensedMeta: document.getElementById('licensedMeta'),
+      noUsageMeta: document.getElementById('noUsageMeta'),
+      disabledMeta: document.getElementById('disabledMeta'),
+      activeMeta: document.getElementById('activeMeta')
+    };
+
+    function getToken() {
+      return (localStorage.getItem(TOKEN_KEY) || '').replace(/^Bearer\s+/i, '').trim();
+    }
+
+    function getOrgId() {
+      return (localStorage.getItem(ORG_KEY) || '').trim();
+    }
+
+    function getScopes() {
+      return (localStorage.getItem('authScopes') || '').trim();
+    }
+
+    function hasScope(scopeName) {
+      return getScopes().split(/\s+/).includes(scopeName);
+    }
+
+    function setStatus(message) {
+      els.statusText.textContent = message;
+    }
+
+    function setLoading(active, message = 'Loading…') {
+      els.loader.classList.toggle('open', active);
+      els.loaderText.textContent = message;
+      els.loadUsersBtn.disabled = active;
+      els.loadUsageBtn.disabled = active;
+    }
+
+    function formatDate(value) {
+      if (!value) return 'Unknown';
+      const date = new Date(value);
+      if (Number.isNaN(date.getTime())) return String(value);
+      return date.toLocaleString([], {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit'
+      });
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    function withOrgParam(url) {
+      const orgId = getOrgId();
+      if (!orgId || String(url).includes('orgId=')) return url;
+      return url + (String(url).includes('?') ? '&' : '?') + `orgId=${encodeURIComponent(orgId)}`;
+    }
+
+    function getNextLink(response) {
+      const link = response.headers.get('Link') || '';
+      const match = link.match(/<([^>]+)>;\s*rel="?next"?/i);
+      return match ? match[1] : '';
+    }
+
+    async function fetchJson(pathOrUrl, options = {}) {
+      const token = getToken();
+      if (!token) throw new Error('Authentication required. Sign in again.');
+      const targetUrl = pathOrUrl.startsWith('http') ? pathOrUrl : `${BASE_URL}${pathOrUrl}`;
+      const response = await fetch(withOrgParam(targetUrl), {
+        ...options,
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+          ...(options.headers || {})
+        }
+      });
+      const text = await response.text();
+      let data = {};
+      try {
+        data = text ? JSON.parse(text) : {};
+      } catch {
+        data = {};
+      }
+      if (!response.ok) {
+        throw new Error(data.message || text || `HTTP ${response.status}`);
+      }
+      return { response, data, text };
+    }
+
+    async function fetchPaged(path) {
+      let nextUrl = path.startsWith('http') ? path : `${BASE_URL}${path}`;
+      const items = [];
+      while (nextUrl) {
+        const { response, data } = await fetchJson(nextUrl);
+        items.push(...(Array.isArray(data.items) ? data.items : []));
+        nextUrl = data.next || getNextLink(response) || '';
+        if (nextUrl && !/^https?:/i.test(nextUrl)) nextUrl = `${BASE_URL}${nextUrl}`;
+      }
+      return items;
+    }
+
+    function callingLicenseKind(name) {
+      const lowered = String(name || '').toLowerCase();
+      if (lowered.includes('hot desk')) return 'Hot Desk';
+      if (lowered.includes('ucm') || lowered.includes('unified communication')) return 'UCM';
+      if (lowered.includes('call on webex')) return 'Call on Webex';
+      if (lowered.includes('webex calling')) return 'Webex Calling';
+      if (lowered.includes('calling')) return 'Calling';
+      return '';
+    }
+
+    function normalizeLicense(item) {
+      const name = item.name || item.displayName || item.id || 'License';
+      return {
+        id: item.id || '',
+        name,
+        kind: callingLicenseKind(name)
+      };
+    }
+
+    function buildCallingUser(item, licensesById) {
+      const licenseIds = Array.isArray(item.licenses) ? item.licenses.filter(Boolean) : [];
+      const callingLicenses = licenseIds
+        .map((id) => licensesById.get(id))
+        .filter((license) => license && license.kind);
+      if (!callingLicenses.length) return null;
+      const emails = Array.isArray(item.emails) ? item.emails.filter(Boolean) : [];
+      const locations = Array.isArray(item.locationIds) ? item.locationIds.filter(Boolean) : [];
+      return {
+        id: item.id || '',
+        displayName: item.displayName || [item.firstName, item.lastName].filter(Boolean).join(' ') || emails[0] || 'Unnamed user',
+        email: emails[0] || '',
+        status: String(item.status || '').toLowerCase(),
+        loginEnabled: item.loginEnabled !== false,
+        lastActivity: item.lastActivity || item.lastSeen || '',
+        locationIds: locations,
+        licenses: callingLicenses,
+        usage: {
+          state: 'usageUnavailable',
+          label: 'Usage not loaded',
+          callCount: 0,
+          lastSeen: '',
+          note: 'Load a Calling Engagement report to compare activity.'
+        }
+      };
+    }
+
+    function initDateRange() {
+      const today = new Date();
+      const end = new Date(today);
+      end.setDate(end.getDate() - 1);
+      const start = new Date(end);
+      start.setDate(start.getDate() - 6);
+      els.startDate.value = start.toISOString().slice(0, 10);
+      els.endDate.value = end.toISOString().slice(0, 10);
+    }
+
+    function populateLicenseFilter(users) {
+      const seen = new Set();
+      const options = users.flatMap((user) => user.licenses.map((license) => license.name))
+        .filter((name) => {
+          if (seen.has(name)) return false;
+          seen.add(name);
+          return true;
+        })
+        .sort((a, b) => a.localeCompare(b));
+      els.licenseFilter.innerHTML = '<option value="">All calling licenses</option>' +
+        options.map((name) => `<option value="${escapeHtml(name)}">${escapeHtml(name)}</option>`).join('');
+    }
+
+    function summarizeUsers(rows) {
+      const noUsage = rows.filter((user) => user.usage.state === 'noUsage').length;
+      const active = rows.filter((user) => user.usage.state === 'active').length;
+      const disabled = rows.filter((user) => !user.loginEnabled || user.status === 'inactive').length;
+      els.licensedCount.textContent = String(rows.length);
+      els.noUsageCount.textContent = String(noUsage);
+      els.disabledCount.textContent = String(disabled);
+      els.activeCount.textContent = String(active);
+      els.licensedMeta.textContent = rows.length ? `Across ${rows.length} user account${rows.length === 1 ? '' : 's'}.` : 'No calling licensed users loaded yet.';
+      els.noUsageMeta.textContent = state.reportLoaded
+        ? `${noUsage} matched users had zero detected activity in ${state.reportRangeLabel || 'the selected date range'}.`
+        : 'Requires a Calling Engagement report.';
+      els.disabledMeta.textContent = disabled
+        ? `${disabled} licensed user${disabled === 1 ? '' : 's'} appear inactive or sign-in disabled.`
+        : 'No disabled calling users found in the current results.';
+      els.activeMeta.textContent = state.reportLoaded
+        ? `${active} user${active === 1 ? '' : 's'} showed recent calling activity.`
+        : 'Load calling usage to populate this count.';
+    }
+
+    function getFilteredUsers() {
+      const search = (els.searchInput.value || '').trim().toLowerCase();
+      const statusFilter = els.statusFilter.value;
+      const licenseFilter = els.licenseFilter.value;
+      return state.users.filter((user) => {
+        const matchesSearch = !search || [
+          user.displayName,
+          user.email,
+          user.locationIds.join(' '),
+          user.licenses.map((license) => license.name).join(' ')
+        ].join(' ').toLowerCase().includes(search);
+        if (!matchesSearch) return false;
+
+        if (licenseFilter && !user.licenses.some((license) => license.name === licenseFilter)) return false;
+
+        if (!statusFilter) return true;
+        if (statusFilter === 'disabledLogin') return !user.loginEnabled || user.status === 'inactive';
+        return user.usage.state === statusFilter;
+      });
+    }
+
+    function renderUsers() {
+      const rows = getFilteredUsers();
+      summarizeUsers(state.users);
+      if (!rows.length) {
+        els.tableBody.innerHTML = '<tr><td colspan="6" class="empty">No users matched the current filters.</td></tr>';
+        return;
+      }
+      els.tableBody.innerHTML = rows.map((user) => {
+        const loginPill = !user.loginEnabled || user.status === 'inactive'
+          ? '<span class="pill danger">Disabled / inactive</span>'
+          : '<span class="pill success">Enabled</span>';
+        const usageClass = user.usage.state === 'active'
+          ? 'success'
+          : user.usage.state === 'noUsage' || user.usage.state === 'disabledLogin'
+            ? 'warn'
+            : user.usage.state === 'noReportMatch'
+              ? 'danger'
+              : '';
+        const usagePill = `<span class="pill ${usageClass}">${escapeHtml(user.usage.label)}</span>`;
+        const callCountLabel = user.usage.callCount ? `${user.usage.callCount} call event${user.usage.callCount === 1 ? '' : 's'}` : '0 call events';
+        const lastSeenLabel = user.usage.lastSeen || user.lastActivity
+          ? formatDate(user.usage.lastSeen || user.lastActivity)
+          : 'No activity timestamp';
+        const notes = [user.usage.note];
+        if (user.locationIds.length) notes.push(`Location IDs: ${user.locationIds.join(', ')}`);
+        return `
+          <tr>
+            <td>
+              <div class="name">${escapeHtml(user.displayName)}</div>
+              <div class="subtle">${escapeHtml(user.email || 'No email')}</div>
+            </td>
+            <td><div class="pill-row">${user.licenses.map((license) => `<span class="pill">${escapeHtml(license.name)}</span>`).join('')}</div></td>
+            <td>${loginPill}<div class="subtle">${escapeHtml(user.status || 'unknown')}</div></td>
+            <td>${usagePill}</td>
+            <td>
+              <div>${escapeHtml(callCountLabel)}</div>
+              <div class="subtle">${escapeHtml(lastSeenLabel)}</div>
+            </td>
+            <td><div class="meta-line">${notes.filter(Boolean).map(escapeHtml).join('<br>')}</div></td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    async function loadCallingUsers() {
+      setLoading(true, 'Loading licenses and people…');
+      try {
+        const [licenseItems, peopleItems] = await Promise.all([
+          fetchPaged(LICENSES_ENDPOINT),
+          fetchPaged(PEOPLE_ENDPOINT)
+        ]);
+        const licensesById = new Map(licenseItems.map((item) => {
+          const normalized = normalizeLicense(item);
+          return [normalized.id, normalized];
+        }));
+        state.licenses = [...licensesById.values()].filter((license) => license.kind);
+        state.users = peopleItems
+          .map((item) => buildCallingUser(item, licensesById))
+          .filter(Boolean)
+          .sort((a, b) => a.displayName.localeCompare(b.displayName));
+        state.reportLoaded = false;
+        state.usageAvailable = false;
+        state.lastReportSummary = '';
+        populateLicenseFilter(state.users);
+        renderUsers();
+        setStatus(`Loaded ${state.users.length} calling licensed users.`);
+      } catch (error) {
+        setStatus(`Could not load calling users: ${error.message}`);
+        els.tableBody.innerHTML = `<tr><td colspan="6" class="empty">${escapeHtml(error.message)}</td></tr>`;
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    function parseCsv(text) {
+      const rows = [];
+      let row = [];
+      let cell = '';
+      let inQuotes = false;
+      for (let index = 0; index < text.length; index += 1) {
+        const char = text[index];
+        const next = text[index + 1];
+        if (char === '"') {
+          if (inQuotes && next === '"') {
+            cell += '"';
+            index += 1;
+          } else {
+            inQuotes = !inQuotes;
+          }
+        } else if (char === ',' && !inQuotes) {
+          row.push(cell);
+          cell = '';
+        } else if ((char === '\n' || char === '\r') && !inQuotes) {
+          if (char === '\r' && next === '\n') index += 1;
+          row.push(cell);
+          if (row.some((value) => value !== '')) rows.push(row);
+          row = [];
+          cell = '';
+        } else {
+          cell += char;
+        }
+      }
+      row.push(cell);
+      if (row.some((value) => value !== '')) rows.push(row);
+      const [header = [], ...dataRows] = rows;
+      return dataRows.map((values) => Object.fromEntries(header.map((name, idx) => [String(name || '').trim(), String(values[idx] || '').trim()])));
+    }
+
+    function normalizeHeader(header) {
+      return String(header || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+    }
+
+    function pickValue(row, patterns) {
+      const entries = Object.entries(row);
+      for (const [key, value] of entries) {
+        const normalized = normalizeHeader(key);
+        if (patterns.some((pattern) => normalized.includes(pattern))) {
+          return value;
+        }
+      }
+      return '';
+    }
+
+    function numericMetrics(row) {
+      let count = 0;
+      Object.entries(row).forEach(([key, value]) => {
+        const normalized = normalizeHeader(key);
+        if (!/call|placed|received|answered|completed|connected/.test(normalized)) return;
+        if (/duration|average|quality|percentage|rate|score/.test(normalized)) return;
+        const numeric = Number(String(value).replace(/,/g, ''));
+        if (Number.isFinite(numeric) && numeric > 0) count += numeric;
+      });
+      return count;
+    }
+
+    function applyUsageRows(reportRows) {
+      const byEmail = new Map();
+      const byName = new Map();
+      reportRows.forEach((row) => {
+        const email = pickValue(row, ['email']).toLowerCase();
+        const name = pickValue(row, ['display name', 'user name', 'user', 'person name', 'name']).toLowerCase();
+        const callCount = numericMetrics(row);
+        const lastSeen = pickValue(row, ['last activity', 'last call', 'last used', 'last date', 'last time', 'recent activity']);
+        const payload = {
+          callCount,
+          lastSeen,
+          row
+        };
+        if (email) byEmail.set(email, payload);
+        if (name) byName.set(name, payload);
+      });
+
+      state.users = state.users.map((user) => {
+        const match = byEmail.get((user.email || '').toLowerCase()) || byName.get((user.displayName || '').toLowerCase());
+        if (!match) {
+          return {
+            ...user,
+            usage: {
+              state: 'noReportMatch',
+              label: 'No report match',
+              callCount: 0,
+              lastSeen: '',
+              note: 'This licensed user did not appear in the Calling Engagement report output.'
+            }
+          };
+        }
+        if (match.callCount > 0 || match.lastSeen) {
+          return {
+            ...user,
+            usage: {
+              state: 'active',
+              label: 'Recent usage found',
+              callCount: match.callCount,
+              lastSeen: match.lastSeen,
+              note: 'Matched to the Calling Engagement report.'
+            }
+          };
+        }
+        return {
+          ...user,
+          usage: {
+            state: 'noUsage',
+            label: 'No recent usage',
+            callCount: 0,
+            lastSeen: '',
+            note: 'Matched report row had no detected calling activity in the selected window.'
+          }
+        };
+      });
+      state.reportLoaded = true;
+      state.usageAvailable = true;
+      renderUsers();
+    }
+
+    async function findCallingEngagementTemplate() {
+      const { data } = await fetchJson(REPORT_TEMPLATES_ENDPOINT);
+      const items = Array.isArray(data.items) ? data.items : [];
+      const match = items.find((item) => {
+        const title = String(item.title || item.name || '').toLowerCase();
+        return title.includes('calling') && title.includes('engagement');
+      });
+      if (!match) {
+        throw new Error('No Calling Engagement report template was returned for this org/token.');
+      }
+      return match;
+    }
+
+    async function createReport(templateId, startDate, endDate) {
+      const payload = { templateId, startDate, endDate };
+      const { data } = await fetchJson(REPORTS_ENDPOINT, {
+        method: 'POST',
+        body: JSON.stringify(payload)
+      });
+      return data;
+    }
+
+    async function pollReport(reportId) {
+      for (let attempt = 0; attempt < 30; attempt += 1) {
+        const { data } = await fetchJson(`${REPORTS_ENDPOINT}/${encodeURIComponent(reportId)}`);
+        const status = String(data.status || '').toLowerCase();
+        if (status === 'completed' || status === 'done') return data;
+        if (status === 'failed' || status === 'error') {
+          throw new Error(data.message || 'Report generation failed.');
+        }
+        await new Promise((resolve) => setTimeout(resolve, 4000));
+      }
+      throw new Error('Timed out waiting for the Calling Engagement report to finish.');
+    }
+
+    async function fetchReportCsv(url) {
+      const token = getToken();
+      const response = await fetch(url, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {}
+      });
+      if (!response.ok) {
+        throw new Error(`Could not download report (${response.status}).`);
+      }
+      return response.text();
+    }
+
+    async function loadUsageReport() {
+      if (!state.users.length) {
+        await loadCallingUsers();
+        if (!state.users.length) return;
+      }
+      if (!hasScope('analytics:read_all')) {
+        setStatus('Current token is missing analytics:read_all. Usage matching was not attempted.');
+        renderUsers();
+        return;
+      }
+      const startDate = els.startDate.value;
+      const endDate = els.endDate.value;
+      if (!startDate || !endDate) {
+        setStatus('Choose a report start and end date first.');
+        return;
+      }
+      if (startDate > endDate) {
+        setStatus('Report start date must be before the end date.');
+        return;
+      }
+      setLoading(true, 'Generating Calling Engagement report…');
+      try {
+        const template = await findCallingEngagementTemplate();
+        const created = await createReport(template.id, startDate, endDate);
+        const reportId = created.id || created.reportId;
+        if (!reportId) throw new Error('Report was created without an id.');
+        setStatus('Report requested. Waiting for Webex to finish generating it…');
+        const completed = await pollReport(reportId);
+        const downloadUrl = completed.downloadURL || completed.downloadUrl || completed.url;
+        if (!downloadUrl) throw new Error('Completed report did not include a download URL.');
+        setLoading(true, 'Downloading and matching report data…');
+        const csvText = await fetchReportCsv(downloadUrl);
+        const rows = parseCsv(csvText);
+        if (!rows.length) throw new Error('Report download completed, but the CSV had no rows.');
+        state.reportRangeLabel = `${startDate} to ${endDate}`;
+        applyUsageRows(rows);
+        setStatus(`Matched ${rows.length} report row${rows.length === 1 ? '' : 's'} against ${state.users.length} calling licensed users.`);
+      } catch (error) {
+        state.reportLoaded = false;
+        state.usageAvailable = false;
+        setStatus(`Could not load calling usage: ${error.message}`);
+        renderUsers();
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    function bindEvents() {
+      els.loadUsersBtn.addEventListener('click', loadCallingUsers);
+      els.loadUsageBtn.addEventListener('click', loadUsageReport);
+      [els.searchInput, els.statusFilter, els.licenseFilter].forEach((el) => {
+        el.addEventListener('input', renderUsers);
+        el.addEventListener('change', renderUsers);
+      });
+    }
+
+    function init() {
+      initDateRange();
+      bindEvents();
+      loadCallingUsers();
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', init);
+    } else {
+      init();
+    }
+  })();
+  </script>
+</body>
+</html>

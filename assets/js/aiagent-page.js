@@ -1,6 +1,6 @@
 (function () {
   const KEYS = { bearer: 'authBearer', org: 'authOrg', orgName: 'authOrgName', user: 'authUserName' };
-  const FLOW_PROXY = window.ORBIT_PROXY_BASE + '/flows';
+  const FLOW_PROXY = (window.ORBIT_PROXY_BASE || '') + '/flows';
   const DEFAULT_PROJECT_ID = '5e5c9ad6d61f870d6d778c1b';
   const AI_UTIL_GLOBAL_VARIABLES = [
     {
@@ -2060,7 +2060,10 @@
     bindStudioEvents();
     bindAiUtilEvents();
     bindAutonomousEvents();
-    setActiveMode(pageState.activeMode);
+    const detectedMode = document.body.dataset.aiagentMode
+      || document.querySelector('[data-mode-panel]')?.dataset.modePanel
+      || pageState.activeMode;
+    setActiveMode(detectedMode);
     ensureAiUtilAssetsLoaded().catch((error) => {
       showAiUtilError(error.message || String(error));
       updateAiUtilPackageSummary();

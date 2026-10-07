@@ -1209,7 +1209,6 @@
 <body class="dark-mode">
   <script>if (localStorage.getItem("tpRailExpanded") === "true") document.body.classList.add("tp-rail-expanded");</script>
   <api-tools-header basepath="../../../"></api-tools-header>
-
   <main>
     <div class="wrap wide contentWrap">
       <section class="wizard-card">
@@ -1610,14 +1609,6 @@
 
   
   
-  <script src="../../../assets/js/orbit-config.js"></script>
-
-  
-  
-  <script src="../../../assets/js/components.js"></script>
-
-  
-  
   <script src="../../../assets/js/theme.js"></script>
   <script>
     const WIZARD_STATE_KEY = 'wxcc_wizard_state';
@@ -1772,7 +1763,7 @@
       if (storedId) return decodeOrgId(storedId) || storedId;
       const raw = (localStorage.getItem(cacheKeyOrg) || '').trim();
       if (raw) return decodeOrgId(raw) || raw;
-      return '';
+      return '5c3896e1-2ecc-4c84-ae93-be3bdab836a1';
     }
 
     const ORG_ID = resolveOrgId();
@@ -1794,7 +1785,11 @@
       { id: '4e46cf9a-4cca-4554-bf6c-44593df487d0', name: 'silence.wav' },
       { id: '5cbeca84-9557-41f6-b8f0-19844096906e', name: 'defaultmusic_on_hold.wav' }
     ];
-    const fallbackTeams = [];
+    const fallbackTeams = [
+      { id: '02f9a1ff-68ba-4a3e-b58f-6b376c9773d7', name: 'Team Kenley - 2' },
+      { id: '0c34a3c8-0ec2-4e78-adaa-ca6d9a594628', name: 'sowrabh_test_team' },
+      { id: '0eb617f0-4811-40de-a0a3-a27e5d3796ad', name: 'Test Team Tim' }
+    ];
     const fallbackSkills = [
       { id: '00000000-0000-0000-0000-000000000000', name: 'Default Skill' }
     ];
@@ -3144,6 +3139,63 @@
       ]);
     })();
 
+    (function initAuthModal(){
+      if (document.getElementById('authModal')) return;
+      const style = document.createElement('style');
+      style.textContent = `
+        .authModalOverlay{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;z-index:9999;padding:16px;}
+        .authModalOverlay.open{display:flex;}
+        .authCard{width:100%;max-width:520px;background:#131a2a;border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:18px;box-shadow:0 18px 36px rgba(0,0,0,.45);position:relative;}
+        .authCard h2{margin:0 0 8px;font-size:1.2rem;}
+        .authCard p{margin:0 0 12px;color:#92a0b8;line-height:1.4;}
+        .authCard .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:9px 14px;border-radius:12px;font-weight:700;border:1px solid rgba(255,255,255,.08);background:#0e1525;color:#e9edf5;cursor:pointer;text-decoration:none;}
+        .authCard .btn.webex{background:#07C;color:white;border:none;padding:11px 20px;}
+        .authCard .btn.webex:hover{background:#0069CC;}
+        .authClose{position:absolute;right:10px;top:10px;background:transparent;border:none;color:#92a0b8;font-size:18px;cursor:pointer;}
+      `;
+      document.head.appendChild(style);
+      const overlay = document.createElement('div');
+      overlay.className = 'authModalOverlay';
+      overlay.id = 'authModal';
+      overlay.innerHTML = `
+        <div class="authCard">
+          <button class="authClose" aria-label="Close">×</button>
+          <h2>Sign in with Webex</h2>
+          <p>Click below to authenticate with your Webex account.</p>
+          <button class="btn webex" id="authWebex" style="width:100%;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M19.7 7.3c-1.2-1.2-2.7-2-4.5-2.3-.3-1.6-1.2-3-2.5-4-1.4-1-3-1.6-4.7-1.6-2.2 0-4.2.8-5.7 2.3C.8 3.2 0 5.2 0 7.4c0 1.7.6 3.3 1.6 4.7 1 1.3 2.4 2.2 4 2.5.3 1.6 1.2 3 2.5 4 1.5 1 3.1 1.6 4.9 1.6 2.2 0 4.2-.8 5.7-2.3 1.5-1.5 2.3-3.5 2.3-5.7 0-1.8-.6-3.4-1.6-4.7-.1 0-.2-.1-.2-.2zM13 18.4c-1.3 0-2.5-.4-3.5-1.2-.9-.7-1.6-1.7-2-2.8l5.5-2 2 5.5c-1.1.3-1.3.5-2 .5zM7.5 13l-5.3 1.9c-.1-.6-.2-1.2-.2-1.8 0-1.7.6-3.2 1.7-4.3C4.8 7.6 6.4 7 8 7c.6 0 1.2.1 1.8.2L7.5 13zm11.2 2.8c-1.1 1.1-2.6 1.7-4.2 1.7-.6 0-1.2-.1-1.8-.2l2.3-6.3 5.3-1.9c.1.6.2 1.2.2 1.8 0 1.6-.6 3.1-1.8 4.2v-.3zm-7-11.3c1.3 0 2.5.4 3.5 1.2.9.7 1.6 1.7 2 2.8l-5.5 2-2-5.5c.6-.3 1.3-.5 2-.5zM3.3 8.8C4.4 7.7 5.9 7.1 7.5 7.1c.6 0 1.2.1 1.8.2L7 13.6l-5.3 1.9c-.1-.6-.2-1.2-.2-1.8 0-1.7.6-3.2 1.8-4.3v-.6z"/>
+            </svg>
+            Sign in with Webex
+          </button>
+        </div>
+      `;
+      document.body.appendChild(overlay);
+      const CLIENT_ID = 'Cc604fe2354b93ecd1eb3d799e69a4ce981649161c1e31253ae91805e95b54e64';
+      const REDIRECT_URI = 'https://cxasteam.bitbucket.io/opshub/callback.html';
+      const SCOPES = 'spark-admin:locations_write spark:all spark-admin:locations_read spark-admin:organizations_read spark:organizations_read spark-admin:workspace_locations_read spark-admin:places_read cjp:config_read spark:kms spark-admin:devices_read cjp:config_write spark-admin:workspace_locations_write spark-admin:places_write cjp:config spark-admin:devices_write spark-admin:telephony_config_read spark-admin:telephony_config_write audit:events_read spark-admin:licenses_read';
+      const closeBtn = overlay.querySelector('.authClose');
+      const webexBtn = overlay.querySelector('#authWebex');
+      const open = () => overlay.classList.add('open');
+      const close = () => overlay.classList.remove('open');
+      webexBtn.addEventListener('click', () => {
+        const authUrl = `https://webexapis.com/v1/authorize?client_id=${CLIENT_ID}&response_type=code&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&scope=${encodeURIComponent(SCOPES)}&state=${Date.now()}&prompt=consent`;
+        window.location.href = authUrl;
+      });
+      closeBtn.addEventListener('click', close);
+      overlay.addEventListener('click', (event) => {
+        if (event.target === overlay) close();
+      });
+      window.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') close();
+      });
+      document.querySelectorAll('.authLink').forEach((el) => {
+        el.addEventListener('click', (event) => {
+          event.preventDefault();
+          open();
+        });
+      });
+    })();
 
     function updateAuthIndicators() {
       const token = (localStorage.getItem(cacheKeyBearer) || '').trim();
@@ -3161,7 +3213,7 @@
     if (signOutBtn) {
       signOutBtn.addEventListener('click', () => {
         ['authBearer','authOrg','authOrgName','authOrgId','authUserName','authRefreshToken','authExpiresAt','authLoginMethod','authScopes'].forEach((key) => localStorage.removeItem(key));
-        window.location.href = '../../../index.html';
+        window.location.href = '../../index.html';
       });
     }
 

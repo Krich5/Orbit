@@ -17,6 +17,7 @@ app.use((req, res, next) => {
 app.use('/functions', express.json());
 app.use('/flows', express.text({ type: '*/*' }));
 app.use('/token', express.json());
+app.use('/user', express.json({ limit: '5mb' }));
 
 async function relay(res, url, { method = 'GET', headers = {}, body } = {}) {
   const upstream = await fetch(url, { method, headers, body });
@@ -141,6 +142,69 @@ app.get('/status', async (req, res) => {
   }
 
   res.json({ items, fetched: new Date().toISOString() });
+});
+
+// Resolve either an atlas-a UUID or a Webex base64 org id to the UUID form.
+function resolveAtlasOrgId(orgId) {
+  if (/^[0-9a-f-]{36}$/i.test(orgId)) return orgId;
+  try {
+    const normalized = orgId.replace(/-/g, '+').replace(/_/g, '/');
+    const decoded = Buffer.from(normalized, 'base64').toString('utf8');
+    const m = decoded.match(/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})$/i);
+    if (m) return m[1];
+  } catch (_) {}
+  return encodeURIComponent(orgId);
+}
+
+app.post('/user', async (req, res) => {
+  const input = req.body || {};
+  const { action, orgId, bearer } = input;
+  if (!action || !orgId || !bearer) return res.status(400).json({ error: 'Missing action, orgId, or bearer' });
+
+  const token = String(bearer).replace(/^Bearer\s+/i, '').trim();
+  const atlasOrg = resolveAtlasOrgId(orgId);
+  const headers = {
+    Authorization: `Bearer ${token}`,
+    'Content-Type': 'application/json',
+    Accept: 'application/json',
+    // atlas-a.wbx2.com requires a browser-like UA to pass the Cisco WAF.
+    'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+    'Accept-Language': 'en-US,en;q=0.9',
+  };
+
+  if (action === 'ccRoles' || action === 'adminRoles') {
+    const users = input.users;
+    if (!users) return res.status(400).json({ error: 'Missing users payload' });
+    const path = action === 'ccRoles' ? 'contactCenterRoles' : 'roles';
+    const url = `https://atlas-a.wbx2.com/admin/api/v1/organization/${atlasOrg}/users/${path}`;
+    const upstream = await fetch(url, { method: 'PATCH', headers, body: JSON.stringify({ users }) });
+    const text = await upstream.text();
+    return res.status(upstream.status).set('Content-Type', 'application/json').send(text);
+  }
+
+  if (action === 'scimUsers') {
+    const pageSize = 100;
+    let startIndex = 1;
+    const all = [];
+    let total = Infinity;
+    while (all.length < total) {
+      const url = `https://identity-b-us.webex.com/identity/scim/${encodeURIComponent(atlasOrg)}/v2/Users`
+                + `?count=${pageSize}&startIndex=${startIndex}&attributes=userName,roles`;
+      const upstream = await fetch(url, { headers });
+      const text = await upstream.text();
+      if (!upstream.ok) return res.status(upstream.status).set('Content-Type', 'application/json').send(text);
+      let page;
+      try { page = JSON.parse(text); } catch { return res.status(502).json({ error: 'Upstream SCIM returned non-JSON' }); }
+      const resources = Array.isArray(page.Resources) ? page.Resources : [];
+      all.push(...resources);
+      total = Number(page.totalResults) || 0;
+      startIndex += pageSize;
+      if (resources.length < pageSize) break;
+    }
+    return res.json({ totalResults: all.length, Resources: all });
+  }
+
+  return res.status(400).json({ error: 'Unsupported action' });
 });
 
 app.post('/token', async (req, res) => {

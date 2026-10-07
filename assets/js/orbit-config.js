@@ -8,6 +8,12 @@ window.ORBIT_PROXY_BASE = 'https://orbit-proxy-production.up.railway.app';
    (see proxy/server.js's /token route). */
 window.ORBIT_CLIENT_ID = 'C19a534d8366696294375f2e7cdbd6932642a1f8f84a85567029369c0e142d76d';
 window.ORBIT_REDIRECT_URI = 'https://krich5.github.io/Orbit/callback.html';
+/* Admin flag — Orbit carried this over from a server-side PHP email
+   allow-list. In Orbit this stays off by default (admin pages still
+   render; features gated on it just stay hidden until we wire a real
+   admin gate). */
+window.OPSHUB_IS_ADMIN_USER = window.OPSHUB_IS_ADMIN_USER || false;
+
 window.ORBIT_OAUTH_SCOPES = [
   'spark-admin:organizations_read',
   'spark-admin:people_read',

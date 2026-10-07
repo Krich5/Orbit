@@ -12,7 +12,7 @@
   <link rel="icon" type="image/png" href="../../assets/images/Orbit_Icon-192.png" />
   <style>
     main { padding:32px 0 80px; display:flex; justify-content:flex-start; }
-    .layout { display:grid; grid-template-columns:minmax(360px, 480px) minmax(0, 1fr); gap:16px; align-items:start; }
+    .layout { display:flex; flex-direction:column; gap:16px; align-items:stretch; }
     .panelHeader { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; margin-bottom:14px; }
     .panelTitle { margin:0; font-size:18px; font-weight:700; color:var(--fg); }
     .panelSub { margin:4px 0 0; color:var(--muted); font-size:13px; line-height:1.5; }
@@ -20,9 +20,6 @@
     .editorCard { border:1px solid var(--border); border-radius:16px; overflow:hidden; background:var(--panel); }
     .editorToolbar { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:12px 14px; border-bottom:1px solid var(--border); flex-wrap:wrap; }
     .editorActions { display:flex; gap:8px; flex-wrap:wrap; }
-    @media (max-width: 1180px) {
-      .layout { grid-template-columns:1fr; }
-    }
 
     /* ── Function Builder ──────────────────────────────────────────────────── */
     .fb-mono { font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace; }
@@ -128,24 +125,13 @@
 <body class="dark-mode">
   <script>if (localStorage.getItem("tpRailExpanded") === "true") document.body.classList.add("tp-rail-expanded");</script>
   <api-tools-header basepath="../../"></api-tools-header>
-
   <main>
     <div class="wrap wide contentWrap">
-      <section class="card" style="margin-bottom:16px;">
-        <div class="pageHeader">
-          <h1>Function Builder</h1>
-          <p class="lead">Generate a lookup-table Python function from an input variable and a set of key/value rows, then copy it into a Function Store entry.</p>
-        </div>
-        <div class="toolbar">
-          <a class="btn" href="functions.html">&larr; Functions</a>
-        </div>
-      </section>
-
       <div class="layout">
         <section class="card">
           <div class="panelHeader">
             <div>
-              <h2 class="panelTitle">Lookup Table</h2>
+              <h2 class="panelTitle">Table Builder</h2>
               <p class="panelSub">Set the input variable, then add columns and rows for each input &rarr; output mapping.</p>
             </div>
           </div>
@@ -208,10 +194,6 @@
 
     </div>
   </main>
-
-  <script src="../../assets/js/orbit-config.js"></script>
-
-  <script src="../../assets/js/components.js"></script>
 
   <script src="../../assets/js/theme.js"></script>
   <script>

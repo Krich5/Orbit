@@ -345,7 +345,6 @@
 <body class="dark-mode">
   <script>if (localStorage.getItem("tpRailExpanded") === "true") document.body.classList.add("tp-rail-expanded");</script>
   <api-tools-header basepath="../../"></api-tools-header>
-
   <main>
     <div class="wrap wide contentWrap">
       <section class="card">
@@ -365,8 +364,6 @@
       </section>
     </div>
   </main>
-    <script src="../../assets/js/orbit-config.js"></script>
-    <script src="../../assets/js/components.js"></script>
     <script src="../../assets/js/theme.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -4089,6 +4086,11 @@
             const width = Math.max(1, renderedWidth || 1200);
             const height = Math.max(1, renderedHeight || 800);
             const canvas = document.createElement('canvas');
+            // Keep 2x scaling in both interactive and as-built capture
+            // paths so exported flow PDFs stay sharp. If a huge bundle
+            // (~80+ flows at 2x) OOMs JSZip during packaging, the
+            // as-built code catches it and falls back to downloading
+            // each PDF individually -- lossless, just no .zip wrapper.
             const scale = 2;
             canvas.width = Math.ceil(width * scale);
             canvas.height = Math.ceil(height * scale);
@@ -4141,8 +4143,20 @@
           }
 
           if (doc) {
-            doc.save(`${sanitizeFilename(flowName)}_flow_diagram.pdf`);
-            if (statusText) statusText.textContent = 'PDF saved.';
+            // Capture mode is set by the As-Built page when it drives
+            // this button through a hidden iframe -- we skip the
+            // browser download and hand the blob back instead.
+            if (window.__asbuiltCaptureMode) {
+              try {
+                window.__asbuiltCapturedBlob = doc.output('blob');
+              } catch (e) {
+                window.__asbuiltCaptureError = e && e.message ? e.message : String(e);
+              }
+              if (statusText) statusText.textContent = 'PDF saved.';
+            } else {
+              doc.save(`${sanitizeFilename(flowName)}.pdf`);
+              if (statusText) statusText.textContent = 'PDF saved.';
+            }
           }
         } catch (err) {
           if (statusText) statusText.textContent = `PDF export failed: ${err.message}`;
@@ -4518,6 +4532,75 @@
     });
 
     fetchFlows();
+
+    // ─── As-Built bridge ──────────────────────────────────────────────
+    // The Admin > Create WxCC As-Built page loads this file in a hidden
+    // iframe and calls the helpers below to render every flow to a PDF
+    // Blob, which it then bundles into a .zip. Nothing here fires on
+    // normal use of this page -- helpers only run when the as-built
+    // page invokes them.
+    window.__asbuiltGetFlows = function () {
+      return Array.isArray(flows) ? flows.map(function (f) {
+        return { id: f?.id, name: (typeof getFlowName === 'function' ? getFlowName(f) : (f?.name || f?.id)) };
+      }).filter(function (f) { return f.id; }) : [];
+    };
+
+    // Opens a flow's diagram, generates the PDF the same way the "Save
+    // PDF" button does, and returns the raw Blob instead of triggering
+    // a browser download. Closes the modal on the way out.
+    //
+    // Uses a capture flag (window.__asbuiltCaptureMode) that the click
+    // handler above checks. Previous approach monkey-patched
+    // jsPDF.prototype.save but that didn't reliably intercept in this
+    // jsPDF build, so PDFs were downloading loose and no blobs made it
+    // into the zip.
+    window.__asbuiltRenderFlowToPdf = async function (flowId) {
+      const PdfDoc = typeof getPdfLibrary === 'function' ? getPdfLibrary() : null;
+      if (!PdfDoc) throw new Error('jsPDF not loaded on flows.html');
+      // Kick off the modal render.
+      await openFlowDiagram(flowId);
+      // Give the modal a beat to wire up its Save PDF click handler.
+      await new Promise(function (r) { setTimeout(r, 60); });
+      const modal = document.getElementById('flowDiagramModal');
+      const pdfBtn = modal ? modal.querySelector('#diagramDownloadPdfBtn') : null;
+      if (!pdfBtn) throw new Error('Diagram modal PDF button missing');
+      // Arm capture mode. The click handler above sees the flag, calls
+      // doc.output('blob') and stashes it on window.__asbuiltCapturedBlob
+      // instead of triggering a browser download.
+      window.__asbuiltCaptureMode = true;
+      window.__asbuiltCapturedBlob = null;
+      window.__asbuiltCaptureError = null;
+      try {
+        // The click handler is async; watch #statusText for its final
+        // "PDF saved." / "PDF export failed:" message.
+        const statusEl = document.getElementById('statusText');
+        const done = new Promise(function (resolve) {
+          if (!statusEl) { setTimeout(resolve, 4000); return; }
+          const obs = new MutationObserver(function () {
+            const t = statusEl.textContent || '';
+            if (t === 'PDF saved.' || /PDF export failed/i.test(t)) {
+              obs.disconnect();
+              resolve();
+            }
+          });
+          obs.observe(statusEl, { childList: true, characterData: true, subtree: true });
+          // Belt-and-suspenders timeout so a stuck render can't lock the batch.
+          setTimeout(function () { obs.disconnect(); resolve(); }, 30000);
+        });
+        pdfBtn.click();
+        await done;
+      } finally {
+        window.__asbuiltCaptureMode = false;
+        modal?.querySelector('#diagramCloseBtn')?.click();
+      }
+      const captured = window.__asbuiltCapturedBlob;
+      const err = window.__asbuiltCaptureError;
+      window.__asbuiltCapturedBlob = null;
+      window.__asbuiltCaptureError = null;
+      if (err) throw new Error(err);
+      if (!captured) throw new Error('No PDF blob captured');
+      return captured;
+    };
   </script>
 
 

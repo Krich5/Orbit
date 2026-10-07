@@ -1070,3 +1070,62 @@
   });
 })();
 
+/* ── Auth modal (custom Webex sign-in, used for mid-session re-auth) ── */
+(function initAuthModal() {
+  if (document.getElementById('authModal')) return;
+
+  const CLIENT_ID    = 'Cc604fe2354b93ecd1eb3d799e69a4ce981649161c1e31253ae91805e95b54e64';
+  const REDIRECT_URI = 'https://cxasteam.bitbucket.io/opshub/callback.html';
+  const SCOPES       = 'spark-admin:locations_write spark:all spark-admin:locations_read spark-admin:organizations_read spark:organizations_read spark-admin:workspace_locations_read spark-admin:places_read cjp:config_read spark:kms spark-admin:devices_read cjp:config_write spark-admin:workspace_locations_write spark-admin:places_write cjp:config spark-admin:devices_write spark-admin:telephony_config_read spark-admin:telephony_config_write audit:events_read spark-admin:licenses_read';
+
+  const style = document.createElement('style');
+  style.textContent = `
+    .authModalOverlay{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;z-index:9999;padding:16px;}
+    .authModalOverlay.open{display:flex;}
+    .authCard{width:100%;max-width:520px;background:#131a2a;border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:18px;box-shadow:0 18px 36px rgba(0,0,0,.45);position:relative;}
+    .authCard h2{margin:0 0 8px;font-size:1.2rem;color:#f0f4f8;}
+    .authCard p{margin:0 0 12px;color:#92a0b8;line-height:1.4;}
+    .authCard .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:9px 14px;border-radius:12px;font-weight:700;border:1px solid rgba(255,255,255,.08);background:#0e1525;color:#e9edf5;cursor:pointer;}
+    .authCard .btn.webex{background:#07C;color:white;border:none;padding:11px 20px;width:100%;}
+    .authCard .btn.webex:hover{background:#0069CC;}
+    .authClose{position:absolute;right:10px;top:10px;background:transparent;border:none;color:#92a0b8;font-size:18px;cursor:pointer;}
+    .authStatus{margin-top:8px;font-size:13px;color:#92a0b8;}
+  `;
+  document.head.appendChild(style);
+
+  const overlay = document.createElement('div');
+  overlay.className = 'authModalOverlay';
+  overlay.id = 'authModal';
+  overlay.innerHTML = `
+    <div class="authCard">
+      <button class="authClose" aria-label="Close">×</button>
+      <h2>Sign in with Webex</h2>
+      <p>Click below to authenticate with your Webex account.</p>
+      <button class="btn webex" id="authWebex">Sign in with Webex</button>
+      <div class="authStatus" id="authModalStatus"></div>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+
+  const statusEl = overlay.querySelector('#authModalStatus');
+  const closeBtn = overlay.querySelector('.authClose');
+
+  function updateStatus() {
+    const orgName = localStorage.getItem('authOrgName') || localStorage.getItem('authOrg') || '';
+    if (statusEl) statusEl.textContent = orgName ? `Org: ${orgName}` : '';
+  }
+
+  overlay.querySelector('#authWebex').addEventListener('click', () => {
+    const authUrl = `https://webexapis.com/v1/authorize?client_id=${CLIENT_ID}&response_type=code&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&scope=${encodeURIComponent(SCOPES)}&state=${Date.now()}&prompt=consent`;
+    window.location.href = authUrl;
+  });
+
+  const close = () => overlay.classList.remove('open');
+  closeBtn.addEventListener('click', close);
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
+  window.addEventListener('keydown', (e) => { if (e.key === 'Escape') close(); });
+
+  document.querySelectorAll('.authLink').forEach((el) => {
+    el.addEventListener('click', (e) => { e.preventDefault(); updateStatus(); overlay.classList.add('open'); });
+  });
+})();

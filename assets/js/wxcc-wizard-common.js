@@ -32,7 +32,7 @@
     if (storedId) return decodeOrgId(storedId) || storedId;
     const raw = (localStorage.getItem('authOrg') || '').trim();
     if (raw) return decodeOrgId(raw) || raw;
-    return '';
+    return '5c3896e1-2ecc-4c84-ae93-be3bdab836a1';
   }
 
   const ORG_ID = resolveOrgId();

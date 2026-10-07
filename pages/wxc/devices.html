@@ -1,0 +1,3415 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="light" />
+  <title>Webex Calling Device's</title>
+  <link rel="icon" type="image/png" href="../../assets/images/Orbit_Icon-192.png" />
+  <link rel="stylesheet" href="../../assets/css/theme.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
+    <script src="../../assets/js/theme.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+  <style>
+    main { padding:32px 0 80px; display:flex; justify-content:flex-start; }
+    .cardTitle {
+      font-size:1.2rem; 
+      font-weight:700; 
+      margin:0 0 8px; 
+      display:flex; 
+      align-items:center; 
+      gap:12px;
+    }
+    .cardSubtitle { 
+      font-size:.9rem; 
+      color:var(--muted); 
+      margin:0 0 20px; 
+      line-height:1.5;
+    }
+
+    .btn.small { padding:6px 12px; font-size:.85rem; }
+    body.dark-mode .modal .btn.secondary {
+      background: rgba(255,255,255,.08);
+      color: var(--fg);
+      border: 1px solid var(--border);
+    }
+
+    .statusMsg {
+      padding:12px 16px;
+      border-radius:10px;
+      font-size:.9rem;
+      display:flex;
+      align-items:flex-start;
+      gap:10px;
+      margin:12px 0;
+      line-height:1.5;
+    }
+    .statusMsg.info { background:rgba(59,130,246,.15); border:1px solid rgba(59,130,246,.3); color:#60a5fa; }
+    .statusMsg.success { background:rgba(16,185,129,.15); border:1px solid rgba(16,185,129,.3); color:#34d399; }
+    .statusMsg.error { background:rgba(239,68,68,.15); border:1px solid rgba(239,68,68,.3); color:#f87171; }
+    .statusMsg.warning { background:rgba(245,158,11,.15); border:1px solid rgba(245,158,11,.3); color:#fbbf24; }
+
+    .tableSection { 
+      background:rgba(255,255,255,.02); 
+      border:1px solid var(--border); 
+      border-radius:14px; 
+      overflow:hidden;
+      box-shadow:var(--shadow);
+    }
+    .tableToolbar { 
+      padding:12px 16px; 
+      border-bottom:1px solid var(--border); 
+      display:flex; 
+      gap:12px; 
+      align-items:center; 
+      flex-wrap:wrap;
+      background:var(--panel);
+    }
+    .tableToolbar .spacer { flex:1; }
+    .tableToolbar .pagerControls {
+      display:flex;
+      align-items:center;
+      gap:8px;
+      margin-left:auto;
+      font-size:.78rem;
+      color:var(--muted);
+    }
+    .tableToolbar .pageSizeSelect {
+      background:var(--input);
+      border:1px solid var(--border);
+      color:var(--fg);
+      border-radius:8px;
+      padding:4px 6px;
+      font-size:.78rem;
+    }
+    .tableToolbar .pageBtn {
+      background:var(--card);
+      border:1px solid var(--border);
+      color:var(--fg);
+      border-radius:8px;
+      padding:4px 8px;
+      font-size:.75rem;
+      cursor:pointer;
+    }
+    .tableToolbar .pageBtn:disabled { opacity:.5; cursor:not-allowed; }
+    .tableWrap { overflow:auto; max-height:820px; }
+    #addDevicesSection { position:relative; z-index:10; overflow:visible; }
+    #addDevicesSection .tableToolbar { border-top-left-radius:14px; border-top-right-radius:14px; }
+    #addDevicesSection .tableWrap { overflow:visible; }
+    #deviceListSection { position:relative; z-index:1; }
+    #addDevicesSection input,
+    #addDevicesSection select,
+    #deviceSearchInput {
+      background: var(--input);
+      border: 1px solid var(--border);
+      color: var(--fg);
+      border-radius: 10px;
+    }
+    #addDevicesSection input::placeholder,
+    #deviceSearchInput::placeholder { color: var(--muted); }
+    #addDevicesSection .btn.secondary.small,
+    #deviceListSection .btn.secondary.small,
+    #deviceViewSection .btn.secondary.small {
+      background:rgba(255,255,255,.06);
+      border:1px solid var(--border);
+      color:var(--fg);
+    }
+    table.dataTable { width:100%; border-collapse:collapse; min-width:800px; }
+    table.dataTable thead { position:sticky; top:0; background:var(--panel); z-index:1; }
+    table.dataTable th { 
+      padding:12px; 
+      text-align:left; 
+      font-weight:700; 
+      font-size:.8rem; 
+      color:var(--fg); 
+      border-bottom:1px solid var(--border);
+      letter-spacing:.01em;
+    }
+    table.dataTable td { 
+      padding:12px; 
+      border-bottom:1px solid var(--border); 
+      font-size:.85rem;
+      background:rgba(255,255,255,.02);
+    }
+    table.dataTable tbody tr { transition:background .15s ease; }
+    table.dataTable tbody tr:nth-child(even) td { background:rgba(255,255,255,.03); }
+    table.dataTable tbody tr:hover td { background:rgba(59,130,246,.08); }
+    table.dataTable tbody tr.clickRow { cursor:pointer; }
+    table.dataTable tbody tr.active { background:rgba(34,211,238,.12); }
+    #addDevicesTable { border-collapse:separate; border-spacing:0; }
+    #addDevicesTable thead th:first-child { border-top-left-radius:12px; }
+    #addDevicesTable thead th:last-child { border-top-right-radius:12px; }
+    #addDevicesTable tbody tr:last-child td { border-bottom:none; }
+    .productCell { display:flex; align-items:center; gap:10px; }
+    .productIcon { width:28px; height:28px; border-radius:0; object-fit:contain; background:transparent; border:none; padding:0; }
+    .platformCell { display:flex; align-items:center; gap:8px; }
+    .platformIcon { height:16px; width:auto; display:block; opacity:.9; }
+    .ownerCell { display:flex; align-items:center; gap:10px; min-width:0; }
+    .ownerAvatar { width:28px; height:28px; border-radius:50%; object-fit:cover; background:rgba(255,255,255,.08); }
+    .ownerName { font-size:.85rem; color:var(--fg); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .mono { font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; font-size:.8rem; }
+    .statusPill { display:inline-flex; align-items:center; gap:8px; font-size:.85rem; }
+    .statusDot { width:10px; height:10px; border-radius:50%; background:#94a3b8; display:inline-block; }
+    .statusDot.online { background:#22c55e; }
+    .statusDot.offline { background:#ef4444; }
+    .statusDot.issues { background:#f59e0b; }
+
+    .detailControls { display:flex; gap:8px; align-items:center; }
+    .detailControls select { background:var(--card); border:1px solid var(--border); color:var(--fg); padding:6px 10px; border-radius:10px; font-size:.85rem; }
+    .detailsFields { display:flex; flex-wrap:wrap; gap:10px; padding:10px; border:1px solid var(--border); border-radius:12px; background:rgba(255,255,255,.03); margin-bottom:10px; }
+    .detailsFields label { display:flex; align-items:center; gap:6px; font-size:.8rem; color:var(--muted); margin:0; }
+    .detailGrid { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:10px; }
+    .detailCard { background:var(--input); border:1px solid var(--border); border-radius:10px; padding:10px 12px; }
+    .detailLabel { font-size:.75rem; color:var(--muted); margin-bottom:4px; text-transform:uppercase; letter-spacing:.02em; }
+    .detailValue { font-size:.9rem; color:var(--fg); word-break:break-word; }
+    .layoutGrid { display:grid; grid-template-columns:repeat(2,minmax(260px,1fr)); gap:12px; grid-auto-flow:column; }
+    .layoutCard { background:var(--input); border:1px solid var(--border); border-radius:10px; padding:10px 12px; }
+    .layoutIndex { font-size:.75rem; color:var(--muted); margin-bottom:4px; text-transform:uppercase; letter-spacing:.02em; }
+    .layoutValue { font-size:.9rem; color:var(--fg); word-break:break-word; }
+    .layoutEditor { width:100%; min-height:240px; background:var(--input); border:1px solid var(--border); color:var(--fg); border-radius:12px; padding:12px; font-family:ui-monospace, monospace; font-size:.85rem; line-height:1.5; display:none; }
+    .layoutField { display:flex; flex-direction:column; gap:6px; margin-top:8px; font-size:.8rem; color:var(--muted); }
+    .layoutField input,
+    .layoutField select { background:var(--card); border:1px solid var(--border); color:var(--fg); padding:8px 10px; border-radius:10px; font-size:.85rem; }
+    .layoutField input:focus,
+    .layoutField select:focus { outline:2px solid rgba(59,130,246,.25); }
+    .deviceSplit { display:grid; grid-template-columns:minmax(240px, 360px) minmax(0, 1fr); gap:16px; align-items:start; padding:0 12px; }
+    .deviceInfoCard,
+    .deviceSpeedDialCard {
+      background:var(--input);
+      border:1px solid var(--border);
+      border-radius:12px;
+      overflow:hidden;
+      display:flex;
+      flex-direction:column;
+    }
+    .deviceSpeedDialCard { border:none; background:transparent; }
+    .deviceSpeedDialCard .tableToolbar { min-height:46px; }
+    .deviceInfoCard { padding:16px; }
+    .deviceInfoHeader { display:flex; gap:14px; align-items:center; margin-bottom:12px; }
+    .deviceIconWrap {
+      width:64px;
+      height:64px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+    }
+    .deviceIcon { width:64px; height:64px; object-fit:contain; }
+    .deviceName { font-size:1.1rem; font-weight:700; }
+    .deviceProduct { font-size:.9rem; color:var(--muted); }
+    .deviceMetaList { display:flex; flex-direction:column; border-top:1px solid rgba(255,255,255,.08); }
+    .deviceMetaRow {
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:20px;
+      padding:12px 0;
+      border-bottom:1px solid rgba(255,255,255,.08);
+    }
+    .deviceMetaBlock { display:flex; flex-direction:column; gap:6px; }
+    .deviceMetaLabel { font-size:.75rem; color:var(--muted); text-transform:uppercase; letter-spacing:.04em; }
+    .deviceMetaValue { font-size:.98rem; color:var(--fg); word-break:break-word; }
+    .statusBadge { display:inline-flex; align-items:center; gap:6px; }
+    .speedDialList { padding:12px; }
+    .speedDialTable { border:1px solid var(--border); border-radius:12px; overflow:hidden; }
+    .speedDialHeader {
+      display:grid;
+      grid-template-columns:80px 1fr 80px 1fr;
+      background:var(--panel);
+      font-size:.75rem;
+      text-transform:uppercase;
+      letter-spacing:.06em;
+      color:var(--muted);
+      font-weight:600;
+      border-bottom:1px solid var(--border);
+    }
+    .speedDialHead { padding:10px 12px; border-right:1px solid var(--border); }
+    .speedDialHead:last-child { border-right:none; }
+    .speedDialBody { display:flex; flex-direction:column; }
+    .speedDialRow {
+      display:grid;
+      grid-template-columns:80px 1fr 80px 1fr;
+      border-bottom:1px solid var(--border);
+      background:var(--card);
+    }
+    .speedDialRow:nth-child(odd) { background:var(--panel); }
+    .speedDialRow:last-child { border-bottom:none; }
+    .speedDialCell {
+      padding:12px;
+      border-right:1px solid var(--border);
+      min-height:84px;
+      display:flex;
+      align-items:flex-start;
+      justify-content:center;
+    }
+    .speedDialCell:last-child { border-right:none; }
+    .speedDialOrder { font-size:1.05rem; font-weight:700; color:var(--fg); }
+    .speedDialAssignment { width:100%; display:flex; flex-direction:column; gap:6px; }
+    .speedDialInput {
+      width:100%;
+      background:transparent;
+      border:none;
+      color:var(--fg);
+      font-size:.95rem;
+      padding:2px 0;
+    }
+    .speedDialInput[disabled] { color:var(--muted); }
+    .speedDialInput::placeholder { color:var(--muted); }
+    .speedDialInput:focus { outline:none; border-bottom:1px solid rgba(34,211,238,.6); }
+    .speedDialRead { font-size:.98rem; color:var(--fg); }
+    .speedDialRead.muted { color:var(--muted); letter-spacing:.08em; text-transform:uppercase; }
+    .speedDialSub { font-size:.8rem; color:var(--muted); }
+    .speedDialHidden { display:none; }
+    .speedDialType { font-size:.75rem; color:var(--muted); }
+    .speedDialActions { display:flex; justify-content:flex-end; gap:8px; padding:10px 12px 12px; }
+    @media (max-width:900px) {
+      .layoutGrid { grid-template-columns:1fr; }
+      .deviceSplit { grid-template-columns:1fr; }
+      .speedDialHeader { grid-template-columns:70px 1fr; }
+      .speedDialHead.rightHead { display:none; }
+      .speedDialRow { grid-template-columns:70px 1fr; }
+      .speedDialCell.rightCol { grid-row:2; }
+      .speedDialCell.leftCol { grid-row:1; }
+      .speedDialCell.rightCol { border-right:none; border-top:1px solid rgba(255,255,255,.06); }
+      .deviceMetaRow { grid-template-columns:1fr; }
+    }
+    .miniTable input,
+    .miniTable select { width:100%; background:var(--input); border:1px solid var(--border); color:var(--fg); border-radius:8px; padding:8px 10px; font-size:.85rem; }
+    .miniTable td { vertical-align:top; }
+    .statusCell { font-size:.8rem; color:var(--muted); }
+    .userPicker { position:relative; }
+    .userInputWrap { position:relative; }
+    .userClear {
+      position:absolute;
+      right:6px;
+      top:50%;
+      transform:translateY(-50%);
+      background:transparent;
+      border:none;
+      color:var(--muted);
+      cursor:pointer;
+      font-size:16px;
+      line-height:1;
+      padding:2px 6px;
+    }
+    .userClear:hover { color:var(--fg); }
+    .userDropdown {
+      position:absolute;
+      left:0;
+      right:0;
+      margin-top:6px;
+      background:var(--card);
+      border:1px solid var(--border);
+      border-radius:10px;
+      max-height:220px;
+      overflow:auto;
+      box-shadow:var(--shadow);
+      z-index:50;
+      display:none;
+    }
+    .userOption {
+      padding:8px 10px;
+      font-size:.85rem;
+      color:var(--fg);
+      cursor:pointer;
+      border-bottom:1px solid var(--border);
+    }
+    .userOption:last-child { border-bottom:none; }
+    .userOption:hover { background:rgba(59,130,246,.18); }
+    .userOption.isHint { color:var(--muted); cursor:default; }
+    .userOption.isHint:hover { background:transparent; }
+    .userDropdown::-webkit-scrollbar { width:8px; }
+    .userDropdown::-webkit-scrollbar-track { background:var(--panel); }
+    .userDropdown::-webkit-scrollbar-thumb { background:rgba(148,163,184,.4); border-radius:999px; }
+    .userDropdownControls {
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:8px;
+      padding:8px 10px;
+      border-bottom:1px solid var(--border);
+      background:var(--panel);
+      font-size:.78rem;
+      color:var(--muted);
+      position:sticky;
+      top:0;
+      z-index:1;
+    }
+    .userPageSize {
+      background:var(--input);
+      border:1px solid var(--border);
+      color:var(--fg);
+      border-radius:8px;
+      padding:4px 6px;
+      font-size:.75rem;
+    }
+    .userPager {
+      display:flex;
+      align-items:center;
+      gap:6px;
+    }
+    .userPageBtn {
+      background:var(--card);
+      border:1px solid var(--border);
+      color:var(--fg);
+      border-radius:8px;
+      padding:4px 8px;
+      font-size:.72rem;
+      cursor:pointer;
+    }
+    .userPageBtn:disabled {
+      opacity:.5;
+      cursor:not-allowed;
+    }
+    .userPageInfo {
+      font-size:.72rem;
+      color:var(--muted);
+    }
+    body.dark-mode .userDropdown {
+      background:#0f172a;
+      border:1px solid rgba(255,255,255,.12);
+      box-shadow:0 18px 36px rgba(0,0,0,.45);
+    }
+    body.dark-mode .userOption { border-bottom:1px solid rgba(255,255,255,.06); }
+    body.dark-mode .userDropdown::-webkit-scrollbar-track { background:rgba(255,255,255,.04); }
+    body.dark-mode .userDropdownControls {
+      background:rgba(255,255,255,.04);
+      border-bottom:1px solid rgba(255,255,255,.12);
+      color:var(--muted);
+    }
+    body.dark-mode .userPageBtn {
+      background:rgba(255,255,255,.06);
+      border-color:rgba(255,255,255,.18);
+    }
+    .hiddenFile { display:none; }
+    table.dataTable .empty { padding:40px; text-align:center; color:var(--muted); }
+
+    .console {
+      background:var(--input);
+      border:1px solid var(--border);
+      border-radius:12px;
+      padding:16px;
+      font-family:ui-monospace, monospace;
+      font-size:.85rem;
+      max-height:300px;
+      overflow:auto;
+      line-height:1.6;
+    }
+    .console .logLine { margin:4px 0; }
+    .console .logLine.error { color:#f87171; }
+    .console .logLine.success { color:#34d399; }
+    .console .logLine.warn { color:#fbbf24; }
+
+    .progressBar {
+      height:8px;
+      background:var(--input);
+      border:1px solid var(--border);
+      border-radius:999px;
+      overflow:hidden;
+      margin:16px 0;
+    }
+    .progressFill {
+      height:100%;
+      background:linear-gradient(90deg,var(--accentA),var(--accentB));
+      width:0%;
+      transition:width .3s ease;
+    }
+    .progressText {
+      font-size:.85rem;
+      color:var(--muted);
+      text-align:center;
+    }
+
+    .spinner {
+      display:inline-block;
+      width:16px;
+      height:16px;
+      border:2px solid rgba(255,255,255,.3);
+      border-top-color:var(--fg);
+      border-radius:50%;
+      animation:spin 0.6s linear infinite;
+    }
+    @keyframes spin {
+      to { transform:rotate(360deg); }
+    }
+
+    .tp-header {
+      position: static;
+    }
+
+    .modalOverlay {
+      position:fixed;
+      inset:0;
+      background:rgba(0,0,0,.7);
+      display:none;
+      align-items:center;
+      justify-content:center;
+      z-index:9999;
+      padding:20px;
+    }
+    #authModal { z-index: 50; }
+    .modalOverlay.open { display:flex; }
+    .modal {
+      background:var(--card);
+      border:1px solid var(--border);
+      border-radius:16px;
+      max-width:600px;
+      width:100%;
+      max-height:90vh;
+      overflow:auto;
+      box-shadow:0 24px 48px rgba(0,0,0,.5);
+    }
+    .modalHeader {
+      padding:20px 24px;
+      border-bottom:1px solid var(--border);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+    }
+    .modalHeader h3 { margin:0; font-size:1.1rem; }
+    .modalClose {
+      background:transparent;
+      border:none;
+      color:var(--muted);
+      font-size:24px;
+      cursor:pointer;
+      padding:0;
+      width:32px;
+      height:32px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      border-radius:6px;
+      transition:all .2s;
+    }
+    .modalClose:hover { background:rgba(255,255,255,.1); color:var(--fg); }
+    .modalBody { padding:24px; }
+
+    .successModalOverlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.45);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 10000;
+      padding: 16px;
+      opacity: 0;
+      transition: opacity 0.2s ease;
+    }
+    .successModalOverlay.show { opacity: 1; }
+    .successCard {
+      width: 100%;
+      max-width: 460px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 24px;
+      box-shadow: 0 18px 40px rgba(0, 0, 0, 0.25);
+      text-align: center;
+      transform: scale(0.98);
+      transition: transform 0.2s ease;
+    }
+    .successModalOverlay.show .successCard { transform: scale(1); }
+    .successIcon {
+      margin: 0 auto 14px;
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #159DD8, #159DD8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #06111d;
+    }
+    .successCard h2 { margin: 0 0 10px; font-size: 1.35rem; color: var(--fg); }
+    .successMsg { margin: 0 0 8px; font-size: .95rem; color: var(--fg); line-height: 1.5; }
+    .successCard .confirmList { margin: 0 0 8px 18px; padding: 0; color: var(--fg); }
+    .iconBtn { background:transparent; border:1px solid var(--border); border-radius:8px; color:var(--muted); width:28px; height:28px; min-width:28px; display:inline-flex; align-items:center; justify-content:center; cursor:pointer; }
+    .iconBtn:hover { color:var(--fg); border-color:rgba(255,255,255,.2); }
+    body.dark-mode .successCard .btn.secondary {
+      background: rgba(255,255,255,.08);
+      color: var(--fg);
+      border: 1px solid var(--border);
+    }
+
+    .hidden { display:none !important; }
+    .mt-4 { margin-top:16px; }
+    .flex { display:flex; }
+    .gap-2 { gap:8px; }
+
+    @media (max-width:768px) {
+      .flex { flex-direction:column; }
+      header { padding:8px 10px; }
+      .wrap { flex-direction:column; align-items:center; gap:8px; }
+      .center { order:-1; }
+      .logo { height:24px; margin:0 auto; display:block; }
+      .left, .right { width:100%; justify-content:center; }
+      .right { flex-direction:column; gap:6px; align-items:center; }
+      .userInfo { text-align:center; font-size:.78rem; }
+      .btn.backBtn, .btnLink {
+        width:min(220px, 80%);
+        justify-content:center;
+        padding:6px 10px;
+        min-height:32px;
+        font-size:.85rem;
+      }
+      main { padding:12px 0 60px; }
+      .contentWrap { padding:0 12px; gap:16px; align-items:stretch; }
+      .card { padding:14px; }
+      .cardTitle { font-size:1.05rem; }
+      .tableToolbar { flex-direction:column; align-items:stretch; }
+      .tableToolbar input { width:100%; }
+      .tableWrap { overflow-x:auto; }
+      table.dataTable { min-width:640px; }
+      #addDevicesSection .tableWrap { overflow-x:auto; }
+      #addDevicesSection table.dataTable { min-width:640px; }
+      .deviceSplit { padding:0; }
+      .deviceInfoHeader { flex-direction:row; align-items:center; }
+      .deviceIconWrap { width:52px; height:52px; }
+      .deviceIcon { width:52px; height:52px; }
+      .deviceMetaRow { padding:10px 0; }
+      .speedDialHeader { grid-template-columns:60px 1fr; }
+      .speedDialHead.rightHead { display:none; }
+      .speedDialRow { grid-template-columns:60px 1fr; }
+      .speedDialCell.rightCol { grid-row:2; border-top:1px solid rgba(255,255,255,.06); }
+      .speedDialCell.leftCol { grid-row:1; }
+    }
+    @media (max-width:520px) {
+      .cardTitle { font-size:1rem; flex-wrap:wrap; gap:8px; }
+      .cardTitle span { font-size:1rem; }
+      #deviceViewTitle { font-size:.9rem; white-space:normal; }
+      .btn.backBtn, .btnLink { width:min(200px, 86%); }
+    }
+    @media (max-width:640px) {
+      table.dataTable th,
+      table.dataTable td { padding:8px 10px; font-size:.8rem; }
+      #devicesTable th:nth-child(3),
+      #devicesTable td:nth-child(3),
+      #devicesTable th:nth-child(5),
+      #devicesTable td:nth-child(5),
+      #devicesTable th:nth-child(8),
+      #devicesTable td:nth-child(8) { display:none; }
+      #devicesTable th:nth-child(9),
+      #devicesTable td:nth-child(9) { width:44px; }
+      #devicesTable .iconBtn { width:24px; height:24px; min-width:24px; font-size:14px; }
+      .row { flex-direction:column; align-items:stretch; }
+      .row .btn { width:100%; justify-content:center; }
+    }
+  </style>
+</head>
+<body class="dark-mode">
+  <script>if (localStorage.getItem("tpRailExpanded") === "true") document.body.classList.add("tp-rail-expanded");</script>
+  <api-tools-header basepath="../../"></api-tools-header>
+  <main>
+    <div class="wrap wide contentWrap">
+      <!-- Device Reference (Working Endpoint) -->
+      <section class="card">
+        <div class="pageHeader" style="margin-bottom:16px;">
+          <h1>Devices</h1>
+          <p class="lead">Bulk virtual line setup, assignment, and device add-ons.</p>
+        </div>
+        <h2 class="cardTitle">
+          <span>📱</span>
+          Devices
+        </h2>
+
+        <section class="tableSection" id="addDevicesSection" style="margin:8px 0 18px;">
+          <div class="tableToolbar" style="margin-bottom:10px;">
+            <span style="font-weight:700;color:var(--fg);">Upload Devices</span>
+            <span class="spacer"></span>
+            <span class="hint" id="userLoadStatus"></span>
+          </div>
+          <div class="hint" style="padding:0 12px 10px;color:var(--muted);">
+            Upload a CSV or add rows manually. Download a template to match line keys to a device model.
+          </div>
+          <div class="row" style="gap:10px;margin-bottom:12px;flex-wrap:wrap;padding-left:10px;">
+            <button class="btn secondary small" id="uploadDevicesCsvBtn" type="button">Upload CSV</button>
+            <button class="btn secondary small" id="downloadTemplateBtn" type="button">Download Template</button>
+            <button class="btn primary small" id="runAddDevicesBtn" type="button">Add devices</button>
+            <input id="devicesCsvInput" type="file" accept=".csv" class="hiddenFile" />
+          </div>
+          <div class="tableWrap">
+            <table class="dataTable miniTable" id="addDevicesTable">
+              <thead>
+                <tr>
+                  <th>Device MAC</th>
+                  <th>Model</th>
+                  <th id="addDevicesTargetHeader">
+                    <div style="display:flex;align-items:center;gap:8px;white-space:nowrap;">
+                      <span id="addDevicesTargetLabel">Assign to</span>
+                      <select id="addDeviceTargetSelect" class="pageSizeSelect" style="min-width:140px;">
+                        <option value="user" selected>User</option>
+                        <option value="workspace">Workspace</option>
+                      </select>
+                    </div>
+                  </th>
+                  <th>Primary Line</th>
+                  <th>Layout</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </section>
+
+        <div class="modalOverlay" id="addLayoutModal" aria-hidden="true">
+          <div class="modal" style="max-width:960px;width:100%;">
+            <div class="modalHeader">
+              <h3>Change Layout</h3>
+              <button class="modalClose" id="closeAddLayoutModal" aria-label="Close">×</button>
+            </div>
+            <div class="modalBody">
+              <div class="hint" id="addLayoutNote" style="margin-bottom:10px;"></div>
+              <div class="layoutGrid" id="addLayoutGrid"></div>
+              <div class="row actions" style="margin-top:16px;justify-content:flex-end;">
+                <button class="btn secondary" id="cancelAddLayoutBtn" type="button">Cancel</button>
+                <button class="btn primary" id="saveAddLayoutBtn" type="button">Save Layout</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="tableSection" id="deviceListSection" style="display:none;">
+          <div class="tableToolbar">
+            <span style="font-weight:700;color:var(--fg);">Active Devices</span>
+            <input type="text" id="deviceSearchInput" placeholder="Search devices..." style="flex:1;padding:8px 10px;font-size:12px;" />
+            <span class="spacer"></span>
+            <div class="pagerControls">
+              <label>
+                Show
+                <select id="devicePageSize" class="pageSizeSelect">
+                  <option value="15" selected>15</option>
+                  <option value="25">25</option>
+                  <option value="50">50</option>
+                </select>
+              </label>
+              <button class="pageBtn" id="devicePrevPage" type="button">Prev</button>
+              <span id="devicePageInfo">1/1</span>
+              <button class="pageBtn" id="deviceNextPage" type="button">Next</button>
+            </div>
+            <button class="btn secondary small" id="exportDevicesBtn" disabled>
+              <span>📥</span> Export
+            </button>
+            <span style="font-weight:700;color:var(--fg);" id="deviceCount">0 devices</span>
+          </div>
+          <div class="statusMsg warning" id="deviceTokenWarning" style="display:none; margin:12px 16px;">
+            <span>⚠️</span>
+            <span id="deviceTokenWarningText">Using token. Please sign in with a local admin account to open device details.</span>
+          </div>
+          <div class="tableWrap">
+            <table class="dataTable" id="devicesTable">
+              <thead>
+                <tr>
+                  <th><div class="headerTop"><button class="filterIconBtn" type="button" data-filter-btn="displayName" aria-expanded="false" aria-label="Filter display name"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M22 3H2l8 9v7l4 2v-9l8-9z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button><span>Display Name</span></div><div class="filterPopover" data-filter-popover="displayName"></div></th>
+                  <th><div class="headerTop"><button class="filterIconBtn" type="button" data-filter-btn="product" aria-expanded="false" aria-label="Filter product"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M22 3H2l8 9v7l4 2v-9l8-9z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button><span>Product</span></div><div class="filterPopover" data-filter-popover="product"></div></th>
+                  <th><div class="headerTop"><button class="filterIconBtn" type="button" data-filter-btn="type" aria-expanded="false" aria-label="Filter type"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M22 3H2l8 9v7l4 2v-9l8-9z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button><span>Type</span></div><div class="filterPopover" data-filter-popover="type"></div></th>
+                  <th><div class="headerTop"><button class="filterIconBtn" type="button" data-filter-btn="status" aria-expanded="false" aria-label="Filter status"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M22 3H2l8 9v7l4 2v-9l8-9z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button><span>Status</span></div><div class="filterPopover" data-filter-popover="status"></div></th>
+                  <th><div class="headerTop"><button class="filterIconBtn" type="button" data-filter-btn="platform" aria-expanded="false" aria-label="Filter platform"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M22 3H2l8 9v7l4 2v-9l8-9z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button><span>Platform</span></div><div class="filterPopover" data-filter-popover="platform"></div></th>
+                  <th><div class="headerTop"><button class="filterIconBtn" type="button" data-filter-btn="mac" aria-expanded="false" aria-label="Filter MAC"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M22 3H2l8 9v7l4 2v-9l8-9z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button><span>MAC</span></div><div class="filterPopover" data-filter-popover="mac"></div></th>
+                  <th><div class="headerTop"><button class="filterIconBtn" type="button" data-filter-btn="primaryLine" aria-expanded="false" aria-label="Filter primary line"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M22 3H2l8 9v7l4 2v-9l8-9z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button><span>Primary Line</span></div><div class="filterPopover" data-filter-popover="primaryLine"></div></th>
+                  <th><div class="headerTop"><button class="filterIconBtn" type="button" data-filter-btn="owner" aria-expanded="false" aria-label="Filter owner"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M22 3H2l8 9v7l4 2v-9l8-9z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button><span>Owner</span></div><div class="filterPopover" data-filter-popover="owner"></div></th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td colspan="9" class="empty">Loading devices...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="modalOverlay" id="templateModal" aria-hidden="true">
+          <div class="modal" style="max-width:520px;width:100%;">
+            <div class="modalHeader">
+              <h3>Download Template</h3>
+              <button class="modalClose" id="closeTemplateModal" aria-label="Close">×</button>
+            </div>
+            <div class="modalBody">
+              <div class="hint" style="margin-bottom:12px;">Choose a device model to generate line-key columns.</div>
+              <label class="layoutField" style="margin-top:0;">
+                Device model
+                <select id="templateModelSelect">
+                  <option value="">Select model</option>
+                  <option value="Cisco 8865">Cisco 8865 (10 keys)</option>
+                  <option value="Cisco 8861">Cisco 8861 (10 keys)</option>
+                  <option value="Cisco 8851">Cisco 8851 (10 keys)</option>
+                  <option value="Cisco 8845">Cisco 8845 (10 keys)</option>
+                  <option value="Cisco 8841">Cisco 8841 (10 keys)</option>
+                  <option value="Cisco 7841">Cisco 7841 (4 keys)</option>
+                  <option value="Cisco 7811">Cisco 7811 (1 key)</option>
+                </select>
+              </label>
+              <label class="layoutField">
+                Assign to
+                <select id="templateTargetSelect">
+                  <option value="user" selected>User</option>
+                  <option value="workspace">Workspace</option>
+                </select>
+              </label>
+              <label class="layoutField" id="templateWorkspaceWrap" style="display:none;">
+                Workspace
+                <select id="templateWorkspaceSelect">
+                  <option value="">Select workspace</option>
+                </select>
+              </label>
+              <div class="row actions" style="margin-top:16px;justify-content:flex-end;">
+                <button class="btn secondary" id="cancelTemplateBtn" type="button">Cancel</button>
+                <button class="btn primary" id="confirmTemplateBtn" type="button">Download</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="tableSection" id="deviceViewSection" style="display:none;">
+          <div class="tableToolbar" style="margin-bottom:10px;">
+            <button class="btn secondary small" id="backToListBtn">← Back to list</button>
+            <span style="font-weight:700;color:var(--fg); margin-right:auto;" id="deviceViewTitle">Device Details</span>
+            <button class="btn danger small" id="deleteDeviceBtn" type="button" disabled>Delete Device</button>
+          </div>
+          <div class="deviceSplit" id="deviceSplit" style="margin-top:8px;">
+            <section class="deviceInfoCard">
+              <div class="deviceInfoHeader">
+                <div class="deviceIconWrap">
+                  <img class="deviceIcon" id="deviceIcon" alt="" />
+                </div>
+                <div>
+                  <div class="deviceName" id="deviceName">Device</div>
+                  <div class="deviceProduct" id="deviceProduct">-</div>
+                </div>
+              </div>
+              <div class="deviceMetaList" id="deviceMetaList"></div>
+            </section>
+            <section class="deviceSpeedDialCard" id="deviceSpeedDialCard">
+              <div class="speedDialList" id="speedDialList"></div>
+              <div class="speedDialActions">
+                <button class="btn secondary small" id="speedDialCancelBtn" type="button" style="display:none;">Cancel</button>
+                <button class="btn secondary small" id="speedDialEditBtn" type="button">
+                  <span class="spinner hidden" id="speedDialSpinner"></span>
+                  <span id="speedDialBtnText">Edit</span>
+                </button>
+              </div>
+            </section>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- Auth Modal -->
+  <div class="modalOverlay" id="authModal">
+    <div class="modal">
+      <div class="modalHeader">
+        <h3>Sign in with Webex</h3>
+        <button class="modalClose" id="closeAuthModal">×</button>
+      </div>
+      <div class="modalBody">
+        <div class="statusMsg info">
+          <span>🔐</span>
+          <span>Authenticate with your Webex account to access APIs</span>
+        </div>
+        <button class="btn" id="authWebexBtn" style="width:100%; margin-top:16px;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M19.7 7.3c-1.2-1.2-2.7-2-4.5-2.3-.3-1.6-1.2-3-2.5-4-1.4-1-3-1.6-4.7-1.6-2.2 0-4.2.8-5.7 2.3C.8 3.2 0 5.2 0 7.4c0 1.7.6 3.3 1.6 4.7 1 1.3 2.4 2.2 4 2.5.3 1.6 1.2 3 2.5 4 1.5 1 3.1 1.6 4.9 1.6 2.2 0 4.2-.8 5.7-2.3 1.5-1.5 2.3-3.5 2.3-5.7 0-1.8-.6-3.4-1.6-4.7-.1 0-.2-.1-.2-.2z"/>
+          </svg>
+          Sign in with Webex
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+(function() {
+  const BASE_URL = 'https://webexapis.com';
+  const loginMethod = localStorage.getItem('authLoginMethod') || '';
+  const orgIdParam = loginMethod === 'token' ? (localStorage.getItem('authOrg') || '') : '';
+  const isTokenSession = loginMethod === 'token';
+  const tokenAccessMessage = 'Using token. Please sign in with a local admin account to open device details.';
+
+  function withOrgParam(url) {
+    if (!orgIdParam || url.includes('orgId=')) return url;
+    return url + (url.includes('?') ? '&' : '?') + `orgId=${encodeURIComponent(orgIdParam)}`;
+  }
+  const CLIENT_ID = 'Cc604fe2354b93ecd1eb3d799e69a4ce981649161c1e31253ae91805e95b54e64';
+  const REDIRECT_URI = 'https://cxasteam.bitbucket.io/opshub/callback.html';
+  const SCOPES = 'spark:all spark:organizations_read spark-admin:organizations_read spark-admin:devices_read spark-admin:devices_write spark-admin:telephony_config_read spark-admin:telephony_config_write cjp:config cjp:config_read cjp:config_write audit:events_read spark-admin:licenses_read';
+
+  let devices = [];
+  let deviceIndex = new Map();
+  let ownerMap = new Map();
+  let users = [];
+  let workspaces = [];
+  let workspaceMap = new Map();
+  const DEVICE_PAGE_SIZES = [15, 25, 50];
+  let devicePageSize = 15;
+  let devicePage = 1;
+  const deviceFilterKeys = ['displayName', 'product', 'type', 'status', 'platform', 'mac', 'primaryLine', 'owner'];
+  const deviceFilterValues = Object.fromEntries(deviceFilterKeys.map((key) => [key, []]));
+  const deviceFilterSelections = Object.fromEntries(deviceFilterKeys.map((key) => [key, new Set()]));
+  const deviceFilterSearchTerms = Object.fromEntries(deviceFilterKeys.map((key) => [key, '']));
+  let activeDeviceFilterKey = '';
+  let activeDevicePopoverState = null;
+  const USER_PAGE_SIZES = [15, 25, 50];
+  const DEFAULT_USER_PAGE_SIZE = 15;
+  const MAX_CSV_PREVIEW_ROWS = 10;
+  let addTargetType = 'user';
+  const userDropdownState = new Map();
+  let userSearchTimer = null;
+  let activeUserInput = null;
+  let addRows = [];
+  let currentLineCount = 0;
+  let canViewDeviceDetails = true;
+  let templateModelSelection = '';
+  let suppressAddTableRender = false;
+  let progressModal = null;
+  let progressState = { title: '', message: '', total: 0, completed: 0 };
+
+  // Auth
+  function getToken() {
+    return localStorage.getItem('authBearer') || '';
+  }
+
+  function getTemplateModel() {
+    const select = document.getElementById('templateModelSelect');
+    return (select?.value || templateModelSelection || '').trim();
+  }
+
+  function normalizeRowKeys(row) {
+    const map = {};
+    if (!row || typeof row !== 'object') return map;
+    Object.keys(row).forEach((key) => {
+      map[String(key).trim().toLowerCase()] = row[key];
+    });
+    return map;
+  }
+
+  function getRowValue(rowMap, keys) {
+    for (const key of keys) {
+      const value = rowMap[key];
+      if (value !== undefined && value !== null && String(value).trim() !== '') {
+        return String(value).trim();
+      }
+    }
+    return '';
+  }
+
+  function buildLayoutFromLineColumns(rowMap, modelName) {
+    const lineCount = getLineKeyCountForModel(modelName || '');
+    if (!lineCount) return { layout: null, primaryLine: '', hasLineColumns: false };
+    const layout = {
+      layoutMode: 'CUSTOM',
+      userReorderEnabled: false,
+      lineKeys: buildDefaultLineKeys(lineCount),
+    };
+    let hasLineColumns = false;
+    let primaryLine = '';
+    for (let i = 1; i <= lineCount; i += 1) {
+      const base = `line${i}`;
+      const label = getRowValue(rowMap, [
+        `${base}_label`,
+        `${base}label`,
+      ]);
+      const value = getRowValue(rowMap, [
+        `${base}_number`,
+        `${base}_value`,
+        `${base}_target`,
+        base,
+      ]);
+      if (label || value) hasLineColumns = true;
+      if (i === 1) {
+        if (value) primaryLine = value;
+        if (label || value) {
+          layout.lineKeys[0].lineKeyLabel = label || '';
+          layout.lineKeys[0].lineKeyValue = value || '';
+        }
+      } else if (label || value) {
+        const key = layout.lineKeys[i - 1];
+        key.lineKeyType = 'SPEED_DIAL';
+        key.lineKeyLabel = label || value || '';
+        key.lineKeyValue = value || '';
+      }
+    }
+    return { layout, primaryLine, hasLineColumns };
+  }
+
+  function setTokenWarning(visible, message) {
+    const warning = document.getElementById('deviceTokenWarning');
+    const textEl = document.getElementById('deviceTokenWarningText');
+    if (!warning || !textEl) return;
+    if (message) textEl.textContent = message;
+    warning.style.display = visible ? 'flex' : 'none';
+  }
+
+  async function checkDeviceDetailAccess() {
+    if (!isTokenSession) return true;
+    const token = getToken();
+    if (!token) return false;
+    const url = withOrgParam(`${BASE_URL}/v1/telephony/config/devices?max=1`);
+    try {
+      const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
+      if (res.ok) return true;
+      if ([400, 401, 403, 404].includes(res.status)) {
+        return false;
+      }
+    } catch {}
+    return true;
+  }
+
+  function updateAuthUI() {
+    const token = getToken();
+    const userName = localStorage.getItem('authUserName') || '';
+    const orgName = localStorage.getItem('authOrgName') || '';
+    document.getElementById('userName').textContent = token ? (userName || 'Authenticated') : 'Not authenticated';
+    document.getElementById('userOrg').textContent = orgName || '';
+  }
+
+  function showAuthModal() {
+    document.getElementById('authModal').classList.add('open');
+  }
+
+  function hideAuthModal() {
+    document.getElementById('authModal').classList.remove('open');
+  }
+
+  document.getElementById('authWebexBtn').addEventListener('click', () => {
+    const authUrl = `${BASE_URL}/v1/authorize?client_id=${CLIENT_ID}&response_type=code&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&scope=${encodeURIComponent(SCOPES)}&state=${Date.now()}`;
+    window.location.href = authUrl;
+  });
+
+  document.getElementById('closeAuthModal').addEventListener('click', hideAuthModal);
+  const devicesSignOutBtn = document.getElementById('signOutBtn');
+  if (devicesSignOutBtn) {
+    devicesSignOutBtn.addEventListener('click', () => {
+      ['authBearer', 'authOrg', 'authOrgName', 'authUserName', 'authRefreshToken', 'authExpiresAt']
+        .forEach(key => localStorage.removeItem(key));
+      window.location.href = '../../index.html';
+    });
+  }
+
+
+  document.addEventListener('click', (event) => {
+  });
+
+  document.addEventListener('keydown', (event) => {
+  });
+
+  function normalizeMac(value) {
+    const raw = (value || '').trim();
+    if (!raw) return '';
+    const noSep = raw.replace(/^SEP/i, '');
+    const cleaned = noSep.replace(/[^a-fA-F0-9]/g, '').toUpperCase();
+    return cleaned;
+  }
+
+  function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
+  function formatMacForDisplay(value) {
+    const cleaned = normalizeMac(value);
+    if (!cleaned) return '-';
+    const parts = cleaned.match(/.{1,2}/g) || [];
+    return parts.join(':');
+  }
+
+  function formatPrimaryLine(value) {
+    if (!value) return '-';
+    if (value.includes('@')) return value.split('@')[0];
+    return value;
+  }
+
+  function parseSpeedDialList(value) {
+    const raw = (value || '').trim();
+    if (!raw) return [];
+    const splitter = raw.includes(';') ? ';' : (raw.includes('\n') ? '\n' : ',');
+    return raw.split(splitter)
+      .map(entry => entry.trim())
+      .filter(Boolean)
+      .map(entry => {
+        const pipeIdx = entry.indexOf('|');
+        const colonIdx = entry.indexOf(':');
+        const sepIdx = pipeIdx >= 0 ? pipeIdx : colonIdx;
+        if (sepIdx >= 0) {
+          const label = entry.slice(0, sepIdx).trim();
+          const target = entry.slice(sepIdx + 1).trim();
+          return { label, target };
+        }
+        return { label: '', target: entry };
+      })
+      .filter(item => item.target);
+  }
+
+  function escapeHtml(value) {
+    return String(value || '').replace(/[&<>"']/g, (ch) => ({
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#39;',
+    }[ch]));
+  }
+
+  const DEVICE_ICON_MAP = [
+    { match: /desk mini/i, url: 'https://admin.webex.com/images/devices-hi/da887a2f-604e-4128-bef0-6ba2b350bbea.svg' },
+    { match: /desk pro/i, url: 'https://admin.webex.com/images/devices-hi/eb4da239-36c9-4f09-a1cb-b9a370068d7d.svg' },
+    { match: /dx ?80/i, url: 'https://admin.webex.com/images/devices-hi/dx80.svg' },
+    { match: /8865/i, url: 'https://admin.webex.com/images/devices-hi/cisco_8865.png' },
+    { match: /7841/i, url: 'https://admin.webex.com/images/devices-hi/cisco_7841.png' },
+    { match: /8845/i, url: 'https://admin.webex.com/images/devices-hi/cisco_8845.png' },
+    { match: /room 55/i, url: 'https://admin.webex.com/images/devices-hi/b1244307-a604-4be0-b28a-a1bcf6e77dc7.svg' },
+    { match: /cisco 520/i, url: 'https://admin.webex.com/images/devices-hi/09c71bee-1f0f-4440-8c85-63dd2c9fa72d.svg' },
+    { match: /cisco 530/i, url: 'https://admin.webex.com/images/devices-hi/09c71bee-1f0f-4440-8c85-63dd2c9fa72d.svg' },
+    { match: /562 multibase/i, url: 'https://admin.webex.com/images/devices-hi/09c71bee-1f0f-4440-8c85-63dd2c9fa72d.svg' },
+    { match: /b&o cisco 980/i, url: 'https://www.webex.com/content/dam/www/us/en/images/devices/headsets/bang-and-olufsen-cisco-980/new-asstes/BO980-FirstLight-Side.webp' },
+    { match: /cisco 730/i, url: 'https://admin.webex.com/images/devices-hi/4faa06c7-0c38-48e6-b57c-74b54a921597.svg' },
+    { match: /touch 10/i, url: 'https://admin.webex.com/images/devices-hi/cisco-touch-10.svg' },
+    { match: /webex go/i, url: 'https://admin.webex.com/images/devices-hi/phone-adr.png' },
+    { match: /desk camera 4k/i, url: 'https://admin.webex.com/images/devices-hi/df4b0411-44ba-4669-a793-320616145f2f.svg' },
+  ];
+
+  function getDeviceIconUrl(product) {
+    const name = product || '';
+    const hit = DEVICE_ICON_MAP.find(item => item.match.test(name));
+    return hit ? hit.url : '';
+  }
+
+  function getStatusMeta(status) {
+    const value = (status || '').toLowerCase();
+    if (value.includes('connected')) return { label: 'Online', dot: 'online' };
+    if (value.includes('online')) return { label: 'Online', dot: 'online' };
+    if (value.includes('offline')) return { label: 'Offline', dot: 'offline' };
+    if (value.includes('activating')) return { label: 'Activating', dot: '' };
+    if (value.includes('issue')) return { label: 'Issues', dot: 'issues' };
+    if (value.includes('expired')) return { label: 'Expired', dot: '' };
+    if (value.includes('unavailable')) return { label: 'Status unavailable', dot: '' };
+    if (value.includes('unknown')) return { label: 'Status unavailable', dot: '' };
+    return { label: status || '-', dot: '' };
+  }
+
+  function getDevicePlatformMeta(platform, managedBy) {
+    const value = (platform || managedBy || '').toLowerCase();
+    if (value === 'cisco') {
+      return {
+        label: 'Cisco',
+        iconLight: '../../assets/images/Cisco-Color.png',
+        iconDark: '../../assets/images/Cisco-White.png',
+      };
+    }
+    return { label: platform || managedBy || '-', iconLight: '', iconDark: '' };
+  }
+
+  function getDeviceTypeLabel(type) {
+    const typeMap = {
+      roomdesk: 'Rooms & Desk',
+      phone: 'Phones',
+      accessory: 'Accessories',
+      webexgo: 'Webex Go',
+    };
+    return typeMap[(type || '').toLowerCase()] || (type || '-');
+  }
+
+  function getDeviceOwnerLabel(device) {
+    return device.personId ? (ownerMap.get(device.personId)?.name || 'Person') : 'Workspace';
+  }
+
+  function getDeviceFilterValue(device, key) {
+    switch (key) {
+      case 'displayName': return device.displayName || '-';
+      case 'product': return device.product || '-';
+      case 'type': return getDeviceTypeLabel(device.type);
+      case 'status': return getStatusMeta(device.connectionStatus).label || '-';
+      case 'platform': return getDevicePlatformMeta(device.devicePlatform, device.managedBy).label || '-';
+      case 'mac': return formatMacForDisplay(device.mac || '');
+      case 'primaryLine': return formatPrimaryLine(device.primarySipUrl || '');
+      case 'owner': return getDeviceOwnerLabel(device);
+      default: return '';
+    }
+  }
+
+  function rebuildDeviceFilterValues() {
+    deviceFilterKeys.forEach((key) => {
+      const values = Array.from(new Set(devices.map((device) => getDeviceFilterValue(device, key)).filter(Boolean))).sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base', numeric: true }));
+      deviceFilterValues[key] = values;
+      const current = deviceFilterSelections[key];
+      deviceFilterSelections[key] = current.size
+        ? new Set([...current].filter((value) => values.includes(value)))
+        : new Set(values);
+      if (!deviceFilterSelections[key].size && values.length) {
+        deviceFilterSelections[key] = new Set(values);
+      }
+      updateDeviceFilterButtonState(key);
+    });
+  }
+
+  function updateDeviceFilterButtonState(key) {
+    const keys = key ? [key] : deviceFilterKeys;
+    keys.forEach((entry) => {
+      const button = document.querySelector(`#devicesTable [data-filter-btn="${entry}"]`);
+      if (button) {
+        button.classList.toggle('active', deviceFilterSelections[entry].size !== deviceFilterValues[entry].length);
+      }
+    });
+  }
+
+  function renderDeviceFilterPopover(key) {
+    const popover = activeDevicePopoverState?.key === key
+      ? activeDevicePopoverState.popover
+      : document.querySelector(`#devicesTable [data-filter-popover="${key}"]`);
+    if (!popover) return;
+    const values = deviceFilterValues[key] || [];
+    const searchTerm = (deviceFilterSearchTerms[key] || '').toLowerCase();
+    const filteredValues = values.filter((value) => value.toLowerCase().includes(searchTerm));
+    const selected = deviceFilterSelections[key] || new Set();
+    const allSelected = values.length > 0 && selected.size === values.length;
+    popover.innerHTML = `
+      <input class="filterSearch" data-device-filter-search="${key}" type="text" placeholder="Search..." value="${escapeHtml(deviceFilterSearchTerms[key] || '')}">
+      <div class="filterList">
+        <label class="filterItem selectAll">
+          <input type="checkbox" data-device-filter-key="${key}" data-device-filter-value="__ALL__" ${allSelected ? 'checked' : ''}>
+          <span>Select all</span>
+        </label>
+        ${filteredValues.map((value) => `
+          <label class="filterItem">
+            <input type="checkbox" data-device-filter-key="${key}" data-device-filter-value="${escapeHtml(value)}" ${selected.has(value) ? 'checked' : ''}>
+            <span>${escapeHtml(value)}</span>
+          </label>
+        `).join('')}
+      </div>
+      <div class="filterMeta">${allSelected ? `All ${values.length} values selected` : `${selected.size} of ${values.length} values selected`}</div>
+    `;
+  }
+
+  function positionDevicePopover(button, popover) {
+    window.CXASFloatingFilters?.position(button, popover);
+  }
+
+  function openDevicePopover(key, button, popover) {
+    const nextState = window.CXASFloatingFilters?.open({
+      button,
+      panel: popover,
+      parent: popover.parentElement,
+    });
+    if (!nextState) return;
+    activeDeviceFilterKey = key;
+    activeDevicePopoverState = { key, btn: nextState.button, popover: nextState.panel, parent: nextState.parent };
+    renderDeviceFilterPopover(key);
+    popover.querySelector('.filterSearch')?.focus();
+  }
+
+  function closeDevicePopover() {
+    if (!activeDevicePopoverState) return;
+    window.CXASFloatingFilters?.close({
+      button: activeDevicePopoverState.btn,
+      panel: activeDevicePopoverState.popover,
+      parent: activeDevicePopoverState.parent,
+    });
+    activeDeviceFilterKey = '';
+    activeDevicePopoverState = null;
+  }
+
+  function getUserLabel(user) {
+    return user?.displayName || `${user?.firstName || ''} ${user?.lastName || ''}`.trim() || (user?.emails && user.emails[0]) || 'User';
+  }
+
+  function getWorkspaceLabel(workspace) {
+    return workspace?.displayName || workspace?.name || workspace?.title || 'Workspace';
+  }
+
+  function updateWorkspaceMap(list) {
+    workspaceMap = new Map();
+    (list || []).forEach(ws => {
+      if (!ws) return;
+      const id = ws.id || ws.workspaceId || '';
+      if (id) workspaceMap.set(id, ws);
+    });
+  }
+
+  function getNextLink(response) {
+    const link = response.headers.get('Link');
+    if (!link) return '';
+    const match = link.match(/<([^>]+)>;\s*rel=\"next\"/i);
+    return match ? match[1] : '';
+  }
+
+  async function loadWorkspaces(force = false) {
+    if (workspaces.length && !force) return workspaces;
+    const statusEl = document.getElementById('userLoadStatus');
+    const token = getToken();
+    if (!token) {
+      if (statusEl) statusEl.textContent = 'Sign in to load workspaces.';
+      return [];
+    }
+    if (statusEl) statusEl.textContent = 'Loading workspaces...';
+    try {
+      let all = [];
+      let nextUrl = withOrgParam('/v1/workspaces?max=500');
+      while (nextUrl) {
+        const url = nextUrl.startsWith('http') ? nextUrl : `${BASE_URL}${nextUrl}`;
+        const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
+        const text = await res.text();
+        if (!res.ok) throw new Error(`HTTP ${res.status}: ${text}`);
+        const data = JSON.parse(text || '{}');
+        const items = Array.isArray(data.items) ? data.items : [];
+        all = all.concat(items);
+        nextUrl = getNextLink(res) || '';
+      }
+      workspaces = all;
+      updateWorkspaceMap(workspaces);
+      if (statusEl) statusEl.textContent = `${workspaces.length} workspaces loaded.`;
+      return workspaces;
+    } catch (err) {
+      if (statusEl) statusEl.textContent = `Failed to load workspaces: ${err.message || err}`;
+      return [];
+    }
+  }
+
+  function resolveWorkspaceFromValue(value) {
+    if (!value) return null;
+    const trimmed = String(value).trim();
+    if (!trimmed) return null;
+    if (workspaceMap.has(trimmed)) return workspaceMap.get(trimmed);
+    const norm = trimmed.toLowerCase();
+    const exact = workspaces.find(w => getWorkspaceLabel(w).toLowerCase() === norm);
+    if (exact) return exact;
+    const matches = workspaces.filter(w => getWorkspaceLabel(w).toLowerCase().includes(norm));
+    return matches.length === 1 ? matches[0] : null;
+  }
+
+  function renderWorkspaceOptions(selectedId = '') {
+    const options = ['<option value="">Select workspace</option>'];
+    workspaces.forEach(ws => {
+      const id = ws.id || ws.workspaceId || '';
+      const label = getWorkspaceLabel(ws);
+      if (!id) return;
+      options.push(`<option value="${escapeHtml(id)}" ${id === selectedId ? 'selected' : ''}>${escapeHtml(label)}</option>`);
+    });
+    return options.join('');
+  }
+
+  function filterUsers(term) {
+    const norm = (term || '').trim().toLowerCase();
+    if (!norm) return users.slice();
+    return users.filter(u => {
+      const name = getUserLabel(u).toLowerCase();
+      const email = ((u.emails && u.emails[0]) || '').toLowerCase();
+      return name.includes(norm) || (email && email.includes(norm));
+    });
+  }
+
+  function getUserDropdownState(idx, term) {
+    const key = String(idx);
+    const current = userDropdownState.get(key) || {
+      page: 1,
+      pageSize: DEFAULT_USER_PAGE_SIZE,
+      term: ''
+    };
+    const normalizedTerm = (term || '').trim().toLowerCase();
+    if (current.term !== normalizedTerm) {
+      current.page = 1;
+      current.term = normalizedTerm;
+    }
+    userDropdownState.set(key, current);
+    return current;
+  }
+
+  function renderUserDropdown(inputEl) {
+    const picker = inputEl?.closest('.userPicker');
+    const dropdown = picker?.querySelector('.userDropdown');
+    if (!dropdown || !inputEl) return;
+    const idx = Number(inputEl.dataset.index);
+    const term = inputEl.value || '';
+    const list = filterUsers(term);
+    const state = getUserDropdownState(idx, term);
+    const totalPages = Math.max(1, Math.ceil(list.length / state.pageSize));
+    if (state.page > totalPages) state.page = totalPages;
+    const start = (state.page - 1) * state.pageSize;
+    const end = start + state.pageSize;
+    const pageItems = list.slice(start, end);
+    const controls = `
+      <div class="userDropdownControls" data-index="${idx}">
+        <div>
+          Show
+          <select class="userPageSize" data-index="${idx}">
+            ${USER_PAGE_SIZES.map(size => `<option value="${size}" ${size === state.pageSize ? 'selected' : ''}>${size}</option>`).join('')}
+          </select>
+        </div>
+        <div class="userPager">
+          <button class="userPageBtn" data-page-action="prev" data-index="${idx}" ${state.page <= 1 ? 'disabled' : ''}>Prev</button>
+          <span class="userPageInfo">${state.page}/${totalPages}</span>
+          <button class="userPageBtn" data-page-action="next" data-index="${idx}" ${state.page >= totalPages ? 'disabled' : ''}>Next</button>
+        </div>
+      </div>
+    `;
+    let html = '';
+    if (!term.trim()) {
+      html = `${controls}<div class="userOption isHint">Type to search users</div>`;
+    } else if (!list.length) {
+      html = `${controls}<div class="userOption isHint">No matches</div>`;
+    } else {
+      html = controls + pageItems.map(u => {
+        const label = getUserLabel(u);
+        return `<div class="userOption" data-index="${idx}" data-user-id="${escapeHtml(u.id)}">${escapeHtml(label)}</div>`;
+      }).join('');
+    }
+    dropdown.innerHTML = html;
+    dropdown.style.display = 'block';
+  }
+
+  function hideAllUserDropdowns() {
+    document.querySelectorAll('.userDropdown').forEach(drop => {
+      drop.style.display = 'none';
+    });
+  }
+
+  async function searchUsers(term) {
+    const statusEl = document.getElementById('userLoadStatus');
+    const token = getToken();
+    if (!token) {
+      statusEl.textContent = 'Sign in to search users.';
+      return;
+    }
+    const trimmed = (term || '').trim();
+    if (trimmed.length < 2 && !trimmed.includes('@')) {
+      statusEl.textContent = 'Type at least 2 characters to search.';
+      return;
+    }
+    statusEl.textContent = 'Searching users...';
+    try {
+      const orgId = localStorage.getItem('authOrg') || '';
+      const params = new URLSearchParams();
+      const emailPattern = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
+      if (emailPattern.test(trimmed)) params.set('email', trimmed);
+      else params.set('displayName', trimmed);
+      if (orgId) params.set('orgId', orgId);
+      params.set('max', '100');
+      const url = withOrgParam(`${BASE_URL}/v1/people?${params.toString()}`);
+      const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
+      const text = await res.text();
+      if (!res.ok) throw new Error(`HTTP ${res.status}: ${text}`);
+      const data = JSON.parse(text || '{}');
+      const items = Array.isArray(data.items) ? data.items : [];
+      users = items;
+      statusEl.textContent = `${users.length} users found.`;
+      if (activeUserInput) renderUserDropdown(activeUserInput);
+    } catch (err) {
+      statusEl.textContent = `Failed to search users: ${err.message || err}`;
+    }
+  }
+
+  function resolveUserFromValue(value) {
+    if (!value) return null;
+    if (value.includes('@')) {
+      const emailMatch = value.match(/<([^>]+)>/);
+      const email = (emailMatch ? emailMatch[1] : value).trim().toLowerCase();
+      return users.find(u => ((u.emails && u.emails[0]) || '').toLowerCase() === email) || null;
+    }
+    const norm = value.toLowerCase();
+    const exact = users.find(u => (u.displayName || '').toLowerCase() === norm);
+    if (exact) return exact;
+    const matches = users.filter(u => (u.displayName || '').toLowerCase().includes(norm));
+    return matches.length === 1 ? matches[0] : null;
+  }
+
+  function renderAddDevicesTable() {
+    if (suppressAddTableRender) return;
+    const tbody = document.querySelector('#addDevicesTable tbody');
+    if (!addRows.length) {
+      addRows = [{ mac:'', model:'Cisco 8845', userValue:'', userId:'', workspaceValue:'', workspaceId:'', targetType: addTargetType, primaryLine:'', speedDials:'', status:'', layout:null }];
+    }
+    tbody.innerHTML = addRows.map((row, idx) => {
+      const lineCount = getLineKeyCountForModel(row.model || '');
+      const showSpeedDials = lineCount > 1;
+      const targetType = row.targetType || addTargetType;
+      const workspaceSelect = `
+        <select class="workspaceSelect" data-index="${idx}">
+          ${renderWorkspaceOptions(row.workspaceId || '')}
+        </select>
+      `;
+      const userPicker = `
+        <div class="userPicker">
+          <div class="userInputWrap">
+            <input class="userInput" data-index="${idx}" value="${row.userValue || ''}" placeholder="Name" autocomplete="off">
+            <button class="userClear" data-index="${idx}" type="button" style="display:${row.userValue ? 'block' : 'none'};">×</button>
+          </div>
+          <div class="userDropdown" data-index="${idx}"></div>
+        </div>
+      `;
+      return `
+      <tr data-index="${idx}">
+        <td><input class="macInput" data-index="${idx}" value="${row.mac || ''}" placeholder="MAC Address"></td>
+        <td>
+          <select class="modelSelect" data-index="${idx}">
+            <option value="Cisco 8865" ${row.model === 'Cisco 8865' ? 'selected' : ''}>Cisco 8865 (10 keys)</option>
+            <option value="Cisco 8845" ${row.model === 'Cisco 8845' ? 'selected' : ''}>Cisco 8845 (10 keys)</option>
+            <option value="Cisco 8861" ${row.model === 'Cisco 8861' ? 'selected' : ''}>Cisco 8861 (10 keys)</option>
+            <option value="Cisco 8851" ${row.model === 'Cisco 8851' ? 'selected' : ''}>Cisco 8851 (10 keys)</option>
+            <option value="Cisco 8841" ${row.model === 'Cisco 8841' ? 'selected' : ''}>Cisco 8841 (10 keys)</option>
+            <option value="Cisco 7841" ${row.model === 'Cisco 7841' ? 'selected' : ''}>Cisco 7841 (4 keys)</option>
+            <option value="Cisco 7811" ${row.model === 'Cisco 7811' ? 'selected' : ''}>Cisco 7811 (1 key)</option>
+          </select>
+        </td>
+        <td>
+          ${targetType === 'workspace' ? workspaceSelect : userPicker}
+        </td>
+        <td><input class="primaryLineInput" data-index="${idx}" value="${row.primaryLine || ''}" placeholder="Number"></td>
+        <td><button class="btn secondary small layoutBtn" data-index="${idx}" type="button">Change Layout</button></td>
+        <td class="statusCell">${row.status || ''}</td>
+        <td>
+          <div style="display:flex; gap:6px; justify-content:flex-start;">
+            <button class="btn secondary small" data-add-after="${idx}" type="button">+</button>
+            <button class="btn secondary small" data-del-row="${idx}" type="button">✕</button>
+          </div>
+        </td>
+      </tr>
+    `;
+    }).join('');
+  }
+
+  function setRowStatus(idx, text) {
+    addRows[idx].status = text;
+    if (suppressAddTableRender) {
+      const statusEl = document.getElementById('userLoadStatus');
+      if (statusEl) statusEl.textContent = `Running bulk add: ${idx + 1}/${addRows.length}...`;
+      return;
+    }
+    renderAddDevicesTable();
+  }
+
+  const addLayoutModal = document.getElementById('addLayoutModal');
+  const addLayoutGrid = document.getElementById('addLayoutGrid');
+  const addLayoutNote = document.getElementById('addLayoutNote');
+  const closeAddLayoutModalBtn = document.getElementById('closeAddLayoutModal');
+  const cancelAddLayoutBtn = document.getElementById('cancelAddLayoutBtn');
+  const saveAddLayoutBtn = document.getElementById('saveAddLayoutBtn');
+  const templateModal = document.getElementById('templateModal');
+  const templateModelSelect = document.getElementById('templateModelSelect');
+  const addDeviceTargetSelect = document.getElementById('addDeviceTargetSelect');
+  const addDevicesTargetHeader = document.getElementById('addDevicesTargetHeader');
+  const addDevicesTargetLabel = document.getElementById('addDevicesTargetLabel');
+  const templateTargetSelect = document.getElementById('templateTargetSelect');
+  const templateWorkspaceWrap = document.getElementById('templateWorkspaceWrap');
+  const templateWorkspaceSelect = document.getElementById('templateWorkspaceSelect');
+  const closeTemplateModalBtn = document.getElementById('closeTemplateModal');
+  const cancelTemplateBtn = document.getElementById('cancelTemplateBtn');
+  const confirmTemplateBtn = document.getElementById('confirmTemplateBtn');
+  let activeLayoutRow = null;
+
+  function ensureRowLayout(row) {
+    if (!row) return null;
+    if (row.layout && Array.isArray(row.layout.lineKeys)) return row.layout;
+    const lineCount = getLineKeyCountForModel(row.model || '');
+    row.layout = {
+      layoutMode: 'CUSTOM',
+      userReorderEnabled: false,
+      lineKeys: buildDefaultLineKeys(lineCount),
+    };
+    return row.layout;
+  }
+
+  function applySpeedDialsToRow(row, speedDialString) {
+    const list = parseSpeedDialList(speedDialString);
+    if (!row || !list.length) return;
+    const layout = ensureRowLayout(row);
+    list.forEach((dial, index) => {
+      const keyIndex = index + 1;
+      if (!layout.lineKeys[keyIndex]) return;
+      layout.lineKeys[keyIndex].lineKeyType = 'SPEED_DIAL';
+      layout.lineKeys[keyIndex].lineKeyLabel = dial.label || '';
+      layout.lineKeys[keyIndex].lineKeyValue = dial.target || '';
+      delete layout.lineKeys[keyIndex].sharedLineIndex;
+    });
+  }
+
+  function renderAddLayoutEditor(rowIdx) {
+    const row = addRows[rowIdx];
+    if (!row) return;
+    const layout = ensureRowLayout(row);
+    const options = buildLayoutTypeOptions(layout.lineKeys);
+    const rows = Math.ceil(layout.lineKeys.length / 2);
+    addLayoutGrid.style.gridTemplateRows = `repeat(${rows}, minmax(0, 1fr))`;
+    addLayoutGrid.innerHTML = layout.lineKeys.map((key, idx) => {
+      const type = normalizeLineKeyType(key.lineKeyType);
+      const isSharedLine = type === 'SHARED_LINE';
+      const isMonitor = type === 'MONITORING' || type === 'MONITOR';
+      return `
+      <div class="layoutCard">
+        <div class="layoutIndex">Line ${idx + 1}</div>
+        <label class="layoutField">
+          Type
+          <select class="layoutType" data-index="${idx}">
+            ${options.map(opt => `<option value="${opt.value}" ${type === opt.value ? 'selected' : ''}>${opt.label}</option>`).join('')}
+          </select>
+        </label>
+        <label class="layoutField">
+          Line Label
+          <input class="layoutLabel" data-index="${idx}" value="${key.lineKeyLabel || ''}" />
+        </label>
+        <label class="layoutField" style="${isSharedLine ? '' : 'display:none;'}">
+          Shared Line Index
+          <input class="layoutSharedIndex" type="number" min="1" data-index="${idx}" value="${key.sharedLineIndex || '1'}" />
+        </label>
+        <label class="layoutField" style="${!isSharedLine ? '' : 'display:none;'}">
+          Number / Target
+          <input class="layoutTarget" data-index="${idx}" value="${key.lineKeyValue || ''}" />
+        </label>
+      </div>
+    `;
+    }).join('');
+  }
+
+  function openAddLayoutModal(rowIdx) {
+    activeLayoutRow = rowIdx;
+    const row = addRows[rowIdx];
+    const lineCount = getLineKeyCountForModel(row?.model || '');
+    const modelName = row?.model || 'Device';
+    addLayoutNote.textContent = `Configure ${modelName} line keys (${lineCount} buttons total).`;
+    renderAddLayoutEditor(rowIdx);
+    addLayoutModal.classList.add('open');
+    addLayoutModal.setAttribute('aria-hidden', 'false');
+  }
+
+  function closeAddLayoutModal() {
+    addLayoutModal.classList.remove('open');
+    addLayoutModal.setAttribute('aria-hidden', 'true');
+    activeLayoutRow = null;
+  }
+
+  async function resolveUserIdForValue(token, value) {
+    const trimmed = (value || '').trim();
+    if (!trimmed) return '';
+    try {
+      const orgId = localStorage.getItem('authOrg') || '';
+      const params = new URLSearchParams();
+      const emailPattern = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
+      if (emailPattern.test(trimmed)) params.set('email', trimmed);
+      else params.set('displayName', trimmed);
+      if (orgId) params.set('orgId', orgId);
+      params.set('max', '100');
+      const url = withOrgParam(`${BASE_URL}/v1/people?${params.toString()}`);
+      const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
+      const text = await res.text();
+      if (!res.ok) return '';
+      const data = JSON.parse(text || '{}');
+      const items = Array.isArray(data.items) ? data.items : [];
+      if (!items.length) return '';
+      if (items.length === 1) return items[0].id || '';
+      const exact = items.find(u => (u.displayName || '').toLowerCase() === trimmed.toLowerCase());
+      if (exact) return exact.id || '';
+      return items[0].id || '';
+    } catch {
+      return '';
+    }
+  }
+
+  function updateAddTargetUI(opts = {}) {
+    if (addDevicesTargetLabel) {
+      addDevicesTargetLabel.textContent = 'Assign to';
+    }
+    if (addDeviceTargetSelect) {
+      addDeviceTargetSelect.value = addTargetType;
+    }
+    if (opts.applyToRows) {
+      addRows.forEach(row => {
+        row.targetType = addTargetType;
+      });
+    }
+    renderAddDevicesTable();
+  }
+
+  function updateAddTargetHeaderOnly() {
+    if (addDevicesTargetLabel) {
+      addDevicesTargetLabel.textContent = 'Assign to';
+    }
+    if (addDeviceTargetSelect) {
+      addDeviceTargetSelect.value = addTargetType;
+    }
+  }
+
+  async function updateTemplateTargetUI() {
+    if (!templateTargetSelect) return;
+    const type = templateTargetSelect.value || 'user';
+    if (templateWorkspaceWrap) {
+      templateWorkspaceWrap.style.display = type === 'workspace' ? '' : 'none';
+    }
+    if (type === 'workspace') {
+      await loadWorkspaces();
+      if (templateWorkspaceSelect) {
+        templateWorkspaceSelect.innerHTML = renderWorkspaceOptions(templateWorkspaceSelect.value || '');
+      }
+    }
+  }
+
+  function openTemplateModal() {
+    if (templateModelSelection && templateModelSelect) {
+      templateModelSelect.value = templateModelSelection;
+    }
+    if (templateTargetSelect) {
+      templateTargetSelect.value = addTargetType;
+      updateTemplateTargetUI();
+    }
+    templateModal.classList.add('open');
+    templateModal.setAttribute('aria-hidden', 'false');
+  }
+
+  function closeTemplateModal() {
+    templateModal.classList.remove('open');
+    templateModal.setAttribute('aria-hidden', 'true');
+  }
+
+  async function fetchDeviceDetails(deviceId, token) {
+    if (!deviceId || !token) return null;
+    try {
+      const res = await fetch(withOrgParam(`${BASE_URL}/v1/devices/${encodeURIComponent(deviceId)}`), {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) return null;
+      const data = await res.json();
+      return data || null;
+    } catch {
+      return null;
+    }
+  }
+
+  async function resolveCallingDeviceId(created, token) {
+    if (created?.callingDeviceId) return created.callingDeviceId;
+    if (!created?.id) return created?.id || '';
+    const details = await fetchDeviceDetails(created.id, token);
+    return details?.callingDeviceId || created.id || '';
+  }
+
+  async function waitForLayoutDeviceId(created, token, attempts = 4, delayMs = 1500) {
+    let deviceId = await resolveCallingDeviceId(created, token);
+    for (let i = 0; i < attempts; i++) {
+      if (deviceId && deviceId !== created?.id) return deviceId;
+      await sleep(delayMs);
+      deviceId = await resolveCallingDeviceId(created, token);
+      if (deviceId) return deviceId;
+    }
+    return deviceId || created?.id || '';
+  }
+
+  function formatApiError(err) {
+    const raw = (err && err.message) ? String(err.message) : String(err || '');
+    const match = raw.match(/^HTTP\s(\d+):\s*([\s\S]*)$/);
+    if (!match) return `Error: ${raw}`.slice(0, 180);
+    const status = match[1];
+    const body = match[2] || '';
+    let message = '';
+    if (body) {
+      try {
+        const data = JSON.parse(body);
+        message = data.message || data.errors?.[0]?.description || data.error || '';
+      } catch {
+        message = body;
+      }
+    }
+    let textOnly = (message || '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+    if (/HTTP Status/i.test(textOnly)) {
+      textOnly = '';
+    }
+    const fallback = status === '403'
+      ? 'Forbidden: token lacks required permissions.'
+      : `HTTP ${status}`;
+    const clean = (textOnly || fallback).replace(/\s+/g, ' ').trim();
+    return `Error: ${clean}`.slice(0, 180);
+  }
+
+  async function runAddDevices() {
+    const token = getToken();
+    if (!token) {
+      showAuthModal();
+      if (suppressAddTableRender) {
+        const statusEl = document.getElementById('userLoadStatus');
+        if (statusEl) statusEl.textContent = '';
+        suppressAddTableRender = false;
+        renderAddDevicesTable();
+      }
+      return;
+    }
+    const failures = [];
+    let didAdd = false;
+    const hasWorkspaceTargets = addRows.some(row => {
+      const target = row.targetType || addTargetType;
+      return target === 'workspace' || row.workspaceId || row.workspaceValue;
+    });
+    if (hasWorkspaceTargets) {
+      await loadWorkspaces();
+    }
+    if (suppressAddTableRender) {
+      openProgressModal('Adding devices', 'Starting upload...', addRows.length);
+      updateProgressModal(`Processing 0/${addRows.length}`, 0, addRows.length);
+    }
+    for (let i = 0; i < addRows.length; i++) {
+      const row = addRows[i];
+      const mac = normalizeMac(row.mac);
+      const model = row.model || 'Cisco 8845';
+      const targetType = row.targetType || addTargetType;
+      let personId = row.userId || '';
+      let workspaceId = row.workspaceId || '';
+      const primaryLine = (row.primaryLine || '').trim();
+      if (targetType === 'user') {
+        if (!personId && row.userValue) {
+          const resolved = resolveUserFromValue(row.userValue);
+          if (resolved?.id) {
+            personId = resolved.id;
+            row.userId = resolved.id;
+          } else {
+            personId = await resolveUserIdForValue(token, row.userValue);
+            if (personId) row.userId = personId;
+          }
+        }
+      } else {
+        if (!workspaceId && row.workspaceValue) {
+          const resolved = resolveWorkspaceFromValue(row.workspaceValue);
+          if (resolved?.id) {
+            workspaceId = resolved.id;
+            row.workspaceId = resolved.id;
+          }
+        }
+      }
+      if (!mac || (targetType === 'user' && !personId) || (targetType === 'workspace' && !workspaceId)) {
+        const msg = targetType === 'workspace'
+          ? 'Missing MAC or workspace (select from list)'
+          : 'Missing MAC or user (use email or pick from list)';
+        setRowStatus(i, msg);
+        failures.push({
+          row: i + 1,
+          mac: row.mac || '',
+          model,
+          user: targetType === 'workspace' ? (row.workspaceValue || row.workspaceId || '') : (row.userValue || row.userId || ''),
+          primaryLine: row.primaryLine || '',
+          status: 'Failed',
+          response: msg
+        });
+        if (suppressAddTableRender) {
+          updateProgressModal(`Processing ${i + 1}/${addRows.length}`, i + 1, addRows.length);
+        }
+        continue;
+      }
+      setRowStatus(i, 'Adding...');
+      try {
+        const payload = targetType === 'workspace'
+          ? { model, workspaceId }
+          : { model, personId };
+        if (mac) payload.mac = mac;
+        if (primaryLine) {
+          const isSip = primaryLine.includes('@');
+          const isE164 = /^\+[0-9]{6,15}$/.test(primaryLine);
+          if (isSip) payload.primarySipUrl = primaryLine;
+          else if (isE164) payload.phoneNumber = primaryLine;
+        }
+        const res = await fetch(withOrgParam(`${BASE_URL}/v1/devices`), {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(payload),
+        });
+        const text = await res.text();
+        if (!res.ok) throw new Error(`HTTP ${res.status}: ${text}`);
+        let created = {};
+        try { created = JSON.parse(text || '{}'); } catch { created = {}; }
+        const createdId = await waitForLayoutDeviceId(created, token);
+        if (row.layout && createdId) {
+          console.log('Row layout before validation:', row.layout);
+          console.log('Number of line keys in row:', row.layout.lineKeys?.length);
+          const issues = validateLayoutForSave(row.layout);
+          if (issues.length) throw new Error(`Layout invalid: ${issues[0]}`);
+          const layoutPayload = buildLayoutPayload(row.layout);
+          console.log('Applying layout to device:', createdId);
+          console.log('Layout payload:', JSON.stringify(layoutPayload, null, 2));
+          let layoutRes = await fetch(`${BASE_URL}/v1/telephony/config/devices/${createdId}/layout`, {
+            method: 'PUT',
+            headers: {
+              Authorization: `Bearer ${token}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(layoutPayload),
+          });
+          if (!layoutRes.ok) {
+            const layoutText = await layoutRes.text();
+            if (layoutRes.status === 404 && layoutText.includes('device not found')) {
+              await sleep(1500);
+              const retryId = await waitForLayoutDeviceId(created, token, 2, 1500);
+              if (retryId) {
+                layoutRes = await fetch(`${BASE_URL}/v1/telephony/config/devices/${retryId}/layout`, {
+                  method: 'PUT',
+                  headers: {
+                    Authorization: `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                  },
+                  body: JSON.stringify(layoutPayload),
+                });
+                if (!layoutRes.ok) {
+                  const retryText = await layoutRes.text();
+                  throw new Error(`Layout update failed: HTTP ${layoutRes.status}: ${retryText}`);
+                }
+              } else {
+                throw new Error(`Layout update failed: HTTP ${layoutRes.status}: ${layoutText}`);
+              }
+            } else {
+              throw new Error(`Layout update failed: HTTP ${layoutRes.status}: ${layoutText}`);
+            }
+          }
+        }
+        setRowStatus(i, 'Added');
+        didAdd = true;
+      } catch (err) {
+        const msg = formatApiError(err);
+        setRowStatus(i, msg);
+        failures.push({
+          row: i + 1,
+          mac: row.mac || '',
+          model,
+          user: targetType === 'workspace' ? (row.workspaceValue || row.workspaceId || '') : (row.userValue || row.userId || ''),
+          primaryLine: row.primaryLine || '',
+          status: 'Failed',
+          response: msg
+        });
+      } finally {
+        if (suppressAddTableRender) {
+          updateProgressModal(`Processing ${i + 1}/${addRows.length}`, i + 1, addRows.length);
+        }
+      }
+    }
+    if (didAdd) {
+      await loadDevices();
+    }
+    if (suppressAddTableRender) {
+      closeProgressModal();
+      const successCount = addRows.filter(row => row.status === 'Added').length;
+      const failedCount = addRows.length - successCount;
+      const statusEl = document.getElementById('userLoadStatus');
+      if (statusEl) statusEl.textContent = '';
+      suppressAddTableRender = false;
+      addRows = [{ mac:'', model:'Cisco 8845', userValue:'', userId:'', workspaceValue:'', workspaceId:'', targetType: addTargetType, primaryLine:'', speedDials:'', status:'', layout:null }];
+      renderAddDevicesTable();
+      const summary = `Added ${successCount} of ${successCount + failedCount} device(s).` + (failedCount ? ` ${failedCount} failed.` : '');
+      showResultModal('Bulk upload complete', summary, {
+        variant: failedCount ? 'danger' : 'success',
+        failures,
+        filenamePrefix: 'devices-errors'
+      });
+    }
+  }
+
+  function showActionModal(title, message, opts = {}) {
+    const variant = opts.variant || 'success';
+    const overlayId = 'actionModal';
+    const existing = document.getElementById(overlayId);
+    if (existing) existing.remove();
+    const gradient = variant === 'danger'
+      ? 'linear-gradient(135deg, #ef4444, #dc2626)'
+      : 'linear-gradient(135deg, #159DD8, #159DD8)';
+    const modal = document.createElement('div');
+    modal.id = overlayId;
+    modal.className = 'successModalOverlay';
+    modal.innerHTML = `
+      <div class="successCard">
+        <div class="successIcon" style="background:${gradient};">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+          </svg>
+        </div>
+        <h2>${title}</h2>
+        <p class="successMsg">${message}</p>
+        <button class="btn primary" id="actionOkBtn">OK</button>
+      </div>
+    `;
+    document.body.appendChild(modal);
+    setTimeout(() => modal.classList.add('show'), 10);
+    const closeModal = () => {
+      modal.classList.remove('show');
+      setTimeout(() => modal.remove(), 300);
+    };
+    modal.querySelector('#actionOkBtn').addEventListener('click', closeModal);
+    modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+    window.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); }, { once:true });
+  }
+
+  function openProgressModal(title, message, total = 0) {
+    const existing = document.getElementById('progressModal');
+    if (existing) existing.remove();
+    const modal = document.createElement('div');
+    modal.id = 'progressModal';
+    modal.className = 'successModalOverlay';
+    progressState = { title, message, total, completed: 0 };
+    modal.innerHTML = `
+      <div class="successCard">
+        <div class="successIcon" style="background:linear-gradient(135deg,#159DD8,#159DD8);">
+          <div class="spinner" aria-hidden="true"></div>
+        </div>
+        <h2>${title}</h2>
+        <p class="successMsg" id="progressMessage">${message}</p>
+        <div class="progressBar"><div class="progressFill" id="progressFill" style="width:0%;"></div></div>
+        <div class="progressText" id="progressText">0/${total}</div>
+      </div>
+    `;
+    document.body.appendChild(modal);
+    setTimeout(() => modal.classList.add('show'), 10);
+    progressModal = modal;
+  }
+
+  function updateProgressModal(message, completed, total) {
+    progressState.message = message;
+    progressState.completed = completed;
+    progressState.total = total;
+    if (!progressModal) return;
+    const msgEl = progressModal.querySelector('#progressMessage');
+    const fillEl = progressModal.querySelector('#progressFill');
+    const textEl = progressModal.querySelector('#progressText');
+    if (msgEl) msgEl.textContent = message;
+    if (textEl) textEl.textContent = `${completed}/${total}`;
+    if (fillEl) {
+      const pct = total ? Math.min(100, Math.round((completed / total) * 100)) : 0;
+      fillEl.style.width = `${pct}%`;
+    }
+  }
+
+  function closeProgressModal() {
+    if (!progressModal) return;
+    const modal = progressModal;
+    progressModal = null;
+    modal.classList.remove('show');
+    setTimeout(() => modal.remove(), 250);
+  }
+
+  function downloadFailureReport(failures, filenamePrefix = 'devices-errors') {
+    if (!failures || !failures.length) return;
+    const headers = ['row', 'mac', 'model', 'user', 'primaryLine', 'status', 'response'];
+    const escapeCsv = (value) => {
+      const str = String(value ?? '');
+      return `"${str.replace(/"/g, '""')}"`;
+    };
+    const lines = [
+      headers.join(','),
+      ...failures.map(f => [
+        f.row,
+        escapeCsv(f.mac),
+        escapeCsv(f.model),
+        escapeCsv(f.user),
+        escapeCsv(f.primaryLine),
+        escapeCsv(f.status),
+        escapeCsv(f.response)
+      ].join(','))
+    ];
+    const blob = new Blob([lines.join('\n')], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `${filenamePrefix}-${new Date().toISOString().slice(0,10)}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+  }
+
+  function showResultModal(title, message, opts = {}) {
+    const overlayId = 'resultModal';
+    const existing = document.getElementById(overlayId);
+    if (existing) existing.remove();
+    const variant = opts.variant || 'success';
+    const failures = Array.isArray(opts.failures) ? opts.failures : [];
+    const gradient = variant === 'danger'
+      ? 'linear-gradient(135deg, #ef4444, #dc2626)'
+      : 'linear-gradient(135deg, #159DD8, #159DD8)';
+    const modal = document.createElement('div');
+    modal.id = overlayId;
+    modal.className = 'successModalOverlay';
+    modal.innerHTML = `
+      <div class="successCard">
+        <div class="successIcon" style="background:${gradient};">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+          </svg>
+        </div>
+        <h2>${title}</h2>
+        <p class="successMsg">${message}</p>
+        ${failures.length ? `<button class="btn secondary" id="downloadFailuresBtn" style="margin-bottom:8px;">Download error report</button>` : ''}
+        <button class="btn primary" id="resultOkBtn">OK</button>
+      </div>
+    `;
+    document.body.appendChild(modal);
+    setTimeout(() => modal.classList.add('show'), 10);
+    const closeModal = () => {
+      modal.classList.remove('show');
+      setTimeout(() => modal.remove(), 300);
+    };
+    modal.querySelector('#resultOkBtn').addEventListener('click', closeModal);
+    modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+    if (failures.length) {
+      modal.querySelector('#downloadFailuresBtn').addEventListener('click', () => {
+        downloadFailureReport(failures, opts.filenamePrefix || 'devices-errors');
+      });
+    }
+  }
+
+  function confirmAction(title, message, opts = {}) {
+    return new Promise((resolve) => {
+      const variant = opts.variant || 'danger';
+      const okLabel = opts.okLabel || 'Delete';
+      const cancelLabel = opts.cancelLabel || 'Cancel';
+      const okClass = variant === 'danger' ? 'btn danger' : 'btn primary';
+      const overlayId = 'confirmModal';
+      const existing = document.getElementById(overlayId);
+      if (existing) existing.remove();
+      const gradient = variant === 'danger'
+        ? 'linear-gradient(135deg, #ef4444, #dc2626)'
+        : 'linear-gradient(135deg, #159DD8, #159DD8)';
+      const modal = document.createElement('div');
+      modal.id = overlayId;
+      modal.className = 'successModalOverlay';
+      modal.innerHTML = `
+        <div class="successCard">
+          <div class="successIcon" style="background:${gradient};">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+              <polyline points="22 4 12 14.01 9 11.01"></polyline>
+            </svg>
+          </div>
+          <h2>${title}</h2>
+          <p class="successMsg">${message}</p>
+          <div style="display:flex; gap:10px; justify-content:center; margin-top:12px;">
+            <button class="btn secondary" id="confirmCancelBtn">${cancelLabel}</button>
+            <button class="${okClass}" id="confirmOkBtn">${okLabel}</button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(modal);
+      setTimeout(() => modal.classList.add('show'), 10);
+      const closeModal = (result) => {
+        modal.classList.remove('show');
+        setTimeout(() => modal.remove(), 300);
+        resolve(result);
+      };
+      modal.querySelector('#confirmOkBtn').addEventListener('click', () => closeModal(true));
+      modal.querySelector('#confirmCancelBtn').addEventListener('click', () => closeModal(false));
+      modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(false); });
+      window.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(false); }, { once:true });
+    });
+  }
+
+  // Load Devices (Working Endpoint)
+  async function loadDevices() {
+    const exportBtn = document.getElementById('exportDevicesBtn');
+    const tbody = document.getElementById('devicesTable').querySelector('tbody');
+    const deviceListSection = document.getElementById('deviceListSection');
+    if (tbody) {
+      tbody.innerHTML = '<tr><td colspan="6" class="empty">Loading devices...</td></tr>';
+    }
+    if (deviceListSection) deviceListSection.style.display = 'block';
+    try {
+      const token = getToken();
+      if (!token) {
+        if (tbody) tbody.innerHTML = '<tr><td colspan="6" class="empty">Sign in to load devices.</td></tr>';
+        showAuthModal();
+        return;
+      }
+
+      let allDevices = [];
+      // /v1/devices paginates via the standard RFC-5988 Link header
+      // (Link: <url>; rel="next"), NOT a body .next field. The old
+      // `data.next || null` always evaluated to null, so we quietly
+      // stopped after page 1 -- capping the list at whatever ?max=
+      // returned (was 500; a 1,330-device org lost 830 rows).
+      let nextUrl = withOrgParam('/v1/devices?max=1000');
+      let safety = 0;
+      while (nextUrl && safety < 20) {
+        safety++;
+        const url = nextUrl.startsWith('http') ? nextUrl : `${BASE_URL}${nextUrl}`;
+        const response = await fetch(url, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          }
+        });
+
+        if (!response.ok) {
+          const text = await response.text();
+          throw new Error(`HTTP ${response.status}: ${text}`);
+        }
+
+        const data = await response.json();
+        const items = Array.isArray(data.items) ? data.items : [];
+        allDevices = allDevices.concat(items);
+
+        const link = response.headers.get('Link') || response.headers.get('link') || '';
+        const m = link.match(/<([^>]+)>\s*;\s*rel="?next"?/i);
+        nextUrl = m ? m[1] : null;
+      }
+      
+      devices = allDevices;
+      deviceIndex = buildDeviceIndex(devices);
+      ownerMap = await fetchOwners(devices);
+      rebuildDeviceFilterValues();
+      canViewDeviceDetails = await checkDeviceDetailAccess();
+      setTokenWarning(!canViewDeviceDetails, tokenAccessMessage);
+      renderDevicesTable();
+      exportBtn.disabled = false;
+    } catch (error) {
+      if (tbody) tbody.innerHTML = `<tr><td colspan="6" class="empty">${formatApiError(error)}</td></tr>`;
+    }
+  }
+
+  function renderDevicesTable(filter = '') {
+    const tbody = document.getElementById('devicesTable').querySelector('tbody');
+    const countEl = document.getElementById('deviceCount');
+    if (countEl) countEl.textContent = `${devices.length} devices`;
+    const isDarkMode = () => document.body.classList.contains('dark-mode');
+
+    const filtered = devices.filter(d => {
+      const searchTerm = filter.toLowerCase();
+      const matchesSearch = (d.displayName || '').toLowerCase().includes(searchTerm) ||
+             (d.product || '').toLowerCase().includes(searchTerm) ||
+             (d.primarySipUrl || '').toLowerCase().includes(searchTerm) ||
+             (d.serial || '').toLowerCase().includes(searchTerm) ||
+             (d.mac || '').toLowerCase().includes(searchTerm) ||
+             (d.id || '').toLowerCase().includes(searchTerm);
+      if (!matchesSearch) return false;
+      return deviceFilterKeys.every((key) => {
+        const selected = deviceFilterSelections[key];
+        if (!selected.size) return true;
+        return selected.has(getDeviceFilterValue(d, key));
+      });
+    });
+
+    if (filtered.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="9" class="empty">No devices found</td></tr>';
+      const infoEl = document.getElementById('devicePageInfo');
+      if (infoEl) infoEl.textContent = '0/0';
+      const prevBtn = document.getElementById('devicePrevPage');
+      const nextBtn = document.getElementById('deviceNextPage');
+      if (prevBtn) prevBtn.disabled = true;
+      if (nextBtn) nextBtn.disabled = true;
+      return;
+    }
+
+    const totalPages = Math.max(1, Math.ceil(filtered.length / devicePageSize));
+    if (devicePage > totalPages) devicePage = totalPages;
+    const start = (devicePage - 1) * devicePageSize;
+    const pageItems = filtered.slice(start, start + devicePageSize);
+    const infoEl = document.getElementById('devicePageInfo');
+    if (infoEl) infoEl.textContent = `${devicePage}/${totalPages}`;
+    const prevBtn = document.getElementById('devicePrevPage');
+    const nextBtn = document.getElementById('deviceNextPage');
+    if (prevBtn) prevBtn.disabled = devicePage <= 1;
+    if (nextBtn) nextBtn.disabled = devicePage >= totalPages;
+
+    tbody.innerHTML = pageItems.map(d => {
+      const iconUrl = getDeviceIconUrl(d.product);
+      const statusMeta = getStatusMeta(d.connectionStatus);
+      const platform = getDevicePlatformMeta(d.devicePlatform, d.managedBy);
+      const platformIcon = platform.iconLight && platform.iconDark
+        ? `<img class="platformIcon" src="${isDarkMode() ? platform.iconDark : platform.iconLight}" data-light="${platform.iconLight}" data-dark="${platform.iconDark}" alt="${platform.label}">`
+        : '';
+      return `
+      <tr class="clickRow" data-device-id="${d.id || ''}" data-webex-id="${d.webexDeviceId || ''}" data-calling-id="${d.callingDeviceId || ''}" data-org-id="${d.orgId || ''}">
+        <td>${d.displayName || '-'}</td>
+        <td>
+          <div class="productCell">
+            ${iconUrl ? `<img class="productIcon" src="${iconUrl}" alt="" loading="lazy">` : ''}
+            <span>${d.product || '-'}</span>
+          </div>
+        </td>
+        <td>${getDeviceTypeLabel(d.type)}</td>
+        <td>
+          <span class="statusPill">
+            <span class="statusDot ${statusMeta.dot}"></span>
+            <span>${statusMeta.label}</span>
+          </span>
+        </td>
+        <td>
+          <div class="platformCell">
+            ${platformIcon}
+            <span>${platform.label}</span>
+          </div>
+        </td>
+        <td class="mono">${formatMacForDisplay(d.mac || '')}</td>
+        <td class="mono">${formatPrimaryLine(d.primarySipUrl || '')}</td>
+        <td>
+          <div class="ownerCell">
+            ${d.personId && ownerMap.get(d.personId)?.avatar ? `<img class="ownerAvatar" src="${ownerMap.get(d.personId).avatar}" alt="" loading="lazy">` : '<span class="ownerAvatar"></span>'}
+            <span class="ownerName">${getDeviceOwnerLabel(d)}</span>
+          </div>
+        </td>
+        <td><button class="iconBtn deleteBtn" data-device-id="${d.id || ''}" data-calling-id="${d.callingDeviceId || ''}" data-webex-id="${d.webexDeviceId || ''}" data-org-id="${d.orgId || ''}" data-device-name="${d.displayName || ''}" title="Delete device">🗑</button></td>
+      </tr>
+    `;
+    }).join('');
+  }
+
+  function exportDevices() {
+    if (!devices.length) return;
+    const headers = 'displayName,product,type,connectionStatus,primarySipUrl,serial,mac,ip,id';
+    const rows = devices.map(d => 
+      `"${d.displayName || ''}","${d.product || ''}","${d.type || ''}","${d.connectionStatus || ''}","${d.primarySipUrl || ''}","${d.serial || ''}","${d.mac || ''}","${d.ip || ''}","${d.id}"`
+    ).join('\n');
+    const csv = headers + '\n' + rows;
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'webex_devices.csv';
+    a.click();
+  }
+
+  async function fetchOwners(list) {
+    const token = getToken();
+    if (!token) return new Map();
+    const peopleIds = Array.from(new Set((list || []).map(d => d.personId).filter(Boolean)));
+    const map = new Map();
+    for (const personId of peopleIds) {
+      try {
+        const res = await fetch(`${BASE_URL}/v1/people/${encodeURIComponent(personId)}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (!res.ok) continue;
+        const data = await res.json();
+        map.set(personId, {
+          name: data.displayName || data.nickName || data.firstName || 'Person',
+          avatar: data.avatar || data.avatarUrl || '',
+        });
+      } catch {}
+    }
+    return map;
+  }
+
+  document.getElementById('exportDevicesBtn').addEventListener('click', exportDevices);
+  document.getElementById('runAddDevicesBtn').addEventListener('click', runAddDevices);
+  document.getElementById('downloadTemplateBtn').addEventListener('click', () => {
+    openTemplateModal();
+  });
+  if (addDeviceTargetSelect) {
+    addDeviceTargetSelect.addEventListener('change', async (event) => {
+      addTargetType = event.target.value === 'workspace' ? 'workspace' : 'user';
+      if (addTargetType === 'workspace') {
+        await loadWorkspaces();
+      }
+      updateAddTargetUI({ applyToRows: true });
+    });
+  }
+  if (closeTemplateModalBtn) closeTemplateModalBtn.addEventListener('click', closeTemplateModal);
+  if (cancelTemplateBtn) cancelTemplateBtn.addEventListener('click', closeTemplateModal);
+  if (templateTargetSelect) {
+    templateTargetSelect.addEventListener('change', () => {
+      updateTemplateTargetUI();
+    });
+  }
+  if (templateWorkspaceSelect) {
+    templateWorkspaceSelect.addEventListener('focus', async () => {
+      await loadWorkspaces();
+      templateWorkspaceSelect.innerHTML = renderWorkspaceOptions(templateWorkspaceSelect.value || '');
+    });
+  }
+  if (confirmTemplateBtn) {
+    confirmTemplateBtn.addEventListener('click', () => {
+      const model = getTemplateModel();
+      const lineCount = getLineKeyCountForModel(model || '');
+      if (!model || !lineCount) {
+        showActionModal('Template', 'Select a device model to download the template.', { variant:'danger' });
+        return;
+      }
+      const targetType = templateTargetSelect?.value === 'workspace' ? 'workspace' : 'user';
+      let selectedWorkspace = null;
+      if (targetType === 'workspace') {
+        const wsId = templateWorkspaceSelect?.value || '';
+        if (!wsId) {
+          showActionModal('Template', 'Select a workspace to download the template.', { variant:'danger' });
+          return;
+        }
+        selectedWorkspace = workspaceMap.get(wsId) || null;
+        if (!selectedWorkspace) {
+          showActionModal('Template', 'Workspace not found. Reload and try again.', { variant:'danger' });
+          return;
+        }
+      }
+      templateModelSelection = model;
+      const headers = targetType === 'workspace'
+        ? ['mac', 'model', 'workspaceId', 'workspace', 'locationId', 'primaryLine']
+        : ['mac', 'model', 'user', 'primaryLine'];
+      for (let i = 2; i <= lineCount; i += 1) {
+        headers.push(`line${i}_label`, `line${i}_number`);
+      }
+      const sample = targetType === 'workspace'
+        ? ['','', selectedWorkspace?.id || '', getWorkspaceLabel(selectedWorkspace), selectedWorkspace?.locationId || '', '']
+        : ['','', '', ''];
+      for (let i = 2; i <= lineCount; i += 1) {
+        sample.push('', '');
+      }
+      sample[1] = model;
+      const csv = `${headers.join(',')}\n${sample.join(',')}`;
+      const blob = new Blob([csv], { type: 'text/csv' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `webex_devices_template_${model.replace(/\s+/g, '_')}.csv`;
+      a.click();
+      closeTemplateModal();
+    });
+  }
+  document.getElementById('uploadDevicesCsvBtn').addEventListener('click', () => {
+    document.getElementById('devicesCsvInput').click();
+  });
+  document.getElementById('devicesCsvInput').addEventListener('change', (e) => {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = async () => {
+      const parsed = Papa.parse(reader.result, { header:true, skipEmptyLines:true });
+      const rows = Array.isArray(parsed.data) ? parsed.data : [];
+      const hasWorkspaceColumn = rows.some(r => {
+        const map = normalizeRowKeys(r);
+        return !!getRowValue(map, ['workspaceid', 'workspace', 'workspacename', 'placeid']);
+      });
+      if (addTargetType === 'workspace' || hasWorkspaceColumn) {
+        if (hasWorkspaceColumn) {
+          addTargetType = 'workspace';
+          updateAddTargetHeaderOnly();
+        }
+        await loadWorkspaces();
+      }
+      const mappedRows = rows.map(r => {
+        const rowMap = normalizeRowKeys(r);
+        const macRaw = getRowValue(rowMap, ['mac', 'devicemac', 'device_mac']);
+        const model = getRowValue(rowMap, ['model']) || getTemplateModel() || 'Cisco 8845';
+        const userValue = getRowValue(rowMap, ['user', 'email', 'name', 'personid', 'userid']);
+        const workspaceValue = getRowValue(rowMap, ['workspace', 'workspacename']);
+        const workspaceId = getRowValue(rowMap, ['workspaceid', 'placeid']);
+        const speedDials = getRowValue(rowMap, ['speeddials', 'speed_dials', 'speeddial', 'speed_dial']);
+        const resolved = resolveUserFromValue(userValue);
+        const lineTemplate = buildLayoutFromLineColumns(rowMap, model);
+        const targetType = (workspaceId || workspaceValue) ? 'workspace' : addTargetType;
+        const resolvedWorkspace = workspaceId ? (workspaceMap.get(workspaceId) || null) : resolveWorkspaceFromValue(workspaceValue);
+        const row = {
+          mac: normalizeMac(macRaw),
+          model,
+          userValue,
+          userId: resolved ? resolved.id : (rowMap.personid || rowMap.userid || ''),
+          workspaceValue: workspaceValue || (resolvedWorkspace ? getWorkspaceLabel(resolvedWorkspace) : ''),
+          workspaceId: workspaceId || (resolvedWorkspace?.id || ''),
+          targetType,
+          primaryLine: getRowValue(rowMap, ['primaryline', 'primarysipurl', 'phonenumber']) || lineTemplate.primaryLine,
+          speedDials: speedDials || '',
+          status: '',
+          layout: lineTemplate.hasLineColumns ? lineTemplate.layout : null,
+        };
+        if (row.primaryLine || lineTemplate.hasLineColumns) {
+          ensureRowLayout(row);
+        }
+        if (row.speedDials && !lineTemplate.hasLineColumns) {
+          applySpeedDialsToRow(row, row.speedDials);
+        }
+        return row;
+      });
+      addRows = mappedRows;
+      updateAddTargetUI();
+      if (mappedRows.length) {
+        const confirmed = await confirmAction(
+          'Bulk upload',
+          `Found ${mappedRows.length} entries. Run now?`,
+          { variant:'success', okLabel:'Run', cancelLabel:'Cancel' }
+        );
+        if (confirmed) {
+          suppressAddTableRender = true;
+          const statusEl = document.getElementById('userLoadStatus');
+          if (statusEl) statusEl.textContent = `Running bulk add: 0/${addRows.length}...`;
+          await runAddDevices();
+        }
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = '';
+  });
+
+  document.getElementById('addDevicesTable').addEventListener('focusin', (e) => {
+    if (e.target && e.target.classList.contains('userInput')) {
+      activeUserInput = e.target;
+      if (!e.target.value) {
+        document.getElementById('userLoadStatus').textContent = 'Type at least 2 characters to search.';
+      }
+      renderUserDropdown(e.target);
+    }
+  });
+  document.getElementById('addDevicesTable').addEventListener('click', (e) => {
+    const target = e.target;
+    if (target.closest('.userPageBtn')) {
+      const btn = target.closest('.userPageBtn');
+      const idx = Number(btn.dataset.index);
+      const action = btn.dataset.pageAction;
+      const input = document.querySelector(`.userInput[data-index="${idx}"]`);
+      const state = getUserDropdownState(idx, input?.value || '');
+      if (action === 'prev') state.page = Math.max(1, state.page - 1);
+      if (action === 'next') {
+        const list = filterUsers(input?.value || '');
+        const totalPages = Math.max(1, Math.ceil(list.length / state.pageSize));
+        state.page = Math.min(totalPages, state.page + 1);
+      }
+      userDropdownState.set(String(idx), state);
+      if (input) renderUserDropdown(input);
+      return;
+    }
+    if (target.classList.contains('userClear')) {
+      const idx = Number(target.dataset.index);
+      if (Number.isNaN(idx) || !addRows[idx]) return;
+      addRows[idx].userValue = '';
+      addRows[idx].userId = '';
+      addRows[idx].status = 'Select a user';
+      renderAddDevicesTable();
+      return;
+    }
+    if (target.classList.contains('layoutBtn')) {
+      const idx = Number(target.dataset.index);
+      if (Number.isNaN(idx) || !addRows[idx]) return;
+      openAddLayoutModal(idx);
+      return;
+    }
+    if (target.classList.contains('userOption') && !target.classList.contains('isHint')) {
+      const idx = Number(target.dataset.index);
+      if (Number.isNaN(idx) || !addRows[idx]) return;
+      const userId = target.dataset.userId || '';
+      const user = users.find(u => u.id === userId);
+      const name = user ? getUserLabel(user) : (target.textContent || '').trim();
+      addRows[idx].userValue = name;
+      addRows[idx].userId = userId;
+      addRows[idx].status = name ? `User: ${name}` : 'User selected';
+      renderAddDevicesTable();
+      hideAllUserDropdowns();
+      return;
+    }
+    if (target.dataset.addAfter) {
+      const idx = Number(target.dataset.addAfter);
+      if (Number.isNaN(idx)) return;
+      addRows.splice(idx + 1, 0, { mac:'', model:'Cisco 8845', userValue:'', userId:'', workspaceValue:'', workspaceId:'', targetType: addTargetType, primaryLine:'', speedDials:'', status:'', layout:null });
+      renderAddDevicesTable();
+      return;
+    }
+    if (target.dataset.delRow) {
+      const idx = Number(target.dataset.delRow);
+      if (Number.isNaN(idx)) return;
+      if (addRows.length > 1) {
+        addRows.splice(idx, 1);
+      } else {
+        addRows[0] = { mac:'', model:'Cisco 8845', userValue:'', userId:'', workspaceValue:'', workspaceId:'', targetType: addTargetType, primaryLine:'', speedDials:'', status:'', layout:null };
+      }
+      renderAddDevicesTable();
+      return;
+    }
+  });
+  document.getElementById('addDevicesTable').addEventListener('input', (e) => {
+    const target = e.target;
+    const idx = Number(target.dataset.index);
+    if (Number.isNaN(idx) || !addRows[idx]) return;
+    if (target.classList.contains('macInput')) {
+      addRows[idx].mac = target.value;
+    } else if (target.classList.contains('modelSelect')) {
+      addRows[idx].model = target.value;
+      // Regenerate layout for new model
+      const row = addRows[idx];
+      const lineCount = getLineKeyCountForModel(row.model);
+      if (lineCount <= 1) {
+        row.speedDials = '';
+      }
+      if (row.layout) {
+        row.layout.lineKeys = buildDefaultLineKeys(lineCount);
+      }
+    } else if (target.classList.contains('userInput')) {
+      activeUserInput = target;
+      addRows[idx].userValue = target.value;
+      addRows[idx].userId = '';
+      clearTimeout(userSearchTimer);
+      userSearchTimer = setTimeout(() => {
+        searchUsers(target.value);
+      }, 300);
+      renderUserDropdown(target);
+      const resolved = resolveUserFromValue(target.value);
+      if (resolved) {
+        addRows[idx].userId = resolved.id;
+        const label = getUserLabel(resolved);
+        addRows[idx].status = label ? `User: ${label}` : 'User selected';
+      } else {
+        addRows[idx].status = 'Select a user';
+      }
+      const rowEl = target.closest('tr');
+      if (rowEl) {
+        const statusCell = rowEl.querySelector('.statusCell');
+        if (statusCell) statusCell.textContent = addRows[idx].status;
+      }
+    } else if (target.classList.contains('primaryLineInput')) {
+      addRows[idx].primaryLine = target.value;
+    } else if (target.classList.contains('speedDialListInput')) {
+      addRows[idx].speedDials = target.value;
+      applySpeedDialsToRow(addRows[idx], target.value);
+    }
+  });
+  document.getElementById('addDevicesTable').addEventListener('change', (e) => {
+    const target = e.target;
+    if (target.classList.contains('userPageSize')) {
+      const idx = Number(target.dataset.index);
+      const input = document.querySelector(`.userInput[data-index="${idx}"]`);
+      const state = getUserDropdownState(idx, input?.value || '');
+      state.pageSize = Number(target.value) || DEFAULT_USER_PAGE_SIZE;
+      state.page = 1;
+      userDropdownState.set(String(idx), state);
+      if (input) renderUserDropdown(input);
+      return;
+    }
+    if (target.classList.contains('workspaceSelect')) {
+      const idx = Number(target.dataset.index);
+      if (Number.isNaN(idx) || !addRows[idx]) return;
+      const wsId = target.value || '';
+      const ws = workspaceMap.get(wsId) || null;
+      addRows[idx].workspaceId = wsId;
+      addRows[idx].workspaceValue = ws ? getWorkspaceLabel(ws) : '';
+      addRows[idx].status = addRows[idx].status || '';
+    }
+  });
+  document.getElementById('deviceSearchInput').addEventListener('input', (e) => {
+    devicePage = 1;
+    renderDevicesTable(e.target.value);
+  });
+  document.getElementById('devicesTable').addEventListener('click', (event) => {
+    const filterBtn = event.target.closest('[data-filter-btn]');
+    if (!filterBtn) return;
+    const key = filterBtn.dataset.filterBtn;
+    const popover = document.querySelector(`#devicesTable [data-filter-popover="${key}"]`);
+    if (!popover) return;
+    if (activeDevicePopoverState?.key === key) closeDevicePopover();
+    else {
+      closeDevicePopover();
+      openDevicePopover(key, filterBtn, popover);
+    }
+  });
+  document.addEventListener('input', (event) => {
+    const input = event.target.closest('[data-device-filter-search]');
+    if (!input) return;
+    deviceFilterSearchTerms[input.dataset.deviceFilterSearch] = input.value || '';
+    renderDeviceFilterPopover(input.dataset.deviceFilterSearch);
+  });
+  document.addEventListener('change', (event) => {
+    const input = event.target.closest('input[data-device-filter-key][data-device-filter-value]');
+    if (!input) return;
+    const key = input.dataset.deviceFilterKey;
+    const value = input.dataset.deviceFilterValue;
+    if (value === '__ALL__') {
+      deviceFilterSelections[key] = input.checked ? new Set(deviceFilterValues[key]) : new Set();
+    } else if (input.checked) {
+      deviceFilterSelections[key].add(value);
+    } else {
+      deviceFilterSelections[key].delete(value);
+    }
+    updateDeviceFilterButtonState();
+    renderDeviceFilterPopover(key);
+    devicePage = 1;
+    renderDevicesTable(document.getElementById('deviceSearchInput')?.value || '');
+  });
+  const devicePageSizeEl = document.getElementById('devicePageSize');
+  const devicePrevPageEl = document.getElementById('devicePrevPage');
+  const deviceNextPageEl = document.getElementById('deviceNextPage');
+  if (devicePageSizeEl) {
+    devicePageSizeEl.addEventListener('change', (e) => {
+      const nextSize = Number(e.target.value) || 15;
+      devicePageSize = DEVICE_PAGE_SIZES.includes(nextSize) ? nextSize : 15;
+      devicePage = 1;
+      renderDevicesTable(document.getElementById('deviceSearchInput')?.value || '');
+    });
+  }
+  if (devicePrevPageEl) {
+    devicePrevPageEl.addEventListener('click', () => {
+      devicePage = Math.max(1, devicePage - 1);
+      renderDevicesTable(document.getElementById('deviceSearchInput')?.value || '');
+    });
+  }
+  if (deviceNextPageEl) {
+    deviceNextPageEl.addEventListener('click', () => {
+      devicePage += 1;
+      renderDevicesTable(document.getElementById('deviceSearchInput')?.value || '');
+    });
+  }
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('.userPicker')) hideAllUserDropdowns();
+    if (!activeDevicePopoverState) return;
+    if (activeDevicePopoverState.popover.contains(e.target) || activeDevicePopoverState.btn.contains(e.target)) return;
+    closeDevicePopover();
+  });
+  window.addEventListener('scroll', () => {
+    if (activeDevicePopoverState) positionDevicePopover(activeDevicePopoverState.btn, activeDevicePopoverState.popover);
+  }, true);
+  window.addEventListener('resize', () => {
+    if (activeDevicePopoverState) positionDevicePopover(activeDevicePopoverState.btn, activeDevicePopoverState.popover);
+  });
+  window.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && activeDevicePopoverState) closeDevicePopover();
+  });
+
+  closeAddLayoutModalBtn.addEventListener('click', closeAddLayoutModal);
+  cancelAddLayoutBtn.addEventListener('click', closeAddLayoutModal);
+  addLayoutModal.addEventListener('click', (e) => {
+    if (e.target === addLayoutModal) closeAddLayoutModal();
+  });
+  addLayoutGrid.addEventListener('input', (e) => {
+    if (activeLayoutRow === null) return;
+    const row = addRows[activeLayoutRow];
+    const layout = ensureRowLayout(row);
+    const idx = Number(e.target.dataset.index);
+    if (Number.isNaN(idx) || !layout.lineKeys[idx]) return;
+    const key = layout.lineKeys[idx];
+    if (e.target.classList.contains('layoutLabel')) {
+      key.lineKeyLabel = e.target.value;
+    } else if (e.target.classList.contains('layoutTarget')) {
+      key.lineKeyValue = e.target.value;
+    }
+  });
+  addLayoutGrid.addEventListener('change', (e) => {
+    if (activeLayoutRow === null) return;
+    const row = addRows[activeLayoutRow];
+    const layout = ensureRowLayout(row);
+    const idx = Number(e.target.dataset.index);
+    if (Number.isNaN(idx) || !layout.lineKeys[idx]) return;
+    const key = layout.lineKeys[idx];
+    if (e.target.classList.contains('layoutType')) {
+      key.lineKeyType = e.target.value;
+    }
+  });
+  saveAddLayoutBtn.addEventListener('click', () => {
+    if (activeLayoutRow === null) return;
+    const row = addRows[activeLayoutRow];
+    if (!row || !row.layout) return;
+    
+    // Collect current values from the modal inputs
+    const typeSelects = addLayoutGrid.querySelectorAll('.layoutType');
+    const labelInputs = addLayoutGrid.querySelectorAll('.layoutLabel');
+    const targetInputs = addLayoutGrid.querySelectorAll('.layoutTarget');
+    const sharedIndexInputs = addLayoutGrid.querySelectorAll('.layoutSharedIndex');
+    
+    typeSelects.forEach((sel, idx) => {
+      if (row.layout.lineKeys[idx]) {
+        const type = sel.value;
+        row.layout.lineKeys[idx].lineKeyType = type;
+        row.layout.lineKeys[idx].lineKeyLabel = labelInputs[idx].value.trim();
+        row.layout.lineKeys[idx].lineKeyValue = targetInputs[idx].value.trim();
+        
+        // Add sharedLineIndex for SHARED_LINE type
+        if (type === 'SHARED_LINE' && sharedIndexInputs[idx]) {
+          const sharedIndex = parseInt(sharedIndexInputs[idx].value) || 1;
+          row.layout.lineKeys[idx].sharedLineIndex = sharedIndex;
+        } else {
+          delete row.layout.lineKeys[idx].sharedLineIndex;
+        }
+      }
+    });
+    
+    closeAddLayoutModal();
+  });
+  const deviceIconEl = document.getElementById('deviceIcon');
+  const deviceNameEl = document.getElementById('deviceName');
+  const deviceProductEl = document.getElementById('deviceProduct');
+  const deviceMetaList = document.getElementById('deviceMetaList');
+  const speedDialList = document.getElementById('speedDialList');
+  const deviceSpeedDialCard = document.getElementById('deviceSpeedDialCard');
+  const speedDialCancelBtn = document.getElementById('speedDialCancelBtn');
+  const speedDialEditBtn = document.getElementById('speedDialEditBtn');
+  const speedDialSpinner = document.getElementById('speedDialSpinner');
+  const speedDialBtnText = document.getElementById('speedDialBtnText');
+  const deviceListSection = document.getElementById('deviceListSection');
+  const deviceViewSection = document.getElementById('deviceViewSection');
+  const backToListBtn = document.getElementById('backToListBtn');
+  const deviceViewTitle = document.getElementById('deviceViewTitle');
+  const deleteDeviceBtn = document.getElementById('deleteDeviceBtn');
+  let currentLayout = null;
+  let currentLayoutDeviceId = '';
+  let currentPrimaryLineValue = '';
+  let speedDialEditMode = false;
+
+  function getLineKeyCountForModel(modelName) {
+    const name = (modelName || '').toLowerCase();
+    if (name.includes('8865')) return 10;
+    if (name.includes('8845')) return 10;
+    if (name.includes('7841')) return 4;
+    if (name.includes('8861')) return 10;
+    if (name.includes('8851')) return 10;
+    if (name.includes('8841')) return 10;
+    if (name.includes('7811')) return 1;
+    return 10; // default
+  }
+
+  function buildDefaultLineKeys(count) {
+    const keys = Array.from({ length: count }, (_, idx) => ({
+      lineKeyType: idx === 0 ? 'PRIMARY_LINE' : 'OPEN',
+      lineKeyLabel: '',
+      lineKeyValue: '',
+    }));
+    return keys;
+  }
+
+  function normalizeLayoutResponse(layout, lineCount, primaryLine) {
+    const next = {
+      layoutMode: layout?.layoutMode || 'DEFAULT',
+      userReorderEnabled: !!layout?.userReorderEnabled,
+      lineKeys: [],
+    };
+    if (Array.isArray(layout?.lineKeys) && layout.lineKeys.length) {
+      next.lineKeys = layout.lineKeys.map(k => ({
+        lineKeyType: normalizeLineKeyType(k?.lineKeyType || k?.type || k?.assignmentType || k?.keyType || 'OPEN'),
+        lineKeyLabel: k?.lineKeyLabel || k?.label || '',
+        lineKeyValue: (() => {
+          const raw = k?.lineKeyValue || getLayoutTarget(k) || '';
+          return raw === '-' ? '' : raw;
+        })(),
+      }));
+    } else {
+      next.lineKeys = buildDefaultLineKeys(lineCount);
+    }
+    if (next.lineKeys.length < lineCount) {
+      const extra = buildDefaultLineKeys(lineCount - next.lineKeys.length);
+      next.lineKeys = next.lineKeys.concat(extra);
+    }
+    return next;
+  }
+
+  function renderDeviceInfo(data) {
+    const product = data.product || data.model || 'Device';
+    const displayName = data.displayName || data.name || 'Device';
+    const iconUrl = getDeviceIconUrl(product);
+    deviceNameEl.textContent = displayName;
+    deviceProductEl.textContent = product || '-';
+    if (iconUrl) {
+      deviceIconEl.src = iconUrl;
+      deviceIconEl.style.display = 'block';
+    } else {
+      deviceIconEl.removeAttribute('src');
+      deviceIconEl.style.display = 'none';
+    }
+    const statusMeta = getStatusMeta(data.connectionStatus);
+    const hostIp = data.hostIpAddress || data.ip || data.ipAddress || data.ipv4Address || data.ipv6Address || '-';
+    const remoteIp = data.remoteIpAddress || data.remoteIp || data.remoteAddress || '-';
+    const macValue = formatMacForDisplay(data.mac || '');
+    const serialValue = data.serial || data.serialNumber || '-';
+    const softwareValue = data.software || data.softwareVersion || data.firmware || '-';
+    const channelValue = data.upgradeChannel || data.softwareChannel || '-';
+    const managedByValue = data.managedBy || data.devicePlatform || '-';
+    const linesValue = String(getLineKeyCountForModel(product || '') || '-');
+    const rows = [
+      [
+        { value: `<span class="statusBadge"><span class="statusDot ${statusMeta.dot}"></span><span>${escapeHtml(statusMeta.label)}</span></span>`, label: 'Connection Status' },
+        { value: escapeHtml(serialValue), label: 'Serial number' },
+      ],
+      [
+        { value: escapeHtml(linesValue), label: 'Lines' },
+        { value: escapeHtml(macValue || '-'), label: 'MAC address' },
+      ],
+      [
+        { value: escapeHtml(hostIp || '-'), label: 'Host IP address' },
+        { value: escapeHtml(remoteIp || '-'), label: 'Remote IP address' },
+      ],
+      [
+        { value: escapeHtml(softwareValue), label: 'Software version' },
+        { value: escapeHtml(channelValue), label: 'Software channel' },
+      ],
+      [
+        { value: escapeHtml(managedByValue), label: 'Managed by' },
+        { value: '', label: '' },
+      ],
+    ];
+    deviceMetaList.innerHTML = rows.map((pair, idx) => {
+      const isLast = idx === rows.length - 1;
+      return `
+      <div class="deviceMetaRow" style="${isLast ? 'border-bottom:none;' : ''}">
+        <div class="deviceMetaBlock">
+          <div class="deviceMetaValue">${pair[0].value}</div>
+          <div class="deviceMetaLabel">${pair[0].label}</div>
+        </div>
+        <div class="deviceMetaBlock">
+          <div class="deviceMetaValue">${pair[1].value}</div>
+          <div class="deviceMetaLabel">${pair[1].label}</div>
+        </div>
+      </div>
+      `;
+    }).join('');
+  }
+
+  function renderSpeedDials(layout, lineCount) {
+    const keys = Array.isArray(layout?.lineKeys) ? layout.lineKeys : [];
+    if (!keys.length || lineCount < 1) {
+      speedDialList.innerHTML = '<div class="hint">No line keys available for speed dials.</div>';
+      return;
+    }
+    const total = lineCount;
+    const leftCount = Math.ceil(total / 2);
+    const rightCount = total - leftCount;
+    const buildAssignment = (lineIndex, key, isPrimary) => {
+      const rawLabel = (key?.lineKeyLabel || '').toString();
+      const rawTarget = getLayoutTarget(key);
+      const labelValue = rawLabel === '-' ? '' : rawLabel;
+      const targetValue = rawTarget === '-' ? '' : rawTarget;
+      if (isPrimary) {
+        const primaryValue = currentPrimaryLineValue || targetValue || '-';
+        return {
+          label: labelValue || 'Primary line',
+          target: primaryValue,
+          type: 'Primary line',
+          editable: false,
+          hasEntry: true,
+        };
+      }
+      const hasEntry = !!(labelValue || targetValue);
+      return {
+        label: labelValue || (targetValue || ''),
+        target: targetValue || '',
+        type: hasEntry ? 'Speed dial' : 'Unused',
+        editable: true,
+        hasEntry,
+      };
+    };
+    const buildCell = (lineIndex, sideClass) => {
+      if (!lineIndex) {
+        return `
+          <div class="speedDialCell ${sideClass}">
+            <div class="speedDialOrder">-</div>
+          </div>
+          <div class="speedDialCell ${sideClass}">
+            <div class="speedDialAssignment"></div>
+          </div>
+        `;
+      }
+      const key = keys[lineIndex - 1] || {};
+      const isPrimary = lineIndex === 1;
+      const assignment = buildAssignment(lineIndex, key, isPrimary);
+      const order = lineIndex;
+      const readClass = (!assignment.hasEntry && !isPrimary) ? 'speedDialRead muted' : 'speedDialRead';
+      const showInputs = speedDialEditMode && assignment.editable;
+      const showType = !speedDialEditMode || assignment.hasEntry || isPrimary;
+      const showSub = !speedDialEditMode && (assignment.target && (isPrimary || assignment.hasEntry));
+      return `
+        <div class="speedDialCell ${sideClass}">
+          <div class="speedDialOrder">${order}</div>
+        </div>
+        <div class="speedDialCell ${sideClass}">
+          <div class="speedDialAssignment">
+            <div class="${readClass} ${showInputs ? 'speedDialHidden' : ''}">${assignment.label || 'Unused'}</div>
+            <div class="speedDialSub ${showSub ? '' : 'speedDialHidden'}">${escapeHtml(assignment.target)}</div>
+            ${assignment.editable ? `
+            <input class="speedDialInput speedDialLabel ${showInputs ? '' : 'speedDialHidden'}" data-index="${lineIndex - 1}" value="${escapeHtml(assignment.label)}" placeholder="Label" ${showInputs ? '' : 'disabled'} />
+            <input class="speedDialInput speedDialTarget ${showInputs ? '' : 'speedDialHidden'}" data-index="${lineIndex - 1}" value="${escapeHtml(assignment.target)}" placeholder="Number" ${showInputs ? '' : 'disabled'} />
+            ` : ''}
+            <div class="speedDialType ${showType ? '' : 'speedDialHidden'}">${assignment.type}</div>
+          </div>
+        </div>
+      `;
+    };
+    const rows = Array.from({ length: Math.max(leftCount, rightCount) }, (_, idx) => {
+      const leftIndex = idx + 1;
+      const rightIndex = leftCount + idx + 1;
+      const leftHtml = leftIndex <= leftCount ? buildCell(leftIndex, 'leftCol') : buildCell(null, 'leftCol');
+      const rightHtml = rightIndex <= total ? buildCell(rightIndex, 'rightCol') : buildCell(null, 'rightCol');
+      return `<div class="speedDialRow">${leftHtml}${rightHtml}</div>`;
+    }).join('');
+    speedDialList.innerHTML = `
+      <div class="speedDialTable">
+        <div class="speedDialHeader">
+          <div class="speedDialHead">Order</div>
+          <div class="speedDialHead">Line Key Assignment</div>
+          <div class="speedDialHead rightHead">Order</div>
+          <div class="speedDialHead rightHead">Line Key Assignment</div>
+        </div>
+        <div class="speedDialBody">
+          ${rows}
+        </div>
+      </div>
+    `;
+  }
+
+  function extractLineKeys(layout) {
+    if (!layout || typeof layout !== 'object') return [];
+    if (Array.isArray(layout.lineKeys)) return layout.lineKeys;
+    if (Array.isArray(layout.keys)) return layout.keys;
+    if (layout.layout && Array.isArray(layout.layout.lineKeys)) return layout.layout.lineKeys;
+    return [];
+  }
+
+  function normalizeLineKeyType(value) {
+    return (value || '').toString().toUpperCase();
+  }
+
+  function buildLayoutTypeOptions(keys) {
+    const base = [
+      { value:'OPEN', label:'Open' },
+      { value:'PRIMARY_LINE', label:'Primary line' },
+      { value:'SHARED_LINE', label:'Shared line' },
+      { value:'MONITORING', label:'Monitored line' },
+      { value:'SPEED_DIAL', label:'Speed dial' },
+      { value:'CALL_PARK_EXTENSION', label:'Call park extension' },
+      { value:'CLOSED', label:'Closed' },
+    ];
+    const extras = new Map();
+    (keys || []).forEach(k => {
+      const t = normalizeLineKeyType(k?.lineKeyType || k?.type || k?.assignmentType || k?.keyType);
+      if (t && !base.find(opt => opt.value === t)) {
+        extras.set(t, t.replace(/_/g, ' ').toLowerCase());
+      }
+    });
+    return base.concat(Array.from(extras.keys()).map(value => ({
+      value,
+      label: value.replace(/_/g, ' ').toLowerCase(),
+    })));
+  }
+
+  function validateLayoutForSave(layout) {
+    const issues = [];
+    if (!layout || !Array.isArray(layout.lineKeys)) {
+      issues.push('Layout missing line keys.');
+      return issues;
+    }
+    layout.lineKeys.forEach((key, idx) => {
+      const type = normalizeLineKeyType(key?.lineKeyType || 'OPEN');
+      if (!type) {
+        issues.push(`Line ${idx + 1}: missing type.`);
+        return;
+      }
+      if (type === 'PRIMARY_LINE') {
+        if (key?.lineKeyValue || key?.lineKeyLabel || key?.sharedLineIndex) {
+          issues.push(`Line ${idx + 1}: primary line cannot include label/value/index.`);
+        }
+        return;
+      }
+      if (type === 'SPEED_DIAL' || type === 'MONITORING' || type === 'MONITOR' || type === 'CALL_PARK_EXTENSION') {
+        if (!key?.lineKeyValue) issues.push(`Line ${idx + 1}: missing number/target.`);
+      }
+      if (type === 'SHARED_LINE') {
+        const hasIndex = Number.isFinite(Number(key?.sharedLineIndex)) && Number(key?.sharedLineIndex) > 0;
+        if (!hasIndex && !key?.lineKeyValue) issues.push(`Line ${idx + 1}: missing shared line index or target.`);
+      }
+    });
+    return issues;
+  }
+
+  function buildLayoutPayload(layout) {
+    const lineKeys = Array.isArray(layout?.lineKeys) ? layout.lineKeys : [];
+    const payload = {
+      layoutMode: layout?.layoutMode || 'CUSTOM',
+      userReorderEnabled: !!layout?.userReorderEnabled,
+      lineKeys: [],
+    };
+    lineKeys.forEach((key, idx) => {
+      const type = normalizeLineKeyType(key?.lineKeyType || 'OPEN');
+      const entry = {
+        lineKeyIndex: idx + 1,
+        lineKeyType: type,
+      };
+      if (type === 'PRIMARY_LINE') {
+        payload.lineKeys.push(entry);
+        return;
+      }
+      if (key?.lineKeyLabel) entry.lineKeyLabel = key.lineKeyLabel;
+      if (key?.lineKeyValue) entry.lineKeyValue = key.lineKeyValue;
+      if (type === 'SHARED_LINE' && Number.isFinite(Number(key?.sharedLineIndex))) {
+        entry.sharedLineIndex = Number(key.sharedLineIndex);
+      }
+      payload.lineKeys.push(entry);
+    });
+    return payload;
+  }
+
+  function formatLayoutValue(value) {
+    if (value === null || value === undefined || value === '') return '-';
+    if (Array.isArray(value)) return value.length ? value.join(', ') : '-';
+    if (typeof value === 'object') return JSON.stringify(value);
+    return String(value);
+  }
+
+  function getLayoutKeyType(key) {
+    return key?.lineKeyType || key?.type || key?.assignmentType || key?.keyType || '-';
+  }
+
+  function getLayoutLabel(key) {
+    const assign = key?.lineKeyAssignment;
+    return key?.lineKeyLabel ||
+      key?.label ||
+      key?.lineLabel ||
+      assign?.label ||
+      assign?.displayName ||
+      assign?.name ||
+      '-';
+  }
+
+  function getLayoutTarget(key) {
+    const assign = key?.lineKeyAssignment;
+    if (key?.lineKeyValue) return key.lineKeyValue;
+    if (assign && typeof assign === 'object') {
+      return assign.phoneNumber ||
+        assign.number ||
+        assign.extension ||
+        assign.destination ||
+        assign.address ||
+        assign.uri ||
+        assign.sipUrl ||
+        assign.dialString ||
+        assign.value ||
+        '-';
+    }
+    if (assign) return formatLayoutValue(assign);
+    return key?.phoneNumber ||
+      key?.extension ||
+      key?.number ||
+      key?.destination ||
+      key?.value ||
+      formatLayoutValue(key?.virtualLine) ||
+      '-';
+  }
+
+  function setSpeedDialDirty(state) {
+    if (state) {
+      if (currentLayout) currentLayout.layoutMode = 'CUSTOM';
+      speedDialEditBtn.classList.add('primary');
+      speedDialEditBtn.classList.remove('secondary');
+    } else {
+      speedDialEditBtn.classList.remove('primary');
+      speedDialEditBtn.classList.add('secondary');
+    }
+  }
+
+  function setSpeedDialSaving(state) {
+    speedDialEditBtn.disabled = state;
+    speedDialCancelBtn.disabled = state;
+    speedDialSpinner.classList.toggle('hidden', !state);
+    speedDialBtnText.textContent = state ? 'Saving...' : (speedDialEditMode ? 'Save' : 'Edit');
+  }
+
+  function setSpeedDialEditMode(state) {
+    speedDialEditMode = state;
+    speedDialBtnText.textContent = state ? 'Save' : 'Edit';
+    speedDialEditBtn.classList.toggle('primary', state);
+    speedDialEditBtn.classList.toggle('secondary', !state);
+    speedDialEditBtn.disabled = false;
+    speedDialCancelBtn.style.display = state ? 'inline-flex' : 'none';
+    if (!state) setSpeedDialDirty(false);
+    renderSpeedDials(currentLayout || {}, currentLineCount || 0);
+  }
+
+  function buildSpeedDialPayload(layout, lineCount) {
+    const keys = Array.isArray(layout?.lineKeys) ? layout.lineKeys : [];
+    const total = Math.max(lineCount, keys.length);
+    const payloadKeys = [];
+    for (let i = 0; i < total; i++) {
+      if (i === 0) {
+        payloadKeys.push({ lineKeyIndex: 1, lineKeyType: 'PRIMARY_LINE' });
+        continue;
+      }
+      const key = keys[i] || {};
+      const rawLabel = (key?.lineKeyLabel || '').toString().trim();
+      const rawValue = (key?.lineKeyValue || getLayoutTarget(key) || '').toString().trim();
+      const cleanedLabel = (!rawLabel || rawLabel === '-' || rawLabel.toLowerCase() === 'unused') ? '' : rawLabel;
+      const cleanedValue = (!rawValue || rawValue === '-' || rawValue.toLowerCase() === 'unused') ? '' : rawValue;
+      if (cleanedValue) {
+        payloadKeys.push({
+          lineKeyIndex: i + 1,
+          lineKeyType: 'SPEED_DIAL',
+          lineKeyLabel: cleanedLabel || cleanedValue,
+          lineKeyValue: cleanedValue,
+        });
+      } else {
+        payloadKeys.push({ lineKeyIndex: i + 1, lineKeyType: 'OPEN' });
+      }
+    }
+    return { layoutMode: 'CUSTOM', lineKeys: payloadKeys };
+  }
+
+  speedDialList.addEventListener('input', (e) => {
+    if (!speedDialEditMode) return;
+    if (!currentLayout) return;
+    const target = e.target;
+    const idx = Number(target.dataset.index);
+    if (Number.isNaN(idx)) return;
+    if (!currentLayout.lineKeys || !currentLayout.lineKeys[idx]) return;
+    const key = currentLayout.lineKeys[idx];
+    if (target.classList.contains('speedDialLabel')) {
+      key.lineKeyLabel = target.value;
+    } else if (target.classList.contains('speedDialTarget')) {
+      key.lineKeyValue = target.value;
+    }
+    setSpeedDialDirty(true);
+  });
+
+  speedDialEditBtn.addEventListener('click', () => {
+    if (!speedDialEditMode) {
+      setSpeedDialEditMode(true);
+      return;
+    }
+    saveSpeedDials();
+  });
+
+  speedDialCancelBtn.addEventListener('click', () => {
+    setSpeedDialEditMode(false);
+  });
+
+  async function saveSpeedDials() {
+    if (!currentLayoutDeviceId) {
+      showActionModal('Save failed', 'No device selected.', { variant:'danger' });
+      return;
+    }
+    if (!speedDialEditMode) return;
+    setSpeedDialSaving(true);
+    const payload = buildSpeedDialPayload(currentLayout || {}, currentLineCount);
+    try {
+      const token = getToken();
+      if (!token) {
+        showAuthModal();
+        return;
+      }
+      const response = await fetch(`${BASE_URL}/v1/telephony/config/devices/${currentLayoutDeviceId}/layout`, {
+        method: 'PUT',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+      const text = await response.text();
+      if (!response.ok) throw new Error(`HTTP ${response.status}: ${text}`);
+      currentLayout = payload;
+      renderSpeedDials(currentLayout, currentLineCount);
+      setSpeedDialDirty(false);
+      setSpeedDialEditMode(false);
+    } catch (err) {
+      showActionModal('Save failed', `${err.message || err}`.slice(0, 280), { variant:'danger' });
+    } finally {
+      setSpeedDialSaving(false);
+    }
+  }
+
+  async function deleteDevice({ deviceId, callingId, webexId, deviceName }) {
+    if (!deviceId && !callingId && !webexId) return false;
+    const msg = `
+      <div style="text-align:left;">
+        <p style="margin:0 0 8px;">Delete ${deviceName || 'this device'}?</p>
+        <ul class="confirmList">
+          <li>If the device is registered, it will factory reset.</li>
+          <li>If offline/asleep, manual reset may be required.</li>
+        </ul>
+        <p style="margin:0;">This cannot be undone.</p>
+      </div>
+    `;
+    const confirmed = await confirmAction('Delete Device', msg, { variant:'danger' });
+    if (!confirmed) return false;
+    try {
+      const token = getToken();
+      if (!token) {
+        showAuthModal();
+        return false;
+      }
+
+      if (!deviceId) {
+        throw new Error('No device ID found.');
+      }
+
+      console.log('Deleting device:', {
+        deviceName: deviceName || 'this device',
+        id: deviceId
+      });
+
+      const deleteUrl = withOrgParam(`${BASE_URL}/v1/devices/${deviceId}`);
+      const res = await fetch(deleteUrl, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (!res.ok) {
+        const text = await res.text();
+        console.log('Delete failed:', text);
+
+        if (res.status === 404 && text.includes('not found')) {
+          throw new Error('This device cannot be deleted via API. It may require manual deletion in Control Hub or may need to be unassigned from its user/workspace first.');
+        }
+
+        throw new Error(`HTTP ${res.status}: ${text}`);
+      }
+
+      console.log('✓ Device deleted successfully');
+      showActionModal('Deleted', 'Device removed.', { variant:'danger' });
+      await loadDevices();
+      return true;
+    } catch (err) {
+      const msg = (err.message || 'Unable to delete device.').slice(0, 280);
+      showActionModal('Delete failed', msg, { variant:'danger' });
+      return false;
+    }
+  }
+
+  if (deleteDeviceBtn) {
+    deleteDeviceBtn.addEventListener('click', async () => {
+      const didDelete = await deleteDevice({
+        deviceId: deleteDeviceBtn.dataset.deviceId || '',
+        callingId: deleteDeviceBtn.dataset.callingId || '',
+        webexId: deleteDeviceBtn.dataset.webexId || '',
+        deviceName: deleteDeviceBtn.dataset.deviceName || ''
+      });
+      if (didDelete) {
+        deviceViewSection.style.display = 'none';
+        deviceListSection.style.display = 'block';
+        deleteDeviceBtn.disabled = true;
+      }
+    });
+  }
+
+  document.getElementById('devicesTable').addEventListener('click', async (e) => {
+    const deleteBtn = e.target.closest('.deleteBtn');
+    if (deleteBtn) {
+      e.stopPropagation();
+      await deleteDevice({
+        deviceId: deleteBtn.dataset.deviceId || '',
+        callingId: deleteBtn.dataset.callingId || '',
+        webexId: deleteBtn.dataset.webexId || '',
+        deviceName: deleteBtn.dataset.deviceName || ''
+      });
+      return;
+    }
+
+    const row = e.target.closest('tr[data-device-id]');
+    if (!row) return;
+    const deviceId = row.dataset.deviceId || '';
+    const webexId = row.dataset.webexId || '';
+    const callingId = row.dataset.callingId || '';
+    if (!deviceId && !webexId && !callingId) return;
+    if (!canViewDeviceDetails) {
+      showActionModal('Limited access', tokenAccessMessage, { variant:'danger' });
+      return;
+    }
+
+    document.querySelectorAll('#devicesTable tbody tr').forEach(tr => tr.classList.remove('active'));
+    row.classList.add('active');
+
+    deviceListSection.style.display = 'none';
+    deviceViewSection.style.display = 'block';
+    deviceMetaList.innerHTML = '';
+    speedDialList.innerHTML = '';
+    setSpeedDialDirty(false);
+    setSpeedDialSaving(false);
+    setSpeedDialEditMode(false);
+    deviceViewTitle.textContent = row.querySelector('td')?.textContent?.trim() || 'Device Details';
+    if (deleteDeviceBtn) {
+      deleteDeviceBtn.dataset.deviceId = deviceId;
+      deleteDeviceBtn.dataset.callingId = callingId;
+      deleteDeviceBtn.dataset.webexId = webexId;
+      deleteDeviceBtn.dataset.deviceName = row.querySelector('td')?.textContent?.trim() || 'this device';
+      deleteDeviceBtn.disabled = false;
+    }
+
+    try {
+      const token = getToken();
+      if (!token) {
+        showAuthModal();
+        return;
+      }
+
+      const tryFetch = async (url) => {
+        const response = await fetch(url, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const text = await response.text();
+        return { response, text };
+      };
+
+      const candidates = [];
+      if (webexId) candidates.push(`${BASE_URL}/v1/devices/${encodeURIComponent(webexId)}`);
+      if (deviceId && deviceId !== webexId) candidates.push(`${BASE_URL}/v1/devices/${encodeURIComponent(deviceId)}`);
+      if (callingId) candidates.push(`${BASE_URL}/v1/telephony/config/devices/${encodeURIComponent(callingId)}`);
+
+      let lastError = null;
+      let detailData = null;
+      let settingsData = null;
+      for (const url of candidates) {
+        const { response, text } = await tryFetch(url);
+        if (response.ok) {
+          try { detailData = JSON.parse(text || '{}'); } catch { detailData = {}; }
+          break;
+        }
+        lastError = `HTTP ${response.status}: ${text}`;
+        if (response.status !== 404) break;
+      }
+
+      const listDevice = findDeviceFromIndex(deviceIndex, { deviceId, webexId, callingId });
+      if (callingId) {
+        try {
+          const { response, text } = await tryFetch(`${BASE_URL}/v1/telephony/config/devices/${callingId}/settings`);
+          if (response.ok) {
+            try { settingsData = JSON.parse(text || '{}'); } catch { settingsData = {}; }
+          }
+        } catch {}
+      }
+      const merged = { ...(listDevice || {}), ...(detailData || {}) };
+      if (settingsData) merged.settings = settingsData;
+      currentPrimaryLineValue = formatPrimaryLine(merged.primarySipUrl || merged.primaryLine || merged.phoneNumber || '');
+      renderDeviceInfo(merged);
+      const isAccessory = (merged.type || '').toLowerCase() === 'accessory';
+      deviceSpeedDialCard.style.display = isAccessory ? 'none' : 'flex';
+      if (isAccessory) {
+        currentLayout = null;
+        currentLayoutDeviceId = '';
+        return;
+      }
+      const layoutId = callingId || deviceId || webexId;
+      currentLayoutDeviceId = layoutId;
+      if (layoutId) {
+        try {
+          const { response, text } = await tryFetch(`${BASE_URL}/v1/telephony/config/devices/${layoutId}/layout`);
+          if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${text}`);
+          }
+          let rawLayout = {};
+          try { rawLayout = JSON.parse(text || '{}'); } catch { rawLayout = {}; }
+          const lineCount = getLineKeyCountForModel(merged.product || merged.model || '');
+          currentLineCount = lineCount;
+          currentLayout = normalizeLayoutResponse(rawLayout, lineCount, currentPrimaryLineValue);
+          renderSpeedDials(currentLayout, lineCount);
+          setSpeedDialDirty(false);
+          setSpeedDialEditMode(false);
+        } catch (err) {
+          currentLayout = null;
+          showActionModal('Load failed', `${err.message || err}`.slice(0, 280), { variant:'danger' });
+        }
+      } else {
+        showActionModal('Load failed', 'No device ID available for speed dials.', { variant:'danger' });
+      }
+    } catch (err) {
+      deviceMetaList.innerHTML = `<div class="hint">Failed to load device details: ${err.message || err}</div>`;
+    }
+  });
+  backToListBtn.addEventListener('click', () => {
+    deviceViewSection.style.display = 'none';
+    deviceListSection.style.display = 'block';
+    if (deleteDeviceBtn) deleteDeviceBtn.disabled = true;
+  });
+  updateAddTargetUI();
+  loadDevices();
+
+  function buildDeviceIndex(list) {
+    const map = new Map();
+    (list || []).forEach(d => {
+      if (d.id) map.set(d.id, d);
+      if (d.webexDeviceId) map.set(d.webexDeviceId, d);
+      if (d.callingDeviceId) map.set(d.callingDeviceId, d);
+    });
+    return map;
+  }
+
+  function findDeviceFromIndex(index, ids) {
+    if (!index) return null;
+    return index.get(ids.webexId) || index.get(ids.deviceId) || index.get(ids.callingId) || null;
+  }
+
+  // Init
+  updateAuthUI();
+  if (!getToken()) {
+    showAuthModal();
+  }
+})();
+  </script>
+
+
+  </body>
+</html>

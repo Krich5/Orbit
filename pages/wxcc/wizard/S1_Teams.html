@@ -299,7 +299,6 @@
 <body class="dark-mode">
   <script>if (localStorage.getItem("tpRailExpanded") === "true") document.body.classList.add("tp-rail-expanded");</script>
   <api-tools-header basepath="../../../"></api-tools-header>
-
   <main>
     <div class="wrap wide contentWrap">
       <section class="wizard-card">
@@ -351,12 +350,6 @@
       </section>
     </div>
   </main>
-
-  
-  <script src="../../../assets/js/orbit-config.js"></script>
-
-  
-  <script src="../../../assets/js/components.js"></script>
 
   
   <script src="../../../assets/js/theme.js"></script>
@@ -425,7 +418,7 @@
       if (storedId) return decodeOrgId(storedId) || storedId;
       const raw = (localStorage.getItem(cacheKeyOrg) || '').trim();
       if (raw) return decodeOrgId(raw) || raw;
-      return '';
+      return '5c3896e1-2ecc-4c84-ae93-be3bdab836a1';
     }
 
     const ORG_ID = resolveOrgId();
@@ -442,9 +435,25 @@
       authToken ? { Authorization: `Bearer ${authToken}` } : {}
     );
 
-    const fallbackSites = [];
-    const fallbackMultimedia = [];
-    const fallbackDesktop = [];
+    const fallbackSites = [
+      { id: '0279955d-925b-4bdc-ba0b-64f323d30fd1', name: 'bthomas_test' },
+      { id: '083f6e0c-d6c1-4d80-ac7f-526b789ad52d', name: 'Operations' },
+      { id: '24831c4a-1991-4f30-af08-7f97e5985d5c', name: 'RJ_Bootcamp_Site' },
+      { id: '4fb2bfe9-0fc9-437f-8ee8-4132f6a61170', name: 'Kenley Testing' },
+      { id: '8d0b3f77-1075-4514-a50f-6a727611dcab', name: 'Brian_Test' },
+      { id: 'f4af0d0b-9207-4d42-9841-4934e787e092', name: 'sowrabh_test' }
+    ];
+    const fallbackMultimedia = [
+      { id: 'cd22e67d-bde5-4d45-b5f0-be6c3e8623f4', name: 'Default_Telephony_Profile' },
+      { id: 'd421a88f-4f56-4e8c-b0b7-af2dd5476dc7', name: 'Default_Multimedia_Profile' },
+      { id: 'fa398ccf-8a16-4ed6-a68d-71d3d2f2ade1', name: 'Kenley_MMP' }
+    ];
+    const fallbackDesktop = [
+      { id: '977ea264-7b35-4914-849d-776fc12d2401', name: 'Kenley - Standard' },
+      { id: '51c8b109-50c8-4fc8-8934-26e8b296f791', name: 'Dev8 Desktop Layout' },
+      { id: '7bbbc468-bcfa-4cc0-8de1-b6e3cc65d725', name: 'Global Layout' },
+      { id: '0d7f43b3-80f7-4214-86ea-29eda5af2599', name: 'Kenley - InstantConnect' }
+    ];
 
     const selectConfigs = [
       { el: desktopSelectEl, endpointKey: 'selectedDesktop', fallback: fallbackDesktop, placeholder: 'Select Desktop Layout' }
@@ -612,6 +621,63 @@
       ]);
     })();
 
+    (function initAuthModal(){
+      if (document.getElementById('authModal')) return;
+      const style = document.createElement('style');
+      style.textContent = `
+        .authModalOverlay{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;z-index:9999;padding:16px;}
+        .authModalOverlay.open{display:flex;}
+        .authCard{width:100%;max-width:520px;background:#131a2a;border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:18px;box-shadow:0 18px 36px rgba(0,0,0,.45);position:relative;}
+        .authCard h2{margin:0 0 8px;font-size:1.2rem;}
+        .authCard p{margin:0 0 12px;color:#92a0b8;line-height:1.4;}
+        .authCard .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:9px 14px;border-radius:12px;font-weight:700;border:1px solid rgba(255,255,255,.08);background:#0e1525;color:#e9edf5;cursor:pointer;text-decoration:none;}
+        .authCard .btn.webex{background:#07C;color:white;border:none;padding:11px 20px;}
+        .authCard .btn.webex:hover{background:#0069CC;}
+        .authClose{position:absolute;right:10px;top:10px;background:transparent;border:none;color:#92a0b8;font-size:18px;cursor:pointer;}
+      `;
+      document.head.appendChild(style);
+      const overlay = document.createElement('div');
+      overlay.className = 'authModalOverlay';
+      overlay.id = 'authModal';
+      overlay.innerHTML = `
+        <div class="authCard">
+          <button class="authClose" aria-label="Close">×</button>
+          <h2>Sign in with Webex</h2>
+          <p>Click below to authenticate with your Webex account.</p>
+          <button class="btn webex" id="authWebex" style="width:100%;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M19.7 7.3c-1.2-1.2-2.7-2-4.5-2.3-.3-1.6-1.2-3-2.5-4-1.4-1-3-1.6-4.7-1.6-2.2 0-4.2.8-5.7 2.3C.8 3.2 0 5.2 0 7.4c0 1.7.6 3.3 1.6 4.7 1 1.3 2.4 2.2 4 2.5.3 1.6 1.2 3 2.5 4 1.5 1 3.1 1.6 4.9 1.6 2.2 0 4.2-.8 5.7-2.3 1.5-1.5 2.3-3.5 2.3-5.7 0-1.8-.6-3.4-1.6-4.7-.1 0-.2-.1-.2-.2zM13 18.4c-1.3 0-2.5-.4-3.5-1.2-.9-.7-1.6-1.7-2-2.8l5.5-2 2 5.5c-1.1.3-1.3.5-2 .5zM7.5 13l-5.3 1.9c-.1-.6-.2-1.2-.2-1.8 0-1.7.6-3.2 1.7-4.3C4.8 7.6 6.4 7 8 7c.6 0 1.2.1 1.8.2L7.5 13zm11.2 2.8c-1.1 1.1-2.6 1.7-4.2 1.7-.6 0-1.2-.1-1.8-.2l2.3-6.3 5.3-1.9c.1.6.2 1.2.2 1.8 0 1.6-.6 3.1-1.8 4.2v-.3zm-7-11.3c1.3 0 2.5.4 3.5 1.2.9.7 1.6 1.7 2 2.8l-5.5 2-2-5.5c.6-.3 1.3-.5 2-.5zM3.3 8.8C4.4 7.7 5.9 7.1 7.5 7.1c.6 0 1.2.1 1.8.2L7 13.6l-5.3 1.9c-.1-.6-.2-1.2-.2-1.8 0-1.7.6-3.2 1.8-4.3v-.6z"/>
+            </svg>
+            Sign in with Webex
+          </button>
+        </div>
+      `;
+      document.body.appendChild(overlay);
+      const CLIENT_ID = 'Cc604fe2354b93ecd1eb3d799e69a4ce981649161c1e31253ae91805e95b54e64';
+      const REDIRECT_URI = 'https://cxasteam.bitbucket.io/opshub/callback.html';
+      const SCOPES = 'spark-admin:locations_write spark:all spark-admin:locations_read spark-admin:organizations_read spark:organizations_read spark-admin:workspace_locations_read spark-admin:places_read cjp:config_read spark:kms spark-admin:devices_read cjp:config_write spark-admin:workspace_locations_write spark-admin:places_write cjp:config spark-admin:devices_write spark-admin:telephony_config_read spark-admin:telephony_config_write audit:events_read spark-admin:licenses_read';
+      const closeBtn = overlay.querySelector('.authClose');
+      const webexBtn = overlay.querySelector('#authWebex');
+      const open = () => overlay.classList.add('open');
+      const close = () => overlay.classList.remove('open');
+      webexBtn.addEventListener('click', () => {
+        const authUrl = `https://webexapis.com/v1/authorize?client_id=${CLIENT_ID}&response_type=code&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&scope=${encodeURIComponent(SCOPES)}&state=${Date.now()}&prompt=consent`;
+        window.location.href = authUrl;
+      });
+      closeBtn.addEventListener('click', close);
+      overlay.addEventListener('click', (event) => {
+        if (event.target === overlay) close();
+      });
+      window.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') close();
+      });
+      document.querySelectorAll('.authLink').forEach((el) => {
+        el.addEventListener('click', (event) => {
+          event.preventDefault();
+          open();
+        });
+      });
+    })();
 
     function updateAuthIndicators() {
       const token = (localStorage.getItem(cacheKeyBearer) || '').trim();
@@ -629,7 +695,7 @@
     if (signOutBtn) {
       signOutBtn.addEventListener('click', () => {
         ['authBearer','authOrg','authOrgName','authOrgId','authUserName','authRefreshToken','authExpiresAt','authLoginMethod','authScopes'].forEach((key) => localStorage.removeItem(key));
-        window.location.href = '../../../index.html';
+        window.location.href = '../../index.html';
       });
     }
 
