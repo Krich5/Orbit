@@ -1,0 +1,31 @@
+{
+  "name": "OpsHub",
+  "short_name": "OpsHub",
+  "description": "A Webex administration toolkit for CX Advanced Solutions partners.",
+  "start_url": "/opshub/index.html",
+  "scope": "/opshub/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0a224a",
+  "theme_color": "#0a224a",
+  "icons": [
+    {
+      "src": "/opshub/assets/images/CX%20only%20padded.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/opshub/assets/images/CX%20only%20padded.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/opshub/assets/images/CX%20only%20padded.png",
+      "sizes": "256x256",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}

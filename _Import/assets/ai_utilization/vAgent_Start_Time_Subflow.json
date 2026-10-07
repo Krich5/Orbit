@@ -1,0 +1,405 @@
+{
+    "orgId": "5c3896e1-2ecc-4c84-ae93-be3bdab836a1",
+    "version": 1,
+    "id": "6a29639896056b56c444974a",
+    "flowType": "SUBFLOW",
+    "name": "vAgent_Start_Time",
+    "description": "Used for AI Agent Utilization",
+    "comment": "",
+    "variables": [
+        {
+            "name": "vAgent_Start_Time",
+            "description": "",
+            "type": "INTEGER",
+            "value": "0",
+            "isCAD": false,
+            "desktopLabel": "",
+            "isAgentEditable": false,
+            "source": "SUBFLOW_INPUT,SUBFLOW_OUTPUT",
+            "isReportable": false,
+            "overwrite": false,
+            "isSecure": false,
+            "id": "",
+            "isExternalized": false,
+            "resourceType": ""
+        },
+        {
+            "name": "vAgent_Call_Status",
+            "description": "",
+            "type": "STRING",
+            "value": null,
+            "isCAD": false,
+            "desktopLabel": "",
+            "isAgentEditable": false,
+            "source": "SUBFLOW_INPUT,SUBFLOW_OUTPUT",
+            "isReportable": false,
+            "overwrite": false,
+            "isSecure": false,
+            "id": "",
+            "isExternalized": false,
+            "resourceType": ""
+        }
+    ],
+    "process": {
+        "activities": {
+            "03cb54c5-0639-44ce-b3dc-6b50006b09cc": {
+                "id": "03cb54c5-0639-44ce-b3dc-6b50006b09cc",
+                "name": "StartSubflow",
+                "group": "start-subflow",
+                "properties": {
+                    "activityId": "start-subflow",
+                    "activityVersionNumber": null,
+                    "name": "StartSubflow",
+                    "activityName": "NewSubFlowStart",
+                    "_renderRequestTimestamp": 1781097365675,
+                    "activityType": "logic"
+                }
+            },
+            "5d9ddff1-bbf3-4a21-8ce0-45823d8a90a3": {
+                "id": "5d9ddff1-bbf3-4a21-8ce0-45823d8a90a3",
+                "name": "SetVariables",
+                "group": "set-variable",
+                "properties": {
+                    "srcVariable": "vAgent_Start_Time",
+                    "srcVariableType": "INTEGER",
+                    "activityName": "set-variable",
+                    "activityId": "set-variable",
+                    "activityVersionNumber": null,
+                    "name": "SetVariables",
+                    "setTo": "set-to-literal",
+                    "expr": "{{now() | epoch}}",
+                    "flowDecryptAccess": false,
+                    "_renderRequestTimestamp": 1781097365675,
+                    "activityType": "logic",
+                    "setVariablesArray": [
+                        {
+                            "setTo": "set-to-literal",
+                            "srcVariableType": "INTEGER",
+                            "literal_invalid_error": false,
+                            "expr": "{{now() | epoch}}",
+                            "id": "cdc49f64-df44-464e-8ed0-70313284cc2b",
+                            "literal": "{{now() | epoch}}",
+                            "srcVariable": "vAgent_Start_Time"
+                        },
+                        {
+                            "setTo": "set-to-literal",
+                            "srcVariableType": "STRING",
+                            "literal_invalid_error": false,
+                            "expr": "Enter vAgent",
+                            "id": "3c72cfca-6e9e-47e6-8915-fda7dd495a8d",
+                            "literal": "Enter vAgent",
+                            "srcVariable": "vAgent_Call_Status"
+                        }
+                    ],
+                    "literal_invalid_error": false
+                }
+            },
+            "f948bf26-39fc-47ea-b7a8-1acb652d92ba": {
+                "id": "f948bf26-39fc-47ea-b7a8-1acb652d92ba",
+                "name": "EndSubflow",
+                "group": "end",
+                "properties": {
+                    "activityId": "end-subflow",
+                    "activityVersionNumber": null,
+                    "name": "EndSubflow",
+                    "activityName": "end-subflow",
+                    "_renderRequestTimestamp": 1781097365675,
+                    "activityType": "logic"
+                }
+            }
+        },
+        "links": [
+            {
+                "id": "7b67a47a-4ba9-452e-9254-9f684dbe4ede",
+                "sourceActivityId": "03cb54c5-0639-44ce-b3dc-6b50006b09cc",
+                "targetActivityId": "5d9ddff1-bbf3-4a21-8ce0-45823d8a90a3",
+                "conditionExpr": "out",
+                "properties": { "value": "out" }
+            },
+            {
+                "id": "ff1c94f0-fd15-447d-ba2f-aa25493e37f8",
+                "sourceActivityId": "5d9ddff1-bbf3-4a21-8ce0-45823d8a90a3",
+                "targetActivityId": "f948bf26-39fc-47ea-b7a8-1acb652d92ba",
+                "conditionExpr": "out",
+                "properties": { "value": "out" }
+            }
+        ]
+    },
+    "diagram": {
+        "widgets": {
+            "03cb54c5-0639-44ce-b3dc-6b50006b09cc": {
+                "id": "5dabae9f-0a47-451b-b051-459b8794a9dd",
+                "type": "start-subflow",
+                "widgetType": "activity",
+                "label": "New Activity Widget in Diagram",
+                "point": {
+                    "x": 100,
+                    "y": 100
+                },
+                "ports": [
+                    {
+                        "portId": "77a6e5f7-b529-493f-b865-150b232ff1d2",
+                        "isSourcePort": false,
+                        "linkId": "1d41198f-c074-4494-a83d-e743d3474213",
+                        "type": "arrow",
+                        "links": [
+                            "1d41198f-c074-4494-a83d-e743d3474213"
+                        ],
+                        "properties": {
+                            "x": 265.1953125,
+                            "name": "out",
+                            "y": 114,
+                            "label": "out",
+                            "alignment": "right"
+                        }
+                    }
+                ],
+                "properties": {
+                    "activityId": "start-subflow",
+                    "activityVersionNumber": null,
+                    "name": "StartSubflow",
+                    "activityName": "NewSubFlowStart",
+                    "_renderRequestTimestamp": 1781097365675,
+                    "activityType": "logic"
+                }
+            },
+            "5d9ddff1-bbf3-4a21-8ce0-45823d8a90a3": {
+                "id": "adad09bc-02b4-46de-a4a2-418f084ec54f",
+                "type": "set-variable",
+                "widgetType": "activity",
+                "label": "New Activity Widget in Diagram",
+                "point": {
+                    "x": 340,
+                    "y": 80
+                },
+                "ports": [
+                    {
+                        "portId": "ea276da5-dc35-42a8-a8c4-ff27c29e2d2b",
+                        "isSourcePort": true,
+                        "linkId": "1d41198f-c074-4494-a83d-e743d3474213",
+                        "type": "arrow",
+                        "links": [
+                            "1d41198f-c074-4494-a83d-e743d3474213"
+                        ],
+                        "properties": {
+                            "x": 330.8046875,
+                            "name": "in",
+                            "y": 94,
+                            "label": "in",
+                            "alignment": "left"
+                        }
+                    },
+                    {
+                        "portId": "62638885-550a-4f9e-a9a8-66e8fe259670",
+                        "isSourcePort": false,
+                        "linkId": "474c93b4-df3b-445b-a0c7-858edb46d194",
+                        "type": "arrow",
+                        "links": [
+                            "474c93b4-df3b-445b-a0c7-858edb46d194"
+                        ],
+                        "properties": {
+                            "x": 505.1953125,
+                            "name": "out",
+                            "y": 94,
+                            "label": "out",
+                            "alignment": "right"
+                        }
+                    },
+                    {
+                        "portId": "79fb84f5-468c-48b9-9abb-2c1e0c8a9dff",
+                        "isSourcePort": false,
+                        "linkId": null,
+                        "type": "arrow",
+                        "links": [],
+                        "properties": {
+                            "x": 505.1953125,
+                            "name": "error",
+                            "y": 221.953125,
+                            "label": "error",
+                            "alignment": "right"
+                        }
+                    }
+                ],
+                "properties": {
+                    "srcVariable": "vAgent_Start_Time",
+                    "srcVariableType": "INTEGER",
+                    "activityName": "set-variable",
+                    "activityId": "set-variable",
+                    "activityVersionNumber": null,
+                    "name": "SetVariables",
+                    "setTo": "set-to-literal",
+                    "expr": "{{now() | epoch}}",
+                    "flowDecryptAccess": false,
+                    "_renderRequestTimestamp": 1781097365675,
+                    "activityType": "logic",
+                    "setVariablesArray": [
+                        {
+                            "setTo": "set-to-literal",
+                            "srcVariableType": "INTEGER",
+                            "literal_invalid_error": false,
+                            "expr": "{{now() | epoch}}",
+                            "id": "cdc49f64-df44-464e-8ed0-70313284cc2b",
+                            "literal": "{{now() | epoch}}",
+                            "srcVariable": "vAgent_Start_Time"
+                        },
+                        {
+                            "setTo": "set-to-literal",
+                            "srcVariableType": "STRING",
+                            "literal_invalid_error": false,
+                            "expr": "Enter vAgent",
+                            "id": "3c72cfca-6e9e-47e6-8915-fda7dd495a8d",
+                            "literal": "Enter vAgent",
+                            "srcVariable": "vAgent_Call_Status"
+                        }
+                    ],
+                    "literal_invalid_error": false
+                }
+            },
+            "7b67a47a-4ba9-452e-9254-9f684dbe4ede": {
+                "id": "1d41198f-c074-4494-a83d-e743d3474213",
+                "type": "arrow",
+                "widgetType": "link",
+                "label": "[object Object]",
+                "properties": {
+                    "curvyness": 50,
+                    "color": "var(--mds-color-theme-outline-theme-normal)",
+                    "points": [
+                        {
+                            "id": "7d5a2cf1-7bc1-4983-82a7-3d645a2b05fc",
+                            "type": "point",
+                            "x": 275.1953125,
+                            "y": 124
+                        },
+                        {
+                            "id": "2637fc6d-a74e-42de-9109-8618dfa7dbe6",
+                            "type": "point",
+                            "x": 340.8046875,
+                            "y": 104
+                        }
+                    ],
+                    "width": 2,
+                    "selectedColor": "var(--mds-color-theme-outline-theme-normal)"
+                },
+                "points": [],
+                "sourcePort": {
+                    "id": "77a6e5f7-b529-493f-b865-150b232ff1d2",
+                    "activeWidgetId": "5dabae9f-0a47-451b-b051-459b8794a9dd",
+                    "point": {
+                        "x": 275,
+                        "y": 124
+                    }
+                },
+                "targetPort": {
+                    "id": "ea276da5-dc35-42a8-a8c4-ff27c29e2d2b",
+                    "activeWidgetId": "adad09bc-02b4-46de-a4a2-418f084ec54f",
+                    "point": {
+                        "x": 340,
+                        "y": 104
+                    }
+                }
+            },
+            "f948bf26-39fc-47ea-b7a8-1acb652d92ba": {
+                "id": "e22c929d-48b6-4611-996c-18c9181e9847",
+                "type": "end",
+                "widgetType": "activity",
+                "label": "New Activity Widget in Diagram",
+                "point": {
+                    "x": 580,
+                    "y": 100
+                },
+                "ports": [
+                    {
+                        "portId": "5dea9573-821c-4801-9ee1-650706ca8f65",
+                        "isSourcePort": true,
+                        "linkId": "474c93b4-df3b-445b-a0c7-858edb46d194",
+                        "type": "arrow",
+                        "links": [
+                            "474c93b4-df3b-445b-a0c7-858edb46d194"
+                        ],
+                        "properties": {
+                            "x": 570.8046875,
+                            "name": "in",
+                            "y": 114,
+                            "label": "in",
+                            "alignment": "left"
+                        }
+                    }
+                ],
+                "properties": {
+                    "activityId": "end-subflow",
+                    "activityVersionNumber": null,
+                    "name": "EndSubflow",
+                    "activityName": "end-subflow",
+                    "_renderRequestTimestamp": 1781097365675,
+                    "activityType": "logic"
+                }
+            },
+            "ff1c94f0-fd15-447d-ba2f-aa25493e37f8": {
+                "id": "474c93b4-df3b-445b-a0c7-858edb46d194",
+                "type": "arrow",
+                "widgetType": "link",
+                "label": "[object Object]",
+                "properties": {
+                    "curvyness": 50,
+                    "color": "var(--mds-color-theme-outline-theme-normal)",
+                    "points": [
+                        {
+                            "id": "4a333fdf-4dee-40e4-a296-7bdbdc2c5572",
+                            "type": "point",
+                            "x": 515.1953125,
+                            "y": 104
+                        },
+                        {
+                            "id": "fa1e9555-ed12-4e2f-8a8f-ae30df60ef37",
+                            "type": "point",
+                            "x": 580.8046875,
+                            "y": 124
+                        }
+                    ],
+                    "width": 2,
+                    "selectedColor": "var(--mds-color-theme-outline-theme-normal)"
+                },
+                "points": [],
+                "sourcePort": {
+                    "id": "62638885-550a-4f9e-a9a8-66e8fe259670",
+                    "activeWidgetId": "adad09bc-02b4-46de-a4a2-418f084ec54f",
+                    "point": {
+                        "x": 515,
+                        "y": 104
+                    }
+                },
+                "targetPort": {
+                    "id": "5dea9573-821c-4801-9ee1-650706ca8f65",
+                    "activeWidgetId": "e22c929d-48b6-4611-996c-18c9181e9847",
+                    "point": {
+                        "x": 580,
+                        "y": 124
+                    }
+                }
+            }
+        },
+        "properties": {
+            "offsetX": 430,
+            "offsetY": 270.15,
+            "zoom": 100,
+            "gridSize": 20
+        }
+    },
+    "flowId": "6a2962fd7612bd69e97347f7",
+    "eventFlows": {
+        "eventsMap": {},
+        "properties": {}
+    },
+    "runtimeVariables": [],
+    "validating": true,
+    "persist": true,
+    "validationResults": [],
+    "createdBy": "Dev6User2@cxasgt.com",
+    "createdDate": "2026-06-10T13:16:08.705",
+    "lastModifiedDate": "2026-06-10T13:16:08.705",
+    "lastModifiedBy": "Dev6User2@cxasgt.com",
+    "variableOrders": {},
+    "settings": [],
+    "associatedChannels": [],
+    "flowOutcome": null
+}

@@ -1,0 +1,654 @@
+{
+    "orgId": "5c3896e1-2ecc-4c84-ae93-be3bdab836a1",
+    "version": 1,
+    "id": "6a2965024b865e90d7fc9921",
+    "flowType": "SUBFLOW",
+    "name": "vAgent_ContactEnd",
+    "description": "Used for AI Agent Utilization",
+    "comment": "",
+    "variables": [
+        {
+            "name": "vAgent_Start_Time",
+            "description": "",
+            "type": "INTEGER",
+            "value": "0",
+            "isCAD": false,
+            "desktopLabel": "",
+            "isAgentEditable": false,
+            "source": "SUBFLOW_INPUT,SUBFLOW_OUTPUT",
+            "isReportable": false,
+            "overwrite": false,
+            "isSecure": false,
+            "id": "",
+            "isExternalized": false,
+            "resourceType": ""
+        },
+        {
+            "name": "vAgent_Call_Status",
+            "description": "",
+            "type": "STRING",
+            "value": null,
+            "isCAD": false,
+            "desktopLabel": "",
+            "isAgentEditable": false,
+            "source": "SUBFLOW_INPUT,SUBFLOW_OUTPUT",
+            "isReportable": false,
+            "overwrite": false,
+            "isSecure": false,
+            "id": "",
+            "isExternalized": false,
+            "resourceType": ""
+        },
+        {
+            "name": "vAgent_Total_Duration",
+            "description": "",
+            "type": "INTEGER",
+            "value": "0",
+            "isCAD": false,
+            "desktopLabel": "",
+            "isAgentEditable": false,
+            "source": "SUBFLOW_INPUT,SUBFLOW_OUTPUT",
+            "isReportable": false,
+            "overwrite": false,
+            "isSecure": false,
+            "id": "",
+            "isExternalized": false,
+            "resourceType": ""
+        },
+        {
+            "name": "vAgent_Session_Used",
+            "description": "",
+            "type": "INTEGER",
+            "value": "0",
+            "isCAD": false,
+            "desktopLabel": "",
+            "isAgentEditable": false,
+            "source": "SUBFLOW_INPUT,SUBFLOW_OUTPUT",
+            "isReportable": false,
+            "overwrite": false,
+            "isSecure": false,
+            "id": "",
+            "isExternalized": false,
+            "resourceType": ""
+        }
+    ],
+    "process": {
+        "activities": {
+            "6cdee7b0-cb69-4912-838b-031bc7a6af3a": {
+                "id": "6cdee7b0-cb69-4912-838b-031bc7a6af3a",
+                "name": "SetVariables",
+                "group": "set-variable",
+                "properties": {
+                    "srcVariable": "vAgent_Start_Time",
+                    "srcVariableType": "INTEGER",
+                    "activityName": "set-variable",
+                    "activityId": "set-variable",
+                    "activityVersionNumber": null,
+                    "name": "SetVariables",
+                    "setTo": "set-to-literal",
+                    "expr": "{{now() | epoch - vAgent_Start_Time}}",
+                    "flowDecryptAccess": false,
+                    "_renderRequestTimestamp": 1781097730282,
+                    "activityType": "logic",
+                    "setVariablesArray": [
+                        {
+                            "setTo": "set-to-literal",
+                            "srcVariableType": "INTEGER",
+                            "literal_invalid_error": false,
+                            "expr": "{{now() | epoch - vAgent_Start_Time}}",
+                            "id": "cdc49f64-df44-464e-8ed0-70313284cc2b",
+                            "literal": "{{now() | epoch - vAgent_Start_Time}}",
+                            "srcVariable": "vAgent_Start_Time"
+                        },
+                        {
+                            "setTo": "set-to-literal",
+                            "srcVariableType": "INTEGER",
+                            "literal_invalid_error": false,
+                            "expr": "{{((now() | epoch - vAgent_Start_Time) / 120) +1}}",
+                            "id": "38c30429-641e-4e08-8c3a-ed5130aacaa0",
+                            "literal": "{{((now() | epoch - vAgent_Start_Time) / 120) +1}}",
+                            "srcVariable": "vAgent_Session_Used"
+                        }
+                    ],
+                    "literal_invalid_error": false
+                }
+            },
+            "561e9893-e4d7-470b-8b82-ae05a97fc135": {
+                "id": "561e9893-e4d7-470b-8b82-ae05a97fc135",
+                "name": "EndSubflow",
+                "group": "end",
+                "properties": {
+                    "activityId": "end-subflow",
+                    "activityVersionNumber": null,
+                    "name": "EndSubflow",
+                    "activityName": "end-subflow",
+                    "_renderRequestTimestamp": 1781097730282,
+                    "activityType": "logic"
+                }
+            },
+            "f71a068f-e7bc-487b-8bd5-c510b21aea3c": {
+                "id": "f71a068f-e7bc-487b-8bd5-c510b21aea3c",
+                "name": "StartSubflow",
+                "group": "start-subflow",
+                "properties": {
+                    "activityId": "start-subflow",
+                    "activityVersionNumber": null,
+                    "name": "StartSubflow",
+                    "activityName": "NewSubFlowStart",
+                    "_renderRequestTimestamp": 1781097730282,
+                    "activityType": "logic"
+                }
+            },
+            "b75c0cba-6fa6-466b-829d-cc81cea91ca5": {
+                "id": "b75c0cba-6fa6-466b-829d-cc81cea91ca5",
+                "name": "Case_gpz",
+                "group": "enum-gateway",
+                "properties": {
+                    "expression": "{{vAgent_Call_Status}}",
+                    "expression:radioName": "setToVariable",
+                    "activityName": "case-statement",
+                    "expression_name": "STRING",
+                    "activityId": "case-statement",
+                    "menuLinks": [ "0" ],
+                    "activityVersionNumber": null,
+                    "name": "Case_gpz",
+                    "expression:name": "STRING",
+                    "flowDecryptAccess": false,
+                    "_renderRequestTimestamp": 1781097730282,
+                    "activityType": "logic",
+                    "menuLinks_input": [
+                        "Enter vAgent"
+                    ],
+                    "menuLinks:input": [
+                        "Enter vAgent"
+                    ],
+                    "expression_radioName": "setToVariable"
+                }
+            }
+        },
+        "links": [
+            {
+                "id": "f32877b9-dfe0-47dc-b44c-841b9a9887d5",
+                "sourceActivityId": "6cdee7b0-cb69-4912-838b-031bc7a6af3a",
+                "targetActivityId": "561e9893-e4d7-470b-8b82-ae05a97fc135",
+                "conditionExpr": "out",
+                "properties": { "value": "out" }
+            },
+            {
+                "id": "0cf4ca93-8fa1-4f16-b6af-8cb85b5a722a",
+                "sourceActivityId": "f71a068f-e7bc-487b-8bd5-c510b21aea3c",
+                "targetActivityId": "b75c0cba-6fa6-466b-829d-cc81cea91ca5",
+                "conditionExpr": "out",
+                "properties": { "value": "out" }
+            },
+            {
+                "id": "5290e646-40f9-4181-a997-2768aa6889db",
+                "sourceActivityId": "b75c0cba-6fa6-466b-829d-cc81cea91ca5",
+                "targetActivityId": "561e9893-e4d7-470b-8b82-ae05a97fc135",
+                "conditionExpr": "default",
+                "properties": {
+                    "value": "default"
+                }
+            },
+            {
+                "id": "d436d5b6-c726-482e-a273-d13a94e7ea3e",
+                "sourceActivityId": "b75c0cba-6fa6-466b-829d-cc81cea91ca5",
+                "targetActivityId": "6cdee7b0-cb69-4912-838b-031bc7a6af3a",
+                "conditionExpr": "0",
+                "properties": { "value": "0" }
+            }
+        ]
+    },
+    "diagram": {
+        "widgets": {
+            "6cdee7b0-cb69-4912-838b-031bc7a6af3a": {
+                "id": "adad09bc-02b4-46de-a4a2-418f084ec54f",
+                "type": "set-variable",
+                "widgetType": "activity",
+                "label": "New Activity Widget in Diagram",
+                "point": { "x": 300, "y": 0 },
+                "ports": [
+                    {
+                        "portId": "ea276da5-dc35-42a8-a8c4-ff27c29e2d2b",
+                        "isSourcePort": true,
+                        "linkId": "a24f44bd-635b-43c2-b5fb-fba493af7363",
+                        "type": "arrow",
+                        "links": [
+                            "a24f44bd-635b-43c2-b5fb-fba493af7363"
+                        ],
+                        "properties": {
+                            "x": 290.8046875,
+                            "name": "in",
+                            "y": 13.999993896484398,
+                            "label": "in",
+                            "alignment": "left"
+                        }
+                    },
+                    {
+                        "portId": "62638885-550a-4f9e-a9a8-66e8fe259670",
+                        "isSourcePort": false,
+                        "linkId": "474c93b4-df3b-445b-a0c7-858edb46d194",
+                        "type": "arrow",
+                        "links": [
+                            "474c93b4-df3b-445b-a0c7-858edb46d194"
+                        ],
+                        "properties": {
+                            "x": 465.1953125,
+                            "name": "out",
+                            "y": 13.999993896484398,
+                            "label": "out",
+                            "alignment": "right"
+                        }
+                    },
+                    {
+                        "portId": "79fb84f5-468c-48b9-9abb-2c1e0c8a9dff",
+                        "isSourcePort": false,
+                        "linkId": null,
+                        "type": "arrow",
+                        "links": [],
+                        "properties": {
+                            "x": 465.1953125,
+                            "name": "error",
+                            "y": 141.9531188964844,
+                            "label": "error",
+                            "alignment": "right"
+                        }
+                    }
+                ],
+                "properties": {
+                    "srcVariable": "vAgent_Start_Time",
+                    "srcVariableType": "INTEGER",
+                    "activityName": "set-variable",
+                    "activityId": "set-variable",
+                    "activityVersionNumber": null,
+                    "name": "SetVariables",
+                    "setTo": "set-to-literal",
+                    "expr": "{{now() | epoch - vAgent_Start_Time}}",
+                    "flowDecryptAccess": false,
+                    "_renderRequestTimestamp": 1781097730282,
+                    "activityType": "logic",
+                    "setVariablesArray": [
+                        {
+                            "setTo": "set-to-literal",
+                            "srcVariableType": "INTEGER",
+                            "literal_invalid_error": false,
+                            "expr": "{{now() | epoch - vAgent_Start_Time}}",
+                            "id": "cdc49f64-df44-464e-8ed0-70313284cc2b",
+                            "literal": "{{now() | epoch - vAgent_Start_Time}}",
+                            "srcVariable": "vAgent_Start_Time"
+                        },
+                        {
+                            "setTo": "set-to-literal",
+                            "srcVariableType": "INTEGER",
+                            "literal_invalid_error": false,
+                            "expr": "{{((now() | epoch - vAgent_Start_Time) / 120) +1}}",
+                            "id": "38c30429-641e-4e08-8c3a-ed5130aacaa0",
+                            "literal": "{{((now() | epoch - vAgent_Start_Time) / 120) +1}}",
+                            "srcVariable": "vAgent_Session_Used"
+                        }
+                    ],
+                    "literal_invalid_error": false
+                }
+            },
+            "561e9893-e4d7-470b-8b82-ae05a97fc135": {
+                "id": "e22c929d-48b6-4611-996c-18c9181e9847",
+                "type": "end",
+                "widgetType": "activity",
+                "label": "New Activity Widget in Diagram",
+                "point": {
+                    "x": 560,
+                    "y": 200
+                },
+                "ports": [
+                    {
+                        "portId": "5dea9573-821c-4801-9ee1-650706ca8f65",
+                        "isSourcePort": true,
+                        "linkId": "474c93b4-df3b-445b-a0c7-858edb46d194",
+                        "type": "arrow",
+                        "links": [
+                            "474c93b4-df3b-445b-a0c7-858edb46d194",
+                            "2105ce2c-86ec-4b6c-9480-c84878b683e6"
+                        ],
+                        "properties": {
+                            "x": 550.8046875,
+                            "name": "in",
+                            "y": 213.9999938964844,
+                            "label": "in",
+                            "alignment": "left"
+                        }
+                    }
+                ],
+                "properties": {
+                    "activityId": "end-subflow",
+                    "activityVersionNumber": null,
+                    "name": "EndSubflow",
+                    "activityName": "end-subflow",
+                    "_renderRequestTimestamp": 1781097730282,
+                    "activityType": "logic"
+                }
+            },
+            "f32877b9-dfe0-47dc-b44c-841b9a9887d5": {
+                "id": "474c93b4-df3b-445b-a0c7-858edb46d194",
+                "type": "arrow",
+                "widgetType": "link",
+                "label": "[object Object]",
+                "properties": {
+                    "curvyness": 50,
+                    "selected": false,
+                    "color": "var(--mds-color-theme-outline-theme-normal)",
+                    "points": [
+                        {
+                            "id": "4a333fdf-4dee-40e4-a296-7bdbdc2c5572",
+                            "type": "point",
+                            "x": 475.1953125,
+                            "y": 23.999993896484398
+                        },
+                        {
+                            "id": "fa1e9555-ed12-4e2f-8a8f-ae30df60ef37",
+                            "type": "point",
+                            "x": 560.8046875,
+                            "y": 224.00000915527346
+                        }
+                    ],
+                    "width": 2,
+                    "selectedColor": "var(--mds-color-theme-outline-theme-normal)"
+                },
+                "points": [],
+                "sourcePort": {
+                    "id": "62638885-550a-4f9e-a9a8-66e8fe259670",
+                    "activeWidgetId": "adad09bc-02b4-46de-a4a2-418f084ec54f",
+                    "point": {
+                        "x": 475,
+                        "y": 23
+                    }
+                },
+                "targetPort": {
+                    "id": "5dea9573-821c-4801-9ee1-650706ca8f65",
+                    "activeWidgetId": "e22c929d-48b6-4611-996c-18c9181e9847",
+                    "point": {
+                        "x": 560,
+                        "y": 224
+                    }
+                }
+            },
+            "f71a068f-e7bc-487b-8bd5-c510b21aea3c": {
+                "id": "5dabae9f-0a47-451b-b051-459b8794a9dd",
+                "type": "start-subflow",
+                "widgetType": "activity",
+                "label": "New Activity Widget in Diagram",
+                "point": {
+                    "x": -200,
+                    "y": 100
+                },
+                "ports": [
+                    {
+                        "portId": "77a6e5f7-b529-493f-b865-150b232ff1d2",
+                        "isSourcePort": false,
+                        "linkId": "f1f7d8f6-5ce9-49f9-ab36-db0acc36e711",
+                        "type": "arrow",
+                        "links": [
+                            "f1f7d8f6-5ce9-49f9-ab36-db0acc36e711"
+                        ],
+                        "properties": {
+                            "x": -34.8046875,
+                            "name": "out",
+                            "y": 113.9999938964844,
+                            "label": "out",
+                            "alignment": "right"
+                        }
+                    }
+                ],
+                "properties": {
+                    "activityId": "start-subflow",
+                    "activityVersionNumber": null,
+                    "name": "StartSubflow",
+                    "activityName": "NewSubFlowStart",
+                    "_renderRequestTimestamp": 1781097730282,
+                    "activityType": "logic"
+                }
+            },
+            "b75c0cba-6fa6-466b-829d-cc81cea91ca5": {
+                "id": "c258760a-9ac6-4374-9b7e-3e2421b6544b",
+                "type": "enum-gateway",
+                "widgetType": "activity",
+                "label": "New Activity Widget in Diagram",
+                "point": { "x": 40, "y": 0 },
+                "ports": [
+                    {
+                        "portId": "03c0f8cd-3f11-4e1a-894c-6ffa0fd1144a",
+                        "isSourcePort": false,
+                        "linkId": "a24f44bd-635b-43c2-b5fb-fba493af7363",
+                        "type": "arrow",
+                        "links": [
+                            "a24f44bd-635b-43c2-b5fb-fba493af7363"
+                        ],
+                        "properties": {
+                            "x": 205.20001220703125,
+                            "name": "0",
+                            "y": 121.9531188964844,
+                            "label": "0",
+                            "alignment": "right"
+                        }
+                    },
+                    {
+                        "portId": "0370706c-61c1-4651-a690-30e0c5153690",
+                        "isSourcePort": true,
+                        "linkId": "f1f7d8f6-5ce9-49f9-ab36-db0acc36e711",
+                        "type": "arrow",
+                        "links": [
+                            "f1f7d8f6-5ce9-49f9-ab36-db0acc36e711"
+                        ],
+                        "properties": {
+                            "x": 30.8046875,
+                            "name": "in",
+                            "y": 15.999993896484398,
+                            "label": "in",
+                            "alignment": "left"
+                        }
+                    },
+                    {
+                        "portId": "8e28ff3c-1eda-4271-8b98-22b67ec577ed",
+                        "isSourcePort": false,
+                        "linkId": null,
+                        "type": "arrow",
+                        "links": [],
+                        "properties": {
+                            "x": 205.1953125,
+                            "name": "error",
+                            "y": 248.67189941406252,
+                            "label": "error",
+                            "alignment": "right"
+                        }
+                    },
+                    {
+                        "portId": "9659361a-07de-4d05-a517-46561ea796b7",
+                        "isSourcePort": false,
+                        "linkId": "2105ce2c-86ec-4b6c-9480-c84878b683e6",
+                        "type": "arrow",
+                        "links": [
+                            "2105ce2c-86ec-4b6c-9480-c84878b683e6"
+                        ],
+                        "properties": {
+                            "x": 205.1953125,
+                            "name": "default",
+                            "y": 190.7656188964844,
+                            "label": "default",
+                            "alignment": "right"
+                        }
+                    }
+                ],
+                "properties": {
+                    "expression": "{{vAgent_Call_Status}}",
+                    "expression:radioName": "setToVariable",
+                    "activityName": "case-statement",
+                    "activityId": "case-statement",
+                    "menuLinks": [ "0" ],
+                    "activityVersionNumber": null,
+                    "name": "Case_gpz",
+                    "expression:name": "STRING",
+                    "flowDecryptAccess": false,
+                    "_renderRequestTimestamp": 1781097730282,
+                    "activityType": "logic",
+                    "menuLinks:input": [
+                        "Enter vAgent"
+                    ]
+                }
+            },
+            "0cf4ca93-8fa1-4f16-b6af-8cb85b5a722a": {
+                "id": "f1f7d8f6-5ce9-49f9-ab36-db0acc36e711",
+                "type": "arrow",
+                "widgetType": "link",
+                "label": "[object Object]",
+                "properties": {
+                    "curvyness": 50,
+                    "color": "var(--mds-color-theme-outline-theme-normal)",
+                    "points": [
+                        {
+                            "id": "be85e97a-40c8-45d1-8713-8899ebc9b765",
+                            "type": "point",
+                            "x": -24.8046875,
+                            "y": 123.9999938964844
+                        },
+                        {
+                            "id": "2c6704e6-3c05-4f93-8e5a-0c6152b6a5ac",
+                            "type": "point",
+                            "x": 40.8046875,
+                            "y": 25.999993896484398
+                        }
+                    ],
+                    "width": 2,
+                    "selectedColor": "var(--mds-color-theme-outline-theme-normal)"
+                },
+                "points": [],
+                "sourcePort": {
+                    "id": "77a6e5f7-b529-493f-b865-150b232ff1d2",
+                    "activeWidgetId": "5dabae9f-0a47-451b-b051-459b8794a9dd",
+                    "point": {
+                        "x": -24,
+                        "y": 123
+                    }
+                },
+                "targetPort": {
+                    "id": "0370706c-61c1-4651-a690-30e0c5153690",
+                    "activeWidgetId": "c258760a-9ac6-4374-9b7e-3e2421b6544b",
+                    "point": {
+                        "x": 40,
+                        "y": 25
+                    }
+                }
+            },
+            "5290e646-40f9-4181-a997-2768aa6889db": {
+                "id": "2105ce2c-86ec-4b6c-9480-c84878b683e6",
+                "type": "arrow",
+                "widgetType": "link",
+                "label": "[object Object]",
+                "properties": {
+                    "curvyness": 50,
+                    "color": "var(--mds-color-theme-outline-theme-normal)",
+                    "points": [
+                        {
+                            "id": "123a92ac-ba63-4908-92c7-87c3d8aa3efd",
+                            "type": "point",
+                            "x": 215.1953125,
+                            "y": 200.76563415527346
+                        },
+                        {
+                            "id": "aa975ff8-ecc6-4470-976f-fbccb4d71aae",
+                            "type": "point",
+                            "x": 560.8046875,
+                            "y": 224.00000915527346
+                        }
+                    ],
+                    "width": 2,
+                    "selectedColor": "var(--mds-color-theme-outline-theme-normal)"
+                },
+                "points": [],
+                "sourcePort": {
+                    "id": "9659361a-07de-4d05-a517-46561ea796b7",
+                    "activeWidgetId": "c258760a-9ac6-4374-9b7e-3e2421b6544b",
+                    "point": {
+                        "x": 215,
+                        "y": 200
+                    }
+                },
+                "targetPort": {
+                    "id": "5dea9573-821c-4801-9ee1-650706ca8f65",
+                    "activeWidgetId": "e22c929d-48b6-4611-996c-18c9181e9847",
+                    "point": {
+                        "x": 560,
+                        "y": 224
+                    }
+                }
+            },
+            "d436d5b6-c726-482e-a273-d13a94e7ea3e": {
+                "id": "a24f44bd-635b-43c2-b5fb-fba493af7363",
+                "type": "arrow",
+                "widgetType": "link",
+                "label": "[object Object]",
+                "properties": {
+                    "curvyness": 50,
+                    "color": "var(--mds-color-theme-outline-theme-normal)",
+                    "points": [
+                        {
+                            "id": "e0211330-eaa8-4e8f-92af-bd27016bc21e",
+                            "type": "point",
+                            "x": 215.20001220703125,
+                            "y": 131.9531188964844
+                        },
+                        {
+                            "id": "bbaed62d-c2c4-41ef-bc52-67237437d122",
+                            "type": "point",
+                            "x": 300.8046875,
+                            "y": 23.999993896484398
+                        }
+                    ],
+                    "width": 2,
+                    "selectedColor": "var(--mds-color-theme-outline-theme-normal)"
+                },
+                "points": [],
+                "sourcePort": {
+                    "id": "03c0f8cd-3f11-4e1a-894c-6ffa0fd1144a",
+                    "activeWidgetId": "c258760a-9ac6-4374-9b7e-3e2421b6544b",
+                    "point": {
+                        "x": 215,
+                        "y": 131
+                    }
+                },
+                "targetPort": {
+                    "id": "ea276da5-dc35-42a8-a8c4-ff27c29e2d2b",
+                    "activeWidgetId": "adad09bc-02b4-46de-a4a2-418f084ec54f",
+                    "point": {
+                        "x": 300,
+                        "y": 23
+                    }
+                }
+            }
+        },
+        "properties": {
+            "offsetX": 308,
+            "offsetY": 321.696875,
+            "zoom": 100,
+            "gridSize": 20
+        }
+    },
+    "flowId": "6a2964a696056b56c4449769",
+    "eventFlows": {
+        "eventsMap": {},
+        "properties": {}
+    },
+    "runtimeVariables": [],
+    "validating": true,
+    "persist": true,
+    "validationResults": [],
+    "createdBy": "Dev6User2@cxasgt.com",
+    "createdDate": "2026-06-10T13:22:10.703",
+    "lastModifiedDate": "2026-06-10T13:22:10.703",
+    "lastModifiedBy": "Dev6User2@cxasgt.com",
+    "variableOrders": {
+        "pop-over": [],
+        "interaction-panel": []
+    },
+    "settings": [],
+    "associatedChannels": [],
+    "flowOutcome": null
+}
