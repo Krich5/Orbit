@@ -1,0 +1,2140 @@
+<?php require_once '/var/projects/bitbucket.io/cxasteam.bitbucket.io/oauth/check_access.php'; ?>
+
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="light dark" />
+  <title>Webex Calling - Workspaces</title>
+  <link rel="icon" type="image/png" href="../../assets/images/CX%20only.png" />
+  <link rel="stylesheet" href="../../assets/css/theme.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@momentum-ui/icons/css/momentum-ui-icons.min.css">
+  <style>
+    main { padding:32px 0 80px; }
+    label { display:block; font-size:13px; color:var(--muted); margin:8px 0 6px; }
+    input, select { width:100%; border-radius:12px; border:1px solid var(--border); background:var(--input); color:var(--fg); padding:10px 12px; outline:none; font-size:14px; }
+    input:focus, select:focus { box-shadow:0 0 0 3px rgba(59,130,246,.25); }
+    body.dark-mode input,
+    body.dark-mode select {
+      background:var(--input) !important;
+      color:var(--fg) !important;
+      -webkit-text-fill-color:var(--fg);
+    }
+    select { cursor:pointer; }
+    .row { display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
+    .hint { font-size:12px; color:var(--muted); }
+    .statusLine { font-size:13px; color:var(--muted); margin-top:6px; }
+    .sheetWrap { border:1px solid var(--border); border-radius:14px; overflow:auto; background:var(--card); box-shadow:0 10px 30px rgba(0,0,0,.12); }
+    table.sheet { width:100%; border-collapse:separate; border-spacing:0; min-width:1100px; }
+    table.sheet th, table.sheet td { padding:10px 12px; border-bottom:1px solid var(--border); border-right:1px solid rgba(255,255,255,.06); }
+    table.sheet th { position:sticky; top:0; background:var(--panel); text-align:left; font-weight:700; color:var(--accent); z-index:1; font-size:12px; letter-spacing:.01em; }
+    table.sheet tr:last-child td { border-bottom:none; }
+    table.sheet th:last-child, table.sheet td:last-child { border-right:none; }
+    table.sheet td { font-size:13px; line-height:1.35; background:var(--card); }
+    table.sheet td input { width:100%; background:transparent; border:none; color:var(--fg); outline:none; padding:0 8px; height:28px; line-height:1.2; font-size:13px; box-sizing:border-box; }
+    table.sheet td select { width:100%; background:transparent; border:none; color:var(--fg); outline:none; padding:0 8px; height:28px; font-size:13px; cursor:pointer; box-sizing:border-box; }
+    table.sheet tbody tr:nth-child(even) td { background:var(--input); }
+    table.sheet tbody tr:hover td { background:rgba(8,172,242,.08); }
+    body.dark-mode .sheetWrap { background:var(--card); box-shadow:0 10px 30px rgba(0,0,0,.25); }
+    body.dark-mode table.sheet td { background:var(--card); color:var(--fg); }
+    body.dark-mode table.sheet tbody tr:nth-child(even) td { background:var(--panel); }
+    body.dark-mode table.sheet tbody tr:hover td { background:rgba(8,172,242,.14); }
+    .emptyState { color:var(--muted); padding:12px 0; }
+    .tableToolbar { display:flex; gap:12px; align-items:center; justify-content:space-between; margin:0 0 12px; flex-wrap:wrap; }
+    .searchInput { width:min(420px,100%); min-width:240px; }
+    .pill { display:inline-flex; align-items:center; border:1px solid var(--border); border-radius:999px; padding:6px 12px; font-size:12px; color:var(--muted); background:var(--panel); }
+    .workspaceToolbar { display:flex; gap:12px; align-items:center; justify-content:space-between; margin:0 0 14px; flex-wrap:wrap; }
+    .workspaceFilters { display:flex; gap:12px; align-items:center; flex-wrap:wrap; flex:1 1 720px; }
+    .workspaceFilters select { width:auto; min-width:170px; }
+    .workspaceNativeFilter { display:none !important; }
+    .headLabel { font-weight:700; }
+    .workspaceListHeader {
+      display:grid;
+      grid-template-columns:40px minmax(280px,1.65fr) minmax(220px,1fr) minmax(150px,.7fr) minmax(240px,1fr);
+      align-items:center;
+      background:var(--panel);
+      color:var(--accent);
+      font-weight:700;
+      font-size:12px;
+      letter-spacing:.01em;
+    }
+    .workspaceListWrap {
+      border:1px solid var(--border);
+      border-radius:14px;
+      overflow:hidden;
+      box-shadow:var(--shadow);
+    }
+    .workspaceList { display:flex; flex-direction:column; }
+    .workspaceCard {
+      display:grid;
+      grid-template-columns:40px minmax(280px,1.65fr) minmax(220px,1fr) minmax(150px,.7fr) minmax(240px,1fr);
+      align-items:center;
+      background:var(--card);
+      border-top:1px solid var(--border);
+    }
+    .workspaceCard:first-child { border-top:none; }
+    .workspaceCard:nth-child(even) { background:var(--input); }
+    .workspaceCard:hover { background:rgba(8,172,242,.08); }
+    body.dark-mode .workspaceCard { background:var(--card); }
+    body.dark-mode .workspaceCard:nth-child(even) { background:var(--panel); }
+    body.dark-mode .workspaceCard:hover { background:rgba(8,172,242,.14); }
+    .workspaceListHeader > div { padding:12px; min-height:46px; display:flex; flex-direction:column; justify-content:center; position:relative; }
+    .workspaceCard > div { padding:14px 12px; min-height:70px; display:flex; align-items:center; min-width:0; }
+    .workspaceNameCell { display:flex; gap:14px; align-items:center; min-width:0; width:100%; }
+    .workspaceIcon {
+      width:52px;
+      height:52px;
+      flex:0 0 52px;
+      border-radius:50%;
+      border:1px solid var(--border);
+      background:rgba(6, 17, 29, .22);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      color:var(--accent);
+      font-size:20px;
+      font-weight:700;
+    }
+    .workspaceIcon .icon { font-size:20px; line-height:1; }
+    .workspaceTitle { font-size:1.05rem; font-weight:700; line-height:1.25; margin:0 0 6px; }
+    .workspaceMeta { display:flex; gap:8px; flex-wrap:wrap; color:var(--muted); font-size:13px; }
+    .workspaceMeta strong { color:var(--fg); font-weight:600; }
+    .workspaceTag {
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      padding:4px 9px;
+      border-radius:999px;
+      border:1px solid rgba(8,172,242,.2);
+      background:rgba(8,172,242,.08);
+      color:var(--accent);
+      font-size:12px;
+      line-height:1;
+    }
+    .workspaceTag .icon,
+    .workspaceMeta .icon,
+    .workspacePanelValue .icon,
+    .workspacePanelSub .icon { font-size:13px; line-height:1; }
+    .workspacePanel {
+      min-width:0;
+      justify-self:start;
+      width:100%;
+    }
+    .workspacePanelLabel { font-size:11px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:var(--muted); margin-bottom:7px; }
+    .workspacePanelValue { font-size:14px; color:var(--fg); line-height:1.4; font-weight:600; }
+    .workspacePanelSub { font-size:12px; color:var(--muted); margin-top:4px; }
+    .deviceBadge {
+      display:flex;
+      align-items:center;
+      gap:12px;
+      min-height:64px;
+      padding:10px 12px;
+      border-radius:14px;
+      border:1px solid var(--border);
+      background:var(--panel);
+      color:var(--fg);
+      font-size:13px;
+      text-align:left;
+      max-width:300px;
+    }
+    .deviceBadge .icon { font-size:18px; line-height:1; }
+    .deviceThumbWrap {
+      position:relative;
+      width:44px;
+      height:44px;
+      flex:0 0 44px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+    }
+    .deviceThumb {
+      width:40px;
+      height:40px;
+      object-fit:contain;
+      display:block;
+    }
+    .deviceStatusBadge {
+      position:absolute;
+      right:-2px;
+      bottom:-2px;
+      width:20px;
+      height:20px;
+      border-radius:50%;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      background:var(--card);
+      border:1px solid var(--border);
+      overflow:hidden;
+    }
+    .deviceStatusBadge img {
+      width:16px;
+      height:16px;
+      display:block;
+      object-fit:contain;
+    }
+    .deviceBadgeContent {
+      min-width:0;
+      display:flex;
+      flex-direction:column;
+      gap:3px;
+    }
+    .deviceBadgeTitle {
+      font-size:13px;
+      font-weight:600;
+      color:var(--fg);
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+    .deviceBadgeMeta {
+      font-size:12px;
+      color:var(--muted);
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+    .mutedValue { color:var(--muted); }
+    .collapse { padding:22px; }
+    .collapseHead { display:flex; justify-content:space-between; gap:18px; align-items:flex-start; }
+    .collapseBody { margin-top:16px; padding-top:16px; border-top:1px solid var(--border); display:none; }
+    .collapse.open .collapseBody { display:block; }
+    .collapseTitle { font-size:1.1rem; font-weight:700; margin:0; }
+    .collapseCopy { margin:4px 0 0; }
+    .sheetToolbar { display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:10px; }
+    .hiddenFile { display:none; }
+    .successModalOverlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.45);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 10000;
+      padding: 16px;
+      opacity: 0;
+      transition: opacity 0.2s ease;
+    }
+    .successModalOverlay.show { opacity: 1; }
+    .successCard {
+      width: 100%;
+      max-width: 460px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 24px;
+      box-shadow: 0 18px 40px rgba(0, 0, 0, 0.25);
+      text-align: center;
+      transform: scale(0.98);
+      transition: transform 0.2s ease;
+    }
+    .successModalOverlay.show .successCard { transform: scale(1); }
+    .successIcon {
+      margin: 0 auto 14px;
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #159DD8, #159DD8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #06111d;
+    }
+    .successCard h2 { margin: 0 0 10px; font-size: 1.35rem; color: var(--fg); }
+    .successMsg { margin: 0 0 8px; font-size: .95rem; color: var(--fg); line-height: 1.5; }
+    .spinner {
+      display:inline-block;
+      width:16px;
+      height:16px;
+      border:2px solid rgba(255,255,255,.3);
+      border-top-color:var(--fg);
+      border-radius:50%;
+      animation:spin 0.6s linear infinite;
+    }
+    @keyframes spin { to { transform:rotate(360deg); } }
+    @media (max-width:1100px) {
+      .workspaceListWrap { overflow-x:auto; }
+      .workspaceListHeader,
+      .workspaceCard { min-width:940px; }
+    }
+    @media (max-width:1024px) {
+      .wrap { flex-direction:column; align-items:center; gap:8px; }
+      .wrap .left,
+      .wrap .right { width:100%; justify-content:center; }
+    }
+    @media (max-width:640px) {
+      .row { flex-direction:column; align-items:stretch; }
+      .btnLink { width:100%; }
+      .collapse { padding:18px; }
+      table.sheet { min-width:820px; }
+      .searchInput { min-width:100%; }
+      .workspaceFilters select { width:100%; min-width:0; }
+      .workspaceListHeader { display:none; }
+      .workspaceCard { grid-template-columns:1fr; }
+    }
+  </style>
+</head>
+<body class="dark-mode">
+  <script>if (localStorage.getItem("tpRailExpanded") === "true") document.body.classList.add("tp-rail-expanded");</script>
+  <?php
+$tp_header_prefix = '../../';
+$tp_show_auth_link = false;
+include dirname(__DIR__) . '/shared/header.php';
+?>
+
+  <main>
+    <div class="wrap wide contentWrap">
+      <section class="card">
+        <div class="pageHeader">
+          <h1>Workspaces</h1>
+          <div class="row" style="justify-content:space-between; align-items:flex-end; gap:16px; flex-wrap:wrap;">
+            <p class="lead">Pull a list of Webex Calling workspaces for your org and run bulk workspace creation from the same page.</p>
+            <span class="statusLine" id="status">Loading workspaces…</span>
+          </div>
+        </div>
+
+        <div style="display:flex; gap:8px; align-items:center; margin:8px 0 12px; flex-wrap:wrap;">
+          <button class="btn secondary" id="selectAllWorkspacesBtn" style="padding:6px 12px; font-size:13px;">Select all</button>
+          <button class="btn secondary" id="clearWorkspacesSelectionBtn" style="padding:6px 12px; font-size:13px;" disabled>Clear selection</button>
+          <button class="btn danger" id="deleteSelectedWorkspacesBtn" style="padding:6px 12px; font-size:13px;" disabled>Delete selected</button>
+        </div>
+        <div class="workspaceListWrap">
+          <div class="workspaceListHeader" id="workspaceListHeader">
+            <div style="text-align:center; padding:12px;">
+              <input type="checkbox" id="selectAllWorkspacesToggle">
+            </div>
+            <div>
+              <div class="headerTop">
+                <button class="filterIconBtn" data-filter-btn="name" type="button" title="Filter name" aria-label="Filter name">
+                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M3 5h18l-7 8v5l-4 2v-7L3 5z"></path>
+                  </svg>
+                </button>
+                <span class="headLabel">Name</span>
+              </div>
+              <div class="filterPopover" data-filter-popover="name">
+                <input class="filterSearch" data-filter-search="name" type="text" placeholder="Search values..." />
+                <div class="filterList" data-filter-list="name"></div>
+                <div class="filterMeta" data-filter-summary="name"></div>
+              </div>
+            </div>
+            <div>
+              <div class="headerTop">
+                <button class="filterIconBtn" data-filter-btn="devices" type="button" title="Filter devices" aria-label="Filter devices">
+                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M3 5h18l-7 8v5l-4 2v-7L3 5z"></path>
+                  </svg>
+                </button>
+                <span class="headLabel">Devices</span>
+              </div>
+              <div class="filterPopover" data-filter-popover="devices">
+                <input class="filterSearch" data-filter-search="devices" type="text" placeholder="Search device states..." />
+                <div class="filterList" data-filter-list="devices"></div>
+                <div class="filterMeta" data-filter-summary="devices"></div>
+              </div>
+            </div>
+            <div>
+              <div class="headerTop">
+                <button class="filterIconBtn" data-filter-btn="scheduling" type="button" title="Filter scheduling" aria-label="Filter scheduling">
+                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M3 5h18l-7 8v5l-4 2v-7L3 5z"></path>
+                  </svg>
+                </button>
+                <span class="headLabel">Scheduling</span>
+              </div>
+              <div class="filterPopover" data-filter-popover="scheduling">
+                <input class="filterSearch" data-filter-search="scheduling" type="text" placeholder="Search scheduling..." />
+                <div class="filterList" data-filter-list="scheduling"></div>
+                <div class="filterMeta" data-filter-summary="scheduling"></div>
+              </div>
+            </div>
+            <div>
+              <div class="headerTop">
+                <button class="filterIconBtn" data-filter-btn="calling" type="button" title="Filter calling" aria-label="Filter calling">
+                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M3 5h18l-7 8v5l-4 2v-7L3 5z"></path>
+                  </svg>
+                </button>
+                <span class="headLabel">Calling</span>
+              </div>
+              <div class="filterPopover" data-filter-popover="calling">
+                <input class="filterSearch" data-filter-search="calling" type="text" placeholder="Search calling..." />
+                <div class="filterList" data-filter-list="calling"></div>
+                <div class="filterMeta" data-filter-summary="calling"></div>
+              </div>
+            </div>
+          </div>
+          <div class="workspaceList" id="workspacesList"></div>
+        </div>
+        <div class="row" style="justify-content:space-between; margin-top:10px;">
+          <span id="emptyState" class="emptyState" style="display:none;">No workspaces loaded.</span>
+        </div>
+      </section>
+
+      <section id="dataSection" class="card collapse open">
+        <div class="collapseHead">
+          <div>
+            <div class="collapseTitle">Bulk Operations</div>
+            <p class="sub collapseCopy">Select an workspace type, upload CSV, or key in on the rows.</p>
+          </div>
+        </div>
+        <div class="collapseBody">
+          <!-- CSV File Management -->
+          <div style="background:var(--panel); border:1px solid var(--border); border-radius:12px; padding:14px 16px; margin-bottom:16px;">
+            <div style="font-size:11px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.05em; margin-bottom:10px;">CSV File Management — pre-populate &amp; export a template</div>
+            <div class="row" style="gap:12px; flex-wrap:wrap; align-items:flex-end;">
+              <div style="flex:1 1 200px; max-width:280px;">
+                <label>Location</label>
+                <select id="presetLocation"></select>
+              </div>
+              <div style="flex:1 1 140px; max-width:180px;">
+                <label>Type</label>
+                <select id="presetType"></select>
+              </div>
+              <div style="flex:1 1 200px; max-width:260px;">
+                <label>Calling Plan</label>
+                <select id="presetCallingPlan"></select>
+              </div>
+              <div style="flex:1 1 220px; max-width:320px;" id="presetLicenseWrap" hidden>
+                <label>Calling License <span style="color:var(--muted);font-weight:400;">(auto-picked)</span></label>
+                <select id="presetLicense"></select>
+              </div>
+              <div style="flex:0 0 100px;">
+                <label>Capacity</label>
+                <input type="number" id="presetCapacity" min="0" step="1" value="1" style="width:100px;">
+              </div>
+              <div style="display:flex; gap:8px; align-items:flex-end; padding-bottom:1px;">
+                <button id="exportCsvBtn" class="btn secondary" type="button">Export template</button>
+                <button id="uploadCsvTopBtn" class="btn secondary" type="button">Upload CSV</button>
+                <input id="csvFileTop" type="file" accept=".csv" class="hiddenFile" />
+              </div>
+            </div>
+          </div>
+
+          <!-- Workspace Type -->
+          <div style="margin-bottom:16px; max-width:360px;">
+            <label>Workspace Type</label>
+            <select id="apiSelect"></select>
+          </div>
+
+          <!-- Table -->
+          <div class="sheetToolbar"></div>
+          <div class="sheetWrap">
+            <table class="sheet" id="sheet"></table>
+          </div>
+          <div style="display:flex; justify-content:flex-end; margin-top:12px;">
+            <button id="runBtn" class="btn primary" type="button">Run bulk create</button>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script src="../../assets/js/theme.js?v=20260929e"></script>
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+  <script>
+(function() {
+  const els = {
+    status: document.getElementById('status'),
+    list: document.getElementById('workspacesList'),
+    listHeader: document.getElementById('workspaceListHeader'),
+    emptyState: document.getElementById('emptyState'),
+    apiSelect: document.getElementById('apiSelect'),
+    uploadCsvTopBtn: document.getElementById('uploadCsvTopBtn'),
+    exportCsvBtn: document.getElementById('exportCsvBtn'),
+    csvFileTop: document.getElementById('csvFileTop'),
+    pasteCsvBtn: document.getElementById('pasteCsvBtn'),
+    presetLocation: document.getElementById('presetLocation'),
+    presetType: document.getElementById('presetType'),
+    presetCallingPlan: document.getElementById('presetCallingPlan'),
+    presetLicense: document.getElementById('presetLicense'),
+    presetLicenseWrap: document.getElementById('presetLicenseWrap'),
+    presetCapacity: document.getElementById('presetCapacity'),
+    runBtn: document.getElementById('runBtn'),
+    sheet: document.getElementById('sheet'),
+    colHint: document.getElementById('colHint'),
+    dataSection: document.getElementById('dataSection'),
+    selectAllWorkspacesBtn: document.getElementById('selectAllWorkspacesBtn'),
+    clearWorkspacesSelectionBtn: document.getElementById('clearWorkspacesSelectionBtn'),
+    deleteSelectedWorkspacesBtn: document.getElementById('deleteSelectedWorkspacesBtn'),
+  };
+
+  const SHARED_BEARER_KEY = 'authBearer';
+  const BASE_URL = 'https://webexapis.com';
+  const WORKSPACES_ENDPOINT = '/v1/workspaces?max=1000';
+  const LOCATIONS_ENDPOINT = '/v1/locations?max=500';
+  const DEVICES_ENDPOINT = '/v1/devices?max=500';
+  const LICENSES_ENDPOINT = '/v1/licenses';
+  const loginMethod = localStorage.getItem('authLoginMethod') || '';
+  const orgId = localStorage.getItem('authOrg') || '';
+  const orgParam = orgId ? `orgId=${encodeURIComponent(orgId)}` : '';
+
+  const ACTIONS = {
+    noNumber: { endpoint: '/v1/workspaces', method: 'POST', label: 'Create Workspaces',                    cols: ['displayName','locationId','capacity','type','callingPlan'] },
+    ext:      { endpoint: '/v1/workspaces', method: 'POST', label: 'Create Workspaces – Extension',        cols: ['displayName','locationId','capacity','type','callingPlan','extension'] },
+    phone:    { endpoint: '/v1/workspaces', method: 'POST', label: 'Create Workspaces – Phone Number',     cols: ['displayName','locationId','capacity','type','callingPlan','phoneNumber'] },
+    both:     { endpoint: '/v1/workspaces', method: 'POST', label: 'Create Workspaces – Phone & Extension',cols: ['displayName','locationId','capacity','type','callingPlan','phoneNumber','extension'] },
+  };
+
+  // Keep these in sync with the Webex workspace-create API: calling.type
+  // only accepts none | freeCalling | webexCalling | thirdPartySipCalling
+  // | webexEdgeForDevices. "ucm" (hybridCalling) is NOT valid on create;
+  // use "Webex Edge for Devices" for UCM-registered devices in a
+  // workspace, which is the Webex-sanctioned path.
+  const CALLING_PLAN_OPTIONS = [
+    { value: 'none',                 label: 'None' },
+    { value: 'freeCalling',          label: 'Call on Webex (1:1 call, non-PSTN)' },
+    { value: 'webexCalling',         label: 'Cisco Webex Calling' },
+    { value: 'thirdPartySipCalling', label: 'Third-party SIP' },
+    { value: 'webexEdgeForDevices',  label: 'Webex Edge for Devices (UCM)' },
+  ];
+
+  // Which supportedDevices value the API expects for each calling plan.
+  // Mis-pairing this is what triggers "Webex Calling details required
+  // when supportedDevices is phones" on freeCalling rows.
+  const SUPPORTED_DEVICES_BY_PLAN = {
+    none:                 'collaborationDevices',
+    freeCalling:          'collaborationDevices',
+    webexCalling:         'phones',
+    thirdPartySipCalling: 'phones',
+    webexEdgeForDevices:  'collaborationDevices',
+  };
+
+  const PRESET_COLS = new Set(['locationId', 'capacity', 'type', 'callingPlan']);
+  const presetRow = { locationId: '', type: 'desk', callingPlan: 'none', capacity: '1', licenseId: '' };
+
+  function getVariableCols(actionKey) {
+    return ACTIONS[actionKey].cols.filter(col => !PRESET_COLS.has(col));
+  }
+
+  let workspaces = [];
+  const selectedWorkspaceIds = new Set();
+  let locationMap = new Map();
+  let locationOptions = [];
+  let licenseOptions = [];
+  let licenseMap = new Map();
+  let licenseKindMap = new Map();
+  let workspaceDeviceMap = new Map();
+  let rows = [];
+  let lastErrors = [];
+  let activeFilterKey = '';
+  const filterValues = { name: [], devices: [], scheduling: [], calling: [] };
+  const filterSelections = { name: new Set(), devices: new Set(), scheduling: new Set(), calling: new Set() };
+  const filterSearchTerms = { name: '', devices: '', scheduling: '', calling: '' };
+
+  const COMMON_WORKSPACE_TYPES = [
+    { value: 'desk', label: 'Desk' },
+    { value: 'huddle', label: 'Huddle' },
+    { value: 'meetingRoom', label: 'Meeting Room' },
+    { value: 'focus', label: 'Focus' },
+    { value: 'open', label: 'Open Space' },
+    { value: 'other', label: 'Other' },
+  ];
+
+
+  const DEVICE_ICON_MAP = [
+    { match: /7841/i, url: 'https://admin.webex.com/images/devices-hi/cisco_7841.png' },
+    { match: /8841/i, url: 'https://admin.webex.com/images/devices-hi/cisco_8841.png' },
+    { match: /8845/i, url: 'https://admin.webex.com/images/devices-hi/cisco_8845.png' },
+    { match: /\b840\b/i, url: 'https://admin.webex.com/images/devices-hi/58240bb0-8608-11ec-a8a3-0242ac120002.png' },
+    { match: /vg420|ata/i, url: 'https://admin.webex.com/images/devices-hi/b41b47bb-35d4-41eb-89f8-0ac275b11c9c.png' },
+    { match: /room 55/i, url: 'https://admin.webex.com/images/devices-hi/b1244307-a604-4be0-b28a-a1bcf6e77dc7.svg' },
+    { match: /touch 10/i, url: 'https://admin.webex.com/images/devices-hi/cisco-touch-10.svg' },
+    { match: /desk camera 4k/i, url: 'https://admin.webex.com/images/devices-hi/df4b0411-44ba-4669-a793-320616145f2f.svg' },
+  ];
+
+  const DEVICE_STATUS_ICON_MAP = {
+    offline: 'https://admin.webex.com/images/workspaces/power.svg',
+    issues: 'https://admin.webex.com/images/workspaces/warning.svg',
+    warning: 'https://admin.webex.com/images/workspaces/warning.svg',
+  };
+
+  function withOrgParam(url) {
+    if (!orgParam || url.includes('orgId=')) return url;
+    return url + (url.includes('?') ? '&' : '?') + orgParam;
+  }
+
+  function withoutOrgParam(url) {
+    return String(url)
+      .replace(/([?&])orgId=[^&]+&?/i, '$1')
+      .replace(/[?&]$/g, '')
+      .replace('?&', '?');
+  }
+
+  (function initAuthModal() {
+    if (document.getElementById('authModal')) return;
+    const style = document.createElement('style');
+    style.textContent = `
+      .authModalOverlay{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;z-index:9999;padding:16px;}
+      .authModalOverlay.open{display:flex;}
+      .authCard{width:100%;max-width:520px;background:#131a2a;border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:18px;box-shadow:0 18px 36px rgba(0,0,0,.45);position:relative;}
+      .authCard h2{margin:0 0 8px;font-size:1.2rem;}
+      .authCard p{margin:0 0 12px;color:#92a0b8;line-height:1.4;}
+      .authCard .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:9px 14px;border-radius:12px;font-weight:700;border:1px solid rgba(255,255,255,.08);background:#0e1525;color:#e9edf5;cursor:pointer;text-decoration:none;}
+      .authCard .btn.webex{background:#07C;color:#fff;border:none;padding:11px 20px;}
+      .authCard .btn.webex:hover{background:#0069CC;}
+      .authClose{position:absolute;right:10px;top:10px;background:transparent;border:none;color:#92a0b8;font-size:18px;cursor:pointer;}
+      .authStatus{margin-top:8px;font-size:13px;color:#92a0b8;}
+    `;
+    document.head.appendChild(style);
+
+    const overlay = document.createElement('div');
+    overlay.className = 'authModalOverlay';
+    overlay.id = 'authModal';
+    overlay.innerHTML = `
+      <div class="authCard">
+        <button class="authClose" aria-label="Close">×</button>
+        <h2>Sign in with Webex</h2>
+        <p>Click below to authenticate with your Webex account.</p>
+        <button class="btn webex" id="authWebex" style="width:100%;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M19.7 7.3c-1.2-1.2-2.7-2-4.5-2.3-.3-1.6-1.2-3-2.5-4-1.4-1-3-1.6-4.7-1.6-2.2 0-4.2.8-5.7 2.3C.8 3.2 0 5.2 0 7.4c0 1.7.6 3.3 1.6 4.7 1 1.3 2.4 2.2 4 2.5.3 1.6 1.2 3 2.5 4 1.5 1 3.1 1.6 4.9 1.6 2.2 0 4.2-.8 5.7-2.3 1.5-1.5 2.3-3.5 2.3-5.7 0-1.8-.6-3.4-1.6-4.7-.1 0-.2-.1-.2-.2zM13 18.4c-1.3 0-2.5-.4-3.5-1.2-.9-.7-1.6-1.7-2-2.8l5.5-2 2 5.5c-1.1.3-1.3.5-2 .5zM7.5 13l-5.3 1.9c-.1-.6-.2-1.2-.2-1.8 0-1.7.6-3.2 1.7-4.3C4.8 7.6 6.4 7 8 7c.6 0 1.2.1 1.8.2L7.5 13zm11.2 2.8c-1.1 1.1-2.6 1.7-4.2 1.7-.6 0-1.2-.1-1.8-.2l2.3-6.3 5.3-1.9c.1.6.2 1.2.2 1.8 0 1.6-.6 3.1-1.8 4.2v-.3zm-7-11.3c1.3 0 2.5.4 3.5 1.2.9.7 1.6 1.7 2 2.8l-5.5 2-2-5.5c.6-.3 1.3-.5 2-.5zM3.3 8.8C4.4 7.7 5.9 7.1 7.5 7.1c.6 0 1.2.1 1.8.2L7 13.6l-5.3 1.9c-.1-.6-.2-1.2-.2-1.8 0-1.7.6-3.2 1.8-4.3v-.6z"/>
+          </svg>
+          Sign in with Webex
+        </button>
+        <div class="authStatus" id="authStatus"></div>
+      </div>
+    `;
+    document.body.appendChild(overlay);
+
+    const CLIENT_ID = 'Cc604fe2354b93ecd1eb3d799e69a4ce981649161c1e31253ae91805e95b54e64';
+    const REDIRECT_URI = 'https://cxasteam.bitbucket.io/opshub/callback.html';
+    const SCOPES = 'spark-admin:locations_write spark:all spark-admin:locations_read spark-admin:organizations_read spark:organizations_read spark-admin:workspace_locations_read spark-admin:places_read cjp:config_read spark:kms spark-admin:devices_read cjp:config_write spark-admin:workspace_locations_write spark-admin:places_write cjp:config spark-admin:devices_write spark-admin:telephony_config_read spark-admin:telephony_config_write audit:events_read spark-admin:licenses_read';
+    const statusEl = overlay.querySelector('#authStatus');
+    const closeBtn = overlay.querySelector('.authClose');
+    const webexBtn = overlay.querySelector('#authWebex');
+
+    statusEl.textContent = localStorage.getItem('authOrgName') ? `Org: ${localStorage.getItem('authOrgName')}` : '';
+
+    webexBtn.addEventListener('click', () => {
+      const authUrl = `https://webexapis.com/v1/authorize?client_id=${CLIENT_ID}&response_type=code&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&scope=${encodeURIComponent(SCOPES)}&state=${Date.now()}&prompt=consent`;
+      window.location.href = authUrl;
+    });
+
+    const close = () => overlay.classList.remove('open');
+    closeBtn.addEventListener('click', close);
+    overlay.addEventListener('click', (event) => { if (event.target === overlay) close(); });
+    window.addEventListener('keydown', (event) => { if (event.key === 'Escape') close(); });
+  })();
+
+  function updateAuthIndicators() {
+    const bearer = localStorage.getItem('authBearer') || '';
+    const org = localStorage.getItem('authOrgName') || localStorage.getItem('authOrg') || '';
+    const user = localStorage.getItem('authUserName') || '';
+    const userNameEl = document.getElementById('userName');
+    const userOrgEl = document.getElementById('userOrg');
+    if (userNameEl) userNameEl.textContent = bearer ? (user || 'Authenticated') : 'Not authenticated';
+    if (userOrgEl) userOrgEl.textContent = org || '';
+  }
+  updateAuthIndicators();
+
+  const signOutBtn = document.getElementById('signOutBtn');
+  if (signOutBtn) {
+    signOutBtn.addEventListener('click', () => {
+      localStorage.removeItem('authBearer');
+      localStorage.removeItem('authOrg');
+      localStorage.removeItem('authOrgName');
+      localStorage.removeItem('authUserName');
+      localStorage.removeItem('authRefreshToken');
+      localStorage.removeItem('authExpiresAt');
+      window.location.href = '../../index.html';
+    });
+  }
+
+
+  document.addEventListener('click', (event) => {
+    if (!activePopoverState) return;
+    const { button, panel } = activePopoverState;
+    if (!panel.contains(event.target) && !button.contains(event.target)) {
+      closePopover();
+    }
+  });
+
+  window.addEventListener('scroll', () => {
+    if (activePopoverState) positionPopover(activePopoverState.button, activePopoverState.panel);
+  }, true);
+  window.addEventListener('resize', () => {
+    if (activePopoverState) positionPopover(activePopoverState.button, activePopoverState.panel);
+  });
+
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') {
+      closePopover();
+    }
+  });
+
+  function getToken() {
+    return (localStorage.getItem(SHARED_BEARER_KEY) || '').trim();
+  }
+
+  function updateStatus(message) {
+    if (els.status) els.status.textContent = message;
+  }
+
+  function escapeHtml(value) {
+    return String(value ?? '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  function resolveLocationValue(value) {
+    const raw = String(value ?? '').trim();
+    if (!raw) return '';
+    if (locationMap.has(raw)) return raw;
+
+    const lowered = raw.toLowerCase();
+    const match = locationOptions.find((option) => option.name.toLowerCase() === lowered);
+    return match ? match.id : raw;
+  }
+
+  function resolveLicenseValue(value) {
+    const raw = String(value ?? '').trim();
+    if (!raw) return '';
+    if (licenseMap.has(raw)) return raw;
+    const lowered = raw.toLowerCase();
+    const match = licenseOptions.find((option) => option.name.toLowerCase() === lowered);
+    return match ? match.id : raw;
+  }
+
+  function buildOptions(options, placeholder) {
+    return [`<option value="">${escapeHtml(placeholder)}</option>`]
+      .concat(options.map((option) => `<option value="${escapeHtml(option.value)}">${escapeHtml(option.label)}</option>`))
+      .join('');
+  }
+
+  function buildLicenseOptions(onlyWebexCalling = false) {
+    const callingKinds = onlyWebexCalling
+      ? ['webexCalling', 'webexCallingWorkspace', 'hotDesk']
+      : ['webexCalling', 'webexCallingWorkspace', 'hotDesk', 'freeCalling', 'commonArea', 'attendantConsole'];
+    const opts = licenseOptions.filter((o) => callingKinds.includes(o.kind));
+    return [`<option value="">Select calling license</option>`]
+      .concat(opts.map((option) => {
+        const avail = option.available;
+        const suffix = avail !== null
+          ? (avail <= 0 ? ' ⚠ None available' : ` (${avail} available)`)
+          : '';
+        const disabled = avail !== null && avail <= 0 ? ' disabled' : '';
+        return `<option value="${escapeHtml(option.id)}"${disabled}>${escapeHtml(option.name + suffix)}</option>`;
+      }))
+      .join('');
+  }
+
+  // Fill the preset License dropdown (hidden when calling plan is "none"
+  // or UCM, since those paths don't use a Webex Calling license). The
+  // default selection comes from getLicenseIdByPlan which already walks
+  // the Webex-accepted preference list (Workspaces > Professional >
+  // Standard > any). The user can override from the dropdown and we
+  // honor that selection in buildBody.
+  function populatePresetLicense() {
+    const wrap = els.presetLicenseWrap;
+    const sel = els.presetLicense;
+    if (!wrap || !sel) return;
+    const plan = presetRow.callingPlan;
+    if (plan !== 'webexCalling') {
+      wrap.hidden = true;
+      presetRow.licenseId = '';
+      return;
+    }
+    wrap.hidden = false;
+    sel.innerHTML = buildLicenseOptions(true);
+    // If the user hasn't picked one yet (or the previous pick is no
+    // longer in the list, e.g. after a re-fetch), fall back to the
+    // smart auto-pick so the UI shows what WOULD go on the wire.
+    const options = Array.from(sel.options).map((o) => o.value);
+    if (!presetRow.licenseId || !options.includes(presetRow.licenseId)) {
+      presetRow.licenseId = getLicenseIdByPlan('webexCalling') || '';
+    }
+    sel.value = presetRow.licenseId;
+  }
+
+  function prettifyValue(value) {
+    const raw = String(value ?? '').trim();
+    if (!raw) return '';
+    return raw
+      .replace(/([a-z])([A-Z])/g, '$1 $2')
+      .replace(/[_\-]+/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim()
+      .replace(/\b\w/g, (char) => char.toUpperCase());
+  }
+
+  function getDeviceIconUrl(product) {
+    const name = String(product || '');
+    const hit = DEVICE_ICON_MAP.find((item) => item.match.test(name));
+    return hit ? hit.url : '';
+  }
+
+  function getDeviceStatusMeta(status) {
+    const value = String(status || '').toLowerCase();
+    if (value.includes('connected') || value.includes('online')) {
+      return { label: 'Online', key: 'online', iconUrl: '' };
+    }
+    if (value.includes('activating')) {
+      return { label: 'Activating', key: 'warning', iconUrl: DEVICE_STATUS_ICON_MAP.warning };
+    }
+    if (value.includes('offline')) {
+      return { label: 'Offline', key: 'offline', iconUrl: DEVICE_STATUS_ICON_MAP.offline };
+    }
+    if (value.includes('issue') || value.includes('warning')) {
+      return { label: 'Issues', key: 'issues', iconUrl: DEVICE_STATUS_ICON_MAP.issues };
+    }
+    if (value.includes('unknown') || value.includes('unavailable')) {
+      return { label: 'Offline', key: 'offline', iconUrl: DEVICE_STATUS_ICON_MAP.offline };
+    }
+    return { label: status || 'Status unavailable', key: '', iconUrl: '' };
+  }
+
+  function buildWorkspaceDeviceMap(devices) {
+    const map = new Map();
+    (devices || []).forEach((device) => {
+      const keys = [
+        device.workspaceLocationId,
+        device.workspaceId,
+        device.placeId,
+        device.locationId,
+      ].filter(Boolean);
+      keys.forEach((key) => {
+        if (!map.has(key)) map.set(key, []);
+        map.get(key).push(device);
+      });
+    });
+    return map;
+  }
+
+  function pickWorkspaceDevices(item) {
+    const keys = [
+      item.id,
+      item.workspaceId,
+      item.placeId,
+      item.workspaceLocationId,
+      item.locationId,
+    ].filter(Boolean);
+    for (const key of keys) {
+      const devices = workspaceDeviceMap.get(key);
+      if (devices && devices.length) return devices;
+    }
+    return [];
+  }
+
+  function buildDeviceSummary(item, supportedDevices) {
+    const devices = pickWorkspaceDevices(item);
+    if (!devices.length) {
+      return {
+        model: 'No Devices',
+        statusLabel: '',
+        imageUrl: '',
+        statusIconUrl: '',
+        countLabel: '',
+      };
+    }
+
+    const primary = devices[0] || {};
+    const product = primary.product || primary.model || primary.displayName || 'Device';
+    const statusMeta = getDeviceStatusMeta(primary.connectionStatus || primary.status || '');
+    return {
+      model: product,
+      statusLabel: statusMeta.label,
+      imageUrl: getDeviceIconUrl(product),
+      statusIconUrl: statusMeta.iconUrl,
+      countLabel: '',
+    };
+  }
+
+  function mdIcon(className) {
+    return `<i role="img" class="icon ${escapeHtml(className)}" style="color: inherit;"></i>`;
+  }
+
+  function workspaceIconClassFor(type, devices) {
+    const loweredType = String(type || '').toLowerCase();
+    const loweredDevices = String(devices || '').toLowerCase();
+    if (loweredType.includes('desk')) return 'icon-endpoint-stand_16';
+    if (loweredType.includes('huddle')) return 'icon-people_16';
+    if (loweredType.includes('open space')) return 'icon-chat_16';
+    if (!loweredType) return 'icon-people_16';
+    if (loweredDevices.includes('phone')) return 'icon-deskphone_16';
+    if (loweredDevices.includes('collaboration') || loweredDevices.includes('room')) return 'icon-device-in-room_16';
+    return 'icon-device-in-room_16';
+  }
+
+  function deviceIconClassFor(devices) {
+    const loweredDevices = String(devices || '').toLowerCase();
+    if (!loweredDevices || loweredDevices === 'no device assigned') return 'icon-device-connection_16';
+    if (loweredDevices.includes('phone')) return 'icon-deskphone_16';
+    if (loweredDevices.includes('collaboration') || loweredDevices.includes('room')) return 'icon-device-in-room_16';
+    return 'icon-device-connection_16';
+  }
+
+  function schedulingIconClassFor(label) {
+    const loweredLabel = String(label || '').toLowerCase();
+    if (loweredLabel.includes('hot desking')) return 'icon-calendar-month_16';
+    if (loweredLabel.includes('calendar')) return 'icon-calendar-month_16';
+    if (loweredLabel.includes('schedule') || loweredLabel.includes('booking')) return 'icon-calendar-day_12';
+    return 'icon-calendar-empty_16';
+  }
+
+  function callingIconClassFor(label, callingType) {
+    const loweredLabel = String(label || '').toLowerCase();
+    const loweredType = String(callingType || '').toLowerCase();
+    if (loweredLabel === 'none' || loweredType === 'none' || !loweredLabel) return 'icon-handset-muted_16';
+    if (loweredType.includes('webex')) return 'icon-webex-calling_16';
+    if (loweredType.includes('pstn')) return 'icon-handset_16';
+    return 'icon-handset_16';
+  }
+
+  function formatCapacity(value) {
+    const num = Number(value);
+    if (!Number.isFinite(num) || num <= 0) return 'No capacity';
+    return `${num}`;
+  }
+
+  function buildSchedulingLabel(item) {
+    const scheduling = String(
+      item.schedulingType ||
+      item.workspaceLocation?.schedulingType ||
+      item.calendar?.type ||
+      item.booking?.type ||
+      item.hotdeskingStatus ||
+      ''
+    ).toLowerCase();
+
+    const hotdeskingStatus = String(item.hotdeskingStatus || '').toLowerCase();
+    if (
+      item.hotdeskingEnabled === true ||
+      hotdeskingStatus === 'on' ||
+      scheduling.includes('hot') ||
+      scheduling.includes('desk')
+    ) {
+      return 'Hot Desking';
+    }
+    if (scheduling.includes('calendar') || scheduling.includes('booking') || scheduling.includes('scheduled')) {
+      return 'Calendar';
+    }
+    return 'Not set';
+  }
+
+  function buildCallingLabel(item, callingType, phoneNumber, extension) {
+    const calling = item.calling || {};
+    const webexCalling = calling.webexCalling || {};
+    const resolvedLicenseId = [webexCalling.licenses?.[0], item.licenseId]
+      .map((value) => String(value || '').trim())
+      .find(Boolean);
+    const licenseLabel =
+      (resolvedLicenseId && licenseMap.get(resolvedLicenseId)) ||
+      item.callingLicenseName ||
+      item.licenseLabel ||
+      webexCalling.licenseLabel ||
+      '';
+    if (licenseLabel) return licenseLabel;
+    if (callingType && callingType.toLowerCase() !== 'none') {
+      if (callingType.toLowerCase().includes('webex')) return 'Webex Calling';
+      const details = [phoneNumber, extension ? `x${extension}` : ''].filter(Boolean).join(' • ');
+      return details || prettifyValue(callingType);
+    }
+    return 'None';
+  }
+
+  function normalizeWorkspace(item) {
+    const calling = item.calling || {};
+    const webexCalling = calling.webexCalling || {};
+    const devices = Array.isArray(item.supportedDevices)
+      ? item.supportedDevices.join(', ')
+      : (item.supportedDevices || item.deviceType || '');
+    const locationId = item.locationId || webexCalling.locationId || '';
+    const locationName =
+      item.locationName ||
+      item.location?.name ||
+      item.location?.displayName ||
+      webexCalling.locationName ||
+      locationMap.get(locationId) ||
+      '';
+    const displayName = item.displayName || item.name || '';
+    const type = item.type || '';
+    const capacity = item.capacity ?? '';
+    const supportedDevices = devices || 'No device assigned';
+    const callingType = calling.type || item.callingType || '';
+    const phoneNumber = item.phoneNumber || webexCalling.phoneNumber || '';
+    const extension = item.extension || webexCalling.extension || '';
+    const deviceSummary = buildDeviceSummary(item, supportedDevices);
+    const schedulingLabel = buildSchedulingLabel(item);
+    const callingLabel = buildCallingLabel(item, callingType, phoneNumber, extension);
+    return {
+      id: item.id || item.workspaceId || '',
+      displayName,
+      locationId,
+      locationName,
+      phoneNumber,
+      extension,
+      type,
+      capacity,
+      supportedDevices,
+      callingType,
+      typeLabel: prettifyValue(type) || 'No type',
+      capacityLabel: formatCapacity(capacity),
+      schedulingLabel,
+      callingLabel,
+      iconClass: workspaceIconClassFor(type, supportedDevices),
+      deviceIconClass: deviceIconClassFor(supportedDevices),
+      schedulingIconClass: schedulingIconClassFor(schedulingLabel),
+      callingIconClass: callingIconClassFor(callingLabel, callingType),
+      deviceSummary,
+    };
+  }
+
+  function getFilteredWorkspaces() {
+    return workspaces.filter((workspace) => {
+      const nameValue = String(workspace.displayName || '').trim();
+      const deviceValue = String(workspace.deviceSummary?.model || '').trim();
+      const schedulingValue = String(workspace.schedulingLabel || '').trim();
+      const callingValue = String(workspace.callingLabel || '').trim();
+
+      if (filterSelections.name.size && !filterSelections.name.has(nameValue)) return false;
+      if (filterSelections.devices.size && !filterSelections.devices.has(deviceValue)) return false;
+      if (filterSelections.scheduling.size && !filterSelections.scheduling.has(schedulingValue)) return false;
+      if (filterSelections.calling.size && !filterSelections.calling.has(callingValue)) return false;
+      return true;
+    });
+  }
+
+  function renderFilterOptions() {
+    const nextValues = {
+      name: Array.from(new Set(workspaces.map((workspace) => String(workspace.displayName || '').trim()).filter(Boolean))).sort((a, b) => a.localeCompare(b)),
+      devices: Array.from(new Set(workspaces.map((workspace) => String(workspace.deviceSummary?.model || '').trim()).filter(Boolean))).sort((a, b) => a.localeCompare(b)),
+      scheduling: Array.from(new Set(workspaces.map((workspace) => String(workspace.schedulingLabel || '').trim()).filter(Boolean))).sort((a, b) => a.localeCompare(b)),
+      calling: Array.from(new Set(workspaces.map((workspace) => String(workspace.callingLabel || '').trim()).filter(Boolean))).sort((a, b) => a.localeCompare(b)),
+    };
+    Object.entries(nextValues).forEach(([key, values]) => {
+      filterValues[key] = values;
+      const current = filterSelections[key];
+      filterSelections[key] = current.size
+        ? new Set([...current].filter((value) => values.includes(value)))
+        : new Set(values);
+      if (!filterSelections[key].size && values.length) {
+        filterSelections[key] = new Set(values);
+      }
+      if (activeFilterKey === key) renderFilterPopover(key);
+    });
+    updateFilterButtonState();
+  }
+
+  function formatFilterLabel(key, value) {
+    if (key === 'devices') return prettifyValue(value);
+    return value;
+  }
+
+  function renderFilterPopover(key) {
+    const scope = activePopoverState?.key === key ? activePopoverState.panel : els.listHeader;
+    const listEl = scope?.querySelector(`[data-filter-list="${key}"]`);
+    const summaryEl = scope?.querySelector(`[data-filter-summary="${key}"]`);
+    if (!listEl || !summaryEl) return;
+    const term = (filterSearchTerms[key] || '').toLowerCase();
+    const values = filterValues[key] || [];
+    const filteredValues = values.filter((value) => formatFilterLabel(key, value).toLowerCase().includes(term));
+    const selected = filterSelections[key] || new Set();
+    const allSelected = values.length > 0 && selected.size === values.length;
+    listEl.innerHTML = [
+      `
+        <label class="filterItem selectAll">
+          <input type="checkbox" data-filter-key="${key}" data-filter-value="__ALL__" ${allSelected ? 'checked' : ''} />
+          <span>Select all</span>
+        </label>
+      `,
+      ...filteredValues.map((value) => `
+        <label class="filterItem">
+          <input type="checkbox" data-filter-key="${key}" data-filter-value="${escapeHtml(value)}" ${selected.has(value) ? 'checked' : ''} />
+          <span>${escapeHtml(formatFilterLabel(key, value))}</span>
+        </label>
+      `),
+    ].join('');
+    summaryEl.textContent = allSelected
+      ? `All ${values.length} values selected`
+      : `${selected.size} of ${values.length} values selected`;
+  }
+
+  function setFilterValue(key, value, checked) {
+    if (value === '__ALL__') {
+      filterSelections[key] = checked ? new Set(filterValues[key]) : new Set();
+      renderFilterPopover(key);
+      updateFilterButtonState();
+      renderWorkspacesList();
+      return;
+    }
+    if (checked) filterSelections[key].add(value);
+    else filterSelections[key].delete(value);
+    renderFilterPopover(key);
+    updateFilterButtonState();
+    renderWorkspacesList();
+  }
+
+  let activePopoverState = null;
+
+  function positionPopover(btn, popover) {
+    window.CXASFloatingFilters?.position(btn, popover);
+  }
+
+  function openPopover(key, btn, popover) {
+    const nextState = window.CXASFloatingFilters?.open({
+      button: btn,
+      panel: popover,
+      parent: popover.parentElement,
+    });
+    if (!nextState) return;
+    renderFilterPopover(key);
+    activeFilterKey = key;
+    activePopoverState = { key, ...nextState };
+    popover.querySelector('input')?.focus();
+  }
+
+  function closePopover() {
+    if (!activePopoverState) return;
+    window.CXASFloatingFilters?.close(activePopoverState);
+    activeFilterKey = '';
+    activePopoverState = null;
+  }
+
+  function closeHeaderFilters() {
+    closePopover();
+  }
+
+  function updateFilterButtonState() {
+    const states = {
+      name: filterSelections.name.size !== filterValues.name.length,
+      devices: filterSelections.devices.size !== filterValues.devices.length,
+      scheduling: filterSelections.scheduling.size !== filterValues.scheduling.length,
+      calling: filterSelections.calling.size !== filterValues.calling.length,
+    };
+    Object.entries(states).forEach(([key, active]) => {
+      const button = els.listHeader?.querySelector(`[data-filter-btn="${key}"]`);
+      if (button) button.classList.toggle('active', active);
+    });
+  }
+
+  function updateSelectionUI() {
+    const hasSelection = selectedWorkspaceIds.size > 0;
+    if (els.clearWorkspacesSelectionBtn) els.clearWorkspacesSelectionBtn.disabled = !hasSelection;
+    if (els.deleteSelectedWorkspacesBtn) els.deleteSelectedWorkspacesBtn.disabled = !hasSelection;
+    const filtered = getFilteredWorkspaces();
+    const allSelected = filtered.length > 0 && filtered.every(ws => selectedWorkspaceIds.has(ws.id));
+    const toggle = document.getElementById('selectAllWorkspacesToggle');
+    if (toggle) toggle.checked = allSelected;
+  }
+
+  async function deleteSelectedWorkspaces() {
+    if (!selectedWorkspaceIds.size) {
+      showResultModal('No workspaces selected', 'Select workspaces to delete.', { variant: 'danger' });
+      return;
+    }
+    const confirmed = await confirmAction(
+      'Delete workspaces',
+      `Delete ${selectedWorkspaceIds.size} workspace(s)? This cannot be undone.`,
+      { variant: 'danger', okLabel: 'Delete', cancelLabel: 'Cancel' }
+    );
+    if (!confirmed) return;
+    const token = getToken();
+    if (!token) {
+      showResultModal('Authentication required', 'Sign in to Webex before deleting workspaces.', { variant: 'danger' });
+      return;
+    }
+    const ids = Array.from(selectedWorkspaceIds);
+    const failures = [];
+    openProgressModal('Deleting workspaces', `Processing 0/${ids.length}`);
+    let done = 0;
+    for (const id of ids) {
+      const ws = workspaces.find(item => item.id === id);
+      try {
+        const response = await fetch(`https://webexapis.com/v1/workspaces/${id}`, {
+          method: 'DELETE',
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (!response.ok) {
+          const text = await response.text();
+          throw new Error(`HTTP ${response.status}: ${text}`);
+        }
+      } catch (err) {
+        failures.push({
+          name: ws?.displayName || id,
+          status: 'Failed',
+          response: err.message || 'Delete failed.'
+        });
+      }
+      done += 1;
+      updateProgressModal(`Processing ${done}/${ids.length}`);
+    }
+    closeProgressModal();
+    selectedWorkspaceIds.clear();
+    await refreshWorkspaceList();
+    const successCount = ids.length - failures.length;
+    const summary = `Deleted ${successCount} of ${ids.length} workspace(s).` + (failures.length ? ` ${failures.length} failed.` : '');
+    showResultModal('Bulk delete complete', summary, {
+      variant: failures.length ? 'danger' : 'success',
+      failures,
+    });
+  }
+
+  function renderWorkspacesList() {
+    if (!els.list) return;
+    const filtered = getFilteredWorkspaces();
+    if (!filtered.length) {
+      els.list.innerHTML = '';
+      if (els.listHeader) els.listHeader.style.display = 'none';
+      if (els.emptyState) els.emptyState.style.display = 'inline-flex';
+      return;
+    }
+    if (els.listHeader) els.listHeader.style.display = '';
+    if (els.emptyState) els.emptyState.style.display = 'none';
+    els.list.innerHTML = filtered.map((workspace) => `
+      <article class="workspaceCard">
+        <div style="display:flex; align-items:center; justify-content:center; padding:14px 12px;">
+          <input type="checkbox" data-select-id="${workspace.id}" ${selectedWorkspaceIds.has(workspace.id) ? 'checked' : ''}>
+        </div>
+        <div class="workspaceNameCell">
+          <div class="workspaceIcon" aria-hidden="true">${mdIcon(workspace.iconClass)}</div>
+          <div style="min-width:0;">
+            <div class="workspaceTitle">${escapeHtml(workspace.displayName || 'Unnamed workspace')}</div>
+            <div class="workspaceMeta">
+              <span>${mdIcon('icon-location_16')} ${escapeHtml(workspace.typeLabel)}</span>
+              <span>${mdIcon('icon-people_16')} <strong>${escapeHtml(workspace.capacityLabel)}</strong>${workspace.capacityLabel === 'No capacity' ? '' : ' capacity'}</span>
+              ${workspace.locationName ? `<span>${mdIcon('icon-location_16')} ${escapeHtml(workspace.locationName)}</span>` : ''}
+            </div>
+            <div class="workspaceMeta" style="margin-top:8px;">
+              ${workspace.phoneNumber ? `<span class="workspaceTag">${mdIcon('icon-handset_16')} ${escapeHtml(workspace.phoneNumber)}</span>` : ''}
+              ${workspace.extension ? `<span class="workspaceTag">${mdIcon('icon-dialpad_16')} Ext ${escapeHtml(workspace.extension)}</span>` : ''}
+            </div>
+          </div>
+        </div>
+        <div class="workspacePanel">
+          <div class="deviceBadge">
+            <div class="deviceThumbWrap">
+              ${workspace.deviceSummary.imageUrl
+                ? `<img class="deviceThumb" src="${escapeHtml(workspace.deviceSummary.imageUrl)}" alt="${escapeHtml(workspace.deviceSummary.model)}" loading="lazy">`
+                : mdIcon(workspace.deviceIconClass)}
+              ${workspace.deviceSummary.statusIconUrl
+                ? `<span class="deviceStatusBadge"><img src="${escapeHtml(workspace.deviceSummary.statusIconUrl)}" alt="${escapeHtml(workspace.deviceSummary.statusLabel)}" loading="lazy"></span>`
+                : ''}
+            </div>
+            <div class="deviceBadgeContent">
+              <div class="deviceBadgeTitle">${escapeHtml(workspace.deviceSummary.model || prettifyValue(workspace.supportedDevices) || 'None')}</div>
+              ${workspace.deviceSummary.statusLabel
+                ? `<div class="deviceBadgeMeta">${escapeHtml(workspace.deviceSummary.statusLabel)}${workspace.deviceSummary.countLabel ? ` • ${escapeHtml(workspace.deviceSummary.countLabel)}` : ''}</div>`
+                : ''}
+            </div>
+          </div>
+        </div>
+        <div class="workspacePanel">
+          <div class="workspacePanelValue ${workspace.schedulingLabel === 'Not set' ? 'mutedValue' : ''}">${mdIcon(workspace.schedulingIconClass)} ${escapeHtml(workspace.schedulingLabel)}</div>
+        </div>
+        <div class="workspacePanel">
+          <div class="workspacePanelValue ${workspace.callingLabel === 'None' ? 'mutedValue' : ''}">${mdIcon(workspace.callingIconClass)} ${escapeHtml(workspace.callingLabel)}</div>
+        </div>
+      </article>
+    `).join('');
+    updateSelectionUI();
+  }
+
+  const COL_LABELS = {
+    displayName: 'Display Name',
+    locationId: 'Location',
+    capacity: 'Capacity',
+    type: 'Type',
+    callingType: 'Calling Type',
+    callingPlan: 'Calling',
+    extension: 'Extension',
+    phoneNumber: 'Phone Number',
+  };
+  function friendlyColName(col) {
+    return COL_LABELS[col] || col.replace(/([A-Z])/g, ' $1').replace(/^./, (s) => s.toUpperCase());
+  }
+
+  // Pick the best license for a given calling plan. The /v1/workspaces
+  // endpoint is picky: for a user-type workspace (type:"huddle" / "desk"
+  // / etc.) it will only accept a Webex Calling SKU that is marketed
+  // for workspaces (BCWCA_... "Workspaces") or a regular Professional
+  // SKU (BCCA_...). Attendant Console (BCACA_...), Hot Desk, and
+  // specialized sub-SKUs are rejected with a 400 "Only Webex Calling
+  // licenses are supported in Webex Calling workspaces" even though
+  // their names also contain "Webex Calling". So auto-pick walks a
+  // preference list instead of grabbing the alphabetically-first match.
+  function getLicenseIdByPlan(plan) {
+    if (plan === 'webexCalling') {
+      // Preference order for Webex Calling workspaces.
+      const prefs = [
+        (o) => o.kind === 'webexCallingWorkspace',   // "Webex Calling - Workspaces"
+        (o) => o.kind === 'webexCalling' && /professional/i.test(o.name),
+        (o) => o.kind === 'webexCalling' && /standard/i.test(o.name),
+        (o) => o.kind === 'webexCalling'
+      ];
+      for (const match of prefs) {
+        const hit = licenseOptions.find((o) => match(o) && (o.available == null || o.available > 0));
+        if (hit) return hit.id;
+      }
+      // Last-ditch: ignore availability, same priority order.
+      for (const match of prefs) {
+        const hit = licenseOptions.find(match);
+        if (hit) return hit.id;
+      }
+      return undefined;
+    }
+    if (plan === 'ucm') return licenseOptions.find((o) => /unified communication|ucprem/i.test(o.name))?.id;
+    return undefined;
+  }
+
+  function populatePresetSelects() {
+    if (els.presetLocation) {
+      const saved = presetRow.locationId;
+      els.presetLocation.innerHTML = [
+        '<option value="">Select location</option>',
+        ...locationOptions.map(o => `<option value="${escapeHtml(o.id)}">${escapeHtml(o.name)}</option>`)
+      ].join('');
+      els.presetLocation.value = saved;
+      if (!els.presetLocation.value) presetRow.locationId = '';
+    }
+    if (els.presetType) {
+      els.presetType.innerHTML = buildOptions(COMMON_WORKSPACE_TYPES, 'Select type');
+      els.presetType.value = presetRow.type;
+    }
+    if (els.presetCallingPlan) {
+      els.presetCallingPlan.innerHTML = buildOptions(CALLING_PLAN_OPTIONS, 'Select calling type');
+      els.presetCallingPlan.value = presetRow.callingPlan;
+    }
+    populatePresetLicense();
+    if (els.presetCapacity) {
+      els.presetCapacity.value = presetRow.capacity;
+    }
+  }
+
+  function renderEditorTable() {
+    const actionKey = els.apiSelect.value;
+    const cols = ACTIONS[actionKey].cols;
+
+    populatePresetSelects();
+
+    const locationSelectOptions = [
+      '<option value="">Select location</option>',
+      ...locationOptions.map((o) => `<option value="${escapeHtml(o.id)}">${escapeHtml(o.name)}</option>`)
+    ].join('');
+    const workspaceTypeOptions = buildOptions(COMMON_WORKSPACE_TYPES, 'Select type');
+    const callingPlanOptions = buildOptions(CALLING_PLAN_OPTIONS, 'Select calling type');
+
+    const thead = `<thead><tr>${cols.map((col) => `<th>${escapeHtml(friendlyColName(col))}</th>`).join('')}<th>Action</th></tr></thead>`;
+    const tbody = `<tbody>${rows.map((row, rowIndex) => `<tr>
+      ${cols.map((col) => {
+        if (col === 'locationId') return `<td><select data-ri="${rowIndex}" data-key="${col}">${locationSelectOptions}</select></td>`;
+        if (col === 'type') return `<td><select data-ri="${rowIndex}" data-key="${col}">${workspaceTypeOptions}</select></td>`;
+        if (col === 'callingPlan') return `<td><select data-ri="${rowIndex}" data-key="${col}">${callingPlanOptions}</select></td>`;
+        if (col === 'capacity') return `<td><input type="number" min="0" step="1" data-ri="${rowIndex}" data-key="${col}" value="${escapeHtml(row[col] ?? '')}"></td>`;
+        return `<td><input data-ri="${rowIndex}" data-key="${col}" value="${escapeHtml(row[col] ?? '')}"></td>`;
+      }).join('')}
+      <td style="white-space:nowrap;">
+        <button class="btn secondary" data-del="${rowIndex}" type="button" style="padding:6px 10px; font-size:12px;">Delete</button>
+        ${rowIndex === rows.length - 1 ? `<button class="btn primary" data-add-row type="button" style="padding:6px 10px; font-size:12px; margin-left:4px;">+</button>` : ''}
+      </td>
+    </tr>`).join('')}</tbody>`;
+    els.sheet.innerHTML = thead + tbody;
+
+    els.sheet.querySelectorAll('input[data-ri]').forEach((input) => {
+      input.addEventListener('input', (event) => {
+        const rowIndex = Number(event.target.getAttribute('data-ri'));
+        const key = event.target.getAttribute('data-key');
+        rows[rowIndex][key] = event.target.value;
+      });
+
+      input.addEventListener('paste', (event) => {
+        const text = event.clipboardData?.getData('text');
+        if (!text || (!text.includes('\t') && !text.includes('\n'))) return;
+        event.preventDefault();
+        const startRowIndex = Number(event.target.getAttribute('data-ri'));
+        const startKey = event.target.getAttribute('data-key');
+        const startColumnIndex = cols.indexOf(startKey);
+        const delimiter = text.includes('\t') ? '\t' : ',';
+        const lines = text.replace(/\r/g, '').split('\n').filter((line) => line.length > 0);
+        const cells = lines.map((line) => line.split(new RegExp(delimiter)).map((value) => value.trim()));
+        const header = cells[0];
+        const headerMatches = header.every((value) => cols.includes(value));
+        if (headerMatches) {
+          const mapping = header.map((value) => cols.indexOf(value));
+          for (let rowOffset = 1; rowOffset < cells.length; rowOffset += 1) {
+            const targetIndex = startRowIndex + rowOffset - 1;
+            if (!rows[targetIndex]) rows[targetIndex] = createEmptyRow(cols);
+            mapping.forEach((columnIndex, index) => {
+              if (columnIndex >= 0) {
+                const key = cols[columnIndex];
+                const val = cells[rowOffset][index] ?? '';
+                rows[targetIndex][key] = key === 'locationId' ? resolveLocationValue(val) : val;
+              }
+            });
+          }
+        } else {
+          for (let rowOffset = 0; rowOffset < cells.length; rowOffset += 1) {
+            const targetIndex = startRowIndex + rowOffset;
+            if (!rows[targetIndex]) rows[targetIndex] = createEmptyRow(cols);
+            for (let cellIndex = 0; cellIndex < cells[rowOffset].length; cellIndex += 1) {
+              const columnIndex = startColumnIndex + cellIndex;
+              if (columnIndex < cols.length) {
+                const key = cols[columnIndex];
+                const val = cells[rowOffset][cellIndex] ?? '';
+                rows[targetIndex][key] = key === 'locationId' ? resolveLocationValue(val) : val;
+              }
+            }
+          }
+        }
+        renderEditorTable();
+      });
+    });
+
+    els.sheet.querySelectorAll('select[data-ri]').forEach((select) => {
+      const rowIndex = Number(select.getAttribute('data-ri'));
+      const key = select.getAttribute('data-key');
+      const currentValue = key === 'locationId'
+        ? resolveLocationValue(rows[rowIndex][key] ?? '')
+        : String(rows[rowIndex][key] ?? '');
+      select.value = currentValue;
+      rows[rowIndex][key] = currentValue;
+      select.addEventListener('change', (event) => { rows[rowIndex][key] = event.target.value; });
+    });
+
+    els.sheet.querySelectorAll('button[data-del]').forEach((button) => {
+      button.addEventListener('click', (event) => {
+        const rowIndex = Number(event.target.getAttribute('data-del'));
+        rows.splice(rowIndex, 1);
+        if (!rows.length) rows.push(createEmptyRow(cols));
+        renderEditorTable();
+      });
+    });
+
+    els.sheet.querySelectorAll('button[data-add-row]').forEach((button) => {
+      button.addEventListener('click', addRow);
+    });
+  }
+
+  function createEmptyRow(cols) {
+    const row = {};
+    cols.forEach((col) => { row[col] = ''; });
+    if (cols.includes('capacity')) row.capacity = '1';
+    if (cols.includes('type')) row.type = 'desk';
+    if (cols.includes('callingType')) row.callingType = 'webexCalling';
+    return row;
+  }
+
+  function addRow() {
+    rows.push(createEmptyRow(ACTIONS[els.apiSelect.value].cols));
+    renderEditorTable();
+  }
+
+  function clearRows() {
+    rows = [createEmptyRow(ACTIONS[els.apiSelect.value].cols)];
+    renderEditorTable();
+  }
+
+  function handleUpload(file) {
+    if (!file) return;
+    const cols = ACTIONS[els.apiSelect.value].cols;
+    const varCols = getVariableCols(els.apiSelect.value);
+    Papa.parse(file, {
+      header: true,
+      skipEmptyLines: true,
+      complete: (result) => {
+        const incoming = result.data.map((item) => {
+          const row = createEmptyRow(cols);
+          varCols.forEach((col) => {
+            row[col] = item[col] ?? item[friendlyColName(col)] ?? '';
+          });
+          return row;
+        });
+        rows = rows.filter(r => varCols.some(c => String(r[c] ?? '').trim() !== '')).concat(incoming);
+        renderEditorTable();
+        if (incoming.length) {
+          confirmAction('CSV upload', `Found ${incoming.length} entries. Run now?`, { okLabel: 'Run', cancelLabel: 'Cancel' })
+            .then((confirmed) => { if (confirmed) runBulkCreate(); });
+        }
+      },
+      error: (error) => {
+        showResultModal('CSV parse error', error.message || 'The CSV file could not be read.', { variant: 'danger' });
+      }
+    });
+  }
+
+  function buildBody(actionKey, row) {
+    const numberOrUndefined = (value) => (value === '' || value === undefined || value === null ? undefined : Number(value));
+    const stringOrUndefined = (value) => (value === undefined || value === null ? undefined : String(value));
+    const listLicenses = (value) => {
+      if (value == null) return [];
+      const trimmed = String(value).trim();
+      if (!trimmed) return [];
+      return trimmed.split(/[,;]/).map((item) => item.trim()).filter(Boolean);
+    };
+    const phone = (value) => {
+      if (!value) return undefined;
+      const trimmed = String(value).trim();
+      if (!trimmed) return undefined;
+      return trimmed.startsWith('+') ? trimmed : `+1${trimmed}`;
+    };
+
+    const plan = row.callingPlan || 'none';
+    // supportedDevices MUST match the calling plan. Webex rejects
+    // supportedDevices:"phones" without calling.webexCalling details,
+    // so freeCalling/webexEdgeForDevices rows need
+    // "collaborationDevices" instead of the previous hardcoded
+    // "phones".
+    const supportedDevices = SUPPORTED_DEVICES_BY_PLAN[plan] || 'collaborationDevices';
+
+    const base = {
+      displayName: stringOrUndefined(row.displayName),
+      locationId: stringOrUndefined(row.locationId),
+      capacity: numberOrUndefined(row.capacity),
+      type: stringOrUndefined(row.type),
+      calling: { type: plan },
+      supportedDevices,
+    };
+
+    if (plan === 'webexCalling') {
+      // License resolution priority:
+      //   1. per-row licenseId (CSV upload, in-sheet edit)
+      //   2. preset License dropdown (user override)
+      //   3. smart auto-pick that filters out Attendant Console etc.
+      const licId = resolveLicenseValue(row.licenseId)
+        || presetRow.licenseId
+        || getLicenseIdByPlan('webexCalling');
+      base.calling.webexCalling = {
+        locationId: stringOrUndefined(row.locationId),
+        licenses: licId ? [licId] : [],
+      };
+      if (row.extension) base.calling.webexCalling.extension = stringOrUndefined(row.extension);
+      if (row.phoneNumber) base.calling.webexCalling.phoneNumber = phone(row.phoneNumber);
+    }
+    // Note: thirdPartySipCalling and webexEdgeForDevices don't require
+    // a nested calling.<type> block on create -- the type alone is
+    // enough. If Webex later requires per-plan details (e.g. SIP URI),
+    // extend here.
+
+    function prune(obj) {
+      if (Array.isArray(obj)) return obj.filter((value) => value !== undefined && value !== null);
+      const output = {};
+      Object.keys(obj).forEach((key) => {
+        const value = obj[key];
+        if (value && typeof value === 'object' && !Array.isArray(value)) {
+          const pruned = prune(value);
+          if (Object.keys(pruned).length) output[key] = pruned;
+        } else if (value !== undefined) {
+          output[key] = value;
+        }
+      });
+      return output;
+    }
+
+    return prune(base);
+  }
+
+  function downloadCSV(rowsArr, name = 'errors.csv') {
+    if (!rowsArr.length) return;
+    const headers = Array.from(new Set(rowsArr.flatMap((row) => Object.keys(row))));
+    const csv = [headers.join(',')]
+      .concat(rowsArr.map((row) => headers.map((header) => JSON.stringify(row[header] ?? '').replace(/^\"|\"$/g, '')).join(',')))
+      .join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = name;
+    link.click();
+  }
+
+  function confirmAction(title, message, opts = {}) {
+    return new Promise((resolve) => {
+      const variant = opts.variant || 'success';
+      const okLabel = opts.okLabel || 'Run';
+      const cancelLabel = opts.cancelLabel || 'Cancel';
+      const overlayId = 'confirmModal';
+      const existing = document.getElementById(overlayId);
+      if (existing) existing.remove();
+      const gradient = variant === 'danger'
+        ? 'linear-gradient(135deg, #ef4444, #dc2626)'
+        : 'linear-gradient(135deg, #159DD8, #159DD8)';
+      const modal = document.createElement('div');
+      modal.id = overlayId;
+      modal.className = 'successModalOverlay';
+      modal.innerHTML = `
+        <div class="successCard">
+          <div class="successIcon" style="background:${gradient};">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+              <polyline points="22 4 12 14.01 9 11.01"></polyline>
+            </svg>
+          </div>
+          <h2>${escapeHtml(title)}</h2>
+          <p class="successMsg">${escapeHtml(message)}</p>
+          <div style="display:flex; gap:10px; justify-content:center; margin-top:12px;">
+            <button class="btn secondary" id="confirmCancelBtn" type="button">${escapeHtml(cancelLabel)}</button>
+            <button class="btn primary" id="confirmOkBtn" type="button">${escapeHtml(okLabel)}</button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(modal);
+      setTimeout(() => modal.classList.add('show'), 10);
+      const closeModal = (result) => {
+        modal.classList.remove('show');
+        setTimeout(() => modal.remove(), 300);
+        resolve(result);
+      };
+      modal.querySelector('#confirmOkBtn').addEventListener('click', () => closeModal(true));
+      modal.querySelector('#confirmCancelBtn').addEventListener('click', () => closeModal(false));
+      modal.addEventListener('click', (event) => { if (event.target === modal) closeModal(false); });
+      window.addEventListener('keydown', (event) => { if (event.key === 'Escape') closeModal(false); }, { once:true });
+    });
+  }
+
+  let progressModal = null;
+
+  function openProgressModal(title, message) {
+    const existing = document.getElementById('progressModal');
+    if (existing) existing.remove();
+    const modal = document.createElement('div');
+    modal.id = 'progressModal';
+    modal.className = 'successModalOverlay';
+    modal.innerHTML = `
+      <div class="successCard">
+        <div class="successIcon" style="background:linear-gradient(135deg,#159DD8,#159DD8);">
+          <div class="spinner" aria-hidden="true"></div>
+        </div>
+        <h2>${escapeHtml(title)}</h2>
+        <p class="successMsg" id="progressMessage">${escapeHtml(message)}</p>
+      </div>
+    `;
+    document.body.appendChild(modal);
+    setTimeout(() => modal.classList.add('show'), 10);
+    progressModal = modal;
+  }
+
+  function updateProgressModal(message) {
+    if (!progressModal) return;
+    const msgEl = progressModal.querySelector('#progressMessage');
+    if (msgEl) msgEl.textContent = message;
+  }
+
+  function closeProgressModal() {
+    if (!progressModal) return;
+    const modal = progressModal;
+    progressModal = null;
+    modal.classList.remove('show');
+    setTimeout(() => modal.remove(), 250);
+  }
+
+  function showResultModal(title, message, opts = {}) {
+    const overlayId = 'resultModal';
+    const existing = document.getElementById(overlayId);
+    if (existing) existing.remove();
+    const variant = opts.variant || 'success';
+    const failures = Array.isArray(opts.failures) ? opts.failures : [];
+    const gradient = variant === 'danger'
+      ? 'linear-gradient(135deg, #ef4444, #dc2626)'
+      : 'linear-gradient(135deg, #159DD8, #159DD8)';
+    const modal = document.createElement('div');
+    modal.id = overlayId;
+    modal.className = 'successModalOverlay';
+    modal.innerHTML = `
+      <div class="successCard">
+        <div class="successIcon" style="background:${gradient};">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+          </svg>
+        </div>
+        <h2>${escapeHtml(title)}</h2>
+        <p class="successMsg">${escapeHtml(message)}</p>
+        ${failures.length ? '<button class="btn secondary" id="downloadFailuresBtn" type="button" style="margin-bottom:8px;">Download error report</button>' : ''}
+        <button class="btn primary" id="resultOkBtn" type="button">OK</button>
+      </div>
+    `;
+    document.body.appendChild(modal);
+    setTimeout(() => modal.classList.add('show'), 10);
+    const closeModal = () => {
+      modal.classList.remove('show');
+      setTimeout(() => modal.remove(), 300);
+      if (typeof opts.onOk === 'function') opts.onOk();
+    };
+    modal.querySelector('#resultOkBtn').addEventListener('click', closeModal);
+    modal.addEventListener('click', (event) => { if (event.target === modal) closeModal(); });
+    if (failures.length) {
+      modal.querySelector('#downloadFailuresBtn').addEventListener('click', () => {
+        downloadCSV(failures, 'workspaces-errors.csv');
+      });
+    }
+  }
+
+  async function fetchJson(url, token) {
+    const response = await fetch(withOrgParam(url), { headers: { Authorization: `Bearer ${token}` } });
+    const text = await response.text();
+    let data = {};
+    try {
+      data = text ? JSON.parse(text) : {};
+    } catch {
+      data = {};
+    }
+    if (!response.ok) {
+      throw new Error(data.message || text || `HTTP ${response.status}`);
+    }
+    return data;
+  }
+
+  async function fetchLocationsMap(token) {
+    let data;
+    try {
+      data = await fetchJson(`${BASE_URL}${LOCATIONS_ENDPOINT}`, token);
+    } catch (error) {
+      if (!orgParam) throw error;
+      const fallbackUrl = withoutOrgParam(withOrgParam(`${BASE_URL}${LOCATIONS_ENDPOINT}`));
+      data = await fetchJson(fallbackUrl, token);
+    }
+    const items = Array.isArray(data.items) ? data.items : (Array.isArray(data.locations) ? data.locations : []);
+    locationOptions = items
+      .map((item) => ({ id: item.id, name: item.name || item.displayName || item.id }))
+      .sort((a, b) => a.name.localeCompare(b.name));
+    locationMap = new Map(items.map((item) => [item.id, item.name || item.displayName || item.id]));
+  }
+
+  async function fetchLicenseOptions(token) {
+    let nextUrl = `${BASE_URL}${LICENSES_ENDPOINT}`;
+    const items = [];
+    while (nextUrl) {
+      const response = await fetch(withOrgParam(nextUrl), { headers: { Authorization: `Bearer ${token}` } });
+      const text = await response.text();
+      let data = {};
+      try {
+        data = text ? JSON.parse(text) : {};
+      } catch {
+        data = {};
+      }
+      if (!response.ok) {
+        throw new Error(data.message || text || `HTTP ${response.status}`);
+      }
+      const pageItems = Array.isArray(data.items) ? data.items : [];
+      items.push(...pageItems);
+      nextUrl = data.next || '';
+      if (nextUrl && !/^https?:/i.test(nextUrl)) nextUrl = `${BASE_URL}${nextUrl}`;
+    }
+
+    licenseOptions = items
+      .map((item) => {
+        const name = item.name || item.displayName || item.id || 'License';
+        // Order matters: specific sub-SKUs (hot desk, attendant console,
+        // common area workspace) must match BEFORE the generic
+        // "webex calling" fallback or they end up miscategorized and
+        // get picked for user-type workspace creates. Attendant
+        // Console in particular is a BCACA_ SKU that Webex rejects
+        // with "Only Webex Calling licenses are supported in Webex
+        // Calling workspaces" when sent to POST /v1/workspaces.
+        let kind = 'other';
+        if (/hot.?desk/i.test(name)) kind = 'hotDesk';
+        else if (/attendant.?console/i.test(name)) kind = 'attendantConsole';
+        else if (/workspace/i.test(name) && /calling/i.test(name)) kind = 'webexCallingWorkspace';
+        else if (/webex calling/i.test(name) && !/personal|free/i.test(name)) kind = 'webexCalling';
+        else if (/common.?area/i.test(name)) kind = 'commonArea';
+        else if (/personal|free calling|call on webex/i.test(name)) kind = 'freeCalling';
+        const total = item.totalUnits ?? null;
+        const consumed = item.consumedUnits ?? null;
+        const available = (total !== null && consumed !== null) ? total - consumed : null;
+        return { id: item.id || '', name, kind, total, consumed, available };
+      })
+      .filter((item) => item.id)
+      .sort((a, b) => a.name.localeCompare(b.name));
+    licenseMap = new Map(licenseOptions.map((item) => [item.id, item.name]));
+    licenseKindMap = new Map(licenseOptions.map((item) => [item.id, item.kind]));
+  }
+
+  async function fetchWorkspaceDevices(token) {
+    let nextUrl = `${BASE_URL}${DEVICES_ENDPOINT}`;
+    const devices = [];
+    while (nextUrl) {
+      const response = await fetch(withOrgParam(nextUrl), { headers: { Authorization: `Bearer ${token}` } });
+      const text = await response.text();
+      let data = {};
+      try {
+        data = text ? JSON.parse(text) : {};
+      } catch {
+        data = {};
+      }
+      if (!response.ok) {
+        throw new Error(data.message || text || `HTTP ${response.status}`);
+      }
+      const items = Array.isArray(data.items) ? data.items : [];
+      devices.push(...items);
+      nextUrl = data.next || '';
+      if (nextUrl && !/^https?:/i.test(nextUrl)) nextUrl = `${BASE_URL}${nextUrl}`;
+    }
+    workspaceDeviceMap = buildWorkspaceDeviceMap(devices);
+  }
+
+  async function refreshWorkspaceList() {
+    const token = getToken();
+    if (!token) return;
+    updateStatus('Refreshing workspaces…');
+    try {
+      try { await fetchWorkspaceDevices(token); } catch {}
+      const data = await fetchJson(`${BASE_URL}${WORKSPACES_ENDPOINT}`, token);
+      const items = Array.isArray(data.items) ? data.items : (Array.isArray(data.workspaces) ? data.workspaces : (Array.isArray(data) ? data : []));
+      workspaces = items.map(normalizeWorkspace).sort((a, b) => a.displayName.localeCompare(b.displayName));
+      renderFilterOptions();
+      renderWorkspacesList();
+      updateStatus(`Loaded ${workspaces.length} workspace${workspaces.length === 1 ? '' : 's'}.`);
+    } catch (error) {
+      updateStatus(error.message || 'Unable to refresh workspaces.');
+    }
+  }
+
+  async function fetchWorkspaces() {
+    const token = getToken();
+    if (!token) {
+      workspaces = [];
+      renderFilterOptions();
+      renderWorkspacesList();
+      updateStatus('Authentication required to load workspaces.');
+      return;
+    }
+
+    updateStatus('Loading workspaces…');
+    workspaceDeviceMap = new Map();
+    licenseOptions = [];
+    licenseMap = new Map();
+    licenseKindMap = new Map();
+    try {
+      await fetchLocationsMap(token);
+      try {
+        await fetchLicenseOptions(token);
+      } catch {}
+      renderEditorTable();
+    } catch {
+      locationOptions = [];
+      locationMap = new Map();
+      renderEditorTable();
+    }
+
+    try {
+      try {
+        await fetchWorkspaceDevices(token);
+      } catch {}
+      const data = await fetchJson(`${BASE_URL}${WORKSPACES_ENDPOINT}`, token);
+      const items = Array.isArray(data.items) ? data.items : (Array.isArray(data.workspaces) ? data.workspaces : (Array.isArray(data) ? data : []));
+      workspaces = items.map(normalizeWorkspace).sort((a, b) => a.displayName.localeCompare(b.displayName));
+      renderFilterOptions();
+      renderWorkspacesList();
+      updateStatus(`Loaded ${workspaces.length} workspace${workspaces.length === 1 ? '' : 's'}.`);
+    } catch (error) {
+      workspaces = [];
+      renderFilterOptions();
+      renderWorkspacesList();
+      updateStatus(error.message || 'Unable to load workspaces.');
+    }
+  }
+
+  async function sendRow({ row, cfg }) {
+    const token = getToken();
+    const url = withOrgParam(`${BASE_URL}${cfg.endpoint}`);
+    const response = await fetch(url, {
+      method: cfg.method,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify(buildBody(cfg.actionKey, row)),
+    });
+    const text = await response.text();
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${text}`);
+    }
+    return text;
+  }
+
+  async function runBulkCreate() {
+    const token = getToken();
+    if (!token) {
+      showResultModal('Authentication required', 'Sign in to Webex before running bulk workspace creation.', { variant: 'danger' });
+      return;
+    }
+
+    const actionKey = els.apiSelect.value;
+    const action = ACTIONS[actionKey];
+
+    const preset = {
+      locationId: presetRow.locationId,
+      type: presetRow.type || 'desk',
+      callingPlan: presetRow.callingPlan || 'none',
+      capacity: presetRow.capacity || '1',
+    };
+    // Merge preset into each row — preset is the base, non-empty row values override it
+    const data = rows
+      .map((row) => {
+        const merged = { ...preset };
+        Object.entries(row).forEach(([key, val]) => {
+          if (String(val ?? '').trim() !== '') merged[key] = val;
+        });
+        return merged;
+      })
+      .filter((row) => Object.values(row).some((value) => String(value ?? '').trim() !== ''));
+    if (!data.length) {
+      showResultModal('No rows to process', 'Add at least one workspace row before running bulk create.', { variant: 'danger' });
+      return;
+    }
+
+    // Pre-flight: check Webex Calling license availability. Honor the
+    // preset License override (and auto-pick fallback) so we count
+    // against the SKU that will actually get sent, not just whichever
+    // one happens to sort first alphabetically.
+    const wxcRowCount = data.filter((row) => row.callingPlan === 'webexCalling').length;
+    if (wxcRowCount > 0) {
+      // Resolve against the ACTUAL license that will be sent (preset
+      // override wins, then smart auto-pick) so we don't false-alarm
+      // on an Attendant Console SKU that we'd never pick for the POST.
+      const activeLicenseId = presetRow.licenseId || getLicenseIdByPlan('webexCalling');
+      const wxcLic = licenseOptions.find((o) => o.id === activeLicenseId)
+        || licenseOptions.find((o) => o.kind === 'webexCallingWorkspace' || o.kind === 'webexCalling' || o.kind === 'hotDesk');
+      // Skip the "not enough" check when `available` is null (unknown)
+      // or <= 0 (flex / over-allocated SKU -- Webex lets these create
+      // beyond the headline count, so blocking the user here would
+      // give a false negative). We only block when we have a concrete
+      // positive remaining count that's smaller than the row count.
+      if (wxcLic && typeof wxcLic.available === 'number' && wxcLic.available > 0 && wxcRowCount > wxcLic.available) {
+        showResultModal('Not enough licenses', `"${wxcLic.name}" — needs ${wxcRowCount} but only ${wxcLic.available} available.`, { variant: 'danger' });
+        return;
+      }
+    }
+
+    lastErrors = [];
+    els.runBtn.disabled = true;
+    openProgressModal('Creating workspaces', `Processing 0/${data.length}`);
+
+    const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+    let completed = 0;
+    try {
+      for (let index = 0; index < data.length; index += 1) {
+        const row = data[index];
+        try {
+          await sendRow({ row, cfg: { ...action, actionKey } });
+        } catch (error) {
+          lastErrors.push({ row: index + 1, error: error.message, ...row });
+        }
+        completed += 1;
+        updateProgressModal(`Processing ${completed}/${data.length}`);
+        if (index < data.length - 1) await delay(1500);
+      }
+    } finally {
+      closeProgressModal();
+      els.runBtn.disabled = false;
+    }
+
+    const successCount = data.length - lastErrors.length;
+    const summary = `Added ${successCount} of ${data.length} workspace${data.length === 1 ? '' : 's'}.` + (lastErrors.length ? ` ${lastErrors.length} failed.` : '');
+    showResultModal('Bulk upload complete', summary, {
+      variant: lastErrors.length ? 'danger' : 'success',
+      failures: lastErrors,
+      onOk: () => refreshWorkspaceList(),
+    });
+  }
+
+  (function initSelect() {
+    els.apiSelect.innerHTML = '';
+    Object.entries(ACTIONS).forEach(([key, config]) => {
+      const option = document.createElement('option');
+      option.value = key;
+      option.textContent = config.label;
+      els.apiSelect.appendChild(option);
+    });
+    els.apiSelect.value = 'ext';
+    els.apiSelect.addEventListener('change', () => {
+      rows = [createEmptyRow(ACTIONS[els.apiSelect.value].cols)];
+      renderEditorTable();
+    });
+  })();
+
+  rows = [createEmptyRow(ACTIONS[els.apiSelect.value].cols)];
+  renderEditorTable();
+
+  if (els.listHeader) {
+    els.listHeader.addEventListener('click', (event) => {
+      const btn = event.target.closest('[data-filter-btn]');
+      if (!btn) return;
+      const key = btn.dataset.filterBtn;
+      if (!key) return;
+      const popover = btn.parentElement?.querySelector(`[data-filter-popover="${key}"]`)
+        || els.listHeader.querySelector(`[data-filter-popover="${key}"]`);
+      if (!popover) return;
+      if (activePopoverState?.key === key) {
+        closePopover();
+      } else {
+        closePopover();
+        openPopover(key, btn, popover);
+      }
+    });
+  }
+
+  document.addEventListener('input', (event) => {
+    const input = event.target;
+    if (!input?.matches('[data-filter-search]') || !activePopoverState) return;
+    const key = input.dataset.filterSearch;
+    filterSearchTerms[key] = input.value || '';
+    renderFilterPopover(key);
+  });
+
+  document.addEventListener('change', (event) => {
+    const input = event.target;
+    if (!input?.matches('input[data-filter-value][data-filter-key]') || !activePopoverState) return;
+    setFilterValue(input.dataset.filterKey, input.dataset.filterValue, input.checked);
+  });
+
+
+  if (els.pasteCsvBtn) {
+    els.pasteCsvBtn.addEventListener('click', async () => {
+      try {
+        const text = await navigator.clipboard.readText();
+        if (!text) return;
+        const cols = ACTIONS[els.apiSelect.value].cols;
+        const delimiter = text.includes('\t') ? '\t' : ',';
+        const lines = text.replace(/\r/g, '').split('\n').filter((line) => line.length > 0);
+        const cells = lines.map((line) => line.split(new RegExp(delimiter)).map((value) => value.trim()));
+        const header = cells[0];
+        const headerMatches = header.every((value) => cols.includes(value));
+
+        if (headerMatches) {
+          for (let rowIndex = 1; rowIndex < cells.length; rowIndex += 1) {
+            const row = createEmptyRow(cols);
+            header.forEach((key, index) => {
+              const nextValue = cells[rowIndex][index] ?? '';
+              row[key] = key === 'locationId'
+                ? resolveLocationValue(nextValue)
+                : key === 'licenseId'
+                  ? resolveLicenseValue(nextValue)
+                  : nextValue;
+            });
+            rows.push(row);
+          }
+        } else {
+          cells.forEach((cellRow) => {
+            const row = createEmptyRow(cols);
+            cols.forEach((col, index) => {
+              const nextValue = cellRow[index] ?? '';
+              row[col] = col === 'locationId'
+                ? resolveLocationValue(nextValue)
+                : col === 'licenseId'
+                  ? resolveLicenseValue(nextValue)
+                  : nextValue;
+            });
+            rows.push(row);
+          });
+        }
+        renderEditorTable();
+      } catch (error) {
+        showResultModal('Clipboard unavailable', error.message || 'Clipboard access failed.', { variant: 'danger' });
+      }
+    });
+  }
+
+  if (els.uploadCsvTopBtn) {
+    els.uploadCsvTopBtn.addEventListener('click', () => els.csvFileTop.click());
+  }
+
+  if (els.exportCsvBtn) {
+    els.exportCsvBtn.addEventListener('click', () => {
+      const varCols = getVariableCols(els.apiSelect.value);
+      const csv = [varCols.join(',')].join('\n');
+      const blob = new Blob([csv], { type: 'text/csv' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = 'workspaces-template.csv';
+      link.click();
+    });
+  }
+
+  if (els.csvFileTop) {
+    els.csvFileTop.addEventListener('change', (event) => handleUpload(event.target.files[0]));
+  }
+
+  if (els.runBtn) {
+    els.runBtn.addEventListener('click', runBulkCreate);
+  }
+
+  if (els.selectAllWorkspacesBtn) {
+    els.selectAllWorkspacesBtn.addEventListener('click', () => {
+      getFilteredWorkspaces().forEach(ws => selectedWorkspaceIds.add(ws.id));
+      renderWorkspacesList();
+    });
+  }
+  if (els.clearWorkspacesSelectionBtn) {
+    els.clearWorkspacesSelectionBtn.addEventListener('click', () => {
+      selectedWorkspaceIds.clear();
+      renderWorkspacesList();
+    });
+  }
+  if (els.deleteSelectedWorkspacesBtn) {
+    els.deleteSelectedWorkspacesBtn.addEventListener('click', deleteSelectedWorkspaces);
+  }
+
+  if (els.presetLocation) {
+    els.presetLocation.addEventListener('change', () => { presetRow.locationId = els.presetLocation.value; });
+  }
+  if (els.presetType) {
+    els.presetType.addEventListener('change', () => { presetRow.type = els.presetType.value; });
+  }
+  if (els.presetCallingPlan) {
+    els.presetCallingPlan.addEventListener('change', () => {
+      presetRow.callingPlan = els.presetCallingPlan.value;
+      // Clear any stale license selection -- auto-pick refreshes from
+      // scratch for the new plan.
+      presetRow.licenseId = '';
+      populatePresetLicense();
+    });
+  }
+  if (els.presetLicense) {
+    els.presetLicense.addEventListener('change', () => {
+      presetRow.licenseId = els.presetLicense.value;
+    });
+  }
+  if (els.presetCapacity) {
+    els.presetCapacity.addEventListener('input', () => { presetRow.capacity = els.presetCapacity.value; });
+  }
+
+  if (els.list) {
+    els.list.addEventListener('change', (event) => {
+      const target = event.target;
+      if (target.id === 'selectAllWorkspacesToggle') {
+        const filtered = getFilteredWorkspaces();
+        if (target.checked) {
+          filtered.forEach(ws => selectedWorkspaceIds.add(ws.id));
+        } else {
+          filtered.forEach(ws => selectedWorkspaceIds.delete(ws.id));
+        }
+        renderWorkspacesList();
+        return;
+      }
+      if (target.matches('input[type="checkbox"][data-select-id]')) {
+        const id = target.getAttribute('data-select-id');
+        if (!id) return;
+        if (target.checked) selectedWorkspaceIds.add(id);
+        else selectedWorkspaceIds.delete(id);
+        updateSelectionUI();
+      }
+    });
+  }
+
+  // Also wire selectAllWorkspacesToggle in the header (outside #workspacesList)
+  document.addEventListener('change', (event) => {
+    const target = event.target;
+    if (target.id === 'selectAllWorkspacesToggle') {
+      const filtered = getFilteredWorkspaces();
+      if (target.checked) {
+        filtered.forEach(ws => selectedWorkspaceIds.add(ws.id));
+      } else {
+        filtered.forEach(ws => selectedWorkspaceIds.delete(ws.id));
+      }
+      renderWorkspacesList();
+    }
+  });
+
+  fetchWorkspaces();
+})();
+  </script>
+</body>
+</html>

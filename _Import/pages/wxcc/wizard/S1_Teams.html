@@ -1,0 +1,717 @@
+<?php require_once '/var/projects/bitbucket.io/cxasteam.bitbucket.io/oauth/check_access.php'; ?>
+
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="light" />
+  <title>WxCC Wizard - Team Setup</title>
+  <link rel="icon" type="image/png" href="../../../assets/images/CX%20only.png" />
+  <link rel="stylesheet" href="../../../assets/css/theme.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+
+    main {
+      padding:32px 0 64px;
+      width:100%;
+      margin:0 auto;
+      display:flex;
+      justify-content:flex-start;
+      align-items:flex-start;
+    }
+    .wizard-card {
+      width:100%;
+      background:var(--panel);
+      border:1px solid rgba(255,255,255,0.08);
+      border-radius:36px;
+      padding:28px 32px;
+      box-shadow:0 30px 60px rgba(0,0,0,0.35);
+      margin:0 auto;
+    }
+    .wizard-title {
+      margin:0 0 8px;
+      font-size:clamp(2.75rem,3vw,3.6rem);
+      font-weight:700;
+      color:var(--fg);
+    }
+    .wizard-stage { display:none; }
+    .wizard-stage.active { display:flex; justify-content:center; }
+    .form-panel {
+      border:1px solid rgba(255,255,255,0.1);
+      border-radius:26px;
+      padding:32px 40px;
+      background:rgba(255,255,255,0.02);
+      box-shadow:inset 0 0 0 1px rgba(255,255,255,0.03);
+      display:flex;
+      flex-direction:column;
+      gap:18px;
+      width:100%;
+    }
+    body:not(.dark-mode) .form-panel {
+      border-color:rgba(0,0,0,0.12);
+      background:rgba(255,255,255,0.92);
+      box-shadow:0 25px 60px rgba(0,0,0,0.12), inset 0 0 0 1px rgba(255,255,255,0.25);
+    }
+    .form-panel form {
+      display:flex;
+      flex-direction:column;
+      gap:20px;
+      width:100%;
+    }
+    .step-label {
+      margin:0 0 12px;
+      font-size:1rem;
+      letter-spacing:0.25em;
+      text-transform:uppercase;
+      color:var(--muted);
+      font-weight:600;
+    }
+    .step-label.form-heading {
+      font-size:1.15rem;
+      font-weight:700;
+      color:var(--fg);
+      letter-spacing:0.4em;
+    }
+    body.dark-mode .step-label.form-heading {
+      color:#fff;
+    }
+    .wizard-subtitle {
+      margin:0 0 28px;
+      font-size:1rem;
+      color:var(--muted);
+      letter-spacing:0.2em;
+      text-transform:uppercase;
+    }
+    .progress-bar {
+      display:flex;
+      gap:8px;
+      margin-bottom:32px;
+    }
+    .progress-step {
+      flex:1;
+      height:6px;
+      background:#d4d4d4;
+      border-radius:3px;
+    }
+    body.dark-mode .progress-step {
+      background:rgba(255,255,255,0.18);
+    }
+    .progress-step.complete {
+      background:linear-gradient(135deg,#2196f3,#1976d2);
+    }
+    .progress-step.active {
+      background:linear-gradient(135deg,#22c55e,#10b981);
+    }
+    body.dark-mode .progress-step.complete {
+      background:linear-gradient(135deg,#2196f3,#1976d2);
+    }
+    body.dark-mode .progress-step.active {
+      background:linear-gradient(135deg,#22c55e,#10b981);
+    }
+    .team-intro {
+      margin:0 0 18px;
+      color:var(--muted);
+      line-height:1.5;
+      font-size:1rem;
+      max-width:760px;
+    }
+    .field-grid {
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+      gap:20px;
+      align-items:flex-start;
+    }
+    .field-grid--with-toggles {
+      grid-template-columns:repeat(3,minmax(0,1fr));
+    }
+    .field-grid--triple { grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); }
+    .field-group { display:flex; flex-direction:column; gap:6px; }
+    .field-group span,
+    .field-group label {
+      font-size:0.8rem;
+      letter-spacing:0.3em;
+      text-transform:uppercase;
+      color:var(--muted);
+      min-height:38px;
+      line-height:1.2;
+    }
+    .field-group input,
+    .field-group textarea,
+    .field-group select {
+      border-radius:14px;
+      border:1px solid var(--border);
+      background:var(--input);
+      color:var(--fg);
+      padding:12px 14px;
+      font-size:1rem;
+      font-family:inherit;
+    }
+    .field-group select[multiple] {
+      height:auto;
+      min-height:160px;
+      padding:12px;
+    }
+    .field-note {
+      font-size:0.85rem;
+      color:var(--muted);
+      margin-top:6px;
+    }
+    .text-link {
+      background:none;
+      border:none;
+      padding:0;
+      font:inherit;
+      color:#7cd6ff;
+      cursor:pointer;
+      text-decoration:underline;
+      margin-top:6px;
+    }
+    .skill-create-panel {
+      margin-top:12px;
+      padding:16px;
+      border-radius:18px;
+      border:1px dashed rgba(255,255,255,0.2);
+      background:rgba(255,255,255,0.02);
+      box-shadow:inset 0 0 0 1px rgba(255,255,255,0.04);
+    }
+    .btn {
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      padding:12px 24px;
+      border-radius:16px;
+      font-weight:700;
+      font-size:1rem;
+      cursor:pointer;
+      transition:all 0.2s;
+      border:none;
+    }
+    .btn.primary {
+      background:linear-gradient(135deg,#2196f3,#1976d2);
+      color:#fff;
+      border:1px solid #1976d2;
+    }
+    .btn.primary:hover {
+      background:linear-gradient(135deg,#1976d2,#1565c0);
+    }
+    .btn.secondary {
+      border:1px solid rgba(255,255,255,0.25);
+      background:rgba(255,255,255,0.08);
+      color:var(--fg);
+      min-width:140px;
+      transition:background 0.2s ease;
+    }
+    .btn.secondary:hover {
+      background:rgba(255,255,255,0.12);
+    }
+    body.dark-mode .btn.secondary {
+      color:#fff;
+    }
+    .button-row {
+      display:flex;
+      justify-content:flex-end;
+      gap:12px;
+      margin-top:16px;
+    }
+    .button-row .btn { min-width:140px; }
+    .statusMessage {
+      margin-top:16px;
+      padding:12px 16px;
+      border-radius:12px;
+      text-align:center;
+      width:min(360px,100%);
+      font-size:1rem;
+      font-weight:600;
+      background-color:rgba(255,255,255,0.05);
+      color:var(--muted);
+      border:1px solid transparent;
+      display:none;
+    }
+    .statusMessage.success {
+      background:linear-gradient(135deg,#10b981,#22c55e);
+      color:#fff;
+      border-color:#22c55e;
+    }
+    .statusMessage.error {
+      background:#f87171;
+      color:#1f2937;
+      border-color:#f87171;
+    }
+    .status-actions {
+      display:flex;
+      flex-wrap:wrap;
+      justify-content:center;
+      gap:12px;
+      margin-top:12px;
+    }
+    .stage-status {
+      display:none !important;
+    }
+    .stage-status.active {
+      display:flex !important;
+      justify-content:center;
+    }
+    .stage-status.active .form-panel {
+      align-items:center;
+      width:min(100%,1080px);
+      max-width:1080px;
+      margin:0;
+      padding:40px 48px;
+    }
+    body:not(.dark-mode) .stage-status.active .form-panel {
+      border-color:rgba(0,0,0,0.12);
+      background:rgba(255,255,255,0.92);
+      box-shadow:0 25px 60px rgba(0,0,0,0.12), inset 0 0 0 1px rgba(255,255,255,0.25);
+    }
+    .stage-status .status-card {
+      display:flex;
+      flex-direction:column;
+      gap:18px;
+      align-items:center;
+      justify-content:center;
+      min-height:240px;
+      text-align:center;
+      padding:24px 12px 24px;
+      width:min(520px,100%);
+    }
+    .stage-status .status-card strong {
+      font-size:clamp(2.5rem,3vw,3rem);
+      font-weight:700;
+      letter-spacing:0.05em;
+      text-transform:uppercase;
+    }
+    .stage-status .status-card span {
+      font-size:0.9rem;
+      letter-spacing:0.35em;
+      text-transform:uppercase;
+      color:var(--muted);
+    }
+    .hidden {
+      display:none !important;
+    }
+    @media (max-width: 768px) {
+      .wizard-card { padding:32px 24px; }
+      .button-row { justify-content:flex-start; }
+    }
+  </style>
+</head>
+<body class="dark-mode">
+  <script>if (localStorage.getItem("tpRailExpanded") === "true") document.body.classList.add("tp-rail-expanded");</script>
+  <?php
+$tp_header_prefix = '../../../';
+$tp_show_auth_link = true;
+include dirname(dirname(__DIR__)) . '/shared/header.php';
+?>
+
+  <main>
+    <div class="wrap wide contentWrap">
+      <section class="wizard-card">
+        <h1 class="wizard-title">Contact Center Setup Wizard</h1>
+        <p class="wizard-subtitle">Step 1 of 5 · Team Creation</p>
+
+
+        <div class="progress-bar">
+          <div class="progress-step active"></div>
+          <div class="progress-step"></div>
+          <div class="progress-step"></div>
+          <div class="progress-step"></div>
+          <div class="progress-step"></div>
+        </div>
+
+        <div id="stageTeam" class="wizard-stage active">
+          <div class="form-panel">
+            <div class="step-label form-heading">Step 1 · Team Creation</div>
+            <form id="teamForm" novalidate>
+              <div class="field-grid">
+                <label class="field-group">
+                  <span>Team Name</span>
+                  <input id="teamName" type="text" placeholder="Enter a team name" autocomplete="off" required>
+                </label>
+                <label class="field-group">
+                  <span>Description (optional)</span>
+                  <input id="teamDescription" type="text" placeholder="Defaults to the team name" autocomplete="off">
+                </label>
+              </div>
+              <div class="field-grid">
+                <label class="field-group">
+                  <span>Site</span>
+                  <select id="siteSelect" aria-label="Select Site" data-placeholder="Select Site"></select>
+                </label>
+                <!-- Multimedia profile is auto-selected (telephony) — not shown to user -->
+                <select id="mmpSelect" aria-hidden="true" class="hidden"></select>
+                <label class="field-group">
+                  <span>Desktop Layout</span>
+                  <select id="desktopSelect" aria-label="Select Desktop Layout" data-placeholder="Select Desktop Layout"></select>
+                </label>
+              </div>
+              <div class="button-row">
+                <button type="button" class="btn primary" id="createTeamBtn">Create Team</button>
+              </div>
+              <p id="teamStatus" class="statusMessage"></p>
+            </form>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  
+  <script src="../../../assets/js/theme.js?v=20260929e"></script>
+  <script>
+    const teamForm = document.getElementById('teamForm');
+    const stageTeam = document.getElementById('stageTeam');
+    const teamNameInput = document.getElementById('teamName');
+    const teamDescriptionInput = document.getElementById('teamDescription');
+    const siteSelectEl = document.getElementById('siteSelect');
+    const mmpSelectEl = document.getElementById('mmpSelect');
+    const desktopSelectEl = document.getElementById('desktopSelect');
+    const createTeamBtn = document.getElementById('createTeamBtn');
+    const teamStatusEl = document.getElementById('teamStatus');
+
+    const cacheKeyBearer = 'authBearer';
+    const cacheKeyOrg = 'authOrg';
+    const cacheKeyOrgName = 'authOrgName';
+    const cacheKeyUser = 'authUserName';
+    const WIZARD_TEAM_ID_KEY = 'wizardTeamId';
+    const WIZARD_TEAM_NAME_KEY = 'wizardTeamName';
+
+    const authToken = (localStorage.getItem(cacheKeyBearer) || '').trim();
+
+    function setStatus(element, text = '', type = '') {
+      if (!element) return;
+      element.textContent = text;
+      element.classList.toggle('success', type === 'success');
+      element.classList.toggle('error', type === 'error');
+      element.style.display = text ? 'block' : 'none';
+    }
+
+    function showStage(targetStage) {
+      [stageTeam].filter(Boolean).forEach((stage) => {
+        stage.classList.remove('active');
+        stage.classList.add('hidden');
+      });
+      if (targetStage) {
+        targetStage.classList.remove('hidden');
+        targetStage.classList.add('active');
+      }
+    }
+
+    function decodeOrgId(raw) {
+      if (!raw) return '';
+      if (/^[0-9a-fA-F-]{30,}$/.test(raw)) return raw;
+      if (/^Y2lz/i.test(raw)) {
+        try {
+          const padded = raw.replace(/-/g, '+').replace(/_/g, '/').padEnd(Math.ceil(raw.length / 4) * 4, '=');
+          const decoded = atob(padded);
+          const parts = decoded.split('/');
+          return parts[parts.length - 1] || decoded;
+        } catch {
+          return raw;
+        }
+      }
+      const orgPathIdx = raw.toLowerCase().indexOf('organization/');
+      if (orgPathIdx !== -1) {
+        const candidate = raw.slice(orgPathIdx + 'organization/'.length);
+        return candidate || raw;
+      }
+      return raw;
+    }
+
+    function resolveOrgId() {
+      const storedId = (localStorage.getItem('authOrgId') || '').trim();
+      if (storedId) return decodeOrgId(storedId) || storedId;
+      const raw = (localStorage.getItem(cacheKeyOrg) || '').trim();
+      if (raw) return decodeOrgId(raw) || raw;
+      return '5c3896e1-2ecc-4c84-ae93-be3bdab836a1';
+    }
+
+    const ORG_ID = resolveOrgId();
+    const BASE_URL = `https://api.wxcc-us1.cisco.com/organization/${encodeURIComponent(ORG_ID)}`;
+    const endpoints = {
+      selectedSite: `${BASE_URL}/v2/site`,
+      selectedMultimedia: `${BASE_URL}/v2/multimedia-profile`,
+      selectedDesktop: `${BASE_URL}/v2/desktop-layout`,
+      teams: `${BASE_URL}/v2/team?page=0&pageSize=200`
+    };
+
+    const fetchHeaders = Object.assign(
+      { Accept: 'application/json' },
+      authToken ? { Authorization: `Bearer ${authToken}` } : {}
+    );
+
+    const fallbackSites = [
+      { id: '0279955d-925b-4bdc-ba0b-64f323d30fd1', name: 'bthomas_test' },
+      { id: '083f6e0c-d6c1-4d80-ac7f-526b789ad52d', name: 'Operations' },
+      { id: '24831c4a-1991-4f30-af08-7f97e5985d5c', name: 'RJ_Bootcamp_Site' },
+      { id: '4fb2bfe9-0fc9-437f-8ee8-4132f6a61170', name: 'Kenley Testing' },
+      { id: '8d0b3f77-1075-4514-a50f-6a727611dcab', name: 'Brian_Test' },
+      { id: 'f4af0d0b-9207-4d42-9841-4934e787e092', name: 'sowrabh_test' }
+    ];
+    const fallbackMultimedia = [
+      { id: 'cd22e67d-bde5-4d45-b5f0-be6c3e8623f4', name: 'Default_Telephony_Profile' },
+      { id: 'd421a88f-4f56-4e8c-b0b7-af2dd5476dc7', name: 'Default_Multimedia_Profile' },
+      { id: 'fa398ccf-8a16-4ed6-a68d-71d3d2f2ade1', name: 'Kenley_MMP' }
+    ];
+    const fallbackDesktop = [
+      { id: '977ea264-7b35-4914-849d-776fc12d2401', name: 'Kenley - Standard' },
+      { id: '51c8b109-50c8-4fc8-8934-26e8b296f791', name: 'Dev8 Desktop Layout' },
+      { id: '7bbbc468-bcfa-4cc0-8de1-b6e3cc65d725', name: 'Global Layout' },
+      { id: '0d7f43b3-80f7-4214-86ea-29eda5af2599', name: 'Kenley - InstantConnect' }
+    ];
+
+    const selectConfigs = [
+      { el: desktopSelectEl, endpointKey: 'selectedDesktop', fallback: fallbackDesktop, placeholder: 'Select Desktop Layout' }
+    ];
+
+    async function autoSelectMultimedia() {
+      const data = await fetchList(endpoints.selectedMultimedia);
+      const list = Array.isArray(data) && data.length ? data : fallbackMultimedia;
+      // Pick first profile whose name contains 'telephony' (case-insensitive), else first in list
+      const pick = list.find((p) => /telephony/i.test(p.name)) || list[0];
+      if (mmpSelectEl && pick) {
+        mmpSelectEl.innerHTML = `<option value="${pick.id}">${pick.name}</option>`;
+        mmpSelectEl.value = pick.id;
+      }
+    }
+
+    let siteList = [];
+    let currentSite = null;
+    let creatingTeam = false;
+
+    function renderSelectOptions(selectEl, items, placeholder) {
+      if (!selectEl) return;
+      selectEl.innerHTML = '';
+      const placeholderOption = document.createElement('option');
+      placeholderOption.value = '';
+      placeholderOption.textContent = placeholder;
+      placeholderOption.disabled = true;
+      placeholderOption.selected = true;
+      selectEl.appendChild(placeholderOption);
+      items.forEach((item) => {
+        const option = document.createElement('option');
+        option.value = item.id;
+        option.textContent = item.name || item.id;
+        selectEl.appendChild(option);
+      });
+      selectEl.selectedIndex = 0;
+    }
+
+    async function fetchList(url) {
+      try {
+        const response = await fetch(url, { headers: fetchHeaders });
+        if (!response.ok) throw new Error('Fetch failed');
+        const json = await response.json();
+        return Array.isArray(json?.data) ? json.data : [];
+      } catch {
+        return null;
+      }
+    }
+
+    async function hydrateSelect(config) {
+      if (!config.el) return;
+      const data = await fetchList(endpoints[config.endpointKey]);
+      const list = Array.isArray(data) && data.length ? data : config.fallback;
+      renderSelectOptions(config.el, list, config.placeholder);
+    }
+
+    async function hydrateSites() {
+      const data = await fetchList(endpoints.selectedSite);
+      siteList = Array.isArray(data) && data.length ? data : fallbackSites;
+      renderSelectOptions(siteSelectEl, siteList, 'Select Site');
+      currentSite = null;
+    }
+
+    function buildTeamPayload() {
+      const name = teamNameInput.value.trim() || '<team name>';
+      return {
+        name,
+        teamType: 'AGENT',
+        teamStatus: 'IN_SERVICE',
+        active: true,
+        siteId: currentSite?.id || '',
+        multiMediaProfileId: mmpSelectEl.value,
+        desktopLayoutId: desktopSelectEl.value,
+        description: teamDescriptionInput.value.trim() || name
+      };
+    }
+
+    function resetTeamForm() {
+      if (teamForm) teamForm.reset();
+      currentSite = null;
+    }
+
+    async function submitTeamCreation() {
+      if (creatingTeam) return;
+      const teamName = teamNameInput.value.trim();
+      const desktopId = desktopSelectEl.value;
+      if (!teamName) {
+        setStatus(teamStatusEl, 'Team name is required.', 'error');
+        return;
+      }
+      if (!currentSite?.id) {
+        setStatus(teamStatusEl, 'Please select a site before continuing.', 'error');
+        return;
+      }
+      if (!desktopId) {
+        setStatus(teamStatusEl, 'Please select a desktop layout before continuing.', 'error');
+        return;
+      }
+      if (!authToken) {
+        setStatus(teamStatusEl, 'Authentication is required to create a team.', 'error');
+        return;
+      }
+      creatingTeam = true;
+      createTeamBtn.disabled = true;
+      createTeamBtn.textContent = 'CREATING…';
+      try {
+        const response = await fetch(`${BASE_URL}/team`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Accept: 'application/json',
+            Authorization: `Bearer ${authToken}`
+          },
+          body: JSON.stringify(buildTeamPayload())
+        });
+        const body = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          throw new Error(body?.message || response.statusText || `HTTP ${response.status}`);
+        }
+        const createdName = body?.name || body?.description || teamName;
+        setStatus(teamStatusEl, '');
+        if (body?.id) {
+          localStorage.setItem(WIZARD_TEAM_ID_KEY, body.id);
+          localStorage.setItem(WIZARD_TEAM_NAME_KEY, createdName);
+        }
+        resetTeamForm();
+        window.location.href = 'S2_Queues.html';
+      } catch (error) {
+        setStatus(teamStatusEl, `Failed to create team: ${error.message}`, 'error');
+      } finally {
+        creatingTeam = false;
+        createTeamBtn.disabled = false;
+        createTeamBtn.textContent = 'Create Team';
+      }
+    }
+
+    [teamNameInput, siteSelectEl, mmpSelectEl, desktopSelectEl].filter(Boolean).forEach((el) => {
+      el.addEventListener('input', () => {
+        setStatus(teamStatusEl, '');
+        showStage(stageTeam);
+      });
+      el.addEventListener('change', () => {
+        setStatus(teamStatusEl, '');
+        showStage(stageTeam);
+      });
+    });
+
+    if (siteSelectEl) {
+      siteSelectEl.addEventListener('change', () => {
+        const match = siteList.find((entry) => entry.id === siteSelectEl.value);
+        currentSite = match ? { id: match.id, name: match.name || match.id } : null;
+      });
+    }
+
+    if (createTeamBtn) {
+      createTeamBtn.addEventListener('click', submitTeamCreation);
+    }
+    (async () => {
+      setStatus(teamStatusEl, '');
+      showStage(stageTeam);
+      await Promise.all([
+        hydrateSites(),
+        autoSelectMultimedia(),
+        ...selectConfigs.map(hydrateSelect)
+      ]);
+    })();
+
+    (function initAuthModal(){
+      if (document.getElementById('authModal')) return;
+      const style = document.createElement('style');
+      style.textContent = `
+        .authModalOverlay{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;z-index:9999;padding:16px;}
+        .authModalOverlay.open{display:flex;}
+        .authCard{width:100%;max-width:520px;background:#131a2a;border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:18px;box-shadow:0 18px 36px rgba(0,0,0,.45);position:relative;}
+        .authCard h2{margin:0 0 8px;font-size:1.2rem;}
+        .authCard p{margin:0 0 12px;color:#92a0b8;line-height:1.4;}
+        .authCard .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:9px 14px;border-radius:12px;font-weight:700;border:1px solid rgba(255,255,255,.08);background:#0e1525;color:#e9edf5;cursor:pointer;text-decoration:none;}
+        .authCard .btn.webex{background:#07C;color:white;border:none;padding:11px 20px;}
+        .authCard .btn.webex:hover{background:#0069CC;}
+        .authClose{position:absolute;right:10px;top:10px;background:transparent;border:none;color:#92a0b8;font-size:18px;cursor:pointer;}
+      `;
+      document.head.appendChild(style);
+      const overlay = document.createElement('div');
+      overlay.className = 'authModalOverlay';
+      overlay.id = 'authModal';
+      overlay.innerHTML = `
+        <div class="authCard">
+          <button class="authClose" aria-label="Close">×</button>
+          <h2>Sign in with Webex</h2>
+          <p>Click below to authenticate with your Webex account.</p>
+          <button class="btn webex" id="authWebex" style="width:100%;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M19.7 7.3c-1.2-1.2-2.7-2-4.5-2.3-.3-1.6-1.2-3-2.5-4-1.4-1-3-1.6-4.7-1.6-2.2 0-4.2.8-5.7 2.3C.8 3.2 0 5.2 0 7.4c0 1.7.6 3.3 1.6 4.7 1 1.3 2.4 2.2 4 2.5.3 1.6 1.2 3 2.5 4 1.5 1 3.1 1.6 4.9 1.6 2.2 0 4.2-.8 5.7-2.3 1.5-1.5 2.3-3.5 2.3-5.7 0-1.8-.6-3.4-1.6-4.7-.1 0-.2-.1-.2-.2zM13 18.4c-1.3 0-2.5-.4-3.5-1.2-.9-.7-1.6-1.7-2-2.8l5.5-2 2 5.5c-1.1.3-1.3.5-2 .5zM7.5 13l-5.3 1.9c-.1-.6-.2-1.2-.2-1.8 0-1.7.6-3.2 1.7-4.3C4.8 7.6 6.4 7 8 7c.6 0 1.2.1 1.8.2L7.5 13zm11.2 2.8c-1.1 1.1-2.6 1.7-4.2 1.7-.6 0-1.2-.1-1.8-.2l2.3-6.3 5.3-1.9c.1.6.2 1.2.2 1.8 0 1.6-.6 3.1-1.8 4.2v-.3zm-7-11.3c1.3 0 2.5.4 3.5 1.2.9.7 1.6 1.7 2 2.8l-5.5 2-2-5.5c.6-.3 1.3-.5 2-.5zM3.3 8.8C4.4 7.7 5.9 7.1 7.5 7.1c.6 0 1.2.1 1.8.2L7 13.6l-5.3 1.9c-.1-.6-.2-1.2-.2-1.8 0-1.7.6-3.2 1.8-4.3v-.6z"/>
+            </svg>
+            Sign in with Webex
+          </button>
+        </div>
+      `;
+      document.body.appendChild(overlay);
+      const CLIENT_ID = 'Cc604fe2354b93ecd1eb3d799e69a4ce981649161c1e31253ae91805e95b54e64';
+      const REDIRECT_URI = 'https://cxasteam.bitbucket.io/opshub/callback.html';
+      const SCOPES = 'spark-admin:locations_write spark:all spark-admin:locations_read spark-admin:organizations_read spark:organizations_read spark-admin:workspace_locations_read spark-admin:places_read cjp:config_read spark:kms spark-admin:devices_read cjp:config_write spark-admin:workspace_locations_write spark-admin:places_write cjp:config spark-admin:devices_write spark-admin:telephony_config_read spark-admin:telephony_config_write audit:events_read spark-admin:licenses_read';
+      const closeBtn = overlay.querySelector('.authClose');
+      const webexBtn = overlay.querySelector('#authWebex');
+      const open = () => overlay.classList.add('open');
+      const close = () => overlay.classList.remove('open');
+      webexBtn.addEventListener('click', () => {
+        const authUrl = `https://webexapis.com/v1/authorize?client_id=${CLIENT_ID}&response_type=code&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&scope=${encodeURIComponent(SCOPES)}&state=${Date.now()}&prompt=consent`;
+        window.location.href = authUrl;
+      });
+      closeBtn.addEventListener('click', close);
+      overlay.addEventListener('click', (event) => {
+        if (event.target === overlay) close();
+      });
+      window.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') close();
+      });
+      document.querySelectorAll('.authLink').forEach((el) => {
+        el.addEventListener('click', (event) => {
+          event.preventDefault();
+          open();
+        });
+      });
+    })();
+
+    function updateAuthIndicators() {
+      const token = (localStorage.getItem(cacheKeyBearer) || '').trim();
+      const orgName = localStorage.getItem(cacheKeyOrgName) || localStorage.getItem(cacheKeyOrg) || '';
+      const userName = localStorage.getItem(cacheKeyUser) || '';
+      const userNameEl = document.getElementById('userName');
+      const userOrgEl = document.getElementById('userOrg');
+      if (userNameEl) userNameEl.textContent = token ? (userName || 'Signed in') : 'Not authenticated';
+      if (userOrgEl) userOrgEl.textContent = token ? orgName : '';
+    }
+
+    updateAuthIndicators();
+
+    const signOutBtn = document.getElementById('signOutBtn');
+    if (signOutBtn) {
+      signOutBtn.addEventListener('click', () => {
+        ['authBearer','authOrg','authOrgName','authOrgId','authUserName','authRefreshToken','authExpiresAt','authLoginMethod','authScopes'].forEach((key) => localStorage.removeItem(key));
+        window.location.href = '../../index.html';
+      });
+    }
+
+
+    document.addEventListener('click', (event) => {
+    });
+
+    document.addEventListener('keydown', (event) => {
+    });
+  </script>
+  </body>
+</html>

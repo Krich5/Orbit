@@ -1,0 +1,94 @@
+<?php require_once '/var/projects/bitbucket.io/cxasteam.bitbucket.io/oauth/check_access.php'; ?>
+
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="light" />
+  <title>WxCC - AI Call Transcript Summary</title>
+  <link rel="icon" type="image/png" href="../../assets/images/CX%20only.png" />
+  <link rel="stylesheet" href="../../assets/css/theme.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+<body class="dark-mode api-aiagent" data-aiagent-mode="summary">
+  <script>if (localStorage.getItem("tpRailExpanded") === "true") document.body.classList.add("tp-rail-expanded");</script>
+  <?php
+  $tp_header_prefix = '../../';
+  $tp_show_auth_link = false;
+  include dirname(__DIR__) . '/shared/header.php';
+  ?>
+
+  <main>
+    <div class="wrap wide aiagent-page-stack">
+      <section class="card aiagent-card">
+        <div class="pageHeader aiagent-page-header">
+          <div>
+            <h1>AI Call Transcript Summary</h1>
+            <p class="lead">Run post-call, mid-call transfer, and consult summaries using the Summaries API.</p>
+          </div>
+        </div>
+
+        <section class="aiagent-mode-panel" data-mode-panel="summary">
+          <div class="aiagent-request-grid">
+            <div class="aiagent-request-card">
+              <div class="aiagent-request-header">
+                <div>
+                  <h2>Summaries Runner</h2>
+                  <p class="aiagent-request-desc">Switch summary type and run the API in one place.</p>
+                </div>
+              </div>
+              <div class="aiagent-field-row">
+                <div>
+                  <label for="summaryTypeSelect">Summary Type</label>
+                  <select id="summaryTypeSelect">
+                    <option value="">Not set</option>
+                    <option value="POST_CALL">Post-Call Summary</option>
+                    <option value="MID_CALL_TRANSFER">Mid-Call Transfer Summary</option>
+                    <option value="CONSULT">Consult Summary</option>
+                  </select>
+                </div>
+                <div>
+                  <label for="searchTypeSelect">Search Type</label>
+                  <select id="searchTypeSelect">
+                    <option value="ORGANIZATION">Organization</option>
+                    <option value="AGENT">Agent</option>
+                    <option value="INTERACTION">Interaction</option>
+                  </select>
+                </div>
+                <div class="aiagent-interaction-field">
+                  <label for="interactionIdInput">Interaction ID</label>
+                  <input id="interactionIdInput" type="text" placeholder="Interaction ID" />
+                </div>
+                <div class="aiagent-agent-field">
+                  <label for="agentIdInput">Agent CI User ID</label>
+                  <input id="agentIdInput" type="text" placeholder="Agent ID" />
+                </div>
+              </div>
+              <div class="aiagent-field-row aiagent-field-row--spaced">
+                <div>
+                  <label for="startInput">Start (optional)</label>
+                  <input id="startInput" type="datetime-local" />
+                </div>
+                <div>
+                  <label for="endInput">End (optional)</label>
+                  <input id="endInput" type="datetime-local" />
+                </div>
+              </div>
+              <div class="actionsRow">
+                <button class="btn primary" id="runBtn" type="button">Run Summary</button>
+              </div>
+              <div class="aiagent-response" id="responseBox">Response will appear here…</div>
+            </div>
+          </div>
+        </section>
+      </section>
+    </div>
+  </main>
+
+  <script src="../../assets/js/theme.js?v=20260929e"></script>
+  <script src="../../assets/js/aiagent-page.js?v=20260918a"></script>
+</body>
+</html>

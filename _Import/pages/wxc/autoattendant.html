@@ -1,0 +1,672 @@
+<?php require_once '/var/projects/bitbucket.io/cxasteam.bitbucket.io/oauth/check_access.php'; ?>
+
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="light" />
+  <title>Webex Calling - Auto Attendant</title>
+  <link rel="icon" type="image/png" href="../../assets/images/CX%20only.png" />
+  <link rel="stylesheet" href="../../assets/css/theme.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    main { padding:32px 0 80px; }
+    .row { display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
+    label { display:block; font-size:13px; color:var(--muted); margin:8px 0 6px; }
+    input, select, textarea { width:100%; border-radius:12px; border:1px solid var(--border); background:var(--input); color:var(--fg); padding:10px 12px; outline:none; font-size:14px; }
+    input:focus, select:focus, textarea:focus { box-shadow:0 0 0 3px rgba(59,130,246,.25); }
+    textarea { min-height:96px; resize:vertical; }
+    .statusLine { font-size:13px; color:var(--muted); margin-top:6px; }
+    .tableToolbar { display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin:16px 0 12px; padding:12px 16px; border:1px solid var(--border); border-radius:14px; background:var(--panel); box-shadow:0 10px 30px rgba(0,0,0,.12); }
+    .sheetWrap { border:1px solid var(--border); border-radius:14px; overflow:auto; background:var(--card); box-shadow:0 10px 30px rgba(0,0,0,.12); }
+    table.sheet { width:100%; border-collapse:separate; border-spacing:0; min-width:960px; }
+    table.sheet th, table.sheet td { padding:10px 12px; border-bottom:1px solid var(--border); border-right:1px solid rgba(255,255,255,.06); }
+    table.sheet th { position:sticky; top:0; background:var(--panel); text-align:left; font-weight:700; color:var(--accent); z-index:1; font-size:12px; letter-spacing:.01em; }
+    table.sheet tr:last-child td { border-bottom:none; }
+    table.sheet th:last-child, table.sheet td:last-child { border-right:none; }
+    table.sheet td { font-size:13px; line-height:1.35; background:var(--card); }
+    table.sheet tbody tr:nth-child(even) td { background:var(--input); }
+    table.sheet tbody tr:hover td { background:rgba(8,172,242,.08); }
+    .emptyState { color:var(--muted); padding:12px 0; }
+    .formActions { display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-top:12px; }
+    .formStatus { margin-left:auto; font-size:12px; color:var(--muted); }
+    .hiddenFile { display:none; }
+
+    .modalOverlay { position:fixed; inset:0; background:rgba(0,0,0,.7); display:none; align-items:center; justify-content:center; z-index:9999; padding:20px; }
+    .modalOverlay.open { display:flex; }
+    .modal { background:var(--card); border:1px solid var(--border); border-radius:16px; max-width:980px; width:100%; max-height:90vh; overflow:auto; box-shadow:0 24px 48px rgba(0,0,0,.5); }
+    .modalHeader { padding:20px 24px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; }
+    .modalHeader h3 { margin:0; font-size:1.1rem; }
+    .modalClose { background:transparent; border:none; color:var(--muted); font-size:24px; cursor:pointer; padding:0; width:32px; height:32px; display:flex; align-items:center; justify-content:center; border-radius:6px; transition:all .2s; }
+    .modalClose:hover { background:rgba(255,255,255,.1); color:var(--fg); }
+    .modalBody { padding:24px; }
+    .grid { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:24px; }
+    .hint { font-size:12px; color:var(--muted); }
+
+    body.dark-mode .sheetWrap { background:var(--card); box-shadow:0 10px 30px rgba(0,0,0,.25); }
+    body.dark-mode table.sheet td { background:var(--card); color:var(--fg); }
+    body.dark-mode table.sheet tbody tr:nth-child(even) td { background:var(--panel); }
+    body.dark-mode table.sheet tbody tr:hover td { background:rgba(8,172,242,.14); }
+    body.dark-mode .tableToolbar { box-shadow:0 10px 30px rgba(0,0,0,.25); }
+
+    @media (max-width:1024px) {
+      .wrap { flex-direction:column; align-items:center; gap:8px; }
+      .wrap .left,
+      .wrap .right { width:100%; justify-content:center; }
+      .grid { grid-template-columns:1fr; }
+    }
+  </style>
+</head>
+<body class="dark-mode">
+  <script>if (localStorage.getItem("tpRailExpanded") === "true") document.body.classList.add("tp-rail-expanded");</script>
+  <?php
+$tp_header_prefix = '../../';
+$tp_show_auth_link = false;
+include dirname(__DIR__) . '/shared/header.php';
+?>
+
+  <main>
+    <div class="wrap wide contentWrap">
+      <section class="card">
+        <div class="pageHeader">
+          <h1>Auto Attendant</h1>
+          <div class="row" style="justify-content:space-between; align-items:flex-end; gap:16px; flex-wrap:wrap;">
+            <p class="lead">Create and list auto attendants for a location.</p>
+            <span class="statusLine" id="status">Ready.</span>
+          </div>
+        </div>
+        <div class="row actions" style="justify-content:space-between; align-items:flex-start; gap:16px; flex-wrap:wrap; margin-bottom:12px;">
+          <div class="row" style="flex-wrap:wrap; gap:12px; align-items:center;">
+            <div class="row" style="gap:10px; align-items:center;">
+              <select id="locationSelect" style="min-width:260px;"><option value="">Select location</option></select>
+              <input id="searchInput" class="searchInput" type="search" placeholder="Search auto attendants..." style="min-width:240px;" />
+            </div>
+            <button class="btn secondary" id="openAutoAttendantModalBtn" type="button">Add auto attendant</button>
+            <button class="btn secondary" id="uploadAutoAttendantsCsvBtn" type="button">Upload CSV</button>
+            <button class="btn secondary" id="downloadAutoAttendantsTemplateBtn" type="button">Download Template</button>
+            <input id="autoAttendantsCsvInput" type="file" accept=".csv" class="hiddenFile" />
+          </div>
+          <span class="formStatus" id="autoAttendantStatus"></span>
+        </div>
+        <div class="sheetWrap">
+          <table class="sheet" id="autoAttendantsTable"></table>
+        </div>
+        <div class="row" style="justify-content:space-between; margin-top:10px;">
+          <span id="emptyState" class="emptyState" style="display:none;">No auto attendants loaded.</span>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <div class="modalOverlay" id="autoAttendantModal" aria-hidden="true">
+    <div class="modal">
+      <div class="modalHeader">
+        <h3>Create Auto Attendant</h3>
+        <button class="modalClose" id="closeAutoAttendantModal" aria-label="Close">×</button>
+      </div>
+      <div class="modalBody">
+        <div class="grid">
+          <div>
+            <label>Location *</label>
+            <select id="locationSelectModal"><option value="">Select location</option></select>
+            <label>Name*</label>
+            <input id="nameInput" type="text" placeholder="Main Line AA" />
+            <div class="row">
+              <div style="flex:1; min-width:200px;">
+                <label>Phone Number</label>
+                <input id="phoneInput" type="text" placeholder="+13866314611" />
+              </div>
+              <div style="flex:1; min-width:200px;">
+                <label>Extension</label>
+                <input id="extensionInput" type="text" placeholder="1234" />
+              </div>
+            </div>
+            <div class="row">
+              <div style="flex:1; min-width:200px;">
+                <label>Language Code</label>
+                <input id="languageInput" type="text" value="en_US" />
+              </div>
+              <div style="flex:1; min-width:200px;">
+                <label>Time Zone</label>
+                <input id="timeZoneInput" type="text" placeholder="America/Denver" />
+              </div>
+            </div>
+            <div class="row">
+              <div style="flex:1; min-width:200px;">
+                <label>Business Schedule*</label>
+                <input id="businessScheduleInput" type="text" placeholder="Hours" />
+              </div>
+              <div style="flex:1; min-width:200px;">
+                <label>Holiday Schedule</label>
+                <input id="holidayScheduleInput" type="text" placeholder="Holiday" />
+              </div>
+            </div>
+            <div class="row">
+              <div style="flex:1; min-width:200px;">
+                <label>Extension Dialing</label>
+                <select id="extensionDialingInput">
+                  <option value="ENTERPRISE">ENTERPRISE</option>
+                  <option value="GROUP">GROUP</option>
+                </select>
+              </div>
+              <div style="flex:1; min-width:200px;">
+                <label>Name Dialing</label>
+                <select id="nameDialingInput">
+                  <option value="ENTERPRISE">ENTERPRISE</option>
+                  <option value="GROUP">GROUP</option>
+                </select>
+              </div>
+            </div>
+            <div class="row">
+              <div style="flex:1; min-width:200px;">
+                <label>Business Hours Greeting</label>
+                <select id="businessGreetingInput">
+                  <option value="DEFAULT">DEFAULT</option>
+                  <option value="CUSTOM">CUSTOM</option>
+                </select>
+              </div>
+              <div style="flex:1; min-width:200px;">
+                <label>After Hours Greeting</label>
+                <select id="afterGreetingInput">
+                  <option value="DEFAULT">DEFAULT</option>
+                  <option value="CUSTOM">CUSTOM</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          <div>
+            <label>Business Hours Key Configurations (JSON)</label>
+            <textarea id="businessKeysInput" placeholder='{"1":{"action":"TRANSFER_WITHOUT_PROMPT","value":"+19705550006"}}'></textarea>
+            <label>After Hours Key Configurations (JSON)</label>
+            <textarea id="afterKeysInput" placeholder='{}'></textarea>
+            <div class="row" style="margin-top:8px;">
+              <input id="extensionEnabledInput" type="checkbox" checked style="width:auto;" />
+              <span class="hint">Enable extension dialing during business hours</span>
+            </div>
+            <div class="formActions">
+              <button class="btn primary" id="createBtn" type="button">Create auto attendant</button>
+              <button class="btn secondary" id="clearBtn" type="button">Clear</button>
+              <span class="formStatus" id="tokenStatus">Using stored OAuth bearer token</span>
+            </div>
+            <div class="formStatus" id="modalStatus"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="../../assets/js/theme.js?v=20260929e"></script>
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+  <script>
+    const KEYS = { bearer:'authBearer', org:'authOrg', orgName:'authOrgName', user:'authUserName' };
+    const userNameEl = document.getElementById('userName');
+    const userOrgEl = document.getElementById('userOrg');
+    const signOutBtn = document.getElementById('signOutBtn');
+    const status = document.getElementById('status');
+    const autoAttendantStatus = document.getElementById('autoAttendantStatus');
+    const tokenStatus = document.getElementById('tokenStatus');
+
+    function updateAuthIndicators() {
+      const b = localStorage.getItem(KEYS.bearer) || '';
+      const org = localStorage.getItem(KEYS.orgName) || localStorage.getItem(KEYS.org) || '';
+      const user = localStorage.getItem(KEYS.user) || '';
+      if (userNameEl) userNameEl.textContent = b ? (user || 'Authenticated') : 'Not authenticated';
+      if (userOrgEl) userOrgEl.textContent = org || '';
+      tokenStatus.textContent = b ? 'Using stored OAuth bearer token' : 'No OAuth token found';
+    }
+    updateAuthIndicators();
+
+    signOutBtn?.addEventListener('click', () => {
+      Object.values(KEYS).forEach((key) => localStorage.removeItem(key));
+      localStorage.removeItem('authOrgId');
+      localStorage.removeItem('authRefreshToken');
+      localStorage.removeItem('authExpiresAt');
+      window.location.href = '../../index.html';
+    });
+
+    const autoAttendantsTable = document.getElementById('autoAttendantsTable');
+    const sheetWrap = document.querySelector('.sheetWrap');
+    const emptyState = document.getElementById('emptyState');
+    const searchInput = document.getElementById('searchInput');
+    const locationSelect = document.getElementById('locationSelect');
+    const openAutoAttendantModalBtn = document.getElementById('openAutoAttendantModalBtn');
+    const uploadAutoAttendantsCsvBtn = document.getElementById('uploadAutoAttendantsCsvBtn');
+    const downloadAutoAttendantsTemplateBtn = document.getElementById('downloadAutoAttendantsTemplateBtn');
+    const autoAttendantsCsvInput = document.getElementById('autoAttendantsCsvInput');
+
+    const autoAttendantModal = document.getElementById('autoAttendantModal');
+    const closeAutoAttendantModal = document.getElementById('closeAutoAttendantModal');
+    const modalStatus = document.getElementById('modalStatus');
+
+    const locationSelectModal = document.getElementById('locationSelectModal');
+    const nameInput = document.getElementById('nameInput');
+    const phoneInput = document.getElementById('phoneInput');
+    const extensionInput = document.getElementById('extensionInput');
+    const languageInput = document.getElementById('languageInput');
+    const businessScheduleInput = document.getElementById('businessScheduleInput');
+    const holidayScheduleInput = document.getElementById('holidayScheduleInput');
+    const timeZoneInput = document.getElementById('timeZoneInput');
+    const extensionDialingInput = document.getElementById('extensionDialingInput');
+    const nameDialingInput = document.getElementById('nameDialingInput');
+    const businessGreetingInput = document.getElementById('businessGreetingInput');
+    const afterGreetingInput = document.getElementById('afterGreetingInput');
+    const businessKeysInput = document.getElementById('businessKeysInput');
+    const afterKeysInput = document.getElementById('afterKeysInput');
+    const extensionEnabledInput = document.getElementById('extensionEnabledInput');
+    const createBtn = document.getElementById('createBtn');
+    const clearBtn = document.getElementById('clearBtn');
+
+    const BASE_URL = 'https://webexapis.com';
+    let autoAttendants = [];
+    let locations = [];
+
+    function withOrgParam(url) {
+      const loginMethod = localStorage.getItem('authLoginMethod') || '';
+      const orgId = localStorage.getItem(KEYS.org) || '';
+      if (loginMethod === 'token' && orgId && !url.includes('orgId=')) {
+        return url + (url.includes('?') ? '&' : '?') + `orgId=${encodeURIComponent(orgId)}`;
+      }
+      return url;
+    }
+
+    async function loadLocations() {
+      const token = localStorage.getItem(KEYS.bearer) || '';
+      if (!token) {
+        locationSelect.innerHTML = '<option value="">Authenticate to load locations</option>';
+        locationSelectModal.innerHTML = '<option value="">Authenticate to load locations</option>';
+        return;
+      }
+      locationSelect.innerHTML = '<option value="">Loading locations…</option>';
+      locationSelectModal.innerHTML = '<option value="">Loading locations…</option>';
+      try {
+        const res = await fetch(withOrgParam(`${BASE_URL}/v1/locations?max=500`), {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        const data = await res.json();
+        locations = data.items || data.locations || data || [];
+        if (!Array.isArray(locations)) locations = [];
+        const options = ['<option value="">Select location</option>'].concat(
+          locations.map(loc => `<option value="${loc.id}">${loc.name || loc.id}</option>`)
+        );
+        locationSelect.innerHTML = options.join('');
+        locationSelectModal.innerHTML = options.join('');
+      } catch {
+        locationSelect.innerHTML = '<option value="">Failed to load locations</option>';
+        locationSelectModal.innerHTML = '<option value="">Failed to load locations</option>';
+      }
+    }
+
+    function renderTable() {
+      const term = (searchInput.value || '').toLowerCase();
+      const filtered = autoAttendants.filter((item) => {
+        const values = [item.name, item.phoneNumber, item.extension, item.languageCode, item.timeZone, item.id]
+          .filter(Boolean)
+          .join(' ')
+          .toLowerCase();
+        return values.includes(term);
+      });
+
+      if (!filtered.length) {
+        autoAttendantsTable.innerHTML = '';
+        autoAttendantsTable.style.display = 'none';
+        if (sheetWrap) sheetWrap.style.display = 'none';
+        emptyState.style.display = 'block';
+        return;
+      }
+
+      emptyState.style.display = 'none';
+      autoAttendantsTable.style.display = 'table';
+      if (sheetWrap) sheetWrap.style.display = 'block';
+      autoAttendantsTable.innerHTML = `
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Phone Number</th>
+            <th>Extension</th>
+            <th>Language</th>
+            <th>Time Zone</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${filtered.map(item => `
+            <tr>
+              <td>${item.name || '-'}</td>
+              <td>${item.phoneNumber || '-'}</td>
+              <td>${item.extension || '-'}</td>
+              <td>${item.languageCode || item.language || item.languageName || '-'}</td>
+              <td>${item.timeZone || item.timeZoneId || item.timeZoneName || '-'}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      `;
+    }
+
+    async function loadAutoAttendants() {
+      const token = localStorage.getItem(KEYS.bearer) || '';
+      const locationId = locationSelect.value;
+      if (!token) {
+        status.textContent = 'Bearer token required. Authenticate to continue.';
+        return;
+      }
+      if (!locationId) {
+        status.textContent = 'Select a location to load auto attendants.';
+        return;
+      }
+
+      status.textContent = 'Loading auto attendants...';
+      autoAttendantStatus.textContent = '';
+      emptyState.style.display = 'none';
+      autoAttendantsTable.innerHTML = '';
+
+      try {
+        const res = await fetch(`https://webexapis.com/v1/telephony/config/autoAttendants?locationId=${encodeURIComponent(locationId)}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        const text = await res.text();
+        let data;
+        try { data = JSON.parse(text); } catch { data = text; }
+        autoAttendants = (data && (data.autoAttendants || data.items)) || (Array.isArray(data) ? data : []);
+        if (!Array.isArray(autoAttendants)) autoAttendants = [];
+        renderTable();
+        if (res.ok) {
+          status.textContent = `Loaded ${autoAttendants.length} auto attendant(s).`;
+        } else {
+          const msg = typeof data === 'string' ? data : JSON.stringify(data);
+          status.textContent = `Error (${res.status}) loading list.`;
+          autoAttendantStatus.textContent = msg;
+        }
+      } catch {
+        status.textContent = 'Failed to load auto attendants.';
+      }
+    }
+
+    locationSelect.addEventListener('change', () => {
+      if (!locationSelect.value) {
+        autoAttendantsTable.innerHTML = '';
+        autoAttendantsTable.style.display = 'none';
+        if (sheetWrap) sheetWrap.style.display = 'none';
+        emptyState.style.display = 'block';
+        status.textContent = 'Select a location to load auto attendants.';
+        return;
+      }
+      loadAutoAttendants();
+    });
+    searchInput.addEventListener('input', renderTable);
+
+    function openModal() {
+      autoAttendantModal.classList.add('open');
+      modalStatus.textContent = '';
+      locationSelectModal.value = locationSelect.value || '';
+    }
+
+    function closeModal() {
+      autoAttendantModal.classList.remove('open');
+    }
+
+    openAutoAttendantModalBtn.addEventListener('click', openModal);
+    closeAutoAttendantModal.addEventListener('click', closeModal);
+    autoAttendantModal.addEventListener('click', (event) => {
+      if (event.target === autoAttendantModal) closeModal();
+    });
+
+    function parseKeys(value, label) {
+      if (!value.trim()) return {};
+      try {
+        return JSON.parse(value);
+      } catch {
+        throw new Error(`${label} must be valid JSON.`);
+      }
+    }
+
+    function buildPayload(row) {
+      const payload = {
+        name: String(row.name || '').trim(),
+        phoneNumber: String(row.phoneNumber || '').trim() || undefined,
+        extension: String(row.extension || '').trim() || undefined,
+        languageCode: String(row.languageCode || '').trim() || undefined,
+        businessSchedule: String(row.businessSchedule || '').trim(),
+        holidaySchedule: String(row.holidaySchedule || '').trim() || undefined,
+        extensionDialing: String(row.extensionDialing || 'ENTERPRISE').trim(),
+        nameDialing: String(row.nameDialing || 'ENTERPRISE').trim(),
+        timeZone: String(row.timeZone || '').trim() || undefined,
+        businessHoursMenu: {
+          greeting: String(row.businessGreeting || 'DEFAULT').trim(),
+          extensionEnabled: String(row.extensionEnabled || 'true').toLowerCase() === 'true',
+          keyConfigurations: row.businessKeysJson ? parseKeys(row.businessKeysJson, 'Business hours key configurations') : {}
+        },
+        afterHoursMenu: {
+          greeting: String(row.afterGreeting || 'DEFAULT').trim(),
+          keyConfigurations: row.afterKeysJson ? parseKeys(row.afterKeysJson, 'After hours key configurations') : {}
+        }
+      };
+      Object.keys(payload).forEach((key) => {
+        if (payload[key] === undefined || payload[key] === '') delete payload[key];
+      });
+      return payload;
+    }
+
+    clearBtn.addEventListener('click', () => {
+      locationSelectModal.value = locationSelect.value || '';
+      nameInput.value = '';
+      phoneInput.value = '';
+      extensionInput.value = '';
+      languageInput.value = 'en_US';
+      businessScheduleInput.value = '';
+      holidayScheduleInput.value = '';
+      timeZoneInput.value = '';
+      extensionDialingInput.value = 'ENTERPRISE';
+      nameDialingInput.value = 'ENTERPRISE';
+      businessGreetingInput.value = 'DEFAULT';
+      afterGreetingInput.value = 'DEFAULT';
+      businessKeysInput.value = '';
+      afterKeysInput.value = '';
+      extensionEnabledInput.checked = true;
+      modalStatus.textContent = '';
+    });
+
+    createBtn.addEventListener('click', async () => {
+      const token = localStorage.getItem(KEYS.bearer) || '';
+      const locationId = locationSelectModal.value;
+      const name = nameInput.value.trim();
+
+      if (!token) {
+        modalStatus.textContent = 'Bearer token required. Authenticate to continue.';
+        return;
+      }
+      if (!locationId || !name) {
+        modalStatus.textContent = 'Location and Name are required.';
+        return;
+      }
+      if (!phoneInput.value.trim() && !extensionInput.value.trim()) {
+        modalStatus.textContent = 'Either phone number or extension is required.';
+        return;
+      }
+
+      const row = {
+        name: nameInput.value,
+        phoneNumber: phoneInput.value,
+        extension: extensionInput.value,
+        languageCode: languageInput.value,
+        businessSchedule: businessScheduleInput.value,
+        holidaySchedule: holidayScheduleInput.value,
+        extensionDialing: extensionDialingInput.value,
+        nameDialing: nameDialingInput.value,
+        timeZone: timeZoneInput.value,
+        businessGreeting: businessGreetingInput.value,
+        afterGreeting: afterGreetingInput.value,
+        extensionEnabled: extensionEnabledInput.checked ? 'true' : 'false',
+        businessKeysJson: businessKeysInput.value,
+        afterKeysJson: afterKeysInput.value
+      };
+
+      let payload;
+      try {
+        payload = buildPayload(row);
+      } catch (err) {
+        modalStatus.textContent = err.message || 'Check input values.';
+        return;
+      }
+
+      modalStatus.textContent = 'Creating auto attendant...';
+
+      try {
+        const res = await fetch(`https://webexapis.com/v1/telephony/config/locations/${encodeURIComponent(locationId)}/autoAttendants`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Accept: 'application/json',
+            Authorization: `Bearer ${token}`
+          },
+          body: JSON.stringify(payload)
+        });
+        const text = await res.text();
+        let parsed;
+        try { parsed = JSON.parse(text); } catch { parsed = text; }
+        modalStatus.textContent = res.ok ? 'Auto attendant created.' : `Error (${res.status}) creating auto attendant.`;
+        autoAttendantStatus.textContent = typeof parsed === 'string' ? parsed : JSON.stringify(parsed);
+        if (res.ok) {
+          closeModal();
+          loadAutoAttendants();
+        }
+      } catch {
+        modalStatus.textContent = 'Request failed. Check console for details.';
+      }
+    });
+
+    function downloadCsv(filename, csvText) {
+      const blob = new Blob([csvText], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    }
+
+    function buildTemplateRow() {
+      return {
+        locationId: '',
+        name: 'Main Line AA',
+        phoneNumber: '+13866314611',
+        extension: '1234',
+        languageCode: 'en_US',
+        businessSchedule: 'Hours',
+        holidaySchedule: 'Holiday',
+        extensionDialing: 'ENTERPRISE',
+        nameDialing: 'ENTERPRISE',
+        timeZone: 'America/Denver',
+        businessGreeting: 'DEFAULT',
+        afterGreeting: 'DEFAULT',
+        extensionEnabled: 'true',
+        businessKeysJson: '{"1":{"action":"TRANSFER_WITHOUT_PROMPT","value":"+19705550006"}}',
+        afterKeysJson: '{}'
+      };
+    }
+
+    downloadAutoAttendantsTemplateBtn.addEventListener('click', () => {
+      const headers = Object.keys(buildTemplateRow());
+      const csv = Papa.unparse([buildTemplateRow()], { columns: headers });
+      downloadCsv('auto_attendant_template.csv', csv);
+    });
+
+    uploadAutoAttendantsCsvBtn.addEventListener('click', () => {
+      autoAttendantsCsvInput.click();
+    });
+
+    autoAttendantsCsvInput.addEventListener('change', () => {
+      const file = autoAttendantsCsvInput.files?.[0];
+      if (!file) return;
+      Papa.parse(file, {
+        header: true,
+        skipEmptyLines: true,
+        complete: async (results) => {
+          const rows = results.data || [];
+          if (!rows.length) {
+            status.textContent = 'CSV has no rows.';
+            return;
+          }
+          await runBulkCreate(rows);
+        },
+        error: () => {
+          status.textContent = 'Failed to parse CSV.';
+        }
+      });
+      autoAttendantsCsvInput.value = '';
+    });
+
+    async function runBulkCreate(rows) {
+      const token = localStorage.getItem(KEYS.bearer) || '';
+      if (!token) {
+        status.textContent = 'Bearer token required. Authenticate to continue.';
+        return;
+      }
+      let successCount = 0;
+      let failCount = 0;
+      status.textContent = `Starting bulk create (${rows.length} rows)...`;
+      for (let i = 0; i < rows.length; i++) {
+        const row = rows[i] || {};
+        const locationId = String(row.locationId || '').trim() || locationSelect.value;
+        const name = String(row.name || '').trim();
+        const phoneNumber = String(row.phoneNumber || '').trim();
+        const extension = String(row.extension || '').trim();
+        const businessSchedule = String(row.businessSchedule || '').trim();
+
+        if (!locationId || !name || (!phoneNumber && !extension) || !businessSchedule) {
+          failCount += 1;
+          status.textContent = `Row ${i + 1}: missing required fields. (${successCount} success, ${failCount} failed)`;
+          continue;
+        }
+
+        let payload;
+        try {
+          payload = buildPayload({
+            ...row,
+            locationId,
+            name,
+            phoneNumber,
+            extension,
+            businessSchedule
+          });
+        } catch (err) {
+          failCount += 1;
+          status.textContent = `Row ${i + 1}: ${err.message || 'invalid JSON'}. (${successCount} success, ${failCount} failed)`;
+          continue;
+        }
+
+        try {
+          const res = await fetch(`https://webexapis.com/v1/telephony/config/locations/${encodeURIComponent(locationId)}/autoAttendants`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Accept: 'application/json',
+              Authorization: `Bearer ${token}`
+            },
+            body: JSON.stringify(payload)
+          });
+          if (res.ok) successCount += 1;
+          else failCount += 1;
+        } catch {
+          failCount += 1;
+        }
+        status.textContent = `Processed ${i + 1}/${rows.length} (${successCount} success, ${failCount} failed)`;
+      }
+      status.textContent = `Bulk create complete. ${successCount} success, ${failCount} failed.`;
+      loadAutoAttendants();
+    }
+
+
+    document.addEventListener('click', (event) => {
+    });
+
+    document.addEventListener('keydown', (event) => {
+    });
+
+    loadLocations();
+  </script>
+</body>
+</html>

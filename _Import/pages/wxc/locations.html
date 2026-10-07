@@ -1,0 +1,3283 @@
+<?php require_once '/var/projects/bitbucket.io/cxasteam.bitbucket.io/oauth/check_access.php'; ?>
+
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="light dark" />
+  <title>Webex Calling - Locations</title>
+  <link rel="icon" type="image/png" href="../../assets/images/CX%20only.png" />
+  <link rel="stylesheet" href="../../assets/css/theme.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+  <style>
+    main { padding:32px 0 80px; }
+    .grid { display:grid; grid-template-columns:minmax(0,3fr) minmax(0,1.7fr); gap:24px; }
+    label { display:block; font-size:13px; color:var(--muted); margin:8px 0 6px; }
+    input, select, textarea { width:100%; border-radius:12px; border:1px solid var(--border); background:var(--input); color:var(--fg); padding:10px 12px; outline:none; font-size:14px; }
+    input:focus, select:focus, textarea:focus { box-shadow:0 0 0 3px rgba(59,130,246,.25); }
+    body.dark-mode input,
+    body.dark-mode select,
+    body.dark-mode textarea {
+      background:var(--input) !important;
+      color:var(--fg) !important;
+      -webkit-text-fill-color: var(--fg);
+    }
+    select { cursor:pointer; }
+    textarea { min-height:96px; resize:vertical; }
+    .row { display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
+    .row.actions { margin-top:16px; }
+    .progressBlock { margin-top:18px; }
+    .hiddenFile { display:none; }
+    .hint { font-size:12px; color:var(--muted); }
+    .progress { height:10px; background:var(--input); border:1px solid var(--border); border-radius:999px; overflow:hidden; width:100%; }
+    .bar { height:100%; background:linear-gradient(90deg,var(--accentA),var(--accentB)); width:0%; transition:width .25s ease; }
+    .panelTitle { font-size:.85rem; letter-spacing:.2px; font-weight:700; color:var(--muted); margin-bottom:8px; text-transform:uppercase; }
+    .statusLine { font-size:13px; color:var(--muted); margin-top:6px; }
+    .sheetWrap { border:1px solid var(--border); border-radius:14px; overflow:auto; background:var(--card); box-shadow:0 10px 30px rgba(0,0,0,.12); }
+    table.sheet { width:100%; border-collapse:separate; border-spacing:0; min-width:980px; }
+    table.sheet th, table.sheet td { padding:10px 12px; border-bottom:1px solid var(--border); border-right:1px solid rgba(255,255,255,.06); }
+    table.sheet th { position:sticky; top:0; background:var(--panel); text-align:left; font-weight:700; color:var(--accent); z-index:1; font-size:12px; letter-spacing:.01em; }
+    table.sheet tr:last-child td { border-bottom:none; }
+    table.sheet th:last-child, table.sheet td:last-child { border-right:none; }
+    table.sheet td { font-size:13px; line-height:1.35; background:var(--card); }
+    table.sheet tbody tr:nth-child(even) td { background:var(--input); }
+    table.sheet tbody tr:hover td { background:rgba(8,172,242,.08); }
+    .progress { background:var(--card); border:1px solid var(--border); }
+    .emptyState { color:var(--muted); padding:12px 0; }
+    .tableToolbar { display:inline-flex; flex-wrap:wrap; align-items:center; justify-content:flex-start; margin:0 0 12px; padding:0; border:none; border-radius:0; background:transparent; box-shadow:none; }
+    .searchInput { width:40%; min-width:240px; }
+    .tableToolbar .pill { margin-left:auto; }
+    .tableHeaderRow th { background:var(--panel); }
+    .formActions { display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-top:12px; }
+    .formStatus { margin-left:auto; font-size:12px; color:var(--muted); }
+    .actionBtns { display:flex; gap:8px; justify-content:flex-start; }
+    .actionBtn { padding:6px 10px; border-radius:10px; font-size:12px; }
+    body.dark-mode .sheetWrap { background:var(--card); box-shadow:0 10px 30px rgba(0,0,0,.25); }
+    body.dark-mode table.sheet td { background:var(--card); color:var(--fg); }
+    body.dark-mode table.sheet tbody tr:nth-child(even) td { background:var(--panel); }
+    body.dark-mode table.sheet tbody tr:hover td { background:rgba(8,172,242,.14); }
+    .createProgressOverlay .createProgressCard {
+      max-width:460px;
+      width:100%;
+      background:var(--card);
+      border:1px solid var(--border);
+      border-radius:18px;
+      padding:24px;
+      box-shadow:0 24px 48px rgba(0,0,0,.4);
+    }
+    .createProgressHeader h2 { margin:0 0 4px; font-size:1.35rem; }
+    .createProgressHeader p { margin:0 0 14px; color:var(--muted); font-size:.95rem; }
+    .progressSteps { display:flex; flex-direction:column; gap:12px; }
+    .createProgressStep {
+      display:flex;
+      gap:12px;
+      align-items:flex-start;
+      padding-bottom:12px;
+      border-bottom:1px solid var(--border);
+    }
+    .createProgressStep:last-child { border-bottom:none; padding-bottom:0; }
+    .step-indicator {
+      width:30px;
+      height:30px;
+      border-radius:999px;
+      border:1px solid var(--border);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:14px;
+      color:var(--muted);
+      position:relative;
+    }
+    .step-indicator::after {
+      content:'';
+      position:absolute;
+      inset:6px;
+      border-radius:50%;
+      border:2px solid transparent;
+      border-top-color:var(--accent);
+      display:none;
+    }
+    .createProgressStep[data-status="active"] .step-indicator::after {
+      display:block;
+      animation: spin 0.8s linear infinite;
+    }
+    .createProgressStep[data-status="success"] .step-indicator {
+      border-color:#34d399;
+      background:#ecfdf5;
+      color:#059669;
+    }
+    .createProgressStep[data-status="error"] .step-indicator {
+      border-color:#ef4444;
+      background:#fee2e2;
+      color:#b91c1c;
+    }
+    .step-label { font-weight:600; }
+    .step-detail { font-size:12px; color:var(--muted); line-height:1.4; }
+    @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+    .successModalOverlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.45);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 10000;
+      padding: 16px;
+      opacity: 0;
+      transition: opacity 0.2s ease;
+    }
+    .successModalOverlay.show { opacity: 1; }
+    .successCard {
+      width: 100%;
+      max-width: 460px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 24px;
+      box-shadow: 0 18px 40px rgba(0, 0, 0, 0.25);
+      text-align: center;
+      transform: scale(0.98);
+      transition: transform 0.2s ease;
+    }
+    .successModalOverlay.show .successCard { transform: scale(1); }
+    .backgroundStatusBtn {
+      position: fixed;
+      right: 24px;
+      bottom: 24px;
+      z-index: 11000;
+      display: none;
+      min-width: 210px;
+      justify-content: center;
+    }
+    .successIcon {
+      margin: 0 auto 14px;
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #159DD8, #159DD8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #06111d;
+    }
+    .successCard h2 { margin: 0 0 10px; font-size: 1.35rem; color: var(--fg); }
+    .successMsg { margin: 0 0 8px; font-size: .95rem; color: var(--fg); line-height: 1.5; }
+    .modalOverlay {
+      position:fixed;
+      inset:0;
+      background:rgba(0,0,0,.7);
+      display:none;
+      align-items:center;
+      justify-content:center;
+      z-index:9999;
+      padding:20px;
+    }
+    .modalOverlay.open { display:flex; }
+    .modal {
+      background:var(--card);
+      border:1px solid var(--border);
+      border-radius:16px;
+      max-width:980px;
+      width:100%;
+      max-height:90vh;
+      overflow:auto;
+      box-shadow:0 24px 48px rgba(0,0,0,.5);
+    }
+    .modalHeader {
+      padding:20px 24px;
+      border-bottom:1px solid var(--border);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+    }
+    .modalHeader h3 { margin:0; font-size:1.1rem; }
+    .modalClose {
+      background:transparent;
+      border:none;
+      color:var(--muted);
+      font-size:24px;
+      cursor:pointer;
+      padding:0;
+      width:32px;
+      height:32px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      border-radius:6px;
+      transition:all .2s;
+    }
+    .modalClose:hover { background:rgba(255,255,255,.1); color:var(--fg); }
+    .modalBody { padding:24px; }
+    body.dark-mode .sheetWrap { background:var(--card); box-shadow:0 10px 30px rgba(0,0,0,.25); }
+    body.dark-mode table.sheet td { background:var(--card); color:var(--fg); }
+    body.dark-mode table.sheet tbody tr:nth-child(even) td { background:var(--panel); }
+    body.dark-mode table.sheet tbody tr:hover td { background:rgba(8,172,242,.14); }
+    @media (max-width:1024px) {
+      .wrap { flex-direction:column; align-items:center; gap:8px; }
+      .wrap .left,
+      .wrap .right { width:100%; justify-content:center; }
+      .grid { grid-template-columns:1fr; }
+    }
+    @media (max-width:640px) {
+      .row { flex-direction:column; align-items:stretch; }
+      .btnLink { width:100%; }
+      table.sheet { min-width:720px; }
+    }
+  </style>
+</head>
+<body class="dark-mode">
+  <script>if (localStorage.getItem("tpRailExpanded") === "true") document.body.classList.add("tp-rail-expanded");</script>
+  <?php
+$tp_header_prefix = '../../';
+$tp_show_auth_link = false;
+include dirname(__DIR__) . '/shared/header.php';
+?>
+  <main>
+    <div class="wrap wide contentWrap">
+      <section class="card">
+        <div class="pageHeader">
+          <h1>Locations</h1>
+          <div class="row" style="justify-content:space-between; align-items:flex-end; gap:16px; flex-wrap:wrap;">
+            <p class="lead">Pull a list of Webex Calling locations for your org.</p>
+            <span class="statusLine" id="status">Loading locations…</span>
+          </div>
+        </div>
+        <div class="row actions" style="justify-content:space-between; align-items:center; margin-bottom:16px;">
+          <div class="row">
+            <button class="btn primary" id="openLocationModalBtn" type="button">Add location</button>
+            <button class="btn secondary" id="uploadLocationsCsvBtn" type="button">Upload CSV</button>
+            <button class="btn secondary" id="downloadLocationsTemplateBtn" type="button">Download Template</button>
+            <input id="locationsCsvInput" type="file" accept=".csv" class="hiddenFile" />
+          </div>
+          <span class="formStatus" id="locationFormStatus"></span>
+        </div>
+        <div class="tableToolbar">
+          <input id="searchInput" class="searchInput" type="search" placeholder="Search locations..." />
+        </div>
+        <div style="display:flex; gap:8px; align-items:center; margin:8px 0 12px; flex-wrap:wrap;">
+          <button class="btn secondary" id="selectAllLocationsBtn" style="padding:6px 12px; font-size:13px;">Select all</button>
+          <button class="btn secondary" id="clearLocationsSelectionBtn" style="padding:6px 12px; font-size:13px;" disabled>Clear selection</button>
+          <button class="btn secondary" id="bulkPstnUpdateBtn" style="padding:6px 12px; font-size:13px;" disabled>Bulk PSTN update</button>
+          <button class="btn danger" id="deleteSelectedLocationsBtn" style="padding:6px 12px; font-size:13px;" disabled>Delete selected</button>
+        </div>
+        <div class="sheetWrap">
+          <table class="sheet" id="locationsTable"></table>
+        </div>
+        <div class="row" style="justify-content:space-between; margin-top:10px;">
+          <span id="emptyState" class="emptyState" style="display:none;">No locations loaded.</span>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <div class="modalOverlay" id="locationModal" aria-hidden="true">
+    <div class="modal">
+      <div class="modalHeader">
+        <h3>Manage Location</h3>
+        <button class="modalClose" id="closeLocationModal" aria-label="Close">×</button>
+      </div>
+      <div class="modalBody">
+        <div style="display:flex; flex-direction:column; gap:16px;">
+          <div style="display:flex; gap:16px; flex-wrap:wrap;">
+            <div style="flex:1; min-width:220px;">
+              <label>Name*</label>
+              <input id="locName" type="text" placeholder="Location name" />
+            </div>
+            <div style="flex:1; min-width:220px;">
+              <label>Time Zone*</label>
+              <select id="locTimeZone"></select>
+              <input id="locTimeZoneCustom" type="text" placeholder="Custom time zone" style="display:none; margin-top:8px;" />
+              <span class="hint">Select the time zone where this location resides.</span>
+            </div>
+          </div>
+          <div style="display:flex; gap:16px; flex-wrap:wrap;">
+            <div style="flex:1; min-width:320px;">
+              <label>Address 1*</label>
+              <input id="locAddress1" type="text" placeholder="Street address" />
+            </div>
+            <div style="flex:1; min-width:220px;">
+              <label>City*</label>
+              <input id="locCity" type="text" placeholder="City" />
+            </div>
+          </div>
+          <div style="display:flex; gap:16px; flex-wrap:wrap;">
+            <div style="flex:1; min-width:220px;">
+              <label>Address 2</label>
+              <input id="locAddress2" type="text" placeholder="Suite / Unit" />
+            </div>
+            <div style="flex:1; min-width:160px;">
+              <label>State/Region*</label>
+              <input id="locState" type="text" placeholder="State" />
+            </div>
+            <div style="flex:1; min-width:160px;">
+              <label>Postal Code*</label>
+              <input id="locPostalCode" type="text" placeholder="Postal code" />
+            </div>
+            <div style="flex:1; min-width:160px;">
+              <label>Country*</label>
+              <select id="locCountry"></select>
+              <input id="locCountryCustom" type="text" placeholder="Custom country code" style="display:none; margin-top:8px;" />
+            </div>
+          </div>
+        </div>
+        <div style="margin-top:20px; border-top:1px solid var(--border); padding-top:18px;">
+          <div style="display:flex; justify-content:space-between; gap:16px; flex-wrap:wrap;">
+            <div style="min-width:220px; flex:1;">
+              <label>Route Group</label>
+              <select id="locRouteGroup"><option value="">Loading route groups…</option></select>
+              <span class="hint">Select the route group that will handle on-prem PSTN traffic.</span>
+            </div>
+            <div style="min-width:220px; flex:1;">
+              <label>PSTN Connection</label>
+              <select id="locPstnConnection" disabled><option value="">Connection options load after a location is created.</option></select>
+              <span class="hint" id="locPstnHint">Options appear once a location exists; create one to load PSTN clouds.</span>
+            </div>
+          </div>
+          <div style="margin-top:16px;">
+            <h4 style="margin:0 0 8px;">Voice Mail</h4>
+            <div style="display:flex; gap:16px; flex-wrap:wrap;">
+              <div style="min-width:220px; flex:1;">
+                <label>Extension</label>
+                <input id="locVmExtension" type="text" placeholder="e.g. 8000" />
+              </div>
+              <div style="min-width:220px; flex:1;">
+                <label>Passcode</label>
+                <input id="locVmPasscode" type="password" placeholder="Enter voicemail passcode" />
+                <span class="hint">Leave blank to skip voicemail setup.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="formActions">
+          <button class="btn primary" id="createLocationBtn" type="button">Create location</button>
+          <button class="btn secondary" id="clearLocationBtn" type="button">Clear</button>
+          <span class="formStatus" id="locationFormStatusModal"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modalOverlay" id="templateModal" aria-hidden="true">
+    <div class="modal" style="max-width:520px;">
+      <div class="modalHeader">
+        <h3>Download Template</h3>
+        <button class="modalClose" id="closeTemplateModal" aria-label="Close">×</button>
+      </div>
+      <div class="modalBody" style="display:flex; flex-direction:column; gap:12px;">
+        <label>Time Zone</label>
+        <select id="templateTimeZone"></select>
+        <input id="templateTimeZoneCustom" type="text" placeholder="Custom time zone" style="display:none; margin-top:8px;" />
+        <label>Language</label>
+        <select id="templateLanguage"></select>
+        <input id="templateLanguageCustom" type="text" placeholder="Custom language" style="display:none; margin-top:8px;" />
+        <label>Country</label>
+        <select id="templateCountry"></select>
+        <input id="templateCountryCustom" type="text" placeholder="Custom country code" style="display:none; margin-top:8px;" />
+        <label>Route Group (optional)</label>
+        <select id="templateRouteGroup">
+          <option value="">Route group (optional)</option>
+        </select>
+        <span class="hint">Pick the route group to associate with the new locations.</span>
+        <label>PSTN Connection (optional)</label>
+        <select id="templatePstnConnection">
+          <option value="">Select PSTN connection (optional)</option>
+        </select>
+        <span class="hint">Choose a PSTN cloud to include in the template export.</span>
+        <div style="display:flex; gap:12px; flex-wrap:wrap;">
+          <div style="flex:1; min-width:180px;">
+            <label>Voice Mail Extension</label>
+            <input id="templateVmExtension" type="text" placeholder="e.g. 8000" />
+          </div>
+          <div style="flex:1; min-width:180px;">
+            <label>Voice Mail Passcode</label>
+            <input id="templateVmPasscode" type="text" placeholder="e.g. 05261988" />
+          </div>
+        </div>
+        <div class="formActions">
+          <button class="btn primary" id="downloadTemplateConfirmBtn" type="button">Download</button>
+          <button class="btn secondary" id="cancelTemplateBtn" type="button">Cancel</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modalOverlay" id="bulkPstnModal" aria-hidden="true">
+    <div class="modal" style="max-width:640px;">
+      <div class="modalHeader">
+        <h3>Bulk PSTN Update</h3>
+        <button class="modalClose" id="closeBulkPstnModal" aria-label="Close">×</button>
+      </div>
+      <div class="modalBody" style="display:flex; flex-direction:column; gap:12px;">
+        <p class="lead" id="bulkPstnSelectionSummary" style="margin:0;">No locations selected.</p>
+        <span class="hint" id="bulkPstnReferenceLocation">Select locations to load PSTN options.</span>
+        <label>Route Group (optional)</label>
+        <select id="bulkRouteGroup">
+          <option value="">Route group (optional)</option>
+        </select>
+        <span class="hint">Use this when the same route group should be applied across the selected locations.</span>
+        <label>PSTN Connection (optional)</label>
+        <select id="bulkPstnConnection" disabled>
+          <option value="">Select PSTN connection (optional)</option>
+        </select>
+        <span class="hint" id="bulkPstnHint">PSTN options load from the first selected location.</span>
+        <span class="formStatus" id="bulkPstnStatus" style="margin-left:0;"></span>
+        <div class="formActions" style="justify-content:flex-end;">
+          <button class="btn primary" id="applyBulkPstnBtn" type="button">Apply to selected</button>
+          <button class="btn secondary" id="cancelBulkPstnBtn" type="button">Cancel</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+    <script src="../../assets/js/theme.js?v=20260929e"></script>
+    <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+<script>
+(function() {
+  const els = {
+    status: document.getElementById('status'),
+    searchInput: document.getElementById('searchInput'),
+    table: document.getElementById('locationsTable'),
+    countHint: document.getElementById('countHint'),
+    emptyState: document.getElementById('emptyState'),
+    openLocationModalBtn: document.getElementById('openLocationModalBtn'),
+    uploadLocationsCsvBtn: document.getElementById('uploadLocationsCsvBtn'),
+    downloadLocationsTemplateBtn: document.getElementById('downloadLocationsTemplateBtn'),
+    locationsCsvInput: document.getElementById('locationsCsvInput'),
+    locationModal: document.getElementById('locationModal'),
+    closeLocationModal: document.getElementById('closeLocationModal'),
+    selectAllLocationsBtn: document.getElementById('selectAllLocationsBtn'),
+    clearLocationsSelectionBtn: document.getElementById('clearLocationsSelectionBtn'),
+    bulkPstnUpdateBtn: document.getElementById('bulkPstnUpdateBtn'),
+    deleteSelectedLocationsBtn: document.getElementById('deleteSelectedLocationsBtn'),
+    locName: document.getElementById('locName'),
+    locTimeZone: document.getElementById('locTimeZone'),
+    locTimeZoneCustom: document.getElementById('locTimeZoneCustom'),
+    locAddress1: document.getElementById('locAddress1'),
+    locAddress2: document.getElementById('locAddress2'),
+    locCity: document.getElementById('locCity'),
+    locState: document.getElementById('locState'),
+    locPostalCode: document.getElementById('locPostalCode'),
+    locCountry: document.getElementById('locCountry'),
+    locCountryCustom: document.getElementById('locCountryCustom'),
+    createLocationBtn: document.getElementById('createLocationBtn'),
+    updateLocationBtn: document.getElementById('updateLocationBtn'),
+    clearLocationBtn: document.getElementById('clearLocationBtn'),
+    locationFormStatus: document.getElementById('locationFormStatus'),
+    locationFormStatusModal: document.getElementById('locationFormStatusModal'),
+    locRouteGroup: document.getElementById('locRouteGroup'),
+    locPstnConnection: document.getElementById('locPstnConnection'),
+    locPstnHint: document.getElementById('locPstnHint'),
+    locVmExtension: document.getElementById('locVmExtension'),
+    locVmPasscode: document.getElementById('locVmPasscode'),
+    templateModal: document.getElementById('templateModal'),
+    closeTemplateModal: document.getElementById('closeTemplateModal'),
+    downloadTemplateConfirmBtn: document.getElementById('downloadTemplateConfirmBtn'),
+    cancelTemplateBtn: document.getElementById('cancelTemplateBtn'),
+    templateTimeZone: document.getElementById('templateTimeZone'),
+    templateTimeZoneCustom: document.getElementById('templateTimeZoneCustom'),
+    templateLanguage: document.getElementById('templateLanguage'),
+    templateLanguageCustom: document.getElementById('templateLanguageCustom'),
+    templateCountry: document.getElementById('templateCountry'),
+    templateCountryCustom: document.getElementById('templateCountryCustom'),
+    templateRouteGroup: document.getElementById('templateRouteGroup'),
+    templatePstnConnection: document.getElementById('templatePstnConnection'),
+    templateVmExtension: document.getElementById('templateVmExtension'),
+    templateVmPasscode: document.getElementById('templateVmPasscode'),
+    bulkPstnModal: document.getElementById('bulkPstnModal'),
+    closeBulkPstnModal: document.getElementById('closeBulkPstnModal'),
+    bulkPstnSelectionSummary: document.getElementById('bulkPstnSelectionSummary'),
+    bulkPstnReferenceLocation: document.getElementById('bulkPstnReferenceLocation'),
+    bulkRouteGroup: document.getElementById('bulkRouteGroup'),
+    bulkPstnConnection: document.getElementById('bulkPstnConnection'),
+    bulkPstnHint: document.getElementById('bulkPstnHint'),
+    bulkPstnStatus: document.getElementById('bulkPstnStatus'),
+    applyBulkPstnBtn: document.getElementById('applyBulkPstnBtn'),
+    cancelBulkPstnBtn: document.getElementById('cancelBulkPstnBtn'),
+  };
+
+  const SHARED_BEARER_KEY = 'authBearer';
+
+  // Authenticated popup
+  (function initAuthModal(){
+    if (document.getElementById('authModal')) return;
+    const style = document.createElement('style');
+    style.textContent = `
+      .authModalOverlay{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;z-index:9999;padding:16px;}
+      .authModalOverlay.open{display:flex;}
+      .authCard{width:100%;max-width:520px;background:#131a2a;border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:18px;box-shadow:0 18px 36px rgba(0,0,0,.45);position:relative;}
+      .authCard h2{margin:0 0 8px;font-size:1.2rem;}
+      .authCard p{margin:0 0 12px;color:#92a0b8;line-height:1.4;}
+      .authCard label{display:block;font-size:13px;color:#92a0b8;margin:10px 0 6px;}
+      .authCard input{width:100%;border-radius:12px;border:1px solid rgba(255,255,255,.08);background:#0e1525;color:#e9edf5;padding:10px 12px;font-size:14px;}
+      .authCard input:focus{outline:none;box-shadow:0 0 0 3px rgba(59,130,246,.25);}
+      .authCard .actions{display:flex;gap:10px;justify-content:flex-end;margin-top:14px;}
+      .authCard .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:9px 14px;border-radius:12px;font-weight:700;border:1px solid rgba(255,255,255,.08);background:#0e1525;color:#e9edf5;cursor:pointer;text-decoration:none;}
+      .authCard .btn.primary{background:linear-gradient(135deg,#159DD8,#159DD8);color:#06111d;border:none;}
+      .authClose{position:absolute;right:10px;top:10px;background:transparent;border:none;color:#92a0b8;font-size:18px;cursor:pointer;}
+      .authStatus{margin-top:8px;font-size:13px;color:#92a0b8;}
+        .authCard .btn.webex{background:#07C;color:white;border:none;padding:11px 20px;}
+        .authCard .btn.webex:hover{background:#0069CC;}
+        .authDivider{display:flex;align-items:center;gap:12px;margin:16px 0;color:#92a0b8;font-size:13px;}
+        .authDivider::before,.authDivider::after{content:'';flex:1;height:1px;background:rgba(255,255,255,.08);}
+      `;
+    document.head.appendChild(style);
+
+    const overlay = document.createElement('div');
+    overlay.className = 'authModalOverlay';
+    overlay.id = 'authModal';
+    overlay.innerHTML = `
+                      <div class="authCard">
+          <button class="authClose" aria-label="Close">×</button>
+          <h2>Sign in with Webex</h2>
+          <p>Click below to authenticate with your Webex account.</p>
+
+          <button class="btn webex" id="authWebex" style="width:100%;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M19.7 7.3c-1.2-1.2-2.7-2-4.5-2.3-.3-1.6-1.2-3-2.5-4-1.4-1-3-1.6-4.7-1.6-2.2 0-4.2.8-5.7 2.3C.8 3.2 0 5.2 0 7.4c0 1.7.6 3.3 1.6 4.7 1 1.3 2.4 2.2 4 2.5.3 1.6 1.2 3 2.5 4 1.5 1 3.1 1.6 4.9 1.6 2.2 0 4.2-.8 5.7-2.3 1.5-1.5 2.3-3.5 2.3-5.7 0-1.8-.6-3.4-1.6-4.7-.1 0-.2-.1-.2-.2zM13 18.4c-1.3 0-2.5-.4-3.5-1.2-.9-.7-1.6-1.7-2-2.8l5.5-2 2 5.5c-1.1.3-1.3.5-2 .5zM7.5 13l-5.3 1.9c-.1-.6-.2-1.2-.2-1.8 0-1.7.6-3.2 1.7-4.3C4.8 7.6 6.4 7 8 7c.6 0 1.2.1 1.8.2L7.5 13zm11.2 2.8c-1.1 1.1-2.6 1.7-4.2 1.7-.6 0-1.2-.1-1.8-.2l2.3-6.3 5.3-1.9c.1.6.2 1.2.2 1.8 0 1.6-.6 3.1-1.8 4.2v-.3zm-7-11.3c1.3 0 2.5.4 3.5 1.2.9.7 1.6 1.7 2 2.8l-5.5 2-2-5.5c.6-.3 1.3-.5 2-.5zM3.3 8.8C4.4 7.7 5.9 7.1 7.5 7.1c.6 0 1.2.1 1.8.2L7 13.6l-5.3 1.9c-.1-.6-.2-1.2-.2-1.8 0-1.7.6-3.2 1.8-4.3v-.6z"/>
+            </svg>
+            Sign in with Webex
+          </button>
+
+          <div class="authStatus" id="authStatus"></div>
+        </div>
+      `;
+    document.body.appendChild(overlay);
+      const CLIENT_ID = 'Cc604fe2354b93ecd1eb3d799e69a4ce981649161c1e31253ae91805e95b54e64';
+      const REDIRECT_URI = 'https://cxasteam.bitbucket.io/opshub/callback.html';
+      const SCOPES = 'spark-admin:locations_write spark:all spark-admin:locations_read spark-admin:organizations_read spark:organizations_read spark-admin:workspace_locations_read spark-admin:places_read cjp:config_read spark:kms spark-admin:devices_read cjp:config_write spark-admin:workspace_locations_write spark-admin:places_write cjp:config spark-admin:devices_write spark-admin:telephony_config_read spark-admin:telephony_config_write audit:events_read spark-admin:licenses_read';const statusEl = overlay.querySelector('#authStatus');
+    const closeBtn = overlay.querySelector('.authClose');const webexBtn = overlay.querySelector('#authWebex');
+    const KEYS = { bearer:'authBearer', org:'authOrg', orgName:'authOrgName' };
+
+    const populate = ()=> {
+      bearerEl.value = localStorage.getItem(KEYS.bearer) || '';
+      orgEl.value = localStorage.getItem(KEYS.org) || '';
+      statusEl.textContent = localStorage.getItem(KEYS.orgName) ? `Org: ${localStorage.getItem(KEYS.orgName)}` : (bearerEl.value ? 'Token loaded' : '');
+    };
+
+    const fetchOrgName = async (bearer, orgId) => {
+      try {
+        const res = await fetch(`https://webexapis.com/v1/organizations/${encodeURIComponent(orgId)}`, { headers:{Authorization:`Bearer ${bearer}`}});
+        const data = await res.json();
+        return data.displayName || data.name || data.organization?.displayName || data.organization?.name || orgId;
+      } catch { return ''; }
+    };
+
+    
+      // OAuth Sign in with Webex
+      webexBtn.addEventListener('click', () => {
+        const authUrl = `https://webexapis.com/v1/authorize?client_id=${CLIENT_ID}&response_type=code&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&scope=${encodeURIComponent(SCOPES)}&state=${Date.now()}&prompt=consent`;
+        window.location.href = authUrl;
+      });const close = ()=> overlay.classList.remove('open');
+    closeBtn.addEventListener('click', close);
+    overlay.addEventListener('click',(e)=>{ if (e.target === overlay) close(); });
+    window.addEventListener('keydown',(e)=>{ if (e.key === 'Escape') close(); });
+
+    const open = ()=> { overlay.classList.add('open'); };
+    document.querySelectorAll('.authLink').forEach(el=>{
+      el.addEventListener('click',(e)=>{ e.preventDefault(); open(); });
+    });
+  })();
+
+  function updateAuthIndicators() {
+    const b = localStorage.getItem('authBearer') || '';
+    const org = localStorage.getItem('authOrgName') || localStorage.getItem('authOrg') || '';
+    const user = localStorage.getItem('authUserName') || '';
+    const userNameEl = document.getElementById('userName');
+    const userOrgEl = document.getElementById('userOrg');
+    if (userNameEl) userNameEl.textContent = b ? (user || 'Authenticated') : 'Not authenticated';
+    if (userOrgEl) userOrgEl.textContent = org || '';
+  }
+  updateAuthIndicators();
+
+  const signOutBtn = document.getElementById('signOutBtn');
+  if (signOutBtn) {
+    signOutBtn.addEventListener('click', () => {
+      localStorage.removeItem('authBearer');
+      localStorage.removeItem('authOrg');
+      localStorage.removeItem('authOrgName');
+      localStorage.removeItem('authUserName');
+      localStorage.removeItem('authRefreshToken');
+      localStorage.removeItem('authExpiresAt');
+      window.location.href = '../../index.html';
+    });
+  }
+
+
+  document.addEventListener('click', (event) => {
+  });
+
+  document.addEventListener('keydown', (event) => {
+  });
+
+  const BASE_URL = 'https://webexapis.com';
+  const ENDPOINT = '/v1/locations?max=500';
+  const CALLING_CONFIG_ENDPOINT = '/v1/telephony/config/locations';
+  const LOCATION_ID_STORAGE_KEY = 'wxcLastCreatedLocationId';
+  const LOCATION_PAYLOAD_STORAGE_KEY = 'wxcLastCreatedLocationPayload';
+  const ROUTE_GROUPS_ENDPOINT = '/v1/telephony/config/premisePstn/routeGroups';
+  const ROUTE_GROUP_STORAGE_KEY = 'wxcLastRouteGroupId';
+  const PSTN_OPTION_STORAGE_KEY = 'wxcLastPstnOptionId';
+  const VM_EXTENSION_STORAGE_KEY = 'wxcLastVmExtension';
+  const loginMethod = localStorage.getItem('authLoginMethod') || '';
+  const orgId = localStorage.getItem('authOrg') || '';
+  const orgParam = loginMethod === 'token' && orgId ? `orgId=${encodeURIComponent(orgId)}` : '';
+
+  function withOrgParam(url) {
+    if (!orgParam || url.includes('orgId=')) return url;
+    return url + (url.includes('?') ? '&' : '?') + orgParam;
+  }
+  const columns = [
+    { key:'name', label:'Name' },
+    { key:'address1', label:'Address' },
+    { key:'city', label:'City' },
+    { key:'state', label:'State' },
+    { key:'country', label:'Country' },
+    { key:'timeZone', label:'Time Zone' },
+    { key:'pstnDisplay', label:'PSTN connection' },
+    { key:'pstnTypeLabel', label:'PSTN type' },
+    { key:'routeGroupLabel', label:'Route group' },
+  ];
+
+  const TIMEZONE_OPTIONS = [
+    'America/Denver',
+    'America/Los_Angeles',
+    'America/Chicago',
+    'America/New_York',
+    'America/Phoenix',
+    'America/Anchorage',
+    'Pacific/Honolulu',
+    'Europe/London',
+    'Europe/Paris',
+    'Europe/Berlin',
+    'Asia/Tokyo',
+    'Asia/Singapore',
+    'Australia/Sydney',
+  ];
+
+  const LANGUAGE_OPTIONS = [
+    'en_US',
+    'en_GB',
+    'es_ES',
+    'es_MX',
+    'fr_FR',
+    'de_DE',
+    'it_IT',
+    'pt_BR',
+    'ja_JP',
+  ];
+
+  const COUNTRY_LANGUAGE_MAP = {
+    US: 'en_US',
+    CA: 'en_US',
+    GB: 'en_GB',
+    FR: 'fr_FR',
+    DE: 'de_DE',
+    IT: 'it_IT',
+    PT: 'pt_BR',
+    BR: 'pt_BR',
+    ES: 'es_ES',
+    MX: 'es_MX',
+    AU: 'en_US',
+    NZ: 'en_US',
+    JP: 'ja_JP',
+    IN: 'en_US',
+    SG: 'en_GB',
+    CN: 'en_US',
+    KR: 'en_US',
+    ZA: 'en_US',
+  };
+
+  const COUNTRY_OPTIONS = [
+    'US','CA','GB','FR','DE','IT','ES','PT','MX','BR','AR','CL','CO',
+    'AU','NZ','JP','KR','CN','SG','IN','IE','NL','BE','CH','AT','SE',
+    'NO','DK','FI','PL','CZ','HU','RO','GR','TR','ZA','AE','SA'
+  ];
+
+  const routeGroupNameMap = new Map();
+  const pstnConnectionDetails = new Map();
+  const PSTN_TYPE_LABELS = {
+    LOCAL_GATEWAY: 'LGW',
+    NON_INTEGRATED_CCP: 'Non-Integrated-CCP',
+  };
+
+  const CREATE_LOCATION_STEPS = [
+    { key:'location', label:'Create location' },
+    { key:'calling', label:'Enable Webex Calling' },
+    { key:'pstn', label:'Configure PSTN connection' },
+    { key:'voice', label:'Configure voicemail' },
+  ];
+  const DELETE_LOCATION_STEPS = [
+    { key:'disable', label:'Disable Webex Calling' },
+    { key:'delete', label:'Delete location' },
+  ];
+  const CREATE_STEP_STATUS_TEXT = {
+    pending:'Waiting to start',
+    active:'In progress…',
+    success:'Completed',
+    error:'Failed',
+  };
+
+  let importBackgrounded = false;
+  let importBackgroundButton = null;
+  let deleteBackgrounded = false;
+  let deleteBackgroundButton = null;
+
+  const CUSTOM_OPTION_VALUE = '__CUSTOM__';
+
+  let locations = [];
+  let routeGroups = [];
+  let pstnConnectionOptions = [];
+  let searchTerm = '';
+  const selectedLocationIds = new Set();
+  const filterKeys = ['name', 'address1', 'city', 'state', 'country', 'timeZone'];
+  const filterValues = {};
+  const filterSelections = {};
+  const filterSearchTerms = {};
+  const FILTER_BLANK_TOKEN = '__BLANK__';
+  let activeFilterKey = '';
+  let activePopoverState = null;
+
+  let activeLocationId = '';
+
+  function normalizeLocation(loc) {
+    const address = loc.address || {};
+    return {
+      name: loc.name || loc.displayName || '',
+      id: loc.id || '',
+      address1: address.address1 || loc.address1 || '',
+      address2: address.address2 || loc.address2 || '',
+      city: address.city || loc.city || '',
+      state: address.state || loc.state || '',
+      postalCode: address.postalCode || loc.postalCode || '',
+      country: address.country || loc.country || '',
+      timeZone: loc.timeZone || loc.timeZoneName || '',
+      preferredLanguage: loc.preferredLanguage || '',
+      announcementLanguage: loc.announcementLanguage || '',
+      notes: loc.notes || '',
+      pstnConnectionConfigured: false,
+      callingConfigured: false,
+    };
+  }
+
+  function applyFilters(data) {
+    const term = (searchTerm || '').toLowerCase();
+    return (data || []).filter(loc => {
+      if (term) {
+        const haystack = [
+          loc.name,
+          loc.address1,
+          loc.city,
+          loc.state,
+          loc.country,
+          loc.timeZone
+        ].filter(Boolean).join(' ').toLowerCase();
+        if (!haystack.includes(term)) return false;
+      }
+      return filterKeys.every(key => {
+        const selections = filterSelections[key];
+        if (!selections || selections.size === 0) return true;
+        const value = loc[key] || '';
+        const normalized = value ? value : FILTER_BLANK_TOKEN;
+        return selections.has(normalized);
+      });
+    });
+  }
+
+  function buildFilterValues(list) {
+    filterKeys.forEach(key => {
+      const set = new Set();
+      list.forEach(loc => {
+        const value = loc[key] || '';
+        if (!value) set.add(FILTER_BLANK_TOKEN);
+        else set.add(value);
+      });
+      filterValues[key] = Array.from(set).sort((a, b) => String(a).localeCompare(String(b)));
+      if (!filterSelections[key]) {
+        filterSelections[key] = new Set(filterValues[key]);
+      } else {
+        filterSelections[key] = new Set([...filterSelections[key]].filter(val => filterValues[key].includes(val)));
+      }
+      if (!filterSearchTerms[key]) filterSearchTerms[key] = '';
+    });
+  }
+
+  function resetFilters() {
+    searchTerm = '';
+    if (els.searchInput) els.searchInput.value = '';
+    filterKeys.forEach(key => {
+      const values = filterValues[key] || [];
+      filterSelections[key] = new Set(values);
+      filterSearchTerms[key] = '';
+      const popover = els.table?.querySelector(`[data-filter-popover="${key}"]`);
+      if (popover) {
+        renderFilterPopover(key);
+      }
+    });
+  }
+
+  function positionPopover(btn, popover) {
+    window.CXASFloatingFilters?.position(btn, popover);
+  }
+
+  function openPopover(key, btn, popover) {
+    const nextState = window.CXASFloatingFilters?.open({
+      button: btn,
+      panel: popover,
+      parent: popover.parentElement,
+    });
+    if (!nextState) return;
+    activeFilterKey = key;
+    activePopoverState = { key, ...nextState };
+    const input = popover.querySelector('.filterSearch');
+    if (input) input.focus();
+  }
+
+  function closePopover() {
+    if (!activePopoverState) return;
+    window.CXASFloatingFilters?.close(activePopoverState);
+    activeFilterKey = '';
+    activePopoverState = null;
+  }
+
+  function renderFilterPopover(key) {
+    const popover = activePopoverState?.key === key
+      ? activePopoverState.panel
+      : els.table.querySelector(`[data-filter-popover="${key}"]`);
+    if (!popover) return;
+    const values = filterValues[key] || [];
+    const searchTerm = (filterSearchTerms[key] || '').toLowerCase();
+    const filteredValues = values.filter(val => {
+      const label = val === FILTER_BLANK_TOKEN ? '(Blank)' : String(val);
+      return label.toLowerCase().includes(searchTerm);
+    });
+    const selected = filterSelections[key] || new Set();
+    const allSelected = selected.size === values.length;
+    popover.innerHTML = `
+      <input class="filterSearch" data-filter-search="${key}" type="text" placeholder="Search..." value="${filterSearchTerms[key] || ''}" />
+      <div class="filterList" data-filter-list="${key}">
+        <label class="filterItem">
+          <input type="checkbox" data-filter-key="${key}" data-filter-value="__ALL__" ${allSelected ? 'checked' : ''} />
+          Select All
+        </label>
+        ${filteredValues.map(val => {
+          const label = val === FILTER_BLANK_TOKEN ? '(Blank)' : String(val);
+          const checked = selected.has(val) ? 'checked' : '';
+          return `
+            <label class="filterItem">
+              <input type="checkbox" data-filter-key="${key}" data-filter-value="${String(val).replace(/"/g,'&quot;')}" ${checked} />
+              ${label}
+            </label>
+          `;
+        }).join('')}
+      </div>
+      <div class="filterMeta">${selected.size} selected</div>
+    `;
+  }
+
+  function buildSelectOptions(values, placeholder, selectedValue) {
+    const options = [`<option value="">${placeholder}</option>`]
+      .concat(values.map(val => `<option value="${val}" ${val === selectedValue ? 'selected' : ''}>${val}</option>`))
+      .concat(`<option value="${CUSTOM_OPTION_VALUE}">Custom…</option>`);
+    return options.join('');
+  }
+
+  function safeStorageSet(key, value) {
+    setLastDeleteErrorMessage('');
+    try {
+      if (value) localStorage.setItem(key, value);
+      else localStorage.removeItem(key);
+    } catch {
+      // ignore storage errors
+    }
+  }
+
+  function safeStorageGet(key) {
+    try {
+      return localStorage.getItem(key) || '';
+    } catch {
+      return '';
+    }
+  }
+
+  function storeRouteGroupSelection(value) {
+    safeStorageSet(ROUTE_GROUP_STORAGE_KEY, value || '');
+  }
+
+  function getStoredRouteGroupSelection() {
+    return safeStorageGet(ROUTE_GROUP_STORAGE_KEY);
+  }
+
+  function storePstnOptionSelection(value) {
+    safeStorageSet(PSTN_OPTION_STORAGE_KEY, value || '');
+  }
+
+  function getStoredPstnOptionSelection() {
+    return safeStorageGet(PSTN_OPTION_STORAGE_KEY);
+  }
+
+  function storeVmExtension(value) {
+    safeStorageSet(VM_EXTENSION_STORAGE_KEY, value || '');
+  }
+
+  function getStoredVmExtension() {
+    return safeStorageGet(VM_EXTENSION_STORAGE_KEY);
+  }
+
+  function getStoredLocationId() {
+    return safeStorageGet(LOCATION_ID_STORAGE_KEY);
+  }
+
+  function setStoredLocationId(value) {
+    safeStorageSet(LOCATION_ID_STORAGE_KEY, value || '');
+  }
+
+  function resolvePreferredLanguage(countryCode) {
+    const code = (countryCode || '').trim().toUpperCase();
+    return COUNTRY_LANGUAGE_MAP[code] || 'en_US';
+  }
+
+  function resolveAnnouncementLanguage(countryCode) {
+    return resolvePreferredLanguage(countryCode).toLowerCase();
+  }
+
+  function setCustomInputVisibility(selectEl, customInputEl) {
+    if (!selectEl || !customInputEl) return;
+    customInputEl.style.display = selectEl.value === CUSTOM_OPTION_VALUE ? '' : 'none';
+  }
+
+  function getSelectValue(selectEl, customInputEl) {
+    if (!selectEl) return '';
+    if (selectEl.value === CUSTOM_OPTION_VALUE) {
+      return (customInputEl?.value || '').trim();
+    }
+    return (selectEl.value || '').trim();
+  }
+
+  function setSelectValue(selectEl, customInputEl, value, options) {
+    if (!selectEl) return;
+    const val = (value || '').trim();
+    if (val && options.includes(val)) {
+      selectEl.value = val;
+      if (customInputEl) customInputEl.value = '';
+    } else if (val) {
+      selectEl.value = CUSTOM_OPTION_VALUE;
+      if (customInputEl) customInputEl.value = val;
+    } else {
+      selectEl.value = '';
+      if (customInputEl) customInputEl.value = '';
+    }
+    setCustomInputVisibility(selectEl, customInputEl);
+  }
+
+  function initSelects() {
+    if (els.locTimeZone) {
+      els.locTimeZone.innerHTML = buildSelectOptions(TIMEZONE_OPTIONS, 'Select time zone*', 'America/Denver');
+      els.locTimeZone.value = 'America/Denver';
+      setCustomInputVisibility(els.locTimeZone, els.locTimeZoneCustom);
+    }
+    if (els.locCountry) {
+      els.locCountry.innerHTML = buildSelectOptions(COUNTRY_OPTIONS, 'Select country*', 'US');
+      els.locCountry.value = 'US';
+      setCustomInputVisibility(els.locCountry, els.locCountryCustom);
+    }
+    if (els.templateTimeZone) {
+      els.templateTimeZone.innerHTML = buildSelectOptions(TIMEZONE_OPTIONS, 'Select time zone*', 'America/Denver');
+      els.templateTimeZone.value = 'America/Denver';
+      setCustomInputVisibility(els.templateTimeZone, els.templateTimeZoneCustom);
+    }
+    if (els.templateCountry) {
+      els.templateCountry.innerHTML = buildSelectOptions(COUNTRY_OPTIONS, 'Select country*', 'US');
+      els.templateCountry.value = 'US';
+      setCustomInputVisibility(els.templateCountry, els.templateCountryCustom);
+    }
+    if (els.templateLanguage) {
+      els.templateLanguage.innerHTML = buildSelectOptions(LANGUAGE_OPTIONS, 'Select language', 'en_US');
+      els.templateLanguage.value = 'en_US';
+      setCustomInputVisibility(els.templateLanguage, els.templateLanguageCustom);
+    }
+    if (els.templateRouteGroup) {
+      updateTemplateRouteGroupSelect(routeGroups);
+    }
+    if (els.templatePstnConnection) {
+      const storedLocationId = getStoredLocationId();
+      if (storedLocationId) {
+        fetchPstnOptions(storedLocationId, { preserveSelection: getStoredPstnOptionSelection(), useStoredSelection: true, autoSelectFirst: false });
+      } else {
+        updateTemplatePstnSelect([]);
+      }
+    }
+  }
+
+  function setFormStatus(message) {
+    if (els.locationFormStatus) els.locationFormStatus.textContent = message || '';
+    if (els.locationFormStatusModal) els.locationFormStatusModal.textContent = message || '';
+  }
+
+  function clearLocationForm() {
+    activeLocationId = '';
+    if (els.locName) els.locName.value = '';
+    setSelectValue(els.locTimeZone, els.locTimeZoneCustom, 'America/Denver', TIMEZONE_OPTIONS);
+    if (els.locAddress1) els.locAddress1.value = '';
+    if (els.locAddress2) els.locAddress2.value = '';
+    if (els.locCity) els.locCity.value = '';
+    if (els.locState) els.locState.value = '';
+    if (els.locPostalCode) els.locPostalCode.value = '';
+    setSelectValue(els.locCountry, els.locCountryCustom, 'US', COUNTRY_OPTIONS);
+    if (els.locRouteGroup) {
+      const storedGroup = getStoredRouteGroupSelection();
+      if (storedGroup && routeGroups.some(group => group.id === storedGroup)) {
+        els.locRouteGroup.value = storedGroup;
+      } else {
+        els.locRouteGroup.value = '';
+      }
+    }
+    if (els.locPstnConnection) {
+      els.locPstnConnection.value = '';
+      storePstnOptionSelection('');
+    }
+    if (els.locVmExtension) els.locVmExtension.value = getStoredVmExtension();
+    if (els.locVmPasscode) els.locVmPasscode.value = '';
+    if (els.updateLocationBtn) els.updateLocationBtn.disabled = true;
+    setFormStatus('');
+  }
+
+  function fillLocationForm(loc) {
+    if (!loc) return;
+    activeLocationId = loc.id || '';
+    if (els.locName) els.locName.value = loc.name || '';
+    setSelectValue(els.locTimeZone, els.locTimeZoneCustom, loc.timeZone || '', TIMEZONE_OPTIONS);
+    if (els.locAddress1) els.locAddress1.value = loc.address1 || '';
+    if (els.locAddress2) els.locAddress2.value = loc.address2 || '';
+    if (els.locCity) els.locCity.value = loc.city || '';
+    if (els.locState) els.locState.value = loc.state || '';
+    if (els.locPostalCode) els.locPostalCode.value = loc.postalCode || '';
+    setSelectValue(els.locCountry, els.locCountryCustom, loc.country || '', COUNTRY_OPTIONS);
+    if (els.locRouteGroup) {
+      const storedGroup = getStoredRouteGroupSelection();
+      if (storedGroup && routeGroups.some(group => group.id === storedGroup)) {
+        els.locRouteGroup.value = storedGroup;
+      } else {
+        els.locRouteGroup.value = '';
+      }
+    }
+    if (els.locPstnConnection) {
+      els.locPstnConnection.value = '';
+    }
+    if (els.locVmExtension) els.locVmExtension.value = getStoredVmExtension();
+    if (els.locVmPasscode) els.locVmPasscode.value = '';
+    if (els.updateLocationBtn) els.updateLocationBtn.disabled = !activeLocationId;
+    setFormStatus(activeLocationId ? 'Editing location.' : '');
+    if (activeLocationId) {
+      fetchPstnOptions(activeLocationId);
+    } else {
+      updatePstnConnectionSelect([]);
+    }
+  }
+
+  function buildLocationPayload() {
+    const country = getSelectValue(els.locCountry, els.locCountryCustom);
+    const preferredLanguage = resolvePreferredLanguage(country);
+    const announcementLanguage = resolveAnnouncementLanguage(country);
+    return {
+      name: (els.locName?.value || '').trim(),
+      timeZone: getSelectValue(els.locTimeZone, els.locTimeZoneCustom),
+      preferredLanguage,
+      announcementLanguage,
+      address: {
+        address1: (els.locAddress1?.value || '').trim(),
+        address2: (els.locAddress2?.value || '').trim() || undefined,
+        city: (els.locCity?.value || '').trim(),
+        state: (els.locState?.value || '').trim(),
+        postalCode: (els.locPostalCode?.value || '').trim(),
+        country,
+      },
+    };
+  }
+
+  function validateLocationPayload(payload) {
+    if (!payload.name) return 'Name is required.';
+    if (!payload.timeZone) return 'Time Zone is required.';
+    if (!payload.address?.address1 || !payload.address?.city || !payload.address?.state || !payload.address?.postalCode || !payload.address?.country) {
+      return 'Address 1, City, State, Postal Code, and Country are required.';
+    }
+    return '';
+  }
+
+  function showActionModal(title, message, opts = {}) {
+    const variant = opts.variant || 'success';
+    const overlayId = 'actionModal';
+    const existing = document.getElementById(overlayId);
+    if (existing) existing.remove();
+    const gradient = variant === 'danger'
+      ? 'linear-gradient(135deg, #ef4444, #dc2626)'
+      : 'linear-gradient(135deg, #159DD8, #159DD8)';
+    const modal = document.createElement('div');
+    modal.id = overlayId;
+    modal.className = 'successModalOverlay';
+    modal.innerHTML = `
+      <div class="successCard">
+        <div class="successIcon" style="background:${gradient};">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+          </svg>
+        </div>
+        <h2>${title}</h2>
+        <p class="successMsg">${message}</p>
+        <button class="btn primary" id="actionOkBtn">OK</button>
+      </div>
+    `;
+    document.body.appendChild(modal);
+    setTimeout(() => modal.classList.add('show'), 10);
+    const closeModal = () => {
+      modal.classList.remove('show');
+      setTimeout(() => modal.remove(), 300);
+    };
+    modal.querySelector('#actionOkBtn').addEventListener('click', closeModal);
+    modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+    window.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); }, { once:true });
+  }
+
+  function confirmAction(title, message, opts = {}) {
+    return new Promise((resolve) => {
+      const okLabel = opts.okLabel || 'Delete';
+      const cancelLabel = opts.cancelLabel || 'Cancel';
+      const variant = opts.variant || 'danger';
+      const okClass = variant === 'danger' ? 'btn danger' : 'btn primary';
+      const overlayId = 'confirmModal';
+      const existing = document.getElementById(overlayId);
+      if (existing) existing.remove();
+      const gradient = variant === 'danger'
+        ? 'linear-gradient(135deg, #ef4444, #dc2626)'
+        : 'linear-gradient(135deg, #159DD8, #159DD8)';
+      const modal = document.createElement('div');
+      modal.id = overlayId;
+      modal.className = 'successModalOverlay';
+      modal.innerHTML = `
+        <div class="successCard">
+          <div class="successIcon" style="background:${gradient};">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+              <polyline points="22 4 12 14.01 9 11.01"></polyline>
+            </svg>
+          </div>
+          <h2>${title}</h2>
+          <p class="successMsg">${message}</p>
+          <div style="display:flex; gap:10px; justify-content:center; margin-top:12px;">
+            <button class="btn secondary" id="confirmCancelBtn">${cancelLabel}</button>
+            <button class="${okClass}" id="confirmOkBtn">${okLabel}</button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(modal);
+      setTimeout(() => modal.classList.add('show'), 10);
+      const closeModal = (result) => {
+        modal.classList.remove('show');
+        setTimeout(() => modal.remove(), 300);
+        resolve(result);
+      };
+      modal.querySelector('#confirmOkBtn').addEventListener('click', () => closeModal(true));
+      modal.querySelector('#confirmCancelBtn').addEventListener('click', () => closeModal(false));
+      modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(false); });
+      window.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(false); }, { once:true });
+    });
+  }
+
+  let progressModal = null;
+  function openProgressModal(title, message, total = 0) {
+    const existing = document.getElementById('progressModal');
+    if (existing) existing.remove();
+    const modal = document.createElement('div');
+    modal.id = 'progressModal';
+    modal.className = 'successModalOverlay';
+    modal.innerHTML = `
+      <div class="successCard">
+        <div class="successIcon" style="background:linear-gradient(135deg,#159DD8,#159DD8);">
+          <div class="spinner" aria-hidden="true"></div>
+        </div>
+        <h2>${title}</h2>
+        <p class="successMsg" id="progressMessage">${message}</p>
+        <div class="progress"><div id="progressFill" class="bar" style="width:0%;"></div></div>
+        <div class="progressText" id="progressText">0/${total}</div>
+      </div>
+    `;
+    document.body.appendChild(modal);
+    setTimeout(() => modal.classList.add('show'), 10);
+    progressModal = modal;
+  }
+
+  function updateProgressModal(message, done, total) {
+    if (!progressModal) return;
+    const msgEl = progressModal.querySelector('#progressMessage');
+    const fillEl = progressModal.querySelector('#progressFill');
+    const textEl = progressModal.querySelector('#progressText');
+    if (msgEl) msgEl.textContent = message;
+    if (textEl) textEl.textContent = `${done}/${total}`;
+    if (fillEl) {
+      const pct = total ? Math.round((done / total) * 100) : 0;
+      fillEl.style.width = `${pct}%`;
+    }
+  }
+
+  function closeProgressModal() {
+    if (!progressModal) return;
+    const modal = progressModal;
+    progressModal = null;
+    modal.classList.remove('show');
+    setTimeout(() => modal.remove(), 250);
+  }
+
+  function downloadFailureReport(failures, filenamePrefix = 'locations-errors') {
+    if (!failures || !failures.length) return;
+    const headers = ['row', 'name', 'timeZone', 'country', 'status', 'response'];
+    const escapeCsv = (value) => {
+      const str = String(value ?? '');
+      return `"${str.replace(/"/g, '""')}"`;
+    };
+    const lines = [
+      headers.join(','),
+      ...failures.map(f => [
+        f.row,
+        escapeCsv(f.name),
+        escapeCsv(f.timeZone),
+        escapeCsv(f.country),
+        escapeCsv(f.status),
+        escapeCsv(f.response)
+      ].join(','))
+    ];
+    const blob = new Blob([lines.join('\n')], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `${filenamePrefix}-${new Date().toISOString().slice(0,10)}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+  }
+
+  function showResultModal(title, message, opts = {}) {
+    const overlayId = 'resultModal';
+    const existing = document.getElementById(overlayId);
+    if (existing) existing.remove();
+    const variant = opts.variant || 'success';
+    const failures = Array.isArray(opts.failures) ? opts.failures : [];
+    const gradient = variant === 'danger'
+      ? 'linear-gradient(135deg, #ef4444, #dc2626)'
+      : 'linear-gradient(135deg, #159DD8, #159DD8)';
+    const modal = document.createElement('div');
+    modal.id = overlayId;
+    modal.className = 'successModalOverlay';
+    modal.innerHTML = `
+      <div class="successCard">
+        <div class="successIcon" style="background:${gradient};">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+          </svg>
+        </div>
+        <h2>${title}</h2>
+        <p class="successMsg">${message}</p>
+        ${failures.length ? `<button class="btn secondary" id="downloadFailuresBtn" style="margin-bottom:8px;">Download error report</button>` : ''}
+        <button class="btn primary" id="resultOkBtn">OK</button>
+      </div>
+    `;
+    document.body.appendChild(modal);
+    setTimeout(() => modal.classList.add('show'), 10);
+    const closeModal = () => {
+      modal.classList.remove('show');
+      setTimeout(() => modal.remove(), 300);
+    };
+    modal.querySelector('#resultOkBtn').addEventListener('click', closeModal);
+    modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+    if (failures.length) {
+      modal.querySelector('#downloadFailuresBtn').addEventListener('click', () => {
+        downloadFailureReport(failures, opts.filenamePrefix || 'locations-errors');
+      });
+    }
+  }
+
+  function buildCreationStepRows() {
+    return CREATE_LOCATION_STEPS.map((step) => `
+      <div class="createProgressStep" data-step-key="${step.key}" data-status="pending">
+        <div class="step-indicator"></div>
+        <div>
+          <div class="step-label">${step.label}</div>
+          <div class="step-detail">${CREATE_STEP_STATUS_TEXT.pending}</div>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  let createProgressReady = false;
+
+  function setCreateProgressReady(value) {
+    createProgressReady = Boolean(value);
+    const btn = document.getElementById('createProgressCloseBtn');
+    if (btn) btn.disabled = !createProgressReady;
+  }
+
+  function openCreateProgressModal() {
+    closeCreateProgressModal();
+    const overlay = document.createElement('div');
+    overlay.id = 'createProgressModal';
+    overlay.className = 'modalOverlay createProgressOverlay';
+    overlay.innerHTML = `
+      <div class="createProgressCard">
+        <div class="createProgressHeader">
+          <h2>Configuring location</h2>
+          <p>We are finishing every step before your location is ready.</p>
+        </div>
+        <div class="progressSteps">
+          ${buildCreationStepRows()}
+        </div>
+        <div style="margin-top:16px; text-align:right;">
+          <button class="btn secondary" id="createProgressCloseBtn" type="button" disabled>Close</button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(overlay);
+    setTimeout(() => overlay.classList.add('open'), 10);
+    const closeBtn = overlay.querySelector('#createProgressCloseBtn');
+    if (closeBtn) {
+      closeBtn.addEventListener('click', async () => {
+        await closeCreateProgressModal();
+        try {
+          await fetchLocations();
+        } catch {
+          // ignore
+        }
+        resetFilters();
+        renderTable();
+      });
+      setCreateProgressReady(false);
+    }
+  }
+
+  async function closeCreateProgressModal() {
+    const modal = document.getElementById('createProgressModal');
+    if (!modal) return;
+    modal.classList.remove('open');
+    setTimeout(() => {
+      if (modal.parentNode) modal.parentNode.removeChild(modal);
+    }, 250);
+    setCreateProgressReady(false);
+  }
+
+  function setCreateStepStatus(stepKey, status, detail) {
+    if (!stepKey) return;
+    const modal = document.getElementById('createProgressModal');
+    if (!modal) return;
+    const stepEl = modal.querySelector(`[data-step-key="${stepKey}"]`);
+    if (!stepEl) return;
+    const normalizedStatus = status || 'pending';
+    stepEl.dataset.status = normalizedStatus;
+    const detailText = detail || CREATE_STEP_STATUS_TEXT[normalizedStatus] || '';
+    const detailEl = stepEl.querySelector('.step-detail');
+    if (detailEl) detailEl.textContent = detailText;
+    const indicator = stepEl.querySelector('.step-indicator');
+    if (!indicator) return;
+    const iconMap = { success:'✔', error:'✕', active:'', pending:'' };
+    indicator.textContent = iconMap[normalizedStatus] || '';
+  }
+
+  function buildImportStepRows() {
+    return CREATE_LOCATION_STEPS.map((step) => `
+      <div class="createProgressStep" data-step-key="${step.key}" data-status="pending">
+        <div class="step-indicator"></div>
+        <div>
+          <div class="step-label">${step.label}</div>
+          <div class="step-detail">${CREATE_STEP_STATUS_TEXT.pending}</div>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  let importProgressReady = false;
+
+  function setImportProgressReady(value) {
+    importProgressReady = Boolean(value);
+    const btn = document.getElementById('importProgressCloseBtn');
+    if (btn) btn.disabled = !importProgressReady;
+  }
+
+  function openImportProgressModal(total = 0) {
+    closeImportProgressModal();
+    importBackgrounded = false;
+    hideImportBackgroundButton();
+    const overlay = document.createElement('div');
+    overlay.id = 'importProgressModal';
+    overlay.className = 'modalOverlay createProgressOverlay';
+    overlay.innerHTML = `
+      <div class="createProgressCard">
+        <div class="createProgressHeader">
+          <h2>Processing CSV import</h2>
+          <p id="importProgressMessage">Preparing…</p>
+        </div>
+        <div class="progressSteps">
+          ${buildImportStepRows()}
+        </div>
+        <div style="margin-top:16px; text-align:right; display:flex; gap:8px; justify-content:flex-end;">
+          <button class="btn secondary" id="importProgressBackgroundBtn" type="button">Run in background</button>
+          <button class="btn secondary" id="importProgressCloseBtn" type="button" disabled>Close</button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(overlay);
+    setTimeout(() => overlay.classList.add('open'), 10);
+    const closeBtn = overlay.querySelector('#importProgressCloseBtn');
+    const backgroundBtn = overlay.querySelector('#importProgressBackgroundBtn');
+    if (closeBtn) {
+      closeBtn.addEventListener('click', closeImportProgressModal);
+    }
+    if (backgroundBtn) {
+      backgroundBtn.addEventListener('click', () => {
+        importBackgrounded = true;
+        overlay.classList.remove('open');
+        overlay.style.display = 'none';
+        showImportBackgroundButton('CSV import running...');
+      });
+    }
+    setImportProgressReady(false);
+  }
+
+  function closeImportProgressModal() {
+    const modal = document.getElementById('importProgressModal');
+    if (!modal) return;
+    importBackgrounded = false;
+    hideImportBackgroundButton();
+    modal.classList.remove('open');
+    setTimeout(() => {
+      if (modal.parentNode) modal.parentNode.removeChild(modal);
+    }, 250);
+    setImportProgressReady(false);
+  }
+
+  function resetImportStepStatuses() {
+    CREATE_LOCATION_STEPS.forEach((step) => {
+      setImportStepStatus(step.key, 'pending', CREATE_STEP_STATUS_TEXT.pending);
+    });
+  }
+
+  function setImportStepStatus(stepKey, status, detail) {
+    if (!stepKey) return;
+    const modal = document.getElementById('importProgressModal');
+    if (!modal) return;
+    const stepEl = modal.querySelector(`[data-step-key="${stepKey}"]`);
+    if (!stepEl) return;
+    const normalizedStatus = status || 'pending';
+    stepEl.dataset.status = normalizedStatus;
+    const detailText = detail || CREATE_STEP_STATUS_TEXT[normalizedStatus] || '';
+    const detailEl = stepEl.querySelector('.step-detail');
+    if (detailEl) detailEl.textContent = detailText;
+    const indicator = stepEl.querySelector('.step-indicator');
+    if (!indicator) return;
+    const iconMap = { success:'✔', error:'✕', active:'', pending:'' };
+    indicator.textContent = iconMap[normalizedStatus] || '';
+  }
+
+  function setImportProgressMessage(message) {
+    const modal = document.getElementById('importProgressModal');
+    if (!modal) return;
+    const msg = modal.querySelector('#importProgressMessage');
+    if (msg) msg.textContent = message;
+    if (importBackgrounded) {
+      showImportBackgroundButton(message || 'View CSV import status');
+    }
+  }
+
+  function ensureImportBackgroundButton() {
+    if (importBackgroundButton) return importBackgroundButton;
+    const btn = document.createElement('button');
+    btn.id = 'importBackgroundStatusBtn';
+    btn.type = 'button';
+    btn.className = 'btn secondary backgroundStatusBtn';
+    btn.textContent = 'View CSV import status';
+    btn.addEventListener('click', () => {
+      const modal = document.getElementById('importProgressModal');
+      if (!modal) return;
+      modal.style.display = '';
+      setTimeout(() => modal.classList.add('open'), 10);
+      importBackgrounded = false;
+      hideImportBackgroundButton();
+    });
+    document.body.appendChild(btn);
+    importBackgroundButton = btn;
+    return btn;
+  }
+
+  function showImportBackgroundButton(label = 'View CSV import status') {
+    const btn = ensureImportBackgroundButton();
+    btn.textContent = label;
+    btn.style.display = 'inline-flex';
+  }
+
+  function hideImportBackgroundButton() {
+    if (!importBackgroundButton) return;
+    importBackgroundButton.style.display = 'none';
+  }
+
+  function ensureDeleteBackgroundButton() {
+    if (deleteBackgroundButton) return deleteBackgroundButton;
+    const btn = document.createElement('button');
+    btn.id = 'deleteBackgroundStatusBtn';
+    btn.type = 'button';
+    btn.className = 'btn secondary backgroundStatusBtn';
+    btn.textContent = 'View delete status';
+    btn.addEventListener('click', () => {
+      const modal = document.getElementById('deleteProgressModal');
+      if (!modal) return;
+      modal.style.display = '';
+      setTimeout(() => modal.classList.add('open'), 10);
+      deleteBackgrounded = false;
+      hideDeleteBackgroundButton();
+    });
+    document.body.appendChild(btn);
+    deleteBackgroundButton = btn;
+    return btn;
+  }
+
+  function showDeleteBackgroundButton(label = 'View delete status') {
+    const btn = ensureDeleteBackgroundButton();
+    btn.textContent = label;
+    btn.style.display = 'inline-flex';
+  }
+
+  function hideDeleteBackgroundButton() {
+    if (!deleteBackgroundButton) return;
+    deleteBackgroundButton.style.display = 'none';
+  }
+
+  function buildDeleteStepRows() {
+    return DELETE_LOCATION_STEPS.map((step) => `
+      <div class="createProgressStep" data-step-key="${step.key}" data-status="pending">
+        <div class="step-indicator"></div>
+        <div>
+          <div class="step-label">${step.label}</div>
+          <div class="step-detail">${CREATE_STEP_STATUS_TEXT.pending}</div>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  let deleteProgressReady = false;
+
+  function setDeleteProgressReady(value) {
+    deleteProgressReady = Boolean(value);
+    const btn = document.getElementById('deleteProgressCloseBtn');
+    if (btn) btn.disabled = !deleteProgressReady;
+  }
+
+  function openDeleteProgressModal() {
+    closeDeleteProgressModal();
+    const overlay = document.createElement('div');
+    overlay.id = 'deleteProgressModal';
+    overlay.className = 'modalOverlay createProgressOverlay';
+    overlay.innerHTML = `
+      <div class="createProgressCard">
+        <div class="createProgressHeader">
+          <h2>Deleting location</h2>
+          <p>We are disabling calling before removing the location.</p>
+        </div>
+        <div class="progressSteps">
+          ${buildDeleteStepRows()}
+        </div>
+        <div style="margin-top:16px; text-align:right; display:flex; gap:8px; justify-content:flex-end;">
+          <button class="btn secondary" id="deleteProgressBackgroundBtn" type="button">Run in background</button>
+          <button class="btn secondary" id="deleteProgressCloseBtn" type="button" disabled>Close</button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(overlay);
+    setTimeout(() => overlay.classList.add('open'), 10);
+    const closeBtn = overlay.querySelector('#deleteProgressCloseBtn');
+    const backgroundBtn = overlay.querySelector('#deleteProgressBackgroundBtn');
+    if (closeBtn) {
+      closeBtn.addEventListener('click', closeDeleteProgressModal);
+      setDeleteProgressReady(false);
+    }
+    if (backgroundBtn) {
+      backgroundBtn.addEventListener('click', () => {
+        deleteBackgrounded = true;
+        overlay.classList.remove('open');
+        overlay.style.display = 'none';
+        showDeleteBackgroundButton('Delete running...');
+      });
+    }
+  }
+
+  function closeDeleteProgressModal() {
+    const modal = document.getElementById('deleteProgressModal');
+    if (!modal) return;
+    deleteBackgrounded = false;
+    hideDeleteBackgroundButton();
+    modal.classList.remove('open');
+    setTimeout(() => {
+      if (modal.parentNode) modal.parentNode.removeChild(modal);
+    }, 250);
+    setDeleteProgressReady(false);
+  }
+
+  function setDeleteStepStatus(stepKey, status, detail) {
+    if (!stepKey) return;
+    const modal = document.getElementById('deleteProgressModal');
+    if (!modal) return;
+    const stepEl = modal.querySelector(`[data-step-key="${stepKey}"]`);
+    if (!stepEl) return;
+    const normalizedStatus = status || 'pending';
+    stepEl.dataset.status = normalizedStatus;
+    const detailText = detail || CREATE_STEP_STATUS_TEXT[normalizedStatus] || '';
+    const detailEl = stepEl.querySelector('.step-detail');
+    if (detailEl) detailEl.textContent = detailText;
+    const indicator = stepEl.querySelector('.step-indicator');
+    if (!indicator) return;
+    const iconMap = { success:'✔', error:'✕', active:'', pending:'' };
+    indicator.textContent = iconMap[normalizedStatus] || '';
+  }
+
+  function getFilteredLocations() {
+    return applyFilters(locations);
+  }
+
+  function updateSelectionUI() {
+    const hasSelection = selectedLocationIds.size > 0;
+    if (els.clearLocationsSelectionBtn) els.clearLocationsSelectionBtn.disabled = !hasSelection;
+    if (els.bulkPstnUpdateBtn) els.bulkPstnUpdateBtn.disabled = !hasSelection;
+    if (els.deleteSelectedLocationsBtn) els.deleteSelectedLocationsBtn.disabled = !hasSelection;
+    const filtered = getFilteredLocations();
+    const allSelected = filtered.length > 0 && filtered.every(loc => selectedLocationIds.has(loc.id));
+    const toggle = els.table?.querySelector('#selectAllLocationsToggle');
+    if (toggle) toggle.checked = allSelected;
+  }
+
+  function renderTable() {
+    const filtered = applyFilters(locations);
+    if (!els.table) return;
+    if (activePopoverState) closePopover();
+    if (!locations.length) {
+      els.table.innerHTML = '';
+      els.emptyState.style.display = 'block';
+      return;
+    }
+    els.emptyState.style.display = filtered.length ? 'none' : 'block';
+    const thead = `
+      <thead>
+        <tr class="tableHeaderRow">
+          <th style="width:40px; text-align:center;">
+            <input type="checkbox" id="selectAllLocationsToggle">
+          </th>
+          ${columns.map(c => `
+            <th>
+              <div style="position:relative; display:flex; align-items:center;">
+                <button class="filterIconBtn" data-filter-btn="${c.key}" title="Filter ${c.label}" aria-label="Filter ${c.label}">
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M22 3H2l8 9v7l4 2v-9l8-9z"></path>
+                  </svg>
+                </button>
+                ${c.label}
+                <div class="filterPopover" data-filter-popover="${c.key}"></div>
+              </div>
+            </th>
+          `).join('')}
+          <th>Actions</th>
+        </tr>
+      </thead>
+    `;
+    const enrichedRows = filtered.map(row => {
+      const detail = row.pstnDetail || pstnConnectionDetails.get(row.id);
+      const pstnLabel = detail?.displayName || 'Not configured';
+      const pstnType = detail?.pstnConnectionType ? formatPstnType(detail.pstnConnectionType) : 'Not configured';
+      const routeGroupId = detail?.routeId || '';
+      const routeGroupLabel = routeGroupId ? getRouteGroupLabel(routeGroupId) : (row.routeGroupLabel || 'Not assigned');
+      const callingStatusLabel = row.callingConfigured ? 'Enabled' : 'Not enabled';
+      return {
+        ...row,
+        pstnDisplay: pstnLabel,
+        pstnTypeLabel: pstnType,
+        routeGroupLabel,
+        callingStatusLabel,
+      };
+    });
+    const rowsHtml = enrichedRows.map(row => {
+      return `<tr>
+        <td style="text-align:center;"><input type="checkbox" data-select-id="${row.id}" ${selectedLocationIds.has(row.id) ? 'checked' : ''}></td>
+        ${columns.map(c=>`<td>${row[c.key] || ''}</td>`).join('')}
+        <td>
+          <div class="actionBtns">
+            <button
+              class="btn danger actionBtn"
+              data-delete-id="${row.id}"
+              ${row.callingConfigured ? 'title="Location has Webex Calling active"' : ''}
+            >Delete</button>
+          </div>
+        </td>
+      </tr>`;
+    }).join('');
+    const tbody = `<tbody>${rowsHtml}</tbody>`;
+    els.table.innerHTML = thead + tbody;
+    filterKeys.forEach(key => renderFilterPopover(key));
+    updateSelectionUI();
+    if (activeFilterKey) {
+      const popover = els.table.querySelector(`[data-filter-popover="${activeFilterKey}"]`);
+      if (popover) {
+        popover.classList.add('open');
+        const input = popover.querySelector('.filterSearch');
+        if (input) {
+          input.focus();
+          const len = input.value.length;
+          input.setSelectionRange(len, len);
+        }
+      }
+    }
+  }
+
+  function downloadCSV() {
+    if (!locations.length) return;
+    const headers = columns.map(c => c.label);
+    const csv = [headers.join(',')]
+      .concat(locations.map(r => columns.map(c => JSON.stringify(r[c.key] ?? '').replace(/^\"|\"$/g,'')).join(',')))
+      .join('\n');
+    const blob = new Blob([csv], {type:'text/csv'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'locations.csv';
+    a.click();
+  }
+
+  async function fetchRouteGroups() {
+    if (!els.locRouteGroup) return;
+    try {
+      const token = (localStorage.getItem(SHARED_BEARER_KEY) || '').trim();
+      if (!token) throw new Error('Bearer token required. Click Authenticate to set it.');
+      const res = await fetch(withOrgParam(`${BASE_URL}${ROUTE_GROUPS_ENDPOINT}`), {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const text = await res.text();
+      if (!res.ok) throw new Error(`HTTP ${res.status}: ${text}`);
+      const data = parseJsonResponse(text);
+      const items = Array.isArray(data.routeGroups)
+        ? data.routeGroups
+        : (Array.isArray(data) ? data : []);
+      routeGroups = items;
+      routeGroupNameMap.clear();
+      items.forEach(group => {
+        if (group?.id) {
+          routeGroupNameMap.set(group.id, group.name || group.id);
+        }
+      });
+      updateRouteGroupSelect(items);
+    } catch (err) {
+      routeGroups = [];
+      updateRouteGroupSelect([]);
+      console.warn('Failed to load route groups.', err);
+    }
+  }
+
+  function setLocationPstnDetail(locationId, detail) {
+    if (!locationId) return;
+    if (detail) {
+      pstnConnectionDetails.set(locationId, detail);
+    } else {
+      pstnConnectionDetails.delete(locationId);
+    }
+    const loc = locations.find(item => item.id === locationId);
+    if (loc) {
+      loc.pstnDetail = detail;
+    }
+  }
+
+  function formatPstnType(type) {
+    if (!type) return 'Not configured';
+    return PSTN_TYPE_LABELS[type] || type.replace(/_/g, ' ');
+  }
+
+  function updateRouteGroupSelect(groups) {
+    if (!els.locRouteGroup) return;
+    const lines = ['<option value="">Route group (optional)</option>'];
+    groups.forEach(group => {
+      const label = group.name || group.id;
+      lines.push(`<option value="${group.id}">${label}</option>`);
+    });
+    els.locRouteGroup.innerHTML = lines.join('');
+    const stored = getStoredRouteGroupSelection();
+    if (stored && groups.some(group => group.id === stored)) {
+      els.locRouteGroup.value = stored;
+    } else {
+      els.locRouteGroup.value = '';
+    }
+    updateTemplateRouteGroupSelect(groups);
+  }
+
+  function updateTemplateRouteGroupSelect(groups) {
+    if (!els.templateRouteGroup) return;
+    const lines = ['<option value="">Route group (optional)</option>'];
+    groups.forEach(group => {
+      const label = group.name || group.id;
+      lines.push(`<option value="${group.id}">${label}</option>`);
+    });
+    els.templateRouteGroup.innerHTML = lines.join('');
+    els.templateRouteGroup.value = '';
+    updateBulkRouteGroupSelect(groups);
+  }
+
+  function updateBulkRouteGroupSelect(groups) {
+    if (!els.bulkRouteGroup) return;
+    const lines = ['<option value="">Route group (optional)</option>'];
+    groups.forEach(group => {
+      const label = group.name || group.id;
+      lines.push(`<option value="${group.id}">${label}</option>`);
+    });
+    els.bulkRouteGroup.innerHTML = lines.join('');
+    els.bulkRouteGroup.value = '';
+  }
+
+  function getRouteGroupLabel(routeGroupId) {
+    if (!routeGroupId) return 'Not assigned';
+    return routeGroupNameMap.get(routeGroupId) || routeGroupId;
+  }
+
+  function updateTemplatePstnSelect(options) {
+    if (!els.templatePstnConnection) return;
+    const lines = ['<option value="">Select PSTN connection (optional)</option>'];
+    (options || []).forEach(opt => {
+      const label = opt.displayName || opt.name || opt.id;
+      lines.push(`<option value="${opt.id}">${label}</option>`);
+    });
+    els.templatePstnConnection.innerHTML = lines.join('');
+    els.templatePstnConnection.value = '';
+  }
+
+  function updateBulkPstnSelect(options) {
+    if (!els.bulkPstnConnection || !els.bulkPstnHint) return;
+    const lines = ['<option value="">Select PSTN connection (optional)</option>'];
+    (options || []).forEach(opt => {
+      const label = opt.displayName || opt.name || opt.id;
+      lines.push(`<option value="${opt.id}">${label}</option>`);
+    });
+    els.bulkPstnConnection.innerHTML = lines.join('');
+    els.bulkPstnConnection.disabled = !options.length;
+    els.bulkPstnConnection.value = '';
+    els.bulkPstnHint.textContent = options.length
+      ? 'These PSTN options were loaded from the first selected location.'
+      : 'No PSTN options were found for the first selected location.';
+  }
+
+  function getPstnConnectionOptionsUrl(locationId) {
+    if (!locationId) return '';
+    const url = `${BASE_URL}/v1/telephony/pstn/locations/${encodeURIComponent(locationId)}/connectionOptions`;
+    return withOrgParam(url);
+  }
+
+  async function fetchPstnConnectionOptionsForLocation(locationId, token) {
+    const url = getPstnConnectionOptionsUrl(locationId);
+    if (!url || !token) return [];
+    const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
+    const text = await res.text();
+    if (!res.ok) throw new Error(`HTTP ${res.status}: ${text}`);
+    const data = parseJsonResponse(text);
+    return Array.isArray(data.connectionOptions)
+      ? data.connectionOptions
+      : (Array.isArray(data.items)
+        ? data.items
+        : (Array.isArray(data) ? data : []));
+  }
+
+  async function fetchPstnOptions(locationId, opts = {}) {
+    if (!locationId || !els.locPstnConnection) {
+      updatePstnConnectionSelect([]);
+      return [];
+    }
+    const url = getPstnConnectionOptionsUrl(locationId);
+    if (!url) {
+      updatePstnConnectionSelect([]);
+      return [];
+    }
+    try {
+      const token = (localStorage.getItem(SHARED_BEARER_KEY) || '').trim();
+      if (!token) throw new Error('Bearer token required. Click Authenticate to set it.');
+      const options = await fetchPstnConnectionOptionsForLocation(locationId, token);
+      pstnConnectionOptions = options;
+      updatePstnConnectionSelect(pstnConnectionOptions, opts);
+      if (locationId) {
+        const detail = pstnConnectionDetails.get(locationId);
+        if (!detail && options.length) {
+          setLocationPstnDetail(locationId, null);
+        }
+      }
+      return options;
+    } catch (err) {
+      pstnConnectionOptions = [];
+      updatePstnConnectionSelect([]);
+      console.warn('Failed to load PSTN connection options.', err);
+      return [];
+    }
+  }
+
+  function updatePstnConnectionSelect(options, opts = {}) {
+    if (!els.locPstnConnection || !els.locPstnHint) return;
+    const lines = ['<option value="">Select PSTN connection (optional)</option>'];
+    options.forEach(option => {
+      const label = option.displayName || option.name || option.id;
+      lines.push(`<option value="${option.id}">${label}</option>`);
+    });
+    els.locPstnConnection.innerHTML = lines.join('');
+    els.locPstnConnection.disabled = false;
+    els.locPstnHint.textContent = 'Choose a PSTN cloud that should serve this location.';
+    const preservedId = (opts.preserveSelection || '').trim();
+    const useStored = opts.useStoredSelection !== false;
+    if (preservedId && options.some(opt => opt.id === preservedId)) {
+      els.locPstnConnection.value = preservedId;
+    } else if (opts.autoSelectFirst && options.length) {
+      els.locPstnConnection.value = options[0].id;
+    } else if (useStored) {
+      const stored = getStoredPstnOptionSelection();
+      if (stored && options.some(opt => opt.id === stored)) {
+        els.locPstnConnection.value = stored;
+      } else {
+        els.locPstnConnection.value = '';
+      }
+    } else {
+      els.locPstnConnection.value = '';
+    }
+    updateTemplatePstnSelect(options);
+  }
+
+  async function fetchPstnConnectionDetail(locationId, token) {
+    if (!locationId || !token) return null;
+    try {
+      const url = withOrgParam(`${BASE_URL}/v1/telephony/pstn/locations/${encodeURIComponent(locationId)}/connection`);
+      const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
+      const text = await res.text();
+      if (res.status === 404) {
+        pstnConnectionDetails.delete(locationId);
+        return null;
+      }
+      if (!res.ok) {
+        throw new Error(`HTTP ${res.status}: ${text}`);
+      }
+      const data = parseJsonResponse(text);
+      if (!data || !data.id) {
+        setLocationPstnDetail(locationId, null);
+        return null;
+      }
+      setLocationPstnDetail(locationId, data);
+      return data;
+    } catch (err) {
+      pstnConnectionDetails.delete(locationId);
+      console.warn('Failed to load PSTN connection details for', locationId, err);
+      return null;
+    }
+  }
+
+  async function seedPstnConnectionOptions(locationsList) {
+    const entries = Array.isArray(locationsList) ? locationsList : [];
+    if (!entries.length) {
+      setStoredLocationId('');
+      updatePstnConnectionSelect([]);
+      return;
+    }
+    const ids = [];
+    const seen = new Set();
+    const pushId = (value) => {
+      if (!value) return;
+      if (seen.has(value)) return;
+      seen.add(value);
+      ids.push(value);
+    };
+    pushId(getStoredLocationId());
+    entries.forEach((loc) => pushId(loc?.id));
+    if (!ids.length) {
+      setStoredLocationId('');
+      updatePstnConnectionSelect([]);
+      return;
+    }
+    for (const id of ids) {
+      const options = await fetchPstnOptions(id);
+      if (options && options.length) {
+        setStoredLocationId(id);
+        return;
+      }
+    }
+    setStoredLocationId('');
+  }
+
+  async function refreshLocationStatuses() {
+    if (!locations.length) return;
+    const token = (localStorage.getItem(SHARED_BEARER_KEY) || '').trim();
+    if (!token) return;
+    await Promise.all(locations.map(async (loc) => {
+      if (!loc.id) return;
+      loc.pstnConnectionConfigured = await checkPstnConnectionConfigured(loc.id, token);
+      loc.callingConfigured = await checkCallingConfigured(loc.id, token);
+    }));
+    renderTable();
+  }
+
+  async function checkCallingConfigured(locationId, token) {
+    if (!locationId || !token) return false;
+    try {
+      const url = withOrgParam(`${BASE_URL}/v1/telephony/config/locations/${encodeURIComponent(locationId)}/calling`);
+      const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
+      if (res.status === 404) return false;
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      return true;
+    } catch (err) {
+      console.warn('Failed to check calling status for', locationId, err);
+      return false;
+    }
+  }
+
+  async function refreshPstnConnectionStatuses() {
+    if (!locations.length) return;
+    const token = (localStorage.getItem(SHARED_BEARER_KEY) || '').trim();
+    if (!token) {
+      return;
+    }
+    await Promise.all(locations.map(async (loc) => {
+      loc.pstnConnectionConfigured = await checkPstnConnectionConfigured(loc.id, token);
+    }));
+    renderTable();
+  }
+
+  async function checkPstnConnectionConfigured(locationId, token) {
+    if (!locationId || !token) return false;
+    const detail = await fetchPstnConnectionDetail(locationId, token);
+    return Boolean(detail);
+  }
+
+  function delay(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
+  async function disableCallingForLocation(locationId, token) {
+    if (!locationId || !token) throw new Error('Missing location or token to disable calling.');
+    const url = withOrgParam(`${BASE_URL}/v1/telephony/config/jobs/locations/deleteCallingLocation`);
+    const payload = {
+      locationId,
+      forceDelete: true,
+    };
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    const text = await res.text();
+    if (res.status !== 202) throw new Error(`Disable calling job failed: HTTP ${res.status}: ${text}`);
+    try {
+      return text ? JSON.parse(text) : {};
+    } catch {
+      return text;
+    }
+  }
+
+  async function waitForCallingDisabled(locationId, token, opts = {}) {
+    if (!locationId || !token) return false;
+    const delayMs = opts.intervalMs || 1000;
+    const maxAttempts = opts.maxAttempts || 20;
+    const endTime = Date.now() + (delayMs * maxAttempts);
+    for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
+      const stillConfigured = await checkCallingConfigured(locationId, token);
+      if (!stillConfigured) {
+        return true;
+      }
+      if (Date.now() >= endTime) break;
+      await delay(delayMs);
+    }
+    return false;
+  }
+
+  async function attemptDeleteWithRetries(locationId, token, opts = {}) {
+    const maxAttempts = opts.maxAttempts || 3;
+    const retryDelayMs = opts.retryDelayMs || 4000;
+    for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+      opts.onAttempt?.(attempt);
+      const res = await fetch(withOrgParam(`${BASE_URL}/v1/locations/${encodeURIComponent(locationId)}`), {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const text = await res.text();
+      if (res.ok || res.status === 204) {
+        return;
+      }
+      const isRetryable = [409, 500].includes(res.status) || /Location is being referenced/.test(text);
+      if (attempt < maxAttempts && isRetryable) {
+        await delay(retryDelayMs);
+        continue;
+      }
+      throw new Error(`HTTP ${res.status}: ${text}`);
+    }
+  }
+
+  async function configurePstnConnection(locationId) {
+    if (!locationId) return null;
+    const token = (localStorage.getItem(SHARED_BEARER_KEY) || '').trim();
+    if (!token) throw new Error('Bearer token required. Click Authenticate to set it.');
+    const selectedOptionId = (els.locPstnConnection?.value || '').trim();
+    const selectedOption = pstnConnectionOptions.find(opt => opt.id === selectedOptionId);
+    const routeGroupId = (els.locRouteGroup?.value || '').trim() || getStoredRouteGroupSelection();
+    const payload = {};
+    if (selectedOption && selectedOption.id) payload.id = selectedOption.id;
+    if (selectedOption && selectedOption.route_id) {
+      payload.premiseRouteType = selectedOption.route_type || 'ROUTE_GROUP';
+      payload.premiseRouteId = selectedOption.route_id;
+    }
+    if (routeGroupId) {
+      payload.premiseRouteType = payload.premiseRouteType || 'ROUTE_GROUP';
+      payload.premiseRouteId = routeGroupId;
+    }
+    if (!Object.keys(payload).length) return null;
+    const url = withOrgParam(`${BASE_URL}/v1/telephony/pstn/locations/${encodeURIComponent(locationId)}/connection`);
+    const res = await fetch(url, {
+      method: 'PUT',
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    const text = await res.text();
+    if (!res.ok) throw new Error(`PSTN connection configuration failed: HTTP ${res.status}: ${text}`);
+    try {
+      const detail = text ? JSON.parse(text) : {};
+      setLocationPstnDetail(locationId, detail.id ? detail : null);
+      return detail;
+    } catch {
+      pstnConnectionDetails.delete(locationId);
+      return text;
+    }
+  }
+
+  async function configureVoicePortal(locationId, payload) {
+    if (!locationId || !els.locVmExtension || !els.locVmPasscode) return null;
+    const extension = (els.locVmExtension.value || '').trim();
+    const passcode = (els.locVmPasscode.value || '').trim();
+    if (!extension || !passcode) return null;
+    const token = (localStorage.getItem(SHARED_BEARER_KEY) || '').trim();
+    if (!token) throw new Error('Bearer token required. Click Authenticate to set it.');
+    const baseCountry = getSelectValue(els.locCountry, els.locCountryCustom);
+    const languageCode = resolvePreferredLanguage(baseCountry).toLowerCase();
+    const body = {
+      name: `${payload.name || 'Voice Portal'} Voice Portal`,
+      languageCode,
+      extension,
+      passcode: {
+        newPasscode: passcode,
+        confirmPasscode: passcode,
+      },
+    };
+    const url = withOrgParam(`${BASE_URL}/v1/telephony/config/locations/${encodeURIComponent(locationId)}/voicePortal`);
+    const res = await fetch(url, {
+      method: 'PUT',
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    const text = await res.text();
+    if (!res.ok) {
+      if (res.status === 404 || res.status === 405) {
+        console.warn('Voice portal endpoint not available for this location.', text);
+        return null;
+      }
+      throw new Error(`Voice portal configuration failed: HTTP ${res.status}: ${text}`);
+    }
+    try {
+      return JSON.parse(text || '{}');
+    } catch {
+      return text;
+    }
+  }
+
+  async function configurePstnConnectionForRow(locationId, row, token) {
+    if (!locationId || !token) return null;
+    const payload = {};
+    const pstnId = (row.pstnConnection || '').trim();
+    const routeGroupId = (row.routeGroup || '').trim();
+    if (pstnId) {
+      payload.id = pstnId;
+    }
+    if (routeGroupId) {
+      payload.premiseRouteType = 'ROUTE_GROUP';
+      payload.premiseRouteId = routeGroupId;
+    }
+    if (!Object.keys(payload).length) return null;
+    const url = withOrgParam(`${BASE_URL}/v1/telephony/pstn/locations/${encodeURIComponent(locationId)}/connection`);
+    const res = await fetch(url, {
+      method: 'PUT',
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    const text = await res.text();
+    if (!res.ok) throw new Error(`PSTN configuration failed: HTTP ${res.status}: ${text}`);
+    try {
+      const detail = text ? JSON.parse(text) : {};
+      setLocationPstnDetail(locationId, detail.id ? detail : null);
+      return detail;
+    } catch {
+      pstnConnectionDetails.delete(locationId);
+      return text;
+    }
+  }
+
+  async function configureVoicePortalForRow(locationId, row, token) {
+    if (!locationId || !token) return null;
+    const extension = (row.vmExtension || '').trim();
+    const passcode = (row.vmPasscode || '').trim();
+    if (!extension || !passcode) return null;
+    const baseCountry = (row.country || '').trim() || 'US';
+    const languageCode = (row.preferredLanguage || resolvePreferredLanguage(baseCountry)).toLowerCase();
+    const body = {
+      name: `${row.name || 'Voice Portal'} Voice Portal`,
+      languageCode,
+      extension,
+      passcode: {
+        newPasscode: passcode,
+        confirmPasscode: passcode,
+      },
+    };
+    const url = withOrgParam(`${BASE_URL}/v1/telephony/config/locations/${encodeURIComponent(locationId)}/voicePortal`);
+    const res = await fetch(url, {
+      method: 'PUT',
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    const text = await res.text();
+    if (!res.ok) {
+      if (res.status === 404 || res.status === 405) {
+        console.warn('Voice portal endpoint not available for this location.', text);
+        return null;
+      }
+      throw new Error(`Voice portal configuration failed: HTTP ${res.status}: ${text}`);
+    }
+    try {
+      return JSON.parse(text || '{}');
+    } catch {
+      return text;
+    }
+  }
+
+  function getSelectedLocations() {
+    return locations.filter(loc => selectedLocationIds.has(loc.id));
+  }
+
+  function setBulkPstnStatus(message, isError = false) {
+    if (!els.bulkPstnStatus) return;
+    els.bulkPstnStatus.textContent = message || '';
+    els.bulkPstnStatus.style.color = isError ? '#ef4444' : '';
+  }
+
+  async function loadBulkPstnOptions(referenceLocationId) {
+    if (!els.bulkPstnConnection) return [];
+    const token = (localStorage.getItem(SHARED_BEARER_KEY) || '').trim();
+    if (!token) throw new Error('Bearer token required. Click Authenticate to set it.');
+    els.bulkPstnConnection.disabled = true;
+    els.bulkPstnConnection.innerHTML = '<option value="">Loading PSTN options…</option>';
+    const options = await fetchPstnConnectionOptionsForLocation(referenceLocationId, token);
+    updateBulkPstnSelect(options);
+    return options;
+  }
+
+  async function openBulkPstnModal() {
+    if (!els.bulkPstnModal) return;
+    const selected = getSelectedLocations();
+    if (!selected.length) {
+      showActionModal('No locations selected', 'Select locations to update first.', { variant:'danger' });
+      return;
+    }
+    setBulkPstnStatus('');
+    if (els.bulkPstnSelectionSummary) {
+      els.bulkPstnSelectionSummary.textContent = `${selected.length} location(s) selected for PSTN update.`;
+    }
+    const reference = selected[0];
+    if (els.bulkPstnReferenceLocation) {
+      const label = reference?.name || reference?.id || 'the first selected location';
+      els.bulkPstnReferenceLocation.textContent = `PSTN options are loaded from ${label}. Use the PSTN select only when the same option is available for each selected location.`;
+    }
+    if (els.bulkRouteGroup) els.bulkRouteGroup.value = '';
+    updateBulkPstnSelect([]);
+    els.bulkPstnModal.classList.add('open');
+    els.bulkPstnModal.setAttribute('aria-hidden', 'false');
+    await fetchRouteGroups();
+    try {
+      await loadBulkPstnOptions(reference?.id || '');
+    } catch (err) {
+      updateBulkPstnSelect([]);
+      setBulkPstnStatus(`Unable to load PSTN options: ${extractErrorDescription(String(err.message || err))}`, true);
+    }
+  }
+
+  function closeBulkPstnModal() {
+    if (!els.bulkPstnModal) return;
+    els.bulkPstnModal.classList.remove('open');
+    els.bulkPstnModal.setAttribute('aria-hidden', 'true');
+    setBulkPstnStatus('');
+  }
+
+  async function updateBulkPstnForLocation(locationId, token, payload) {
+    const url = withOrgParam(`${BASE_URL}/v1/telephony/pstn/locations/${encodeURIComponent(locationId)}/connection`);
+    const res = await fetch(url, {
+      method: 'PUT',
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    const text = await res.text();
+    if (!res.ok) throw new Error(`PSTN configuration failed: HTTP ${res.status}: ${text}`);
+    try {
+      const detail = text ? JSON.parse(text) : {};
+      setLocationPstnDetail(locationId, detail.id ? detail : null);
+      return detail;
+    } catch {
+      setLocationPstnDetail(locationId, null);
+      return text;
+    }
+  }
+
+  async function applyBulkPstnUpdate() {
+    const selected = getSelectedLocations();
+    if (!selected.length) {
+      setBulkPstnStatus('Select at least one location first.', true);
+      return;
+    }
+    const selectedRouteGroupId = (els.bulkRouteGroup?.value || '').trim();
+    const selectedPstnId = (els.bulkPstnConnection?.value || '').trim();
+    if (!selectedRouteGroupId && !selectedPstnId) {
+      setBulkPstnStatus('Choose a route group, a PSTN connection, or both.', true);
+      return;
+    }
+    const confirmed = await confirmAction(
+      'Bulk PSTN update',
+      `Apply the PSTN change to ${selected.length} location(s)?`,
+      { okLabel:'Apply', cancelLabel:'Cancel' }
+    );
+    if (!confirmed) return;
+
+    const token = (localStorage.getItem(SHARED_BEARER_KEY) || '').trim();
+    if (!token) {
+      setBulkPstnStatus('Bearer token required. Click Authenticate to set it.', true);
+      return;
+    }
+
+    setBulkPstnStatus('Applying changes…');
+    const failures = [];
+    openProgressModal('Updating PSTN', `Processing 0/${selected.length}`, selected.length);
+    let done = 0;
+    for (let i = 0; i < selected.length; i += 1) {
+      const location = selected[i];
+      const name = location?.name || location?.id || `location ${i + 1}`;
+      updateProgressModal(`Processing ${i + 1}/${selected.length}: ${name}`, done, selected.length);
+      try {
+        const payload = {};
+        if (selectedPstnId) {
+          const availableOptions = await fetchPstnConnectionOptionsForLocation(location.id, token);
+          const matchedOption = availableOptions.find(opt => opt.id === selectedPstnId);
+          if (!matchedOption) {
+            throw new Error('Selected PSTN connection is not available for this location.');
+          }
+          payload.id = matchedOption.id;
+          if (matchedOption.route_id && !selectedRouteGroupId) {
+            payload.premiseRouteType = matchedOption.route_type || 'ROUTE_GROUP';
+            payload.premiseRouteId = matchedOption.route_id;
+          }
+        }
+        if (selectedRouteGroupId) {
+          payload.premiseRouteType = 'ROUTE_GROUP';
+          payload.premiseRouteId = selectedRouteGroupId;
+        }
+        if (!Object.keys(payload).length) {
+          throw new Error('Nothing to update for this location.');
+        }
+        await updateBulkPstnForLocation(location.id, token, payload);
+      } catch (err) {
+        failures.push({
+          row: i + 1,
+          name,
+          timeZone: location?.timeZone || '',
+          country: location?.country || '',
+          status: 'Failed',
+          response: extractErrorDescription(String(err.message || err)),
+        });
+      } finally {
+        done += 1;
+        updateProgressModal(`Processing ${done}/${selected.length}`, done, selected.length);
+      }
+    }
+    closeProgressModal();
+    await fetchLocations();
+    renderTable();
+
+    const successCount = selected.length - failures.length;
+    const message = failures.length
+      ? `Updated ${successCount} of ${selected.length} location(s). ${failures.length} failed.`
+      : `Updated PSTN settings for ${successCount} location(s).`;
+    showResultModal('Bulk PSTN update complete', message, {
+      variant: failures.length ? 'danger' : 'success',
+      failures,
+      filenamePrefix: 'locations-bulk-pstn-errors'
+    });
+    if (!failures.length) {
+      closeBulkPstnModal();
+      return;
+    }
+    setBulkPstnStatus(message, true);
+  }
+
+  async function fetchLocations() {
+    els.status.textContent = 'Loading locations…';
+    try {
+      const token = (localStorage.getItem(SHARED_BEARER_KEY) || '').trim();
+      if (!token) throw new Error('Bearer token required. Click Authenticate to set it.');
+      const res = await fetch(withOrgParam(BASE_URL + ENDPOINT), { headers: { Authorization: `Bearer ${token}` } });
+      const text = await res.text();
+      if (!res.ok) {
+        if (res.status === 403) {
+          els.status.textContent = 'This endpoint requires an org admin token with spark-admin:locations_read.';
+        }
+        throw new Error(`HTTP ${res.status}: ${text}`);
+      }
+      let data = {};
+      try { data = JSON.parse(text || '{}'); } catch { data = {}; }
+      const items = Array.isArray(data.items) ? data.items : (Array.isArray(data.locations) ? data.locations : (Array.isArray(data) ? data : []));
+      locations = items.map(normalizeLocation);
+      pstnConnectionDetails.clear();
+      buildFilterValues(locations);
+      renderTable();
+      els.status.textContent = `Loaded ${locations.length} location(s).`;
+      await refreshLocationStatuses();
+      await seedPstnConnectionOptions(locations);
+    } catch (e) {
+      els.status.textContent = String(e.message || e);
+    } finally {
+    }
+  }
+
+  function storeLastLocationPayload(payload) {
+    if (!payload) {
+      localStorage.removeItem(LOCATION_PAYLOAD_STORAGE_KEY);
+      return;
+    }
+    try {
+      localStorage.setItem(LOCATION_PAYLOAD_STORAGE_KEY, JSON.stringify(payload));
+    } catch {
+      // ignore storage errors
+    }
+  }
+
+  function getStoredLocationPayload() {
+    const raw = localStorage.getItem(LOCATION_PAYLOAD_STORAGE_KEY);
+    if (!raw) return null;
+    try {
+      return JSON.parse(raw);
+    } catch {
+      return null;
+    }
+  }
+
+  let lastDeleteErrorMessage = '';
+
+  function setLastDeleteErrorMessage(value) {
+    lastDeleteErrorMessage = value || '';
+  }
+
+  function consumeLastDeleteErrorMessage() {
+    const value = lastDeleteErrorMessage;
+    lastDeleteErrorMessage = '';
+    return value;
+  }
+
+  function extractErrorDescription(raw) {
+    if (!raw) return 'Delete failed.';
+    const jsonStart = raw.indexOf('{');
+    if (jsonStart === -1) return raw;
+    const rawJson = raw.slice(jsonStart);
+    try {
+      const data = JSON.parse(rawJson);
+      if (Array.isArray(data.errors) && data.errors.length) {
+        const desc = data.errors[0]?.description;
+        if (desc) return desc;
+      }
+      if (data.description) return data.description;
+      if (data.error_description) return data.error_description;
+      if (data.message) return data.message;
+    } catch {
+      // ignore
+    }
+    return raw;
+  }
+
+  function normalizeCallingPayload(payload) {
+    if (!payload) return payload;
+    const normalized = { ...payload };
+    if (normalized.announcementLanguage) {
+      normalized.announcementLanguage = normalized.announcementLanguage.toLowerCase();
+    }
+    if (normalized.address) {
+      normalized.address = { ...normalized.address };
+    }
+    delete normalized.orgId;
+    delete normalized.id;
+    return normalized;
+  }
+
+  async function enableLocationForCalling(locationId, locationPayload) {
+    if (!locationId) {
+      throw new Error('Missing location ID to enable calling.');
+    }
+    const token = (localStorage.getItem(SHARED_BEARER_KEY) || '').trim();
+    if (!token) throw new Error('Bearer token required. Click Authenticate to set it.');
+    const url = withOrgParam(`${BASE_URL}${CALLING_CONFIG_ENDPOINT}`);
+    const sourcePayload = locationPayload || getStoredLocationPayload();
+    if (!sourcePayload) {
+      throw new Error('Location payload is unavailable. Enable calling with the values used during creation.');
+    }
+    const normalizedPayload = normalizeCallingPayload(sourcePayload);
+    const payload = {
+      ...normalizedPayload,
+      id: locationId,
+      address: { ...(normalizedPayload.address || {}) },
+    };
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    const text = await res.text();
+    if (!res.ok) throw new Error(`Enable calling failed: HTTP ${res.status}: ${text}`);
+    try {
+      return JSON.parse(text || '{}');
+    } catch {
+      return text;
+    }
+  }
+
+  function parseJsonResponse(text) {
+    try {
+      return JSON.parse(text || '{}');
+    } catch {
+      return {};
+    }
+  }
+
+  async function fetchLocationById(locationId) {
+    if (!locationId) return null;
+    const token = (localStorage.getItem(SHARED_BEARER_KEY) || '').trim();
+    if (!token) throw new Error('Bearer token required. Click Authenticate to set it.');
+    const url = withOrgParam(`${BASE_URL}/v1/locations/${encodeURIComponent(locationId)}`);
+    const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
+    const text = await res.text();
+    if (!res.ok) throw new Error(`HTTP ${res.status}: ${text}`);
+    return parseJsonResponse(text);
+  }
+
+  async function createLocation() {
+    setFormStatus('');
+    const payload = buildLocationPayload();
+    const error = validateLocationPayload(payload);
+    if (error) {
+      setFormStatus(error);
+      return;
+    }
+    openCreateProgressModal();
+    setCreateStepStatus('location', 'active', 'Creating location…');
+    try {
+      const token = (localStorage.getItem(SHARED_BEARER_KEY) || '').trim();
+      if (!token) throw new Error('Bearer token required. Click Authenticate to set it.');
+      setFormStatus('Creating location…');
+      const res = await fetch(withOrgParam(`${BASE_URL}/v1/locations`), {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      const text = await res.text();
+      if (!res.ok) throw new Error(`HTTP ${res.status}: ${text}`);
+      const createdLocation = parseJsonResponse(text);
+      const createdLocationId = createdLocation.id || '';
+      let payloadToStore = payload;
+      if (createdLocationId) {
+        try {
+          const fetchedLocation = await fetchLocationById(createdLocationId);
+          if (fetchedLocation && Object.keys(fetchedLocation).length) {
+            payloadToStore = { ...fetchedLocation, ...payload };
+          }
+        } catch {
+          // ignore fetch errors and keep the original payload
+        }
+      }
+      if (createdLocationId) {
+        setStoredLocationId(createdLocationId);
+        storeLastLocationPayload(payloadToStore);
+      } else {
+        storeLastLocationPayload(null);
+      }
+      setCreateStepStatus('location', 'success', createdLocationId ? 'Location created.' : 'Location created without ID.');
+      let enableCallingError = null;
+      let pstnError = null;
+      let voicePortalError = null;
+      if (createdLocationId) {
+        setCreateStepStatus('calling', 'active', 'Enabling Webex Calling…');
+        try {
+          await enableLocationForCalling(createdLocationId, payloadToStore);
+          setCreateStepStatus('calling', 'success', 'Webex Calling enabled.');
+        } catch (err) {
+          enableCallingError = err;
+          setCreateStepStatus('calling', 'error', extractErrorDescription(String(err.message || err)));
+        }
+        setCreateStepStatus('pstn', 'active', 'Loading PSTN connection options…');
+        const currentSelection = (els.locPstnConnection?.value || '').trim();
+        await fetchPstnOptions(createdLocationId, { preserveSelection: currentSelection, useStoredSelection: false });
+        setCreateStepStatus('pstn', 'active', 'Configuring PSTN connection…');
+        try {
+          const pstnResult = await configurePstnConnection(createdLocationId);
+          if (pstnResult === null) {
+            setCreateStepStatus('pstn', 'success', 'PSTN configuration skipped.');
+          } else {
+            setCreateStepStatus('pstn', 'success', 'PSTN connection configured.');
+          }
+        } catch (err) {
+          pstnError = err;
+          setCreateStepStatus('pstn', 'error', extractErrorDescription(String(err.message || err)));
+        }
+        setCreateStepStatus('voice', 'active', 'Configuring voicemail…');
+        try {
+          const voiceResult = await configureVoicePortal(createdLocationId, payloadToStore);
+          if (voiceResult === null) {
+            setCreateStepStatus('voice', 'success', 'Voicemail setup skipped.');
+          } else {
+            setCreateStepStatus('voice', 'success', 'Voicemail configured.');
+          }
+        } catch (err) {
+          voicePortalError = err;
+          setCreateStepStatus('voice', 'error', extractErrorDescription(String(err.message || err)));
+        }
+      } else {
+        setCreateStepStatus('calling', 'error', 'Cannot enable calling without a location ID.');
+        setCreateStepStatus('pstn', 'pending', 'Waiting for location to exist.');
+        setCreateStepStatus('voice', 'pending', 'Waiting for location to exist.');
+      }
+      const issues = [];
+      if (enableCallingError) {
+        issues.push(`Enabling calling failed: ${enableCallingError.message || enableCallingError}`);
+      }
+      if (pstnError) {
+        issues.push(`Configuring PSTN failed: ${pstnError.message || pstnError}`);
+      }
+      if (voicePortalError) {
+        issues.push(`Setting up voicemail failed: ${voicePortalError.message || voicePortalError}`);
+      }
+      let message = 'Location added successfully.';
+      if (createdLocationId && !issues.length) {
+        message = 'Location added successfully, calling enabled for Webex Calling, and PSTN/voicemail configured.';
+      } else if (createdLocationId) {
+        message = 'Location added successfully and calling enabled for Webex Calling.';
+      }
+      if (issues.length) {
+        message = `Location added successfully. ${issues.join(' ')}`;
+      }
+      const variant = issues.length ? 'danger' : 'success';
+      setCreateProgressReady(true);
+      setFormStatus(message);
+      clearLocationForm();
+      closeLocationModal();
+      try {
+        await fetchLocations();
+      } catch {
+        // ignore refresh failures
+      }
+    } catch (err) {
+      const message = String(err.message || err);
+      setCreateStepStatus('location', 'error', message);
+      try {
+        await fetchLocations();
+      } catch {
+        // ignore reload failures
+      }
+      setCreateProgressReady(true);
+      setFormStatus(message);
+    }
+  }
+
+  async function updateLocation() {
+    if (!activeLocationId) {
+      setFormStatus('Select a location to update.');
+      return;
+    }
+    const payload = buildLocationPayload();
+    const error = validateLocationPayload(payload);
+    if (error) {
+      setFormStatus(error);
+      return;
+    }
+    try {
+      const token = (localStorage.getItem(SHARED_BEARER_KEY) || '').trim();
+      if (!token) throw new Error('Bearer token required. Click Authenticate to set it.');
+      setFormStatus('Updating location…');
+      const res = await fetch(withOrgParam(`${BASE_URL}/v1/locations/${encodeURIComponent(activeLocationId)}`), {
+        method: 'PUT',
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      const text = await res.text();
+      if (!res.ok) throw new Error(`HTTP ${res.status}: ${text}`);
+      showActionModal('Location updated', 'Location updated successfully.');
+      clearLocationForm();
+      closeLocationModal();
+      await fetchLocations();
+      renderTable();
+    } catch (err) {
+      setFormStatus(String(err.message || err));
+    }
+  }
+
+  async function deleteLocation(locationId, opts = {}) {
+    const location = opts.location || locations.find(item => item.id === locationId);
+    const token = (localStorage.getItem(SHARED_BEARER_KEY) || '').trim();
+    if (!token) throw new Error('Bearer token required. Click Authenticate to set it.');
+
+    let hasCalling = false;
+    try {
+      hasCalling = await checkPstnConnectionConfigured(locationId, token);
+    } catch (err) {
+      if (location?.callingConfigured) hasCalling = true;
+      console.warn('Unable to refresh PSTN status before delete:', err);
+    }
+
+    let confirmMessage = 'Delete this location? This cannot be undone.';
+    if (hasCalling) {
+      confirmMessage = 'We see this location has Webex Calling configured. Delete will disable calling before removing it. Continue?';
+    } else if (location?.callingConfigured) {
+      confirmMessage = 'This location appears to have Webex Calling configured. Delete will disable calling before removing it. Continue?';
+      hasCalling = true;
+    }
+
+    const confirmed = opts.skipConfirm
+      ? true
+      : await confirmAction('Delete Location', confirmMessage);
+    if (!confirmed) return { success:false, progressUsed:false };
+
+    const progressActive = hasCalling && !opts.skipProgress;
+    if (progressActive) {
+      openDeleteProgressModal();
+      setDeleteStepStatus('disable', 'pending', 'Waiting to disable Webex Calling…');
+    }
+
+    const result = { success:false, progressUsed:progressActive };
+    try {
+      if (hasCalling) {
+        if (progressActive) setDeleteStepStatus('disable','active','Disabling Webex Calling…');
+        await disableCallingForLocation(locationId, token);
+        await delay(4000);
+        const ready = await waitForCallingDisabled(locationId, token);
+        if (!ready) {
+          if (progressActive) setDeleteStepStatus('disable','error','Timed out waiting for disable.');
+          throw new Error('Calling disable is still running; try again shortly.');
+        }
+        if (progressActive) setDeleteStepStatus('disable','success','Webex Calling disabled.');
+      } else if (progressActive) {
+        setDeleteStepStatus('disable','success','No Webex Calling configured.');
+      }
+
+      if (progressActive) setDeleteStepStatus('delete','active','Deleting location…');
+      await attemptDeleteWithRetries(locationId, token, {
+        maxAttempts: opts.maxDeleteAttempts || 3,
+        retryDelayMs: opts.retryDelayMs || 4000,
+        onAttempt: (attempt) => {
+          if (progressActive) {
+            setDeleteStepStatus('delete','active', `Deleting location (attempt ${attempt})…`);
+          }
+        },
+      });
+
+      if (progressActive) setDeleteStepStatus('delete','success','Location deleted.');
+      if (activeLocationId === locationId) clearLocationForm();
+      result.success = true;
+      return result;
+    } catch (err) {
+      const rawMessage = String(err.message || err);
+      const userMessage = extractErrorDescription(rawMessage);
+      setLastDeleteErrorMessage(userMessage);
+      if (progressActive) {
+        setDeleteStepStatus('delete','error', userMessage);
+      }
+      if (!opts.suppressStatus) {
+        showActionModal('Delete failed', userMessage, { variant:'danger' });
+      }
+      return result;
+    } finally {
+      if (progressActive) {
+        setDeleteProgressReady(true);
+        if (deleteBackgrounded) {
+          const label = result.success ? 'Delete complete. View status' : 'Delete failed. View status';
+          showDeleteBackgroundButton(label);
+        }
+      }
+    }
+  }
+
+  async function deleteSelectedLocations() {
+    if (!selectedLocationIds.size) {
+      showActionModal('No locations selected', 'Select locations to delete.', { variant:'danger' });
+      return;
+    }
+    const confirmed = await confirmAction(
+      'Delete locations',
+      `Delete ${selectedLocationIds.size} location(s)? This cannot be undone.`,
+      { variant:'danger', okLabel:'Delete', cancelLabel:'Cancel' }
+    );
+    if (!confirmed) return;
+    const ids = Array.from(selectedLocationIds);
+    const failures = [];
+    openProgressModal('Deleting locations', `Processing 0/${ids.length}`, ids.length);
+    let done = 0;
+    for (const id of ids) {
+      const loc = locations.find(item => item.id === id);
+      const result = await deleteLocation(id, {
+        skipConfirm: true,
+        suppressStatus: true,
+        location: loc,
+        skipProgress: true,
+      });
+      const ok = result?.success;
+      if (!ok) {
+        const failureMessage = consumeLastDeleteErrorMessage() || 'Delete failed.';
+        failures.push({
+          row: done + 1,
+          name: loc?.name || id,
+          timeZone: loc?.timeZone || '',
+          country: loc?.country || '',
+          status: 'Failed',
+          response: failureMessage
+        });
+      }
+      done += 1;
+      updateProgressModal(`Processing ${done}/${ids.length}`, done, ids.length);
+    }
+    closeProgressModal();
+    selectedLocationIds.clear();
+    await fetchLocations();
+    const successCount = ids.length - failures.length;
+    const summary = `Deleted ${successCount} of ${ids.length} location(s).` + (failures.length ? ` ${failures.length} failed.` : '');
+    showResultModal('Bulk delete complete', summary, {
+      variant: failures.length ? 'danger' : 'success',
+      failures,
+      filenamePrefix: 'locations-delete-errors'
+    });
+  }
+
+  function openLocationModal(mode = 'create') {
+    if (!els.locationModal) return;
+    if (mode === 'create') {
+      clearLocationForm();
+    }
+    els.locationModal.classList.add('open');
+    els.locationModal.setAttribute('aria-hidden', 'false');
+  }
+
+  function closeLocationModal() {
+    if (!els.locationModal) return;
+    els.locationModal.classList.remove('open');
+    els.locationModal.setAttribute('aria-hidden', 'true');
+  }
+
+  function openTemplateModal() {
+    if (!els.templateModal) return;
+    initSelects();
+    els.templateModal.classList.add('open');
+    els.templateModal.setAttribute('aria-hidden', 'false');
+  }
+
+  function closeTemplateModal() {
+    if (!els.templateModal) return;
+    els.templateModal.classList.remove('open');
+    els.templateModal.setAttribute('aria-hidden', 'true');
+  }
+
+  function downloadLocationsTemplate() {
+    const headers = [
+      'name',
+      'timeZone',
+      'preferredLanguage',
+      'announcementLanguage',
+      'routeGroupId',
+      'pstnConnectionId',
+      'address1',
+      'address2',
+      'city',
+      'state',
+      'postalCode',
+      'country',
+      'vmExtension',
+      'vmPasscode',
+      'notes'
+    ];
+    const language = getSelectValue(els.templateLanguage, els.templateLanguageCustom);
+    const announcementLanguage = language ? language.toLowerCase() : '';
+    const sample = [
+      '',
+      getSelectValue(els.templateTimeZone, els.templateTimeZoneCustom),
+      language,
+      announcementLanguage,
+      els.templateRouteGroup?.value || '',
+      els.templatePstnConnection?.value || '',
+      '',
+      '',
+      '',
+      '',
+      '',
+      getSelectValue(els.templateCountry, els.templateCountryCustom),
+      (els.templateVmExtension?.value || '').trim(),
+      (els.templateVmPasscode?.value || '').trim(),
+      ''
+    ];
+    const csv = `${headers.join(',')}\n${sample.map(v => `"${String(v ?? '').replace(/"/g, '""')}"`).join(',')}`;
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'locations_template.csv';
+    a.click();
+  }
+
+  async function runLocationsCsvUpload(incoming) {
+    const token = (localStorage.getItem(SHARED_BEARER_KEY) || '').trim();
+    if (!token) throw new Error('Bearer token required. Click Authenticate to set it.');
+    const failures = [];
+    openImportProgressModal(incoming.length);
+    setImportProgressMessage(`Processing 0/${incoming.length}`);
+    let done = 0;
+    for (let i = 0; i < incoming.length; i += 1) {
+      resetImportStepStatuses();
+      const row = incoming[i];
+      const rowLabel = row.name || `row ${i + 1}`;
+      setImportProgressMessage(`Processing ${i + 1}/${incoming.length}: ${rowLabel}`);
+      const rowFailures = [];
+      let locationId = '';
+      try {
+        const preferredLanguage = row.preferredLanguage || row.language || resolvePreferredLanguage(row.country);
+        const announcementLanguage = row.announcementLanguage || (preferredLanguage ? preferredLanguage.toLowerCase() : '');
+        const payload = {
+          name: row.name || '',
+          timeZone: row.timeZone || '',
+          preferredLanguage,
+          announcementLanguage,
+          notes: row.notes || undefined,
+          address: {
+            address1: row.address1 || '',
+            address2: row.address2 || undefined,
+            city: row.city || '',
+            state: row.state || '',
+            postalCode: row.postalCode || '',
+            country: row.country || '',
+          },
+        };
+        const error = validateLocationPayload(payload);
+        if (error) throw new Error(error);
+        setImportStepStatus('location', 'active', 'Creating location…');
+        const res = await fetch(withOrgParam(`${BASE_URL}/v1/locations`), {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+        const text = await res.text();
+        if (!res.ok) throw new Error(`HTTP ${res.status}: ${text}`);
+        const createdLocation = parseJsonResponse(text);
+        locationId = createdLocation.id || '';
+        if (!locationId) {
+          throw new Error('Location created without an ID; cannot continue.');
+        }
+        setImportStepStatus('location', 'success', 'Location created.');
+        setImportStepStatus('calling', 'active', 'Enabling Webex Calling…');
+        try {
+          await enableLocationForCalling(locationId, payload);
+          setImportStepStatus('calling', 'success', 'Webex Calling enabled.');
+        } catch (err) {
+          const msg = extractErrorDescription(String(err.message || err));
+          rowFailures.push(`Calling enable failed: ${msg}`);
+          setImportStepStatus('calling', 'error', `Calling enable failed: ${msg}`);
+        }
+        setImportStepStatus('pstn', 'active', 'Configuring PSTN connection…');
+        try {
+          await configurePstnConnectionForRow(locationId, row, token);
+          setImportStepStatus('pstn', 'success', 'PSTN connection configured.');
+        } catch (err) {
+          const msg = extractErrorDescription(String(err.message || err));
+          rowFailures.push(`PSTN configuration failed: ${msg}`);
+          setImportStepStatus('pstn', 'error', `PSTN configuration failed: ${msg}`);
+        }
+        setImportStepStatus('voice', 'active', 'Configuring voicemail…');
+        try {
+          await configureVoicePortalForRow(locationId, row, token);
+          setImportStepStatus('voice', 'success', 'Voicemail configured.');
+        } catch (err) {
+          const msg = extractErrorDescription(String(err.message || err));
+          rowFailures.push(`Voicemail setup failed: ${msg}`);
+          setImportStepStatus('voice', 'error', `Voicemail setup failed: ${msg}`);
+        }
+      } catch (err) {
+        const message = String(err.message || err);
+        if (!rowFailures.length) {
+          rowFailures.push(message);
+          setImportStepStatus('location', 'error', message);
+        }
+        failures.push({
+          row: i + 1,
+          name: row.name || '',
+          timeZone: row.timeZone || '',
+          country: row.country || '',
+          status: 'Failed',
+          response: rowFailures.join(' '),
+        });
+      } finally {
+        done += 1;
+        updateProgressModal(`Processing ${done}/${incoming.length}`, done, incoming.length);
+      }
+    }
+    closeProgressModal();
+    setImportProgressMessage('Import complete.');
+    setImportProgressReady(true);
+    if (!importBackgrounded) {
+      closeImportProgressModal();
+    } else {
+      const label = failures.length
+        ? `Import complete (${failures.length} failed). View status`
+        : 'Import complete. View status';
+      showImportBackgroundButton(label);
+    }
+    if (failures.length) {
+      console.warn('CSV import failures', failures);
+    }
+    await fetchLocations();
+    renderTable();
+  }
+
+  if (els.searchInput) {
+    els.searchInput.addEventListener('input', (event) => {
+      searchTerm = event.target.value || '';
+      renderTable();
+    });
+  }
+  if (els.openLocationModalBtn) {
+    els.openLocationModalBtn.addEventListener('click', () => openLocationModal('create'));
+  }
+  if (els.closeLocationModal) {
+    els.closeLocationModal.addEventListener('click', closeLocationModal);
+  }
+  if (els.uploadLocationsCsvBtn) {
+    els.uploadLocationsCsvBtn.addEventListener('click', () => els.locationsCsvInput?.click());
+  }
+  if (els.downloadLocationsTemplateBtn) {
+    els.downloadLocationsTemplateBtn.addEventListener('click', openTemplateModal);
+  }
+  if (els.bulkPstnUpdateBtn) {
+    els.bulkPstnUpdateBtn.addEventListener('click', () => {
+      openBulkPstnModal().catch((err) => {
+        setBulkPstnStatus(extractErrorDescription(String(err.message || err)), true);
+      });
+    });
+  }
+  if (els.locTimeZone) els.locTimeZone.addEventListener('change', () => setCustomInputVisibility(els.locTimeZone, els.locTimeZoneCustom));
+  if (els.locCountry) els.locCountry.addEventListener('change', () => setCustomInputVisibility(els.locCountry, els.locCountryCustom));
+  if (els.locRouteGroup) {
+    els.locRouteGroup.addEventListener('change', (event) => {
+      storeRouteGroupSelection((event.target?.value || '').trim());
+    });
+  }
+  if (els.locPstnConnection) {
+    els.locPstnConnection.addEventListener('change', (event) => {
+      storePstnOptionSelection((event.target?.value || '').trim());
+    });
+  }
+  if (els.locVmExtension) {
+    els.locVmExtension.addEventListener('input', (event) => {
+      storeVmExtension((event.target?.value || '').trim());
+    });
+  }
+  if (els.closeTemplateModal) els.closeTemplateModal.addEventListener('click', closeTemplateModal);
+  if (els.cancelTemplateBtn) els.cancelTemplateBtn.addEventListener('click', closeTemplateModal);
+  if (els.closeBulkPstnModal) els.closeBulkPstnModal.addEventListener('click', closeBulkPstnModal);
+  if (els.cancelBulkPstnBtn) els.cancelBulkPstnBtn.addEventListener('click', closeBulkPstnModal);
+  if (els.applyBulkPstnBtn) els.applyBulkPstnBtn.addEventListener('click', applyBulkPstnUpdate);
+  if (els.downloadTemplateConfirmBtn) {
+    els.downloadTemplateConfirmBtn.addEventListener('click', () => {
+      downloadLocationsTemplate();
+      closeTemplateModal();
+    });
+  }
+  if (els.locationsCsvInput) {
+    els.locationsCsvInput.addEventListener('change', (event) => {
+      const file = event.target.files && event.target.files[0];
+      if (!file) return;
+      Papa.parse(file, { header:true, skipEmptyLines:true, complete: async (res) => {
+        const rows = Array.isArray(res.data) ? res.data : [];
+        const incoming = rows.map((r) => {
+          const map = {};
+          Object.keys(r || {}).forEach((key) => { map[String(key).trim().toLowerCase()] = r[key]; });
+          const get = (keys) => {
+            for (const k of keys) {
+              const val = map[k];
+              if (val !== undefined && val !== null && String(val).trim() !== '') return String(val).trim();
+            }
+            return '';
+          };
+        return {
+          name: get(['name', 'location', 'locationname']),
+          timeZone: get(['timezone', 'time_zone', 'time zone']),
+          preferredLanguage: get(['preferredlanguage', 'preferred_language', 'preferred language']),
+          announcementLanguage: get(['announcementlanguage', 'announcement_language', 'announcement language']),
+          routeGroup: get(['routegroupid', 'routegroup', 'route_group']),
+          pstnConnection: get(['pstnconnectionid', 'pstnconnection', 'pstn', 'pstn_connection']),
+          address1: get(['address1', 'address', 'street']),
+          address2: get(['address2', 'suite', 'unit']),
+          city: get(['city']),
+          state: get(['state', 'region']),
+          postalCode: get(['postalcode', 'postal_code', 'zip']),
+          country: get(['country', 'countrycode']),
+          vmExtension: get(['vmextension', 'voicemail extension', 'extension']),
+          vmPasscode: get(['vmpasscode', 'voicemail passcode', 'passcode']),
+          notes: get(['notes', 'note']),
+        };
+        });
+        if (!incoming.length) return;
+        confirmAction('CSV upload', `Found ${incoming.length} entries. Run now?`, { variant:'success', okLabel:'Run', cancelLabel:'Cancel' })
+          .then((confirmed) => { if (confirmed) runLocationsCsvUpload(incoming); });
+      }});
+      event.target.value = '';
+    });
+  }
+  if (els.selectAllLocationsBtn) {
+    els.selectAllLocationsBtn.addEventListener('click', () => {
+      const filtered = getFilteredLocations();
+      filtered.forEach(loc => selectedLocationIds.add(loc.id));
+      renderTable();
+    });
+  }
+  if (els.clearLocationsSelectionBtn) {
+    els.clearLocationsSelectionBtn.addEventListener('click', () => {
+      selectedLocationIds.clear();
+      renderTable();
+    });
+  }
+  if (els.deleteSelectedLocationsBtn) {
+    els.deleteSelectedLocationsBtn.addEventListener('click', deleteSelectedLocations);
+  }
+  if (els.createLocationBtn) els.createLocationBtn.addEventListener('click', createLocation);
+  if (els.updateLocationBtn) els.updateLocationBtn.addEventListener('click', updateLocation);
+  if (els.clearLocationBtn) els.clearLocationBtn.addEventListener('click', clearLocationForm);
+
+  els.table.addEventListener('click', (event) => {
+    const deleteBtn = event.target.closest('[data-delete-id]');
+    if (deleteBtn) {
+      const id = deleteBtn.dataset.deleteId;
+      if (id) {
+        const loc = locations.find(item => item.id === id);
+        deleteLocation(id, { location: loc }).then((result) => {
+          if (result?.success) {
+            if (!result.progressUsed) {
+              showActionModal('Location deleted', 'Location removed.');
+            }
+            fetchLocations();
+          }
+        });
+      }
+      return;
+    }
+    const filterBtn = event.target.closest('[data-filter-btn]');
+    if (filterBtn) {
+      const key = filterBtn.dataset.filterBtn;
+      if (!key) return;
+      const popover = els.table.querySelector(`[data-filter-popover="${key}"]`);
+      if (!popover) return;
+      if (activePopoverState?.key === key) closePopover();
+      else {
+        closePopover();
+        openPopover(key, filterBtn, popover);
+      }
+      return;
+    }
+
+  });
+
+  document.addEventListener('input', (event) => {
+    const input = event.target.closest('[data-filter-search]');
+    if (!input) return;
+    const key = input.dataset.filterSearch;
+    const caret = {
+      start: input.selectionStart,
+      end: input.selectionEnd,
+    };
+    filterSearchTerms[key] = input.value || '';
+    renderFilterPopover(key);
+    const nextInput = activePopoverState?.key === key
+      ? activePopoverState.panel.querySelector(`[data-filter-search="${key}"]`)
+      : els.table.querySelector(`[data-filter-search="${key}"]`);
+    if (nextInput) {
+      nextInput.focus();
+      if (caret.start != null && caret.end != null) {
+        nextInput.setSelectionRange(caret.start, caret.end);
+      }
+    }
+  });
+
+  els.table.addEventListener('change', (event) => {
+    const target = event.target;
+    if (target.id === 'selectAllLocationsToggle') {
+      const filtered = getFilteredLocations();
+      if (target.checked) {
+        filtered.forEach(loc => selectedLocationIds.add(loc.id));
+      } else {
+        filtered.forEach(loc => selectedLocationIds.delete(loc.id));
+      }
+      renderTable();
+      return;
+    }
+    if (target.matches('input[type="checkbox"][data-select-id]')) {
+      const id = target.getAttribute('data-select-id');
+      if (!id) return;
+      if (target.checked) selectedLocationIds.add(id);
+      else selectedLocationIds.delete(id);
+      updateSelectionUI();
+    }
+  });
+
+  document.addEventListener('change', (event) => {
+    const checkbox = event.target.closest('input[data-filter-key][data-filter-value]');
+    if (!checkbox) return;
+    const key = checkbox.dataset.filterKey;
+    const value = checkbox.dataset.filterValue;
+    if (!filterSelections[key]) filterSelections[key] = new Set();
+    if (value === '__ALL__') {
+      filterSelections[key] = checkbox.checked ? new Set(filterValues[key]) : new Set();
+    } else if (checkbox.checked) {
+      filterSelections[key].add(value);
+    } else {
+      filterSelections[key].delete(value);
+    }
+    closePopover();
+    renderTable();
+  });
+
+  document.addEventListener('click', (event) => {
+    if (event.target.closest('.filterPopover') || event.target.closest('[data-filter-btn]')) return;
+    closePopover();
+  });
+
+  window.addEventListener('scroll', () => {
+    if (activePopoverState) positionPopover(activePopoverState.button, activePopoverState.panel);
+  }, true);
+
+  window.addEventListener('resize', () => {
+    if (activePopoverState) positionPopover(activePopoverState.button, activePopoverState.panel);
+  });
+
+  window.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && activePopoverState) closePopover();
+  });
+
+  initSelects();
+  renderTable();
+  fetchLocations();
+  fetchRouteGroups();
+})();
+  </script>
+
+
+  </body>
+</html>

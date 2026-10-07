@@ -1,0 +1,70 @@
+<?php require_once '/var/projects/bitbucket.io/cxasteam.bitbucket.io/oauth/check_access.php'; ?>
+
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="light" />
+  <title>WxCC - Autonomous Instructions Builder</title>
+  <link rel="icon" type="image/png" href="../../assets/images/CX%20only.png" />
+  <link rel="stylesheet" href="../../assets/css/theme.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+<body class="dark-mode api-aiagent" data-aiagent-mode="autonomous">
+  <script>if (localStorage.getItem("tpRailExpanded") === "true") document.body.classList.add("tp-rail-expanded");</script>
+  <?php
+  $tp_header_prefix = '../../';
+  $tp_show_auth_link = false;
+  include dirname(__DIR__) . '/shared/header.php';
+  ?>
+
+  <main>
+    <div class="wrap wide aiagent-page-stack">
+      <section class="card aiagent-card">
+        <div class="pageHeader aiagent-page-header">
+          <div>
+            <h1>Autonomous Instructions Builder</h1>
+            <p class="lead">Draft the Agent Goal and Instructions as plain text. Spaces and line breaks count toward the shared 5,120 character limit split between the two boxes.</p>
+          </div>
+        </div>
+
+        <section class="aiagent-mode-panel" data-mode-panel="autonomous">
+          <div class="aiagent-autonomous-total" id="autoTotalCounter">0 / 5,120 characters</div>
+          <div class="aiagent-inline-error hidden" id="autoLimitError"></div>
+          <div class="aiagent-autonomous-stack">
+            <div class="aiagent-request-card">
+              <div class="aiagent-request-header">
+                <div>
+                  <h2>Agent Goal</h2>
+                  <p class="aiagent-request-desc">What the agent is trying to accomplish.</p>
+                </div>
+              </div>
+              <textarea id="autoGoalInput" class="aiagent-autonomous-textarea" placeholder="Describe the agent's goal in plain text…" spellcheck="false"></textarea>
+              <div class="aiagent-autonomous-counter" id="autoGoalCounter">0 characters</div>
+            </div>
+            <div class="aiagent-request-card">
+              <div class="aiagent-request-header">
+                <div>
+                  <h2>Instructions</h2>
+                  <p class="aiagent-request-desc">Step-by-step guidance for the agent to follow.</p>
+                </div>
+              </div>
+              <textarea id="autoInstructionsInput" class="aiagent-autonomous-textarea" placeholder="Describe the agent's instructions in plain text…" spellcheck="false"></textarea>
+              <div class="aiagent-autonomous-counter" id="autoInstructionsCounter">0 characters</div>
+            </div>
+          </div>
+          <div class="actionsRow">
+            <button class="btn" id="autoClearBtn" type="button">Clear</button>
+          </div>
+        </section>
+      </section>
+    </div>
+  </main>
+
+  <script src="../../assets/js/theme.js?v=20260929e"></script>
+  <script src="../../assets/js/aiagent-page.js?v=20260918a"></script>
+</body>
+</html>

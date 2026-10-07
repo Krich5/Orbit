@@ -1,0 +1,221 @@
+<?php require_once '/var/projects/bitbucket.io/cxasteam.bitbucket.io/oauth/check_access.php'; ?>
+
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="light dark" />
+  <title>Webex Meetings - Meeting Transcriptions</title>
+  <link rel="icon" type="image/png" href="../../assets/images/CX%20only.png" />
+  <link rel="stylesheet" href="../../assets/css/theme.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    main { padding:32px 0 80px; display:flex; justify-content:flex-start; }
+    .pageStack { width:100%; display:flex; flex-direction:column; gap:16px; }
+    .helperText { font-size:12px; color:var(--muted); line-height:1.5; min-height:18px; }
+
+    /* Sidebar + detail shell */
+    .meetingsShell {
+      display:flex;
+      align-items:stretch;
+      border:1px solid var(--border);
+      border-radius:16px;
+      overflow:hidden;
+      background:var(--panel);
+      box-shadow:0 14px 36px rgba(0,0,0,.12);
+      min-height:600px;
+    }
+    .meetingsSidebar {
+      width:320px;
+      flex-shrink:0;
+      border-right:1px solid var(--border);
+      display:flex;
+      flex-direction:column;
+      background:var(--card);
+    }
+    .meetingsSidebarHeader {
+      display:flex;
+      align-items:center;
+      gap:8px;
+      padding:14px 16px;
+      border-bottom:1px solid var(--border);
+    }
+    .meetingsSidebarTitle {
+      font-size:11px;
+      font-weight:700;
+      letter-spacing:.06em;
+      text-transform:uppercase;
+      color:var(--muted);
+    }
+    .meetingsSidebarHeader select {
+      margin-left:auto;
+      border-radius:10px;
+      border:1px solid var(--border);
+      background:var(--input);
+      color:var(--fg);
+      padding:6px 8px;
+      font-size:12px;
+      outline:none;
+    }
+    .meetingsSidebarRefresh {
+      border:1px solid var(--border);
+      background:var(--input);
+      color:var(--fg);
+      border-radius:10px;
+      padding:6px 9px;
+      font-size:12px;
+      cursor:pointer;
+    }
+    .meetingsSidebarRefresh:hover { background:rgba(8,172,242,.1); }
+    .meetingsList { flex:1; overflow-y:auto; }
+    .meetingItem {
+      display:block;
+      width:100%;
+      text-align:left;
+      padding:12px 16px;
+      border:none;
+      border-bottom:1px solid var(--border);
+      background:transparent;
+      cursor:pointer;
+      color:var(--fg);
+    }
+    .meetingItem:hover { background:rgba(8,172,242,.08); }
+    .meetingItem.selected { background:rgba(8,172,242,.14); border-left:3px solid var(--accentA); padding-left:13px; }
+    .meetingItemTitle {
+      font-size:13.5px;
+      font-weight:600;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      white-space:nowrap;
+    }
+    .meetingItemMeta { font-size:11.5px; color:var(--muted); margin-top:3px; }
+    .meetingsListEmpty { padding:16px; font-size:13px; color:var(--muted); }
+
+    .meetingsDetail { flex:1; min-width:0; display:flex; flex-direction:column; }
+    .meetingsDetailEmpty {
+      flex:1;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      color:var(--muted);
+      font-size:13px;
+      padding:40px;
+      text-align:center;
+    }
+    .meetingsDetailHeader { padding:20px 24px 0; }
+    .meetingsDetailTitle { margin:0 0 4px; font-size:1.3rem; }
+    .meetingsDetailMeta { font-size:12.5px; color:var(--muted); display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+    .meetingsDetailMeta .downloadLink { color:var(--accentA); text-decoration:none; font-weight:600; }
+    .meetingsDetailMeta .downloadLink:hover { text-decoration:underline; }
+    .generateRecapBtn {
+      margin:14px 0 0;
+      border:none;
+      border-radius:12px;
+      padding:10px 18px;
+      font-size:13.5px;
+      font-weight:700;
+      color:#04221b;
+      background:linear-gradient(135deg,#2dd4bf,#22c55e);
+      cursor:pointer;
+    }
+    .generateRecapBtn:hover { filter:brightness(1.05); }
+
+    .meetingsTabs { display:flex; gap:4px; padding:16px 24px 0; border-bottom:1px solid var(--border); }
+    .meetingsTab {
+      border:none;
+      background:transparent;
+      color:var(--muted);
+      font-size:13px;
+      font-weight:600;
+      padding:8px 4px 12px;
+      margin-right:20px;
+      cursor:pointer;
+      border-bottom:2px solid transparent;
+    }
+    .meetingsTab.active { color:var(--accentA); border-bottom-color:var(--accentA); }
+    .meetingsTabPanel { flex:1; overflow-y:auto; padding:20px 24px; }
+
+    /* Transcript chat */
+    .transcriptChat { display:flex; flex-direction:column; gap:16px; }
+    .chatTurnHeader { display:flex; align-items:baseline; gap:8px; margin-bottom:3px; }
+    .chatSpeaker { font-size:13.5px; font-weight:700; }
+    .chatTime { font-size:11.5px; color:var(--muted); }
+    .chatLines { font-size:13.5px; line-height:1.55; color:var(--fg); }
+    .chatLines div + div { margin-top:2px; }
+    .recapPlaceholder { color:var(--muted); font-size:13px; line-height:1.6; }
+
+    @media (max-width:820px) {
+      .meetingsShell { flex-direction:column; }
+      .meetingsSidebar { width:100%; max-height:280px; border-right:none; border-bottom:1px solid var(--border); }
+    }
+  </style>
+</head>
+<body class="dark-mode">
+  <script>if (localStorage.getItem("tpRailExpanded") === "true") document.body.classList.add("tp-rail-expanded");</script>
+  <?php
+    $tp_header_prefix = '../../';
+    $tp_show_auth_link = false;
+    include dirname(__DIR__) . '/shared/header.php';
+  ?>
+
+  <main>
+    <div class="wrap wide contentWrap">
+      <div class="pageStack">
+
+        <section class="card">
+          <div class="pageHeader">
+            <h1>Meeting Transcriptions</h1>
+            <p class="lead">Browse your recent Webex meetings and read the transcript. Uses your current OpsHub sign-in automatically.</p>
+          </div>
+          <div id="loadStatus" class="helperText"></div>
+        </section>
+
+        <section class="meetingsShell">
+          <aside class="meetingsSidebar">
+            <div class="meetingsSidebarHeader">
+              <span class="meetingsSidebarTitle">Recordings</span>
+              <select id="rangeSelect">
+                <option value="7">Last 7 days</option>
+                <option value="30" selected>Last 30 days</option>
+                <option value="90">Last 90 days</option>
+              </select>
+              <button id="refreshBtn" class="meetingsSidebarRefresh" type="button">↻ Refresh</button>
+            </div>
+            <div id="meetingsList" class="meetingsList">
+              <div class="meetingsListEmpty">Loading meetings…</div>
+            </div>
+          </aside>
+
+          <div class="meetingsDetail">
+            <div id="meetingsEmptyState" class="meetingsDetailEmpty">Select a meeting on the left to view its transcript.</div>
+            <div id="meetingsDetailContent" style="display:none; flex:1; flex-direction:column;">
+              <div class="meetingsDetailHeader">
+                <h2 class="meetingsDetailTitle" id="detailTitle"></h2>
+                <div class="meetingsDetailMeta" id="detailMeta"></div>
+                <button class="generateRecapBtn" id="generateRecapBtn" type="button">✦ Generate Recap Email</button>
+              </div>
+              <div class="meetingsTabs">
+                <button class="meetingsTab active" id="tabTranscriptBtn" type="button" data-tab="transcript">Transcript</button>
+                <button class="meetingsTab" id="tabRecapBtn" type="button" data-tab="recap">Recap Email</button>
+              </div>
+              <div class="meetingsTabPanel" id="transcriptPanel">
+                <div id="transcriptChat" class="transcriptChat"></div>
+              </div>
+              <div class="meetingsTabPanel" id="recapPanel" style="display:none;">
+                <p class="recapPlaceholder" id="recapPlaceholderText">Recap email generation is coming soon — this is where the AI-generated summary will appear once that step is wired up.</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+      </div>
+    </div>
+  </main>
+
+  <script src="../../assets/js/theme.js?v=20260929e"></script>
+  <script src="../../assets/js/meetings-transcriptions-page.js"></script>
+</body>
+</html>

@@ -1,0 +1,209 @@
+<?php require_once '/var/projects/bitbucket.io/cxasteam.bitbucket.io/oauth/check_access.php'; ?>
+
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="light" />
+  <title>Create As-Built - OpsHub</title>
+  <link rel="icon" type="image/png" href="../../assets/images/CX%20only.png" />
+  <link rel="stylesheet" href="../../assets/css/theme.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    main { padding: 32px 0 80px; }
+    .asbuilt-hero { display:flex; align-items:flex-start; justify-content:space-between; gap:20px; margin-bottom:16px; flex-wrap:wrap; }
+    .asbuilt-hero p.lead { max-width: 720px; color: var(--muted, #94a3b8); margin: 6px 0 0; font-size: 14px; }
+
+    /* Grouped picker (unified page). Each group -- Webex Calling and
+       Webex Contact Center -- gets its own header + inner checkbox grid. */
+    .asbuilt-group + .asbuilt-group { margin-top: 28px; }
+    .asbuilt-group__head {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 16px; margin: 10px 0 8px;
+    }
+    .asbuilt-group__title {
+      margin: 0; font-size: 14px; font-weight: 700; letter-spacing: .08em;
+      text-transform: uppercase; color: var(--muted, #94a3b8);
+    }
+    .asbuilt-group__quick { display: flex; gap: 8px; }
+    .asbuilt-group__quick button {
+      background: transparent; border: 1px solid var(--pill-border, rgba(255,255,255,.14));
+      color: var(--muted, #94a3b8); font-size: 11.5px; font-weight: 600;
+      padding: 4px 10px; border-radius: 8px; cursor: pointer;
+    }
+    .asbuilt-group__quick button:hover { border-color: rgba(96,165,250,.5); color: #60a5fa; }
+    .asbuilt-group__grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; }
+
+    .asbuilt-check {
+      display:flex; align-items:center; gap:10px; padding:12px 14px;
+      border:1px solid var(--pill-border, rgba(255,255,255,.14));
+      background:#131f36; border-radius:10px; cursor:pointer;
+      color: var(--fg, #e2e8f0); font-size:13.5px; font-weight:600;
+      transition: border-color .15s, background .15s;
+    }
+    .asbuilt-check:hover { border-color: rgba(96,165,250,.5); }
+    .asbuilt-check input { accent-color:#60a5fa; cursor:pointer; }
+    .asbuilt-check.is-selected { border-color: rgba(96,165,250,.6); background:#172342; }
+    .asbuilt-actions { display:flex; align-items:center; gap:14px; margin-top:20px; flex-wrap:wrap; }
+    .asbuilt-actions .btn.primary { min-width:120px; }
+
+    /* Top-level Select-all/Clear (spans BOTH platforms). */
+    .asbuilt-quick { display:flex; gap:8px; margin-top: 6px; }
+    .asbuilt-quick button {
+      background:transparent; border:1px solid var(--pill-border, rgba(255,255,255,.14));
+      color: var(--muted, #94a3b8); font-size:12px; font-weight:600;
+      padding:6px 12px; border-radius:8px; cursor:pointer;
+    }
+    .asbuilt-quick button:hover { border-color: rgba(96,165,250,.5); color:#60a5fa; }
+
+    /* Progress modal (identical shell to wxc/wxcc pages). */
+    .asbuilt-overlay {
+      position: fixed; inset: 0; z-index: 9500;
+      background: rgba(3,10,25,.78);
+      backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+      display: none; align-items: center; justify-content: center;
+      padding: 24px;
+    }
+    .asbuilt-overlay.is-open { display: flex; }
+    .asbuilt-overlay__card {
+      width: min(560px, 100%);
+      background: #0f1e37; border: 1px solid rgba(96,165,250,.35);
+      border-radius: 16px; padding: 24px 26px;
+      box-shadow: 0 24px 60px rgba(0,0,0,.55);
+      color: var(--fg, #e2e8f0);
+    }
+    .asbuilt-overlay__title { font-size: 18px; font-weight: 700; margin: 0 0 4px; }
+    .asbuilt-overlay__sub { color: var(--muted, #94a3b8); font-size: 13px; margin: 0 0 18px; min-height: 18px; }
+    .asbuilt-overlay__bar { height: 8px; border-radius: 999px; background: rgba(148,163,184,.15); overflow: hidden; margin-bottom: 8px; }
+    .asbuilt-overlay__bar-fill {
+      height: 100%; width: 0%;
+      background: linear-gradient(90deg, #3b82f6, #60a5fa);
+      transition: width .25s ease;
+    }
+    .asbuilt-overlay__counts {
+      color: var(--muted, #94a3b8); font-size: 12px;
+      font-family: 'DM Mono','Menlo',monospace; margin-bottom: 16px;
+      display: flex; justify-content: space-between;
+    }
+    .asbuilt-overlay__log {
+      margin: 0 0 16px; padding: 10px 12px; border-radius: 10px;
+      background: rgba(15,23,42,.55); border: 1px solid rgba(30,58,95,.6);
+      font-family: 'DM Mono','Menlo',monospace; font-size: 11.5px;
+      color: var(--muted, #94a3b8); max-height: 180px; overflow: auto;
+      white-space: pre-wrap;
+    }
+    .asbuilt-overlay__log .ok { color:#34d399; }
+    .asbuilt-overlay__log .warn { color:#fbbf24; }
+    .asbuilt-overlay__log .err { color:#f87171; }
+    .asbuilt-overlay__resources {
+      list-style: none; margin: 0 0 16px; padding: 8px 10px;
+      border-radius: 10px; background: rgba(15,23,42,.55);
+      border: 1px solid rgba(30,58,95,.6);
+      max-height: 260px; overflow: auto;
+      display: flex; flex-direction: column; gap: 2px;
+    }
+    .asbuilt-overlay__res {
+      display: grid; grid-template-columns: 18px 1fr auto;
+      align-items: center; gap: 10px;
+      padding: 5px 6px; border-radius: 6px;
+      font-size: 12.5px; color: var(--muted, #94a3b8);
+    }
+    .asbuilt-overlay__res-icon { text-align: center; font-family: 'DM Mono','Menlo',monospace; font-weight: 700; }
+    .asbuilt-overlay__res-label { color: var(--fg, #e2e8f0); font-weight: 600; }
+    .asbuilt-overlay__res-detail { font-family: 'DM Mono','Menlo',monospace; font-size: 11.5px; }
+    .asbuilt-overlay__res[data-state="pending"] .asbuilt-overlay__res-icon { color:#64748b; }
+    .asbuilt-overlay__res[data-state="pending"] .asbuilt-overlay__res-label { color: var(--muted, #94a3b8); }
+    .asbuilt-overlay__res[data-state="fetching"] .asbuilt-overlay__res-icon { color:#60a5fa; animation: asbuilt-spin 1s linear infinite; }
+    .asbuilt-overlay__res[data-state="fetching"] { background: rgba(59,130,246,.08); }
+    .asbuilt-overlay__res[data-state="done"] .asbuilt-overlay__res-icon { color:#34d399; }
+    .asbuilt-overlay__res[data-state="done"] .asbuilt-overlay__res-detail { color:#34d399; }
+    .asbuilt-overlay__res[data-state="failed"] .asbuilt-overlay__res-icon { color:#f87171; }
+    .asbuilt-overlay__res[data-state="failed"] .asbuilt-overlay__res-detail { color:#f87171; }
+    .asbuilt-overlay__res[data-state="cancelled"] .asbuilt-overlay__res-icon { color:#64748b; }
+    .asbuilt-overlay__res[data-state="cancelled"] .asbuilt-overlay__res-label,
+    .asbuilt-overlay__res[data-state="cancelled"] .asbuilt-overlay__res-detail { color:#64748b; }
+    @keyframes asbuilt-spin { to { transform: rotate(360deg); } }
+    .asbuilt-overlay__actions { display: flex; justify-content: flex-end; gap: 10px; }
+    .asbuilt-overlay__btn {
+      appearance: none; border: 1px solid var(--pill-border, rgba(255,255,255,.14));
+      background: transparent; color: var(--muted, #94a3b8);
+      font-size: 13px; font-weight: 600; padding: 8px 16px; border-radius: 8px;
+      cursor: pointer; transition: border-color .15s, color .15s, background .15s;
+    }
+    .asbuilt-overlay__btn:hover { border-color: rgba(248,113,113,.55); color:#f87171; }
+    .asbuilt-overlay__btn.is-primary { border-color: rgba(96,165,250,.45); color:#60a5fa; }
+    .asbuilt-overlay__btn.is-primary:hover { background: rgba(59,130,246,.14); color:#93c5fd; }
+    .asbuilt-overlay__btn:disabled { opacity: .5; cursor: not-allowed; }
+  </style>
+</head>
+<body class="dark-mode">
+  <script>if (localStorage.getItem("tpRailExpanded") === "true") document.body.classList.add("tp-rail-expanded");</script>
+  <?php
+$tp_header_prefix = '../../';
+$tp_show_auth_link = false;
+include dirname(__DIR__) . '/shared/header.php';
+?>
+
+  <main>
+    <div class="wrap wide contentWrap">
+      <section class="card">
+        <div class="dashboard-panel-body">
+          <div class="pageHeader asbuilt-hero">
+            <div>
+              <h1>Create As-Built</h1>
+              <p class="lead">Pick the Webex Calling and Webex Contact Center resources you want in the customer's as-built. One Run produces a single zip: two .xlsx workbooks (one per platform) plus every flow rendered as its own PDF.</p>
+            </div>
+          </div>
+
+          <div class="asbuilt-quick">
+            <button type="button" data-select="all">Select all</button>
+            <button type="button" data-select="none">Clear all</button>
+          </div>
+
+          <div class="asbuilt-grid" id="asbuiltResourceGrid" data-asbuilt-page="full" role="group" aria-label="Resources to include"></div>
+
+          <div class="asbuilt-actions">
+            <button class="btn primary" id="asbuiltGenerateBtn" type="button">Run</button>
+          </div>
+
+          <span id="asbuiltStatus" hidden></span>
+          <pre id="asbuiltLog" hidden></pre>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <div class="asbuilt-overlay" id="asbuiltOverlay" role="dialog" aria-modal="true" aria-labelledby="asbuiltOverlayTitle" aria-hidden="true">
+    <div class="asbuilt-overlay__card">
+      <div class="asbuilt-overlay__title" id="asbuiltOverlayTitle">Generating as-built...</div>
+      <div class="asbuilt-overlay__sub" id="asbuiltOverlaySub">Fetching resources</div>
+      <div class="asbuilt-overlay__bar" aria-hidden="true"><div class="asbuilt-overlay__bar-fill" id="asbuiltOverlayBar"></div></div>
+      <div class="asbuilt-overlay__counts">
+        <span id="asbuiltOverlayStep">0 / 0</span>
+        <span id="asbuiltOverlayPct">0%</span>
+      </div>
+      <ul class="asbuilt-overlay__resources" id="asbuiltOverlayResources" aria-live="polite"></ul>
+      <pre class="asbuilt-overlay__log" id="asbuiltOverlayLog" aria-live="polite" hidden></pre>
+      <div class="asbuilt-overlay__actions">
+        <button type="button" class="asbuilt-overlay__btn" id="asbuiltOverlayCancel">Cancel</button>
+        <button type="button" class="asbuilt-overlay__btn is-primary" id="asbuiltOverlayClose" hidden>Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SheetJS for the .xlsx workbook. JSZip is used whenever the export
+       ships as a .zip (unified page always, standalone pages only when
+       a pdf-bundle like Flows is included). -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <script src="../../assets/js/components.js?v=20260929b"></script>
+  <script src="../../assets/js/theme.js?v=20260929e"></script>
+  <script src="../../assets/js/asbuilt-common.js?v=20260929i"></script>
+  <script src="../../assets/js/asbuilt-wxc.js?v=20260929i"></script>
+  <script src="../../assets/js/asbuilt-wxcc.js?v=20260929i"></script>
+  <script src="../../assets/js/asbuilt-full.js?v=20260929i"></script>
+</body>
+</html>
