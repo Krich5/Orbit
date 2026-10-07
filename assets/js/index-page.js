@@ -118,7 +118,7 @@
     if (signOutButton) {
       signOutButton.addEventListener('click', () => {
         SIGN_OUT_KEYS.forEach((key) => localStorage.removeItem(key));
-        window.location.href = '/opshub/index.html';
+        window.location.href = 'index.html';
       });
     }
   }
