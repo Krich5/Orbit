@@ -69,7 +69,6 @@
         { label: 'Search API', path: '/pages/wxcc/searchapi.html' },
         { label: 'Realtime Dashboard', path: '/pages/wxcc/realtime-dashboard.html' },
         { label: 'Historical Data', path: '/pages/wxcc/historical-data.html' },
-        { label: 'Supervisor Controls', path: '/pages/wxcc/supervisorcontrols.html' },
         { label: 'Outbound Campaign Manager', path: '/pages/wxcc/ocm.html' },
         { label: 'Epoch Time', path: '/pages/wxcc/epochtime.html' },
         { label: 'Contact Center Wizard', path: '/pages/wxcc/wizard/S1_Teams.html' },
@@ -96,6 +95,12 @@
       title: 'Webex Messages',
       items: [
         { label: 'Space History Export', path: '/pages/wxmessages/spacehistory.html' }
+      ]
+    },
+    {
+      title: 'Admin',
+      items: [
+        { label: 'Create As-Built', path: '/pages/asbuilt/full.html' }
       ]
     }
   ];
@@ -1125,21 +1130,55 @@
     }
 
     const currentPath = window.location.pathname;
+    const activeIndex = CONTACT_CENTER_NAV_GROUPS.findIndex((group) => group.items.some((item) => pathMatchesItem(currentPath, item)));
     const rail = document.createElement('aside');
     rail.className = 'tp-side-rail';
     rail.setAttribute('aria-label', 'Navigate Orbit');
-    rail.innerHTML = `
-      <nav class="tp-rail-nav" aria-label="Webex Contact Center">
-        ${CONTACT_CENTER_NAV_GROUPS.map((group) => `
-          <div class="tp-rail-group">
-            <div class="tp-rail-group__label">${group.title}</div>
-            ${group.items.map((item) => `
-              <a class="home-accordion__link${pathMatchesItem(currentPath, item) ? ' is-active' : ''}" href="${buildToolsHref(item.path)}"><span>${item.label}</span></a>
-            `).join('')}
+
+    function section(key, title, linksHtml, open) {
+      return `
+        <section class="home-accordion__section${open ? ' is-open' : ''}" data-rail-section="${key}">
+          <button class="home-accordion__trigger" type="button" aria-expanded="${open ? 'true' : 'false'}" aria-controls="railPanel${key}" id="railTrigger${key}" data-rail-trigger="${key}">
+            <span class="home-accordion__label">${title}</span>
+            <span class="home-accordion__chevron" aria-hidden="true">▸</span>
+          </button>
+          <div class="home-accordion__panel" id="railPanel${key}" role="region" aria-labelledby="railTrigger${key}"${open ? '' : ' hidden'}>
+            <nav class="home-accordion__links" aria-label="${title}">${linksHtml}</nav>
           </div>
-        `).join('')}
-      </nav>
-    `;
+        </section>`;
+    }
+
+    const groupsHtml = CONTACT_CENTER_NAV_GROUPS.map((group, index) => section(
+      String(index),
+      group.title,
+      group.items.map((item) => `
+        <a class="home-accordion__link${pathMatchesItem(currentPath, item) ? ' is-active' : ''}" href="${buildToolsHref(item.path)}"><span>${item.label}</span></a>`).join(''),
+      index === activeIndex
+    )).join('');
+
+    const settingsHtml = section(
+      'settings',
+      'Settings',
+      `<button class="home-accordion__link tp-dropdown-item" id="tpStatusToggle" type="button">Webex Status: Off</button>
+       <button class="home-accordion__link tp-dropdown-item" id="signOutBtn" type="button">Sign Out</button>`,
+      false
+    );
+
+    rail.innerHTML = `<div class="home-accordion" id="railAccordion">${groupsHtml}${settingsHtml}</div>`;
+
+    rail.querySelectorAll('[data-rail-trigger]').forEach((trigger) => {
+      trigger.addEventListener('click', () => {
+        const wasOpen = trigger.getAttribute('aria-expanded') === 'true';
+        rail.querySelectorAll('[data-rail-section]').forEach((sec) => {
+          const t = sec.querySelector('[data-rail-trigger]');
+          const panel = sec.querySelector('.home-accordion__panel');
+          const open = !wasOpen && t === trigger;
+          sec.classList.toggle('is-open', open);
+          t.setAttribute('aria-expanded', open ? 'true' : 'false');
+          panel.hidden = !open;
+        });
+      });
+    });
     document.body.appendChild(rail);
   }
 

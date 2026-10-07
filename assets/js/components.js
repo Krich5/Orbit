@@ -580,28 +580,6 @@
                     </nav>
                   </div>
                 </section>
-                <section class="home-accordion__section" data-home-section="org">
-                  <button
-                    class="home-accordion__trigger"
-                    type="button"
-                    aria-expanded="false"
-                    aria-controls="homeSectionPanelOrg"
-                    id="homeSectionTriggerOrg"
-                    data-home-trigger="org"
-                  >
-                    <span class="home-accordion__label">Org</span>
-                    <span class="home-accordion__chevron" aria-hidden="true">▸</span>
-                  </button>
-                  <div
-                    class="home-accordion__panel"
-                    id="homeSectionPanelOrg"
-                    role="region"
-                    aria-labelledby="homeSectionTriggerOrg"
-                    hidden
-                  >
-                    <nav class="home-accordion__links" id="tpOrgMenu" aria-label="Org"></nav>
-                  </div>
-                </section>
                 <section class="home-accordion__section" data-home-section="settings">
                   <button
                     class="home-accordion__trigger"
