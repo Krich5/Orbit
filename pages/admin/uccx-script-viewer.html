@@ -7,7 +7,7 @@
   <title>UCCX Script Viewer - Orbit</title>
   <link rel="icon" type="image/png" href="../../assets/images/Orbit_Icon-192.png" />
   <link rel="stylesheet" href="../../assets/css/theme.css" />
-  <link rel="stylesheet" href="../../assets/css/uccx-script-viewer.css?v=20261010b" />
+  <link rel="stylesheet" href="../../assets/css/uccx-script-viewer.css?v=20261010c" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet" />
@@ -70,10 +70,11 @@
               <p class="uccx-settings-note">Settings apply to the next walkthrough. Reset to change them after starting.</p>
             </dialog>
             <div class="uccx-workspace">
-              <div class="uccx-design">
+              <div class="uccx-design" id="uccx-design">
                 <div class="pane-heading"><span>Script design</span></div>
                 <section class="uccx-content" id="uccx-content" role="tabpanel" aria-labelledby="uccx-tab-script"></section>
-                <section class="uccx-variable-pane" aria-label="Variables">
+                <div class="uccx-variable-divider" id="uccx-variable-divider" role="separator" tabindex="0" aria-label="Resize Variables panel" aria-orientation="horizontal" aria-controls="uccx-variable-pane" aria-valuemin="100" aria-valuenow="190" title="Drag up to enlarge Variables; use Up and Down arrows when focused"></div>
+                <section class="uccx-variable-pane" id="uccx-variable-pane" aria-label="Variables">
                   <div class="pane-heading"><span>Variables</span><input id="uccx-variable-search" type="search" aria-label="Filter variables" placeholder="Filter variables…" /></div>
                   <div id="uccx-variable-list" class="uccx-variable-list"></div>
                 </section>
@@ -98,6 +99,6 @@
   <script src="../../assets/js/uccx-aef-parser.js?v=20261009q"></script>
   <script src="../../assets/js/uccx-simulator.js?v=20261009d"></script>
   <script src="../../assets/js/uccx-step-icons.js?v=20261009g"></script>
-  <script src="../../assets/js/uccx-script-viewer.js?v=20261010b"></script>
+  <script src="../../assets/js/uccx-script-viewer.js?v=20261010c"></script>
 </body>
 </html>

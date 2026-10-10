@@ -28,7 +28,7 @@ body:has(#uccx-viewer) main { padding:32px 0 80px; }
 #uccx-viewer .pane-heading { display:flex;align-items:center;gap:12px;padding:10px 12px;font-size:12px;font-weight:600;background:var(--card);border-bottom:1px solid var(--border); }
 #uccx-viewer .pane-heading>span.muted { margin-left:auto;font-size:11px;font-weight:400; }
 #uccx-viewer .uccx-content { flex:1;min-height:140px;overflow:auto;padding:6px 0; }
-#uccx-viewer .uccx-variable-pane { display:flex;flex-direction:column;height:190px;min-height:100px;overflow:hidden;resize:vertical;border-top:1px solid var(--border); }
+#uccx-viewer .uccx-variable-pane { display:flex;flex-direction:column;height:190px;min-height:100px;overflow:hidden;flex:0 0 auto;max-height:calc(100% - 176px); }
 #uccx-viewer .uccx-variable-pane input { margin-left:auto;width:220px;min-width:100px;padding:5px 8px;font-size:11px; }
 #uccx-viewer .uccx-variable-list { overflow:auto;flex:1; }
 #uccx-viewer .uccx-inspector { min-width:0;padding:18px;background:var(--panel);border:1px solid var(--border);border-radius:10px;overflow:auto; }
@@ -244,3 +244,9 @@ body:has(#uccx-viewer) main { padding:32px 0 80px; }
 #uccx-viewer .uccx-settings-note { margin:0;padding:0 12px 12px;color:var(--muted);font-size:11px; }
 #uccx-viewer .uccx-sim-status { padding-top:12px; }
 @media(max-width:450px) { #uccx-viewer .uccx-scenario { grid-template-columns:1fr; } #uccx-viewer .uccx-debug-controls #uccx-result { font-size:10px; } }
+
+/* Resize from the boundary between the tree and Variables, in the drag direction. */
+#uccx-viewer .uccx-variable-divider { height:8px;flex:none;cursor:row-resize;touch-action:none;background:var(--card);border-block:1px solid var(--border);position:relative; }
+#uccx-viewer .uccx-variable-divider::after { content:"";position:absolute;width:36px;height:2px;background:#9aa9bc;left:calc(50% - 18px);top:2px;border-radius:2px; }
+#uccx-viewer .uccx-variable-divider:hover,#uccx-viewer .uccx-variable-divider:focus-visible { background:#dce9f8;outline:2px solid #155fba;outline-offset:-2px; }
+#uccx-viewer.is-resizing-variables,#uccx-viewer.is-resizing-variables * { cursor:row-resize!important;user-select:none!important; }

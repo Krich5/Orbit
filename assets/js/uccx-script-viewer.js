@@ -158,6 +158,20 @@ function renderVariablePane(){if(!model)return;let q=$('variable-search').value.
 }
 $('variable-search').oninput=renderVariablePane;
 updateTabs();
+// Pointer capture keeps the divider attached to the drag even outside the panel.
+const variableDivider=$('variable-divider'),variablePane=$('variable-pane');
+let variableDrag=null;
+function variablePanelMaximum(){const design=$('design');return Math.max(100,design.clientHeight-design.querySelector('.pane-heading').offsetHeight-variableDivider.offsetHeight-140);}
+function sizeVariablePanel(height){const maximum=variablePanelMaximum(),size=Math.round(Math.max(100,Math.min(maximum,height)));variablePane.style.height=size+'px';variableDivider.setAttribute('aria-valuemax',String(maximum));variableDivider.setAttribute('aria-valuenow',String(size));}
+variableDivider.onpointerdown=event=>{if(event.button!==0||variableDrag)return;event.preventDefault();variableDrag={pointerId:event.pointerId,y:event.clientY,height:variablePane.getBoundingClientRect().height};variableDivider.setPointerCapture(event.pointerId);root.classList.add('is-resizing-variables');};
+variableDivider.onpointermove=event=>{if(variableDrag?.pointerId!==event.pointerId)return;sizeVariablePanel(variableDrag.height+variableDrag.y-event.clientY);};
+function finishVariableDrag(event){if(variableDrag?.pointerId!==event.pointerId)return;variableDrag=null;root.classList.remove('is-resizing-variables');if(variableDivider.hasPointerCapture(event.pointerId))variableDivider.releasePointerCapture(event.pointerId);}
+variableDivider.onpointerup=finishVariableDrag;
+variableDivider.onpointercancel=finishVariableDrag;
+variableDivider.onlostpointercapture=finishVariableDrag;
+variableDivider.onfocus=()=>sizeVariablePanel(variablePane.getBoundingClientRect().height);
+variableDivider.onkeydown=event=>{const height=variablePane.getBoundingClientRect().height;if(!['ArrowUp','ArrowDown','Home','End'].includes(event.key))return;event.preventDefault();sizeVariablePanel(event.key==='Home'?100:event.key==='End'?variablePanelMaximum():height+(event.key==='ArrowUp'?20:-20));};
+
 let simulation=null,playing=false,playTimer=null;
 const scenarioFields=['sim-datetime','sim-zone','sim-caller','sim-called'];
 function initScenario(){let now=new Date(),local=new Date(now.getTime()-now.getTimezoneOffset()*60000);$('sim-datetime').value=local.toISOString().slice(0,19);$('sim-zone').value=Intl.DateTimeFormat().resolvedOptions().timeZone||'UTC';}
