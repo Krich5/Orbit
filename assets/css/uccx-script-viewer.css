@@ -229,3 +229,18 @@ body:has(#uccx-viewer) main { padding:32px 0 80px; }
 #uccx-viewer .annotation-step .step-line { display:none; }
 #uccx-viewer .step-keyword { color:#08733b; }
 #uccx-viewer .step.active .step-keyword { color:#fff; }
+
+/* Playback controls stay outside the changing properties and trace panels. */
+#uccx-viewer .uccx-debug-controls { display:flex;align-items:center;gap:6px;min-width:0; }
+#uccx-viewer .uccx-debug-controls .btn { padding:9px 8px;font-size:11px;box-shadow:none; }
+#uccx-viewer .uccx-debug-controls #uccx-result { margin-left:auto;white-space:nowrap; }
+#uccx-viewer .uccx-sim-actions { padding:0;gap:6px;flex:none; }
+#uccx-viewer .uccx-sim-actions[hidden] { display:none; }
+#uccx-viewer #uccx-sim-play { width:68px; }
+#uccx-viewer .uccx-settings-button { width:34px;height:38px;font-size:20px!important;line-height:1; }
+#uccx-viewer .uccx-settings-dialog { width:min(520px,calc(100vw - 32px));max-height:calc(100vh - 32px);padding:0;border:1px solid var(--border);border-radius:10px;background:var(--panel);color:var(--fg);box-shadow:0 16px 60px #0008;overflow:auto;color-scheme:dark; }
+#uccx-viewer .uccx-settings-dialog::backdrop { background:#0008; }
+#uccx-viewer .uccx-settings-dialog .pane-heading { background:var(--panel);color:var(--fg);padding:10px 12px; }
+#uccx-viewer .uccx-settings-note { margin:0;padding:0 12px 12px;color:var(--muted);font-size:11px; }
+#uccx-viewer .uccx-sim-status { padding-top:12px; }
+@media(max-width:450px) { #uccx-viewer .uccx-scenario { grid-template-columns:1fr; } #uccx-viewer .uccx-debug-controls #uccx-result { font-size:10px; } }

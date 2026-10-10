@@ -7,7 +7,7 @@
   <title>UCCX Script Viewer - Orbit</title>
   <link rel="icon" type="image/png" href="../../assets/images/Orbit_Icon-192.png" />
   <link rel="stylesheet" href="../../assets/css/theme.css" />
-  <link rel="stylesheet" href="../../assets/css/uccx-script-viewer.css?v=20261009r" />
+  <link rel="stylesheet" href="../../assets/css/uccx-script-viewer.css?v=20261010b" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet" />
@@ -49,8 +49,26 @@
                 <input id="uccx-search" type="search" aria-label="Search script view" placeholder="Find a step, label, comment, or expression…" />
                 <button class="btn secondary" id="uccx-debug-toggle" type="button" aria-expanded="false" aria-controls="uccx-debug">Debug</button>
               </div>
-              <span class="muted small" id="uccx-result" aria-live="polite"></span>
+              <div class="uccx-debug-controls">
+                <button class="btn secondary uccx-settings-button" id="uccx-sim-settings" type="button" aria-label="Debug settings" title="Debug settings" aria-haspopup="dialog">⚙</button>
+                  <div class="uccx-sim-actions" id="uccx-sim-actions" hidden>
+                    <button class="btn primary" id="uccx-sim-play" type="button">▶ Play</button>
+                    <button class="btn secondary" id="uccx-sim-step" type="button">Step</button>
+                    <button class="btn secondary" id="uccx-sim-reset" type="button">Reset</button>
+                  </div>
+                <span class="muted small" id="uccx-result" aria-live="polite"></span>
+              </div>
             </div>
+            <dialog class="uccx-settings-dialog" id="uccx-settings-dialog" aria-labelledby="uccx-settings-title">
+              <div class="pane-heading"><span id="uccx-settings-title">Debug settings</span><button class="btn secondary" id="uccx-settings-close" type="button" aria-label="Close debug settings">Done</button></div>
+                  <div class="uccx-scenario">
+                    <label>Scenario date &amp; time<input id="uccx-sim-datetime" type="datetime-local" step="1" /></label>
+                    <label>Primary / local time zone<input id="uccx-sim-zone" type="text" placeholder="America/New_York" /></label>
+                    <label>Calling number<input id="uccx-sim-caller" type="tel" placeholder="+15551234567" /></label>
+                    <label>Called number<input id="uccx-sim-called" type="tel" placeholder="Extension or DNIS" /></label>
+                  </div>
+              <p class="uccx-settings-note">Settings apply to the next walkthrough. Reset to change them after starting.</p>
+            </dialog>
             <div class="uccx-workspace">
               <div class="uccx-design">
                 <div class="pane-heading"><span>Script design</span></div>
@@ -64,17 +82,6 @@
                 <aside class="uccx-inspector" id="uccx-inspector" aria-label="Step properties"></aside>
                 <section class="uccx-debug" id="uccx-debug" aria-label="Local walkthrough" hidden>
                   <div class="pane-heading">Debug / Walkthrough <span class="muted">Local simulation</span></div>
-                  <div class="uccx-scenario">
-                    <label>Scenario date &amp; time<input id="uccx-sim-datetime" type="datetime-local" step="1" /></label>
-                    <label>Primary / local time zone<input id="uccx-sim-zone" type="text" placeholder="America/New_York" /></label>
-                    <label>Calling number<input id="uccx-sim-caller" type="tel" placeholder="+15551234567" /></label>
-                    <label>Called number<input id="uccx-sim-called" type="tel" placeholder="Extension or DNIS" /></label>
-                  </div>
-                  <div class="uccx-sim-actions">
-                    <button class="btn primary" id="uccx-sim-play" type="button">▶ Play</button>
-                    <button class="btn secondary" id="uccx-sim-step" type="button">Step</button>
-                    <button class="btn secondary" id="uccx-sim-reset" type="button">Reset</button>
-                  </div>
                   <div class="uccx-sim-status" id="uccx-sim-status" role="status" aria-live="polite">Set the clock and caller, then Play or Step.</div>
                   <div id="uccx-sim-pending"></div>
                   <details class="uccx-sim-trace" open><summary>Execution trace</summary><ol id="uccx-sim-trace"></ol></details>
@@ -91,6 +98,6 @@
   <script src="../../assets/js/uccx-aef-parser.js?v=20261009q"></script>
   <script src="../../assets/js/uccx-simulator.js?v=20261009d"></script>
   <script src="../../assets/js/uccx-step-icons.js?v=20261009g"></script>
-  <script src="../../assets/js/uccx-script-viewer.js?v=20261009r"></script>
+  <script src="../../assets/js/uccx-script-viewer.js?v=20261010b"></script>
 </body>
 </html>

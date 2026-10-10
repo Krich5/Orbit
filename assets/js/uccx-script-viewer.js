@@ -163,7 +163,7 @@ const scenarioFields=['sim-datetime','sim-zone','sim-caller','sim-called'];
 function initScenario(){let now=new Date(),local=new Date(now.getTime()-now.getTimezoneOffset()*60000);$('sim-datetime').value=local.toISOString().slice(0,19);$('sim-zone').value=Intl.DateTimeFormat().resolvedOptions().timeZone||'UTC';}
 function resetSimulation(){playing=false;clearTimeout(playTimer);simulation=null;scenarioFields.forEach(id=>$(id).disabled=false);$('sim-play').textContent='▶ Play';$('sim-pending').innerHTML='';$('sim-trace').innerHTML='';$('sim-status').textContent='Set the clock and caller, then Play or Step.';root.querySelectorAll('.running').forEach(b=>b.classList.remove('running'));if(model)renderVariablePane();}
 function ensureSimulation(){if(simulation)return simulation;if(!model)throw Error('Open a script first');simulation=new window.UCCXSimulation.Simulator(model,{datetime:$('sim-datetime').value,timezone:$('sim-zone').value.trim(),caller:$('sim-caller').value,called:$('sim-called').value});scenarioFields.forEach(id=>$(id).disabled=true);renderVariablePane();return simulation;}
-function debugOpen(){root.classList.add('is-debugging');$('debug').hidden=false;$('debug-toggle').setAttribute('aria-expanded','true');}
+function debugOpen(){root.classList.add('is-debugging');$('debug').hidden=false;$('sim-actions').hidden=false;$('debug-toggle').setAttribute('aria-expanded','true');}
 function simulationUpdate(result){return preservePagePosition(()=>simulationUpdateContents(result));}
 function simulationUpdateContents(result){
  $('sim-play').textContent=playing?'Ⅱ Pause':'▶ Play';
@@ -192,7 +192,11 @@ function renderPending(){
  if($('sim-retry'))$('sim-retry').onclick=()=>{simulation.pending=null;runSimulationStep();};
  if($('sim-apply'))$('sim-apply').onclick=()=>{try{const name=$('sim-variable').value;if(!name)throw Error('Choose a variable');simulation.set(name,runtimeValue($('sim-value').value));simulation.log(s,'Supplied '+name+' = '+String(simulation.variables.get(name)));if(s.type==='GetReportingStatStep'&&name===s.config.resultVariable){simulation.skip();simulationUpdate();if(simulation.current!==null)navigateToStep(simulation.current);}else{renderVariablePane();$('sim-status').textContent='Value applied. Retry the step or choose an outcome.';}}catch(e){$('sim-status').textContent=e.message;}};
 }
-$('debug-toggle').onclick=()=>{let opening=$('debug').hidden;$('debug').hidden=!opening;root.classList.toggle('is-debugging',opening);$('debug-toggle').setAttribute('aria-expanded',String(opening));};
+function pauseSimulation(){playing=false;clearTimeout(playTimer);simulationUpdate();}
+$('debug-toggle').onclick=()=>{let opening=$('debug').hidden;if(opening){debugOpen();}else{pauseSimulation();$('debug').hidden=true;$('sim-actions').hidden=true;root.classList.remove('is-debugging');$('debug-toggle').setAttribute('aria-expanded','false');}};
+$('sim-settings').onclick=()=>{pauseSimulation();$('settings-dialog').showModal();};
+$('settings-close').onclick=()=>$('settings-dialog').close();
+$('settings-dialog').onclick=event=>{if(event.target===$('settings-dialog')){const bounds=$('settings-dialog').getBoundingClientRect();if(event.clientX<bounds.left||event.clientX>bounds.right||event.clientY<bounds.top||event.clientY>bounds.bottom)$('settings-dialog').close();}};
 $('sim-play').onclick=()=>{debugOpen();if(playing){playing=false;clearTimeout(playTimer);simulationUpdate();return;}try{ensureSimulation();if(simulation.pending){$('sim-status').textContent='Choose an outcome or supply a value before continuing.';return;}if(simulation.finished){$('sim-status').textContent='Reset to begin a new walkthrough.';return;}playing=true;tickSimulation();}catch(e){$('sim-status').textContent=e.message;}};
 $('sim-step').onclick=()=>{playing=false;clearTimeout(playTimer);runSimulationStep();};
 $('sim-reset').onclick=resetSimulation;
