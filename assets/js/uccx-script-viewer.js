@@ -175,7 +175,7 @@ variableDivider.onkeydown=event=>{const height=variablePane.getBoundingClientRec
 let simulation=null,playing=false,playTimer=null,resumeAfterChoice=false;
 const scenarioFields=['sim-datetime','sim-zone','sim-caller','sim-called'];
 function initScenario(){let now=new Date(),local=new Date(now.getTime()-now.getTimezoneOffset()*60000);$('sim-datetime').value=local.toISOString().slice(0,19);$('sim-zone').value=Intl.DateTimeFormat().resolvedOptions().timeZone||'UTC';}
-function resetSimulation(){resumeAfterChoice=false;if($('debug').open)$('debug').close();playing=false;clearTimeout(playTimer);simulation=null;scenarioFields.forEach(id=>$(id).disabled=false);$('sim-play').textContent='▶ Play';$('sim-pending').innerHTML='';$('sim-trace').innerHTML='';$('sim-status').textContent='Set the clock and caller, then Play or Step.';root.querySelectorAll('.running').forEach(b=>b.classList.remove('running'));if(model)renderVariablePane();}
+function resetSimulation(){if($('trace-dialog').open)$('trace-dialog').close();$('trace-text').hidden=true;resumeAfterChoice=false;if($('debug').open)$('debug').close();playing=false;clearTimeout(playTimer);simulation=null;scenarioFields.forEach(id=>$(id).disabled=false);$('sim-play').textContent='▶ Play';$('sim-pending').innerHTML='';$('sim-trace').innerHTML='';$('sim-status').textContent='Set the clock and caller, then Play or Step.';root.querySelectorAll('.running').forEach(b=>b.classList.remove('running'));if(model)renderVariablePane();}
 function ensureSimulation(){if(simulation)return simulation;if(!model)throw Error('Open a script first');simulation=new window.UCCXSimulation.Simulator(model,{datetime:$('sim-datetime').value,timezone:$('sim-zone').value.trim(),caller:$('sim-caller').value,called:$('sim-called').value});scenarioFields.forEach(id=>$(id).disabled=true);renderVariablePane();return simulation;}
 function debugOpen(){root.classList.add('is-debugging');$('sim-actions').hidden=false;$('debug-toggle').setAttribute('aria-expanded','true');}
 function simulationUpdate(result){return preservePagePosition(()=>simulationUpdateContents(result));}
@@ -191,7 +191,7 @@ function simulationUpdateContents(result){
  renderVariablePane();renderPending();
 }
 function runSimulationStep(){return preservePagePosition(()=>runSimulationStepContents());}
-function runSimulationStepContents(){try{debugOpen();const engine=ensureSimulation();let result=engine.step();if(result.status==='paused'){resumeAfterChoice=playing||resumeAfterChoice;playing=false;clearTimeout(playTimer);}if(result.status==='finished'){resumeAfterChoice=false;playing=false;clearTimeout(playTimer);}simulationUpdate(result);if(result.status==='paused'||result.status==='finished')showDebugDialog();return result.status;}catch(e){playing=false;$('sim-status').textContent=e.message;$('sim-play').textContent='▶ Play';showDebugDialog();return 'error';}}
+function runSimulationStepContents(){try{debugOpen();const engine=ensureSimulation();let result=engine.step();if(result.status==='paused'){resumeAfterChoice=playing||resumeAfterChoice;playing=false;clearTimeout(playTimer);}if(result.status==='finished'){resumeAfterChoice=false;playing=false;clearTimeout(playTimer);}simulationUpdate(result);if(result.status==='paused')showDebugDialog();if(result.status==='finished')showExecutionTrace();return result.status;}catch(e){playing=false;$('sim-status').textContent=e.message;$('sim-play').textContent='▶ Play';showDebugDialog();return 'error';}}
 function tickSimulation(){if(!playing)return;let status=runSimulationStep();if(playing&&status==='stepped')playTimer=setTimeout(tickSimulation,playbackDelay());}
 function runtimeValue(text){try{return JSON.parse(text);}catch{return text;}}
 function renderPending(){
@@ -213,11 +213,14 @@ function continueAfterChoice(){simulationUpdate();if(resumeAfterChoice&&!simulat
 $('debug-toggle').onclick=()=>{let opening=$('sim-actions').hidden;if(opening){debugOpen();}else{pauseSimulation();if($('debug').open)$('debug').close();$('sim-actions').hidden=true;root.classList.remove('is-debugging');$('debug-toggle').setAttribute('aria-expanded','false');}};
 $('debug-close').onclick=()=>{pauseSimulation();$('debug').close();};
 $('debug').oncancel=()=>{resumeAfterChoice=false;playing=false;clearTimeout(playTimer);$('sim-play').textContent='▶ Play';};
-$('trace-open').onclick=()=>{pauseSimulation();$('settings-dialog').close();showDebugDialog();};
+function executionText(){return [model?.name||'Script walkthrough','',...(simulation?.trace||[]).map((entry,index)=>(index+1)+'. '+entry.title+' — '+entry.message)].join('\n');}
+function showExecutionTrace(){pauseSimulation();$('trace-status').textContent=simulation?.trace.length?'All execution steps from this walkthrough.':'No steps yet. Use Play or Step to begin.';$('trace-text').hidden=true;$('trace-copy').textContent='Copy';if(!$('trace-dialog').open)$('trace-dialog').showModal();}
+$('trace-close').onclick=()=>$('trace-dialog').close();
+$('trace-copy').onclick=async()=>{const text=executionText();try{await navigator.clipboard.writeText(text);$('trace-copy').textContent='Copied';$('trace-status').textContent='Copied execution steps to the clipboard.';}catch{const field=$('trace-text');field.value=text;field.hidden=false;field.focus();field.select();$('trace-status').textContent='Select the text below and copy it with Command+C or Ctrl+C.';}};
 $('sim-settings').onclick=()=>{pauseSimulation();$('settings-dialog').showModal();};
 $('settings-close').onclick=()=>$('settings-dialog').close();
 $('settings-dialog').onclick=event=>{if(event.target===$('settings-dialog')){const bounds=$('settings-dialog').getBoundingClientRect();if(event.clientX<bounds.left||event.clientX>bounds.right||event.clientY<bounds.top||event.clientY>bounds.bottom)$('settings-dialog').close();}};
-$('sim-play').onclick=()=>{debugOpen();if(playing){playing=false;clearTimeout(playTimer);simulationUpdate();return;}try{ensureSimulation();if(simulation.pending){resumeAfterChoice=true;renderPending();showDebugDialog();return;}if(simulation.finished){$('sim-status').textContent='Reset to begin a new walkthrough.';showDebugDialog();return;}playing=true;tickSimulation();}catch(e){$('sim-status').textContent=e.message;showDebugDialog();}};
+$('sim-play').onclick=()=>{debugOpen();if(playing){playing=false;clearTimeout(playTimer);simulationUpdate();return;}try{ensureSimulation();if(simulation.pending){resumeAfterChoice=true;renderPending();showDebugDialog();return;}if(simulation.finished){showExecutionTrace();return;}playing=true;tickSimulation();}catch(e){$('sim-status').textContent=e.message;showDebugDialog();}};
 $('sim-step').onclick=()=>{resumeAfterChoice=false;playing=false;clearTimeout(playTimer);runSimulationStep();};
 $('sim-reset').onclick=resetSimulation;
 initScenario();

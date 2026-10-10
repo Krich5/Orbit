@@ -256,3 +256,9 @@ body:has(#uccx-viewer) main { padding:32px 0 80px; }
 #uccx-viewer .uccx-dialog-actions { padding:0 12px 12px; }
 #uccx-viewer .uccx-debug-dialog { width:min(600px,calc(100vw - 32px)); }
 #uccx-viewer .uccx-debug-dialog #uccx-sim-pending { padding-bottom:12px; }
+
+#uccx-viewer .uccx-trace-dialog { width:min(700px,calc(100vw - 32px)); }
+#uccx-viewer .uccx-trace-dialog .pane-heading { display:flex;justify-content:space-between;gap:12px; }
+#uccx-viewer .uccx-trace-list { margin:0;padding:0 16px 16px 36px;font-size:12px;line-height:1.6; }
+#uccx-viewer .uccx-trace-list li { padding:4px 0;overflow-wrap:anywhere; }
+#uccx-viewer .uccx-trace-text { width:calc(100% - 24px);min-height:160px;margin:0 12px 12px;background:var(--input);color:var(--fg);border:1px solid var(--border);border-radius:6px;padding:8px; }

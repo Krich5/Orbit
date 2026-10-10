@@ -7,7 +7,7 @@
   <title>UCCX Script Viewer - Orbit</title>
   <link rel="icon" type="image/png" href="../../assets/images/Orbit_Icon-192.png" />
   <link rel="stylesheet" href="../../assets/css/theme.css" />
-  <link rel="stylesheet" href="../../assets/css/uccx-script-viewer.css?v=20261010e" />
+  <link rel="stylesheet" href="../../assets/css/uccx-script-viewer.css?v=20261010f" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet" />
@@ -50,7 +50,7 @@
                 <button class="btn secondary" id="uccx-debug-toggle" type="button" aria-expanded="false" aria-controls="uccx-sim-actions">Debug</button>
               </div>
               <div class="uccx-debug-controls">
-                <button class="btn secondary uccx-settings-button" id="uccx-sim-settings" type="button" aria-label="Debug settings" title="Debug settings" aria-haspopup="dialog"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 3h6l1 3 3 1 2 5-2 5-3 1-1 3H9l-1-3-3-1-2-5 2-5 3-1z"/><circle cx="12" cy="12" r="3"/></svg></button>
+                <button class="btn secondary uccx-settings-button" id="uccx-sim-settings" type="button" aria-label="Debug settings" title="Debug settings" aria-haspopup="dialog"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="currentColor"><path d="M19.14 12.94c.04-.31.06-.63.06-.94s-.02-.63-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.63l-1.92-3.32a.49.49 0 0 0-.61-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54A.49.49 0 0 0 14 2h-4c-.25 0-.45.18-.49.42l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96a.49.49 0 0 0-.61.22L2.61 8.48a.49.49 0 0 0 .12.63l2.03 1.58c-.05.31-.08.65-.08.97s.02.63.07.94l-2.03 1.58a.49.49 0 0 0-.12.63l1.92 3.32c.12.22.38.31.61.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.25.25.43.5.43h4c.25 0 .45-.18.49-.42l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.23.09.49 0 .61-.22l1.92-3.32a.49.49 0 0 0-.12-.63l-2.03-1.58zM12 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z"/></svg></button>
                   <div class="uccx-sim-actions" id="uccx-sim-actions" hidden>
                     <button class="btn secondary" id="uccx-sim-play" type="button">▶ Play</button>
                     <button class="btn secondary" id="uccx-sim-step" type="button">Step</button>
@@ -68,15 +68,19 @@
                     <label>Called number<input id="uccx-sim-called" type="tel" placeholder="Extension or DNIS" /></label>
                     <label>Playback speed<select id="uccx-sim-speed"><option value="350">Fast · 0.35 seconds per step</option><option value="1000" selected>Normal · 1 second per step</option><option value="2000">Slow · 2 seconds per step</option><option value="3000">Slower · 3 seconds per step</option><option value="5000">Slowest · 5 seconds per step</option></select></label>
                   </div>
-              <div class="uccx-dialog-actions"><button class="btn secondary" id="uccx-trace-open" type="button">Execution trace</button></div>
               <p class="uccx-settings-note">Reset to change the date, time zone, or phone numbers after starting. Playback speed can be changed at any time.</p>
             </dialog>
                 <dialog class="uccx-settings-dialog uccx-debug-dialog" id="uccx-debug" aria-labelledby="uccx-debug-title">
                   <div class="pane-heading"><span id="uccx-debug-title">Debug / Walkthrough</span><button class="btn secondary" id="uccx-debug-close" type="button">Close / Pause</button></div>
                   <div class="uccx-sim-status" id="uccx-sim-status" role="status" aria-live="polite">Set the clock and caller, then Play or Step.</div>
                   <div id="uccx-sim-pending"></div>
-                  <details class="uccx-sim-trace" open><summary>Execution trace</summary><ol id="uccx-sim-trace"></ol></details>
                 </dialog>
+            <dialog class="uccx-settings-dialog uccx-trace-dialog" id="uccx-trace-dialog" aria-labelledby="uccx-trace-title">
+              <div class="pane-heading"><span id="uccx-trace-title">Execution steps</span><div><button class="btn secondary" id="uccx-trace-copy" type="button">Copy</button> <button class="btn secondary" id="uccx-trace-close" type="button">Close</button></div></div>
+              <p class="uccx-settings-note" id="uccx-trace-status" role="status" aria-live="polite"></p>
+              <ol class="uccx-trace-list" id="uccx-sim-trace"></ol>
+              <textarea id="uccx-trace-text" class="uccx-trace-text" aria-label="Execution steps text to copy" readonly hidden></textarea>
+            </dialog>
             <div class="uccx-workspace">
               <div class="uccx-design" id="uccx-design">
                 <div class="pane-heading"><span>Script design</span></div>
@@ -99,8 +103,8 @@
   <script src="../../assets/js/components.js?v=20261010a"></script>
   <script src="../../assets/js/theme.js?v=20261010a"></script>
   <script src="../../assets/js/uccx-aef-parser.js?v=20261009q"></script>
-  <script src="../../assets/js/uccx-simulator.js?v=20261009d"></script>
+  <script src="../../assets/js/uccx-simulator.js?v=20261010f"></script>
   <script src="../../assets/js/uccx-step-icons.js?v=20261009g"></script>
-  <script src="../../assets/js/uccx-script-viewer.js?v=20261010e"></script>
+  <script src="../../assets/js/uccx-script-viewer.js?v=20261010f"></script>
 </body>
 </html>

@@ -60,7 +60,7 @@ class Simulator {
  }
  set(name,value){if(!/^[A-Za-z_$][\w$]*$/.test(name))throw Error('Choose a valid variable name');this.variables.set(name,value);}
  evaluate(text){return expression(text,this.variables);}
- log(step,message){this.trace.push({id:step?.id,title:step?.title||'',message});if(this.trace.length>300)this.trace.shift();}
+ log(step,message){this.trace.push({id:step?.id,title:step?.title||'',message});}
  branch(step,name){let group=(this.groups.get(step.id)||[]).find(g=>g.name===name);if(!group)throw Error('Branch '+name+' was not found');this.current=group.nodes[0]?.step?.id??this.next.get(step.id);this.log(step,'Branch: '+name);}
  pause(step,message,kind='result'){this.pending={step,message,kind,branches:(this.groups.get(step.id)||[]).map(g=>g.name)};this.log(step,message);return {status:'paused',step};}
  choose(name,value){let p=this.pending;if(!p)throw Error('No choice is pending');if(p.kind==='digits'){if(!p.step.config.inputVariable)throw Error('Input variable could not be decoded');this.set(p.step.config.inputVariable,String(value??''));}this.log(p.step,'Manual outcome: '+(name||'Continue'));this.pending=null;this.branch(p.step,name);return this.current;}
