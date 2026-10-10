@@ -65,7 +65,8 @@
   // manually with ADMIN_NAV_ITEMS in theme.js so both the home page and
   // interior pages show the same Admin children.
   const HOME_ADMIN_ITEMS = [
-    { title: 'Create As-Built',      href: 'pages/asbuilt/full.html' }
+    { title: 'Create As-Built',      href: 'pages/asbuilt/full.html' },
+    { title: 'UCCX Script Viewer', href: 'pages/admin/uccx-script-viewer.html' }
   ];
 
   const ADMIN_SECTIONS = `

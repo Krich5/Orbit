@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="light dark" />
+  <title>UCCX Script Viewer - Orbit</title>
+  <link rel="icon" type="image/png" href="../../assets/images/Orbit_Icon-192.png" />
+  <link rel="stylesheet" href="../../assets/css/theme.css" />
+  <link rel="stylesheet" href="../../assets/css/uccx-script-viewer.css?v=20261009r" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet" />
+  <script src="../../assets/js/orbit-config.js"></script>
+</head>
+<body class="dark-mode">
+  <script>if (localStorage.getItem('tpRailExpanded') === 'true') document.body.classList.add('tp-rail-expanded');</script>
+  <api-tools-header basepath="../../"></api-tools-header>
+  <main>
+    <div class="wrap wide contentWrap">
+      <section class="card" id="uccx-viewer">
+        <div class="dashboard-panel-body">
+          <div class="pageHeader uccx-hero">
+            <div>
+              <h1>UCCX Script Viewer</h1>
+              <p class="lead">Explore and walk through Cisco UCCX scripts.</p>
+            </div>
+            <div class="pageHeaderActions">
+
+              <button class="btn primary" id="uccx-open" type="button">Open .aef file</button>
+              <input id="uccx-file" type="file" accept=".aef" hidden />
+            </div>
+          </div>
+          <div class="uccx-upload" id="uccx-upload">
+            <span class="uccx-upload-icon" aria-hidden="true">⇢</span>
+            <div><h2>Choose a script to get started</h2><p>Use Open .aef file or drop a file here. Your script stays in this browser.</p></div>
+          </div>
+          <div class="uccx-notice hidden" id="uccx-notice" role="status" aria-live="polite"></div>
+          <div id="uccx-loaded" hidden>
+            <div class="uccx-filebar"><strong id="uccx-filename"></strong><div class="uccx-meta" id="uccx-meta"></div></div>
+            <nav class="uccx-tabs" role="tablist" aria-label="Script views">
+              <button id="uccx-tab-script" type="button" role="tab" aria-controls="uccx-content" aria-selected="true" data-tab="script">Script tree</button>
+              <button id="uccx-tab-variables" type="button" role="tab" aria-controls="uccx-content" aria-selected="false" data-tab="variables">Variables</button>
+              <button id="uccx-tab-expressions" type="button" role="tab" aria-controls="uccx-content" aria-selected="false" data-tab="expressions">Expressions</button>
+              <button id="uccx-tab-subflows" type="button" role="tab" aria-controls="uccx-content" aria-selected="false" data-tab="subflows">Subflows</button>
+            </nav>
+            <div class="uccx-toolbar">
+              <div class="uccx-search-controls">
+                <input id="uccx-search" type="search" aria-label="Search script view" placeholder="Find a step, label, comment, or expression…" />
+                <button class="btn secondary" id="uccx-debug-toggle" type="button" aria-expanded="false" aria-controls="uccx-debug">Debug</button>
+              </div>
+              <span class="muted small" id="uccx-result" aria-live="polite"></span>
+            </div>
+            <div class="uccx-workspace">
+              <div class="uccx-design">
+                <div class="pane-heading"><span>Script design</span></div>
+                <section class="uccx-content" id="uccx-content" role="tabpanel" aria-labelledby="uccx-tab-script"></section>
+                <section class="uccx-variable-pane" aria-label="Variables">
+                  <div class="pane-heading"><span>Variables</span><input id="uccx-variable-search" type="search" aria-label="Filter variables" placeholder="Filter variables…" /></div>
+                  <div id="uccx-variable-list" class="uccx-variable-list"></div>
+                </section>
+              </div>
+              <div class="uccx-side">
+                <aside class="uccx-inspector" id="uccx-inspector" aria-label="Step properties"></aside>
+                <section class="uccx-debug" id="uccx-debug" aria-label="Local walkthrough" hidden>
+                  <div class="pane-heading">Debug / Walkthrough <span class="muted">Local simulation</span></div>
+                  <div class="uccx-scenario">
+                    <label>Scenario date &amp; time<input id="uccx-sim-datetime" type="datetime-local" step="1" /></label>
+                    <label>Primary / local time zone<input id="uccx-sim-zone" type="text" placeholder="America/New_York" /></label>
+                    <label>Calling number<input id="uccx-sim-caller" type="tel" placeholder="+15551234567" /></label>
+                    <label>Called number<input id="uccx-sim-called" type="tel" placeholder="Extension or DNIS" /></label>
+                  </div>
+                  <div class="uccx-sim-actions">
+                    <button class="btn primary" id="uccx-sim-play" type="button">▶ Play</button>
+                    <button class="btn secondary" id="uccx-sim-step" type="button">Step</button>
+                    <button class="btn secondary" id="uccx-sim-reset" type="button">Reset</button>
+                  </div>
+                  <div class="uccx-sim-status" id="uccx-sim-status" role="status" aria-live="polite">Set the clock and caller, then Play or Step.</div>
+                  <div id="uccx-sim-pending"></div>
+                  <details class="uccx-sim-trace" open><summary>Execution trace</summary><ol id="uccx-sim-trace"></ol></details>
+                </section>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+  <script src="../../assets/js/components.js?v=20261010a"></script>
+  <script src="../../assets/js/theme.js?v=20261010a"></script>
+  <script src="../../assets/js/uccx-aef-parser.js?v=20261009q"></script>
+  <script src="../../assets/js/uccx-simulator.js?v=20261009d"></script>
+  <script src="../../assets/js/uccx-step-icons.js?v=20261009g"></script>
+  <script src="../../assets/js/uccx-script-viewer.js?v=20261009r"></script>
+</body>
+</html>

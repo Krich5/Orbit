@@ -23,6 +23,7 @@ A standalone Webex administration toolkit for Webex Contact Center and Webex Cal
 
 **Admin**
 - As-Built documentation generator (Webex Calling, Contact Center, or both)
+- UCCX Script Viewer with local .aef file viewing and a simulated walkthrough
 
 ## Using it
 

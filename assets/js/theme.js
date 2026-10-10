@@ -100,7 +100,8 @@
     {
       title: 'Admin',
       items: [
-        { label: 'Create As-Built', path: '/pages/asbuilt/full.html' }
+        { label: 'Create As-Built', path: '/pages/asbuilt/full.html' },
+        { label: 'UCCX Script Viewer', path: '/pages/admin/uccx-script-viewer.html' }
       ]
     }
   ];
