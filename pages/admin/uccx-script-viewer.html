@@ -7,7 +7,7 @@
   <title>UCCX Script Viewer - Orbit</title>
   <link rel="icon" type="image/png" href="../../assets/images/Orbit_Icon-192.png" />
   <link rel="stylesheet" href="../../assets/css/theme.css" />
-  <link rel="stylesheet" href="../../assets/css/uccx-script-viewer.css?v=20261010f" />
+  <link rel="stylesheet" href="../../assets/css/uccx-script-viewer.css?v=20261013a" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet" />
@@ -27,6 +27,7 @@
             </div>
             <div class="pageHeaderActions">
 
+              <button class="btn secondary" id="uccx-print-open" type="button" disabled>Print Flow</button>
               <button class="btn primary" id="uccx-open" type="button">Open .aef file</button>
               <input id="uccx-file" type="file" accept=".aef" hidden />
             </div>
@@ -81,6 +82,16 @@
               <ol class="uccx-trace-list" id="uccx-sim-trace"></ol>
               <textarea id="uccx-trace-text" class="uccx-trace-text" aria-label="Execution steps text to copy" readonly hidden></textarea>
             </dialog>
+            <dialog class="uccx-settings-dialog" id="uccx-print-dialog" aria-labelledby="uccx-print-title">
+              <div class="pane-heading"><span id="uccx-print-title">Print flow diagram</span><button class="btn secondary" id="uccx-print-close" type="button">Close</button></div>
+              <div class="uccx-scenario">
+                <label>Print scope<select id="uccx-print-scope"><option value="full">Full script</option><option id="uccx-print-selected" value="selected">Selected step and its branches</option></select></label>
+              </div>
+              <div class="uccx-print-options"><label><input type="checkbox" id="uccx-print-notes"> Include step details and comments appendix</label><label><input type="checkbox" id="uccx-print-variables"> Include saved variables appendix</label></div>
+              <p class="uccx-settings-note">Opens a local preview with labeled arrows and page references. Use Print / Save PDF to save a landscape PDF. Large flows span multiple pages.</p>
+              <div class="uccx-dialog-actions"><button class="btn secondary" id="uccx-print-build" type="button">Build print preview</button></div>
+              <p class="uccx-settings-note" id="uccx-print-status" role="status"></p>
+            </dialog>
             <div class="uccx-workspace">
               <div class="uccx-design" id="uccx-design">
                 <div class="pane-heading"><span>Script design</span></div>
@@ -105,6 +116,7 @@
   <script src="../../assets/js/uccx-aef-parser.js?v=20261009q"></script>
   <script src="../../assets/js/uccx-simulator.js?v=20261010f"></script>
   <script src="../../assets/js/uccx-step-icons.js?v=20261009g"></script>
-  <script src="../../assets/js/uccx-script-viewer.js?v=20261010f"></script>
+  <script src="../../assets/js/uccx-flow-print.js?v=20261013a"></script>
+  <script src="../../assets/js/uccx-script-viewer.js?v=20261013a"></script>
 </body>
 </html>

@@ -262,3 +262,7 @@ body:has(#uccx-viewer) main { padding:32px 0 80px; }
 #uccx-viewer .uccx-trace-list { margin:0;padding:0 16px 16px 36px;font-size:12px;line-height:1.6; }
 #uccx-viewer .uccx-trace-list li { padding:4px 0;overflow-wrap:anywhere; }
 #uccx-viewer .uccx-trace-text { width:calc(100% - 24px);min-height:160px;margin:0 12px 12px;background:var(--input);color:var(--fg);border:1px solid var(--border);border-radius:6px;padding:8px; }
+
+#uccx-viewer .uccx-print-options { display:flex;flex-direction:column;gap:12px;padding:0 12px 16px;font-size:12px; }
+#uccx-viewer .uccx-print-options label { display:flex;align-items:center;gap:8px; }
+#uccx-viewer .uccx-print-options input { width:auto; }
