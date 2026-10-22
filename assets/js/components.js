@@ -24,6 +24,7 @@
         { title: 'Desktop Layout', desc: 'Build and preview agent desktop layouts.', href: 'pages/wxcc/desktoplayout.html' },
         { title: 'Channels', desc: 'Browse Channels and liked Flows.', href: 'pages/wxcc/channels.html' },
         { title: 'Flows', desc: 'List flows, export, and Flow Visualizations.', href: 'pages/wxcc/flows.html' },
+        { title: 'Global Variables', desc: 'List every CAD / global variable with its ID and export as CSV.', href: 'pages/wxcc/globalvariables.html' },
         { title: 'Functions', desc: 'Browse hidden Functions, edit fnCode, and save updates back through the BFF.', href: 'pages/wxcc/functions.html' },
         { title: 'Address Book', desc: 'Search and manage address book entries.', href: 'pages/wxcc/addressbook.html' },
         { title: 'Search API', desc: 'Run contact searches with custom filters and payloads.', href: 'pages/wxcc/searchapi.html' },

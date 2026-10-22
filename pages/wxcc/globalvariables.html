@@ -1,0 +1,387 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="light" />
+  <title>Orbit — Global Variables</title>
+  <link rel="stylesheet" href="../../assets/css/theme.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/png" href="../../assets/images/Orbit_Icon-192.png">
+  <style>
+    main { padding:32px 0 80px; display:flex; justify-content:flex-start; }
+    .actionsRow { display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-top:14px; }
+    .actionsRow .spacer { flex:1; }
+    .searchInput {
+      flex:1 1 320px; min-width:0; max-width:560px;
+      border-radius:12px; border:1px solid var(--border);
+      background:var(--input); color:var(--fg); padding:10px 12px; font-size:14px;
+    }
+    .pill { display:inline-flex; align-items:center; gap:6px; padding:6px 12px; border-radius:999px; border:1px solid var(--border); background:var(--panel); font-size:13px; font-weight:600; }
+    .status { color:var(--muted); font-size:13px; margin-top:10px; }
+
+    .gvTable { margin-top:16px; border:1px solid var(--border); border-radius:14px; overflow:hidden; box-shadow:var(--shadow); }
+    .gvHeader, .gvRow {
+      display:grid;
+      grid-template-columns:minmax(200px,1.6fr) minmax(260px,1.8fr) 110px minmax(140px,1fr) 100px 110px 110px 110px 110px;
+      align-items:stretch;
+    }
+    .gvHeader { background:var(--panel); color:var(--accent); font-weight:700; font-size:11px; letter-spacing:.04em; text-transform:uppercase; }
+    .gvHeader .gvCell { padding:12px; min-height:46px; display:flex; align-items:center; }
+    .gvRow { background:var(--card); border-top:1px solid var(--border); font-size:13px; }
+    .gvRow:nth-child(even) { background:var(--input); }
+    .gvRow:hover { background:rgba(8,172,242,.06); }
+    .gvCell { padding:12px; display:flex; align-items:flex-start; gap:8px; min-height:52px; word-break:break-word; min-width:0; }
+    .gvCell.center { align-items:center; justify-content:center; }
+    .gvName { font-weight:700; color:var(--fg); font-size:14px; margin:0; }
+    .gvDesc { color:var(--muted); font-size:12px; margin:2px 0 0; }
+    .gvNameBlock { display:flex; flex-direction:column; gap:2px; min-width:0; }
+    .gvId {
+      font-family:'DM Mono','Menlo',monospace; font-size:11.5px;
+      color:var(--muted); word-break:break-all;
+    }
+    .gvIdRow { display:flex; align-items:center; gap:6px; min-width:0; width:100%; }
+    .gvType {
+      display:inline-block; padding:3px 8px; border-radius:6px;
+      font-size:11px; font-weight:700; letter-spacing:.03em;
+      background:rgba(8,172,242,.1); color:#60a5fa; border:1px solid rgba(8,172,242,.3);
+    }
+    .gvType.int { background:rgba(167,139,250,.1); color:#a78bfa; border-color:rgba(167,139,250,.3); }
+    .gvType.bool { background:rgba(16,185,129,.1); color:#10b981; border-color:rgba(16,185,129,.3); }
+    .gvType.date { background:rgba(234,179,8,.1); color:#eab308; border-color:rgba(234,179,8,.3); }
+    .gvDefault {
+      font-family:'DM Mono','Menlo',monospace; font-size:12px;
+      color:var(--fg); word-break:break-all;
+    }
+    .gvDefault.empty { color:var(--muted); font-style:italic; }
+    .gvBool {
+      display:inline-flex; align-items:center; justify-content:center;
+      width:22px; height:22px; border-radius:50%; font-size:11px; font-weight:700;
+    }
+    .gvBool.on  { background:rgba(16,185,129,.15); color:#10b981; }
+    .gvBool.off { background:rgba(148,163,184,.1);  color:var(--muted); }
+    .gvSysBadge {
+      display:inline-block; padding:2px 6px; border-radius:999px;
+      font-size:10px; font-weight:700; letter-spacing:.03em; text-transform:uppercase;
+      background:rgba(234,179,8,.1); color:#eab308; border:1px solid rgba(234,179,8,.3);
+      margin-left:6px;
+    }
+    .copyInline {
+      background:transparent; border:1px solid var(--border); border-radius:6px;
+      color:var(--muted); width:24px; height:24px; min-width:24px;
+      display:inline-flex; align-items:center; justify-content:center;
+      cursor:pointer; flex-shrink:0;
+    }
+    .copyInline:hover { color:var(--fg); border-color:rgba(8,172,242,.4); }
+    .copyInline svg { width:12px; height:12px; }
+    .copyInline.copied { color:#10b981; border-color:rgba(16,185,129,.4); }
+    .emptyState { padding:40px 20px; text-align:center; color:var(--muted); }
+
+    .loader { position:relative; min-height:120px; }
+    .loader::after {
+      content:""; position:absolute; left:50%; top:50%; width:24px; height:24px;
+      border:3px solid rgba(148,163,184,.3); border-top-color:var(--accent);
+      border-radius:50%; animation:spin 1s linear infinite; margin:-12px 0 0 -12px;
+    }
+    @keyframes spin { to { transform:rotate(360deg); } }
+
+    @media (max-width: 1100px) {
+      .gvHeader, .gvRow { grid-template-columns:1fr; }
+      .gvHeader { display:none; }
+      .gvRow { padding:8px; gap:6px; }
+      .gvCell { padding:6px 10px; min-height:0; }
+      .gvCell::before {
+        content: attr(data-label);
+        display:block; font-size:10px; letter-spacing:.04em;
+        color:var(--muted); text-transform:uppercase; font-weight:700; margin-bottom:2px;
+      }
+      .gvCell { flex-direction:column; align-items:flex-start; }
+    }
+  </style>
+</head>
+<body class="dark-mode">
+  <script>if (localStorage.getItem("tpRailExpanded") === "true") document.body.classList.add("tp-rail-expanded");</script>
+  <api-tools-header basepath="../../"></api-tools-header>
+
+  <main>
+    <div class="wrap wide contentWrap">
+      <section class="card">
+        <div class="pageHeader">
+          <h1>Global Variables</h1>
+          <p class="lead">Every CAD / global variable configured for this tenant, with its ID exposed. Export as CSV for cross-referencing against flow configs or migration planning.</p>
+        </div>
+        <div class="actionsRow">
+          <input id="searchInput" class="searchInput" type="text" placeholder="Search by name, ID, type, or description..." />
+          <span class="pill" id="gvCountPill">0 variables</span>
+          <div class="spacer"></div>
+          <button class="btn" id="refreshBtn" type="button">Refresh</button>
+          <button class="btn primary" id="exportCsvBtn" type="button" disabled>Export CSV</button>
+        </div>
+        <div class="status" id="statusText"></div>
+        <div id="gvList"></div>
+      </section>
+    </div>
+  </main>
+
+  <script src="../../assets/js/components.js"></script>
+  <script src="../../assets/js/theme.js"></script>
+  <script>
+    const BASE = 'https://api.wxcc-us1.cisco.com';
+    const cacheKeyBearer = 'authBearer';
+    const cacheKeyOrgId = 'authOrgId';
+
+    const gvListEl = document.getElementById('gvList');
+    const gvCountPill = document.getElementById('gvCountPill');
+    const searchInput = document.getElementById('searchInput');
+    const statusText = document.getElementById('statusText');
+    const refreshBtn = document.getElementById('refreshBtn');
+    const exportCsvBtn = document.getElementById('exportCsvBtn');
+
+    let variables = [];
+    let searchTerm = '';
+
+    function escapeHtml(val) {
+      return String(val == null ? '' : val)
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    }
+    function escapeAttr(val) { return escapeHtml(val); }
+
+    function getToken() { return (localStorage.getItem(cacheKeyBearer) || '').trim(); }
+
+    // Normalize orgId -- some tenants store the ciscospark URN here;
+    // the API wants the bare UUID at the end.
+    function getOrgIdValue() {
+      const cached = localStorage.getItem(cacheKeyOrgId) || '';
+      if (!cached) return '';
+      if (/^Y2lz/i.test(cached)) {
+        try {
+          const padded = cached.replace(/-/g, '+').replace(/_/g, '/').padEnd(Math.ceil(cached.length / 4) * 4, '=');
+          const decoded = atob(padded);
+          const parts = decoded.split('/');
+          return parts[parts.length - 1] || cached;
+        } catch { return cached; }
+      }
+      return cached;
+    }
+
+    const COPY_SVG = `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="5" width="9" height="9" rx="2"/><path d="M11 5V3a1 1 0 0 0-1-1H3a1 1 0 0 0-1 1v7a1 1 0 0 0 1 1h2"/></svg>`;
+    function copyButton(value, label) {
+      if (!value) return '';
+      return `<button type="button" class="copyInline" data-copy="${escapeAttr(value)}" title="${escapeAttr(label || 'Copy to clipboard')}" aria-label="${escapeAttr(label || 'Copy')}">${COPY_SVG}</button>`;
+    }
+    function bindCopyButtons() {
+      gvListEl.querySelectorAll('[data-copy]').forEach((btn) => {
+        btn.addEventListener('click', async () => {
+          const value = btn.getAttribute('data-copy') || '';
+          try {
+            await navigator.clipboard.writeText(value);
+            btn.classList.add('copied');
+            setTimeout(() => btn.classList.remove('copied'), 1200);
+          } catch {
+            // Clipboard unavailable in some privacy configs; silent.
+          }
+        });
+      });
+    }
+
+    function typeClass(type) {
+      const t = String(type || '').toLowerCase();
+      if (/int|number/.test(t)) return 'int';
+      if (/bool/.test(t))       return 'bool';
+      if (/date|time/.test(t))  return 'date';
+      return '';
+    }
+
+    function fmtBool(v) {
+      return v ? '<span class="gvBool on" title="Yes">✓</span>' : '<span class="gvBool off" title="No">—</span>';
+    }
+
+    function renderRow(gv) {
+      const type = gv.variableType || '—';
+      const defVal = gv.defaultValue == null || gv.defaultValue === ''
+        ? '<span class="gvDefault empty">—</span>'
+        : `<span class="gvDefault">${escapeHtml(gv.defaultValue)}</span>`;
+      const desc = gv.description ? `<p class="gvDesc">${escapeHtml(gv.description)}</p>` : '';
+      const sysBadge = gv.systemDefault ? '<span class="gvSysBadge" title="System default variable">System</span>' : '';
+      return `
+        <div class="gvRow">
+          <div class="gvCell" data-label="Name">
+            <div class="gvNameBlock">
+              <p class="gvName">${escapeHtml(gv.name || '—')}${sysBadge}</p>
+              ${desc}
+            </div>
+          </div>
+          <div class="gvCell" data-label="ID">
+            <div class="gvIdRow">
+              <span class="gvId">${escapeHtml(gv.id || '—')}</span>
+              ${copyButton(gv.id, 'Copy variable ID')}
+            </div>
+          </div>
+          <div class="gvCell center" data-label="Type">
+            <span class="gvType ${typeClass(type)}">${escapeHtml(type)}</span>
+          </div>
+          <div class="gvCell" data-label="Default">${defVal}</div>
+          <div class="gvCell center" data-label="Active">${fmtBool(gv.active)}</div>
+          <div class="gvCell center" data-label="Reportable">${fmtBool(gv.reportable)}</div>
+          <div class="gvCell center" data-label="Agent Viewable">${fmtBool(gv.agentViewable)}</div>
+          <div class="gvCell center" data-label="Agent Editable">${fmtBool(gv.agentEditable)}</div>
+          <div class="gvCell center" data-label="Sensitive">${fmtBool(gv.sensitive)}</div>
+        </div>
+      `;
+    }
+
+    function applySearch(list) {
+      if (!searchTerm) return list;
+      const term = searchTerm.toLowerCase();
+      return list.filter((gv) => {
+        return [gv.name, gv.id, gv.variableType, gv.description, gv.defaultValue, gv.desktopLabel]
+          .filter(Boolean).some((v) => String(v).toLowerCase().includes(term));
+      });
+    }
+
+    function render() {
+      const filtered = applySearch(variables);
+      gvCountPill.textContent = `${filtered.length} variable${filtered.length === 1 ? '' : 's'}`;
+      exportCsvBtn.disabled = filtered.length === 0;
+      if (!variables.length) {
+        gvListEl.innerHTML = '<div class="emptyState">No global variables loaded.</div>';
+        return;
+      }
+      if (!filtered.length) {
+        gvListEl.innerHTML = '<div class="emptyState">No variables match the current search.</div>';
+        return;
+      }
+      // Sort system defaults to the bottom so the user's own variables
+      // float to the top -- usually the ones they're actively working on.
+      const sorted = filtered.slice().sort((a, b) => {
+        if (!!a.systemDefault !== !!b.systemDefault) return a.systemDefault ? 1 : -1;
+        return (a.name || '').localeCompare(b.name || '');
+      });
+      gvListEl.innerHTML = `
+        <div class="gvTable">
+          <div class="gvHeader">
+            <div class="gvCell">Name</div>
+            <div class="gvCell">ID</div>
+            <div class="gvCell center">Type</div>
+            <div class="gvCell">Default</div>
+            <div class="gvCell center">Active</div>
+            <div class="gvCell center">Reportable</div>
+            <div class="gvCell center">Agent View</div>
+            <div class="gvCell center">Agent Edit</div>
+            <div class="gvCell center">Sensitive</div>
+          </div>
+          ${sorted.map(renderRow).join('')}
+        </div>
+      `;
+      bindCopyButtons();
+    }
+
+    async function fetchGlobalVariables() {
+      const bearer = getToken();
+      const orgId = getOrgIdValue();
+      if (!bearer) {
+        statusText.textContent = 'Sign in to Webex first.';
+        gvListEl.innerHTML = '<div class="emptyState">Authentication required.</div>';
+        return;
+      }
+      if (!orgId) {
+        statusText.textContent = 'Missing orgId -- visit a WxCC page first to seed it.';
+        return;
+      }
+      statusText.textContent = 'Loading global variables...';
+      gvListEl.innerHTML = '<div class="loader"></div>';
+      variables = [];
+      exportCsvBtn.disabled = true;
+
+      // The cad-variable endpoint supports page / pageSize params --
+      // walk pages until we hit either totalPages or an empty chunk.
+      try {
+        const PAGE_SIZE = 100;
+        let page = 0;
+        let totalPages = 1;
+        const seen = new Set();
+        do {
+          const url = `${BASE}/organization/${encodeURIComponent(orgId)}/cad-variable?page=${page}&pageSize=${PAGE_SIZE}`;
+          const res = await fetch(url, { headers: { Authorization: `Bearer ${bearer}` } });
+          if (!res.ok) {
+            if (res.status === 401) {
+              statusText.textContent = 'Token expired -- sign in again.';
+              return;
+            }
+            throw new Error(`HTTP ${res.status}`);
+          }
+          const parsed = await res.json();
+          const chunk = Array.isArray(parsed?.data) ? parsed.data
+                      : Array.isArray(parsed?.items) ? parsed.items
+                      : Array.isArray(parsed) ? parsed : [];
+          chunk.forEach((gv) => {
+            if (!gv) return;
+            const id = gv.id || `${gv.name}|${variables.length}`;
+            if (seen.has(id)) return;
+            seen.add(id);
+            variables.push(gv);
+          });
+          const meta = parsed?.meta || {};
+          totalPages = typeof meta.totalPages === 'number' ? meta.totalPages : totalPages;
+          page += 1;
+          if (chunk.length < PAGE_SIZE && !meta.totalPages) break;
+        } while (page < totalPages);
+        variables.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+        statusText.textContent = `Loaded ${variables.length} global variable${variables.length === 1 ? '' : 's'}.`;
+        render();
+      } catch (err) {
+        statusText.textContent = `Failed to load global variables: ${err.message || err}`;
+        gvListEl.innerHTML = `<div class="emptyState">Unable to load global variables. ${escapeHtml(err.message || '')}</div>`;
+      }
+    }
+
+    function downloadCsv() {
+      const filtered = applySearch(variables);
+      if (!filtered.length) return;
+      const esc = (v) => {
+        const s = String(v == null ? '' : v);
+        if (/[",\n\r]/.test(s)) return `"${s.replace(/"/g, '""')}"`;
+        return s;
+      };
+      const header = [
+        'Name', 'ID', 'Type', 'Default Value', 'Description',
+        'Active', 'Reportable', 'Agent Viewable', 'Agent Editable',
+        'Sensitive', 'Desktop Label', 'System Default',
+      ];
+      const rows = filtered.map((gv) => [
+        esc(gv.name), esc(gv.id), esc(gv.variableType), esc(gv.defaultValue), esc(gv.description),
+        esc(gv.active ? 'Yes' : 'No'),
+        esc(gv.reportable ? 'Yes' : 'No'),
+        esc(gv.agentViewable ? 'Yes' : 'No'),
+        esc(gv.agentEditable ? 'Yes' : 'No'),
+        esc(gv.sensitive ? 'Yes' : 'No'),
+        esc(gv.desktopLabel),
+        esc(gv.systemDefault ? 'Yes' : 'No'),
+      ].join(','));
+      const tenantRaw = (localStorage.getItem('authOrgName') || '').replace(/[\\/:*?"<>|]/g, '').replace(/\s+/g, '_').replace(/_+/g, '_').replace(/^_|_$/g, '').slice(0, 60);
+      const date = new Date().toISOString().slice(0, 10);
+      const name = `${tenantRaw ? tenantRaw + '_' : ''}WxCC_GlobalVariables_${date}.csv`;
+      const blob = new Blob([[header.join(','), ...rows].join('\n')], { type: 'text/csv' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = name;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      setTimeout(() => URL.revokeObjectURL(link.href), 1000);
+    }
+
+    searchInput.addEventListener('input', (e) => {
+      searchTerm = e.target.value.trim();
+      render();
+    });
+    refreshBtn.addEventListener('click', fetchGlobalVariables);
+    exportCsvBtn.addEventListener('click', downloadCsv);
+
+    fetchGlobalVariables();
+  </script>
+</body>
+</html>

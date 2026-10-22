@@ -63,6 +63,7 @@
         { label: 'Desktop Layout', path: '/pages/wxcc/desktoplayout.html' },
         { label: 'Channels', path: '/pages/wxcc/channels.html' },
         { label: 'Flows', path: '/pages/wxcc/flows.html' },
+        { label: 'Global Variables', path: '/pages/wxcc/globalvariables.html' },
         { label: 'Functions', path: '/pages/wxcc/functions.html' },
         { label: 'Function Builder', path: '/pages/wxcc/functionbuilder.html' },
         { label: 'Address Book', path: '/pages/wxcc/addressbook.html' },
