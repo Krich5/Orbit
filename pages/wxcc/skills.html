@@ -238,6 +238,9 @@ main { padding:32px 0 80px; display:flex; justify-content:flex-start; }
     .loaderInner { width:100%; display:flex; justify-content:center; align-items:center; gap:10px; }
     .loaderSpinner { width:34px; height:34px; border:4px solid rgba(255,255,255,0.4); border-top-color:var(--accent); border-radius:50%; animation:spin 1s linear infinite; }
     .loaderText { font-size:14px; color:#fff; }
+    .skillEnrichBadge { position:absolute; top:10px; right:10px; display:none; align-items:center; gap:8px; padding:6px 12px; border-radius:999px; background:rgba(21,157,216,.22); border:1px solid rgba(21,157,216,.55); color:#e9edf5; font-size:12px; font-weight:600; pointer-events:none; z-index:20; box-shadow:0 6px 16px rgba(0,0,0,.35); }
+    .skillEnrichBadge.open { display:inline-flex; }
+    .skillEnrichBadge .miniSpinner { width:14px; height:14px; border:2px solid rgba(255,255,255,.35); border-top-color:#fff; border-radius:50%; animation:spin 1s linear infinite; }
     .successModalOverlay {
       position: fixed;
       inset: 0;
@@ -490,6 +493,10 @@ main { padding:32px 0 80px; display:flex; justify-content:flex-start; }
             </div>
             <div class="skillProfileListWrapper">
               <div id="skillProfileList" class="skillProfileList"></div>
+              <div id="skillEnrichBadge" class="skillEnrichBadge">
+                <span class="miniSpinner" aria-hidden="true"></span>
+                <span>Loading assignments…</span>
+              </div>
               <div id="skillLoader" class="tableLoader">
               <div class="loaderInner">
                 <div class="loaderSpinner" aria-hidden="true"></div>
@@ -832,6 +839,16 @@ main { padding:32px 0 80px; display:flex; justify-content:flex-start; }
       if (!skillLoader) return;
       if (skillLoaderText) skillLoaderText.textContent = message;
       skillLoader.classList.toggle('open', Boolean(active));
+    }
+
+    function setSkillEnriching(active, message) {
+      const badge = document.getElementById('skillEnrichBadge');
+      if (!badge) return;
+      if (message) {
+        const label = badge.querySelector('span:last-child');
+        if (label) label.textContent = message;
+      }
+      badge.classList.toggle('open', Boolean(active));
     }
 
     function updateProgressStep(stepKey, status, detailText) {
@@ -2066,11 +2083,19 @@ main { padding:32px 0 80px; display:flex; justify-content:flex-start; }
         // then enrich per-profile so each row's assigned skills + levels
         // populate (list payload omits activeSkills).
         renderSkillProfiles();
-        setSkillLoading(true, 'Loading per-profile skill assignments…');
-        await enrichSkillProfileDetails(orgId, bearer);
-        pruneSelectionState();
-        renderSkillProfiles();
-        await prefetchProfileReferences(skillProfiles, bearer, orgId);
+        // Enrichment runs non-blocking: the list/picker/compare table is already
+        // visible from the slim list, so show a floating pill badge instead of
+        // the full-area darkening overlay (which obscures the compare table).
+        setSkillLoading(false);
+        setSkillEnriching(true, 'Loading assignments…');
+        try {
+          await enrichSkillProfileDetails(orgId, bearer);
+          pruneSelectionState();
+          renderSkillProfiles();
+          await prefetchProfileReferences(skillProfiles, bearer, orgId);
+        } finally {
+          setSkillEnriching(false);
+        }
       } catch (err) {
         console.error('Failed to load skills', err);
         const message = err?.message || 'Unable to load skill metadata.';
