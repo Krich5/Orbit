@@ -43,6 +43,38 @@ main { padding:32px 0 80px; display:flex; justify-content:flex-start; }
   margin:0;
 }
 .skillProfileListWrapper { position:relative; }
+
+/* Compare mode -- product-compare chip picker + diff-highlighted pivot
+   of the picked profiles' skill levels. Capped at 4 picks so the
+   pivot stays readable in the half-width column. */
+.skillCompareToggle { cursor:pointer; }
+.skillCompareToggle[aria-pressed="true"] { background:rgba(96,165,250,.15); border-color:rgba(96,165,250,.6); color:#60a5fa; }
+.skillComparePicker { margin:10px 0 14px; padding:12px 14px; border:1px solid var(--border); border-radius:12px; background:var(--card); }
+.skillComparePicker__head { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:8px; flex-wrap:wrap; }
+.skillComparePicker__title { font-size:12px; font-weight:700; color:var(--fg); margin:0; }
+.skillComparePicker__hint { font-size:11px; color:var(--muted); }
+.skillComparePicker__clear { background:transparent; border:1px solid var(--border); color:var(--muted); font-size:11px; font-weight:600; padding:3px 8px; border-radius:6px; cursor:pointer; }
+.skillComparePicker__clear:hover { color:#ef4444; border-color:rgba(239,68,68,.5); }
+.skillComparePicker__chips { display:flex; flex-wrap:wrap; gap:6px; }
+.skillComparePickChip { display:inline-flex; align-items:center; padding:5px 10px; border-radius:999px; border:1px solid var(--border); background:var(--panel); color:var(--fg); font-size:11.5px; font-weight:600; cursor:pointer; max-width:220px; transition: background .15s, border-color .15s, color .15s; }
+.skillComparePickChip__name { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:200px; }
+.skillComparePickChip:hover:not(:disabled) { border-color:rgba(96,165,250,.5); }
+.skillComparePickChip[aria-pressed="true"] { background:rgba(96,165,250,.15); border-color:rgba(96,165,250,.6); color:#60a5fa; }
+.skillComparePickChip:disabled { opacity:.4; cursor:not-allowed; }
+.skillCompareEmpty { padding:16px; text-align:center; color:var(--muted); border:1px dashed var(--border); border-radius:12px; }
+.skillCompareTable { width:100%; border-collapse:separate; border-spacing:0; font-size:12.5px; border:1px solid var(--border); border-radius:12px; overflow:hidden; }
+.skillCompareTable th, .skillCompareTable td { padding:8px 10px; text-align:left; border-bottom:1px solid var(--border); vertical-align:top; word-wrap:break-word; }
+.skillCompareTable thead th { background:var(--panel); color:var(--muted); font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; position:sticky; top:0; z-index:1; }
+.skillCompareTable thead th.skillCol { color:var(--fg); min-width:160px; }
+.skillCompareTable thead th .profName { display:block; font-size:12px; color:var(--fg); font-weight:700; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:160px; }
+.skillCompareTable tbody tr:last-child td { border-bottom:none; }
+.skillCompareTable td.skillCol { color:var(--fg); font-weight:600; }
+.skillCompareTable td.skillCol .skillType { display:block; font-size:10px; color:var(--muted); font-weight:500; text-transform:uppercase; letter-spacing:.04em; margin-top:2px; }
+.skillCompareTable td.valueCell { color:var(--fg); font-family:'DM Mono','Menlo',monospace; }
+.skillCompareTable td.valueCell.empty { color:var(--muted); font-style:italic; font-family:inherit; }
+.skillCompareTable td.valueCell.diff { background:rgba(234,179,8,.10); border-left:3px solid rgba(234,179,8,.55); color:#eab308; font-weight:700; }
+.skillCompareLegend { margin-top:10px; font-size:11.5px; color:var(--muted); display:flex; align-items:center; gap:8px; }
+.skillCompareLegend .swatch { display:inline-block; width:12px; height:12px; border-radius:3px; background:rgba(234,179,8,.3); border:1px solid rgba(234,179,8,.55); }
 .skillProfileList { display:flex; flex-direction:column; gap:10px; }
     .profileRowCard { display:grid; grid-template-columns:24px minmax(0,1fr) minmax(220px,330px); gap:16px; padding:12px 16px; border-radius:14px; border:1px solid var(--border); background:var(--card); }
     .rowSelectCell { display:flex; align-items:flex-start; justify-content:center; padding-top:4px; }
@@ -442,6 +474,7 @@ main { padding:32px 0 80px; display:flex; justify-content:flex-start; }
               </div>
               <div class="columnHeaderActions">
                 <span class="pill selectionPill is-hidden" id="profileSelectedPill">0 selected</span>
+                <button class="btn btn-ghost skillCompareToggle" id="skillCompareBtn" type="button" aria-pressed="false" style="font-size:0.85rem;padding:6px 12px;" title="Pivot picked profiles into a skills-vs-profiles grid with level differences highlighted">Compare mode</button>
                 <label class="btn btn-ghost selectAllBtn" for="selectAllProfiles" style="font-size:0.85rem;padding:6px 12px;">
                   <input class="selectAllCheck" id="selectAllProfiles" type="checkbox" />
                   Select all
@@ -1048,6 +1081,149 @@ main { padding:32px 0 80px; display:flex; justify-content:flex-start; }
       `;
     }
 
+    // Compare mode state -- flipped by the "Compare mode" button next
+    // to Select all. Picker caps at 4 so the pivot stays readable in
+    // the half-width Skill Profiles column.
+    const SKILL_COMPARE_MAX = 4;
+    let skillCompareMode = false;
+    const skillComparePicks = new Set();
+
+    // Build a Skill id -> value string for one profile. Handles the
+    // three Webex skill-value kinds (proficiency 0-10, boolean, text)
+    // plus enum skills, which are a different array keyed by
+    // enumSkillValueId. Returns '' when the profile doesn't carry that
+    // skill at all so the pivot shows an empty cell instead of '—'.
+    function buildProfileSkillValueMap(profile) {
+      const map = new Map();
+      (profile?.activeSkills || []).forEach((skill) => {
+        if (!skill?.skillId) return;
+        const definition = skillDefinitionMap.get(skill.skillId);
+        const type = definition?.skillType || 'SKILL';
+        let v = '';
+        if (type === 'BOOLEAN')          v = skill.booleanValue ? 'True' : 'False';
+        else if (type === 'PROFICIENCY') v = skill.proficiencyValue != null ? String(skill.proficiencyValue) : '';
+        else if (type === 'TEXT')        v = skill.textValue || '';
+        else                             v = skill.proficiencyValue != null ? String(skill.proficiencyValue) : (skill.textValue || '');
+        map.set(skill.skillId, v);
+      });
+      (profile?.activeEnumSkills || []).forEach((es) => {
+        const enumValue = enumSkillValueMap.get(es?.enumSkillValueId);
+        if (!enumValue?.skillId) return;
+        map.set(enumValue.skillId, enumValue.name || '');
+      });
+      return map;
+    }
+
+    function renderCompareProfilePicker(filtered) {
+      const picked = filtered.filter((p) => skillComparePicks.has(p.id));
+      const chips = filtered.map((p) => {
+        const isPicked = skillComparePicks.has(p.id);
+        const atCap = !isPicked && picked.length >= SKILL_COMPARE_MAX;
+        return `
+          <button type="button" class="skillComparePickChip"
+                  aria-pressed="${isPicked ? 'true' : 'false'}"
+                  data-skill-compare-pick="${escapeAttr(p.id)}"
+                  ${atCap ? 'disabled' : ''}
+                  title="${atCap ? `Up to ${SKILL_COMPARE_MAX} profiles at a time` : (isPicked ? 'Remove from comparison' : 'Add to comparison')}">
+            <span class="skillComparePickChip__name">${escapeHtml(p.name || 'Profile')}</span>
+          </button>
+        `;
+      }).join('');
+      return `
+        <div class="skillComparePicker">
+          <div class="skillComparePicker__head">
+            <h3 class="skillComparePicker__title">Pick profiles to compare</h3>
+            <div style="display:flex; gap:10px; align-items:center;">
+              <span class="skillComparePicker__hint">${picked.length} / ${SKILL_COMPARE_MAX} selected</span>
+              ${picked.length ? '<button type="button" class="skillComparePicker__clear" id="skillCompareClearBtn">Clear</button>' : ''}
+            </div>
+          </div>
+          <div class="skillComparePicker__chips">${chips}</div>
+        </div>
+      `;
+    }
+
+    function renderSkillCompareView(filtered) {
+      const pickerHtml = renderCompareProfilePicker(filtered);
+      const profiles = filtered.filter((p) => skillComparePicks.has(p.id));
+      if (profiles.length < 2) {
+        return `
+          ${pickerHtml}
+          <div class="skillCompareEmpty">
+            Select ${profiles.length === 0 ? '2' : 'at least 1 more'} profile${profiles.length === 0 ? 's' : ''} above to compare.
+            You can pick up to ${SKILL_COMPARE_MAX}.
+          </div>
+        `;
+      }
+
+      const valueMaps = profiles.map(buildProfileSkillValueMap);
+      const unionIds = new Set();
+      valueMaps.forEach((m) => m.forEach((_, id) => unionIds.add(id)));
+      const rows = Array.from(unionIds).map((skillId) => {
+        const def = skillDefinitionMap.get(skillId);
+        const name = def?.name || 'Skill';
+        const type = def?.skillType || '';
+        const values = valueMaps.map((m) => m.get(skillId) ?? '');
+        const uniq = new Set(values.map((v) => String(v)));
+        return { skillId, name, type, values, differs: uniq.size > 1 };
+      }).sort((a, b) => {
+        if (a.differs !== b.differs) return a.differs ? -1 : 1;
+        return a.name.localeCompare(b.name);
+      });
+
+      const headCells = profiles.map((p) => `<th><span class="profName" title="${escapeAttr(p.name || '')}">${escapeHtml(p.name || 'Profile')}</span></th>`).join('');
+      const bodyHtml = rows.map(({ name, type, values, differs }) => {
+        const cells = values.map((v) => {
+          const empty = v === '' || v == null;
+          const cls = `valueCell${differs ? ' diff' : ''}${empty ? ' empty' : ''}`;
+          return `<td class="${cls}">${empty ? '—' : escapeHtml(String(v))}</td>`;
+        }).join('');
+        return `
+          <tr>
+            <td class="skillCol">${escapeHtml(name)}<span class="skillType">${escapeHtml(type)}</span></td>
+            ${cells}
+          </tr>
+        `;
+      }).join('');
+
+      const diffCount = rows.filter((r) => r.differs).length;
+      return `
+        ${pickerHtml}
+        <table class="skillCompareTable">
+          <thead>
+            <tr>
+              <th class="skillCol">Skill</th>
+              ${headCells}
+            </tr>
+          </thead>
+          <tbody>${bodyHtml}</tbody>
+        </table>
+        <div class="skillCompareLegend">
+          <span class="swatch" aria-hidden="true"></span>
+          ${diffCount} of ${rows.length} skill${rows.length === 1 ? '' : 's'} differ across the ${profiles.length} profile${profiles.length === 1 ? '' : 's'} shown.
+        </div>
+      `;
+    }
+
+    function wireSkillComparePicker() {
+      skillProfilesList.querySelectorAll('[data-skill-compare-pick]').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const id = btn.getAttribute('data-skill-compare-pick');
+          if (!id) return;
+          if (skillComparePicks.has(id)) skillComparePicks.delete(id);
+          else if (skillComparePicks.size < SKILL_COMPARE_MAX) skillComparePicks.add(id);
+          renderSkillProfiles();
+        });
+      });
+      const clearBtn = skillProfilesList.querySelector('#skillCompareClearBtn');
+      if (clearBtn) {
+        clearBtn.addEventListener('click', () => {
+          skillComparePicks.clear();
+          renderSkillProfiles();
+        });
+      }
+    }
+
     function renderSkillProfiles() {
       if (!skillProfilesList) return;
       const term = (profileSearchTerm || '').toLowerCase().trim();
@@ -1057,6 +1233,14 @@ main { padding:32px 0 80px; display:flex; justify-content:flex-start; }
         const summaryText = getSkillSummariesForProfile(profile).map(entry => `${entry.name} ${entry.value}`).join(' ').toLowerCase();
         return !term || name.includes(term) || desc.includes(term) || summaryText.includes(term);
       });
+
+      const compareBtn = document.getElementById('skillCompareBtn');
+      if (compareBtn) {
+        compareBtn.hidden = filtered.length < 2;
+        if (filtered.length < 2 && skillCompareMode) skillCompareMode = false;
+        compareBtn.setAttribute('aria-pressed', skillCompareMode ? 'true' : 'false');
+      }
+
       if (!filtered.length) {
         visibleProfileIds = [];
         syncSelectionControls();
@@ -1065,6 +1249,21 @@ main { padding:32px 0 80px; display:flex; justify-content:flex-start; }
       }
       visibleProfileIds = filtered.map(profile => profile.id).filter(Boolean);
       syncSelectionControls();
+
+      if (skillCompareMode) {
+        const visibleIds = new Set(filtered.map((p) => p.id));
+        for (const id of Array.from(skillComparePicks)) {
+          if (!visibleIds.has(id)) skillComparePicks.delete(id);
+        }
+        if (skillComparePicks.size === 0 && filtered.length >= 2) {
+          skillComparePicks.add(filtered[0].id);
+          skillComparePicks.add(filtered[1].id);
+        }
+        skillProfilesList.innerHTML = renderSkillCompareView(filtered);
+        wireSkillComparePicker();
+        return;
+      }
+
       skillProfilesList.innerHTML = filtered.map(renderProfileRow).join('');
     }
 
@@ -1655,6 +1854,14 @@ main { padding:32px 0 80px; display:flex; justify-content:flex-start; }
     }
     if (deleteDefinitionsBtn) deleteDefinitionsBtn.addEventListener('click', handleDeleteDefinitions);
     if (deleteProfilesBtn) deleteProfilesBtn.addEventListener('click', handleDeleteProfiles);
+    const skillCompareBtn = document.getElementById('skillCompareBtn');
+    if (skillCompareBtn) {
+      skillCompareBtn.addEventListener('click', () => {
+        skillCompareMode = !skillCompareMode;
+        if (!skillCompareMode) skillComparePicks.clear();
+        renderSkillProfiles();
+      });
+    }
 
     function getOrgIdValue() {
       const cached = localStorage.getItem('authOrgId') || '';
@@ -1771,6 +1978,62 @@ main { padding:32px 0 80px; display:flex; justify-content:flex-start; }
       skillProfiles = profiles;
     }
 
+    // The /v2/skill-profile LIST payload is slim -- it omits
+    // activeSkills + activeEnumSkills, which is why every profile row
+    // was reading "No skills assigned". The authoritative detail URL
+    // is on each profile's links.rel="self" (which uses the non-v2
+    // /skill-profile/{id} shape); fall back to /v2/skill-profile/{id}
+    // for tenants that only expose that. Concurrency-5 pool so we
+    // don't batter the API on orgs with hundreds of profiles.
+    function pickSkillProfileDetailUrl(profile, orgId) {
+      const api = getApiBaseUrl();
+      const links = Array.isArray(profile?.links) ? profile.links : [];
+      const self = links.find((l) => l && l.rel === 'self');
+      if (self?.href) {
+        return self.href.startsWith('http') ? self.href : `${api}${self.href}`;
+      }
+      if (orgId && profile?.id) {
+        return `${api}/organization/${encodeURIComponent(orgId)}/skill-profile/${encodeURIComponent(profile.id)}`;
+      }
+      return '';
+    }
+
+    async function enrichSkillProfileDetails(orgId, bearer) {
+      if (!skillProfiles.length || !orgId || !bearer) return;
+      const headers = { Authorization: `Bearer ${bearer}` };
+      const CONCURRENCY = 5;
+      let cursor = 0;
+      let failures = 0;
+      async function worker() {
+        while (true) {
+          const idx = cursor++;
+          if (idx >= skillProfiles.length) return;
+          const profile = skillProfiles[idx];
+          if (!profile?.id) continue;
+          const url = pickSkillProfileDetailUrl(profile, orgId);
+          if (!url) continue;
+          try {
+            let res = await fetch(url, { headers });
+            if (!res.ok && res.status >= 400 && res.status < 500) {
+              const fallback = `${getApiBaseUrl()}/organization/${encodeURIComponent(orgId)}/v2/skill-profile/${encodeURIComponent(profile.id)}`;
+              if (fallback !== url) res = await fetch(fallback, { headers });
+            }
+            if (!res.ok) { failures++; continue; }
+            const detail = await res.json();
+            if (detail && typeof detail === 'object') {
+              Object.assign(profile, detail);
+            }
+          } catch (err) {
+            failures++;
+          }
+        }
+      }
+      await Promise.all(Array.from({ length: Math.min(CONCURRENCY, skillProfiles.length) }, worker));
+      if (failures) {
+        console.warn(`Skills: ${failures} / ${skillProfiles.length} skill-profile detail fetches failed.`);
+      }
+    }
+
     async function loadSkills() {
       const bearer = (localStorage.getItem(cacheKeyBearer) || '').trim();
       const orgId = getOrgIdValue();
@@ -1799,6 +2062,12 @@ main { padding:32px 0 80px; display:flex; justify-content:flex-start; }
         setSkillLoading(true, 'Loading skill profiles…');
         await loadSkillProfiles(orgId, bearer);
         skillProfiles.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+        // First render with the slim list so the page shows immediately,
+        // then enrich per-profile so each row's assigned skills + levels
+        // populate (list payload omits activeSkills).
+        renderSkillProfiles();
+        setSkillLoading(true, 'Loading per-profile skill assignments…');
+        await enrichSkillProfileDetails(orgId, bearer);
         pruneSelectionState();
         renderSkillProfiles();
         await prefetchProfileReferences(skillProfiles, bearer, orgId);
