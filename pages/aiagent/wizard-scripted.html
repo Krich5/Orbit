@@ -87,7 +87,45 @@
     .wiz-fold.open .wiz-fold-head::after { transform:rotate(90deg); }
     .wiz-mini-row { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
     @media (max-width:720px){ .wiz-mini-row { grid-template-columns:1fr; } }
-    .wiz-type-pill { display:inline-flex; align-items:center; gap:6px; padding:2px 8px; border-radius:999px; background:rgba(139,92,246,.14); border:1px solid rgba(139,92,246,.4); font-size:11px; font-weight:700; color:#c4b5fd; text-transform:uppercase; letter-spacing:.08em; }
+    .wiz-type-pill { display:inline-flex; align-items:center; gap:6px; padding:2px 8px; border-radius:999px; background:rgba(139,92,216,.14); border:1px solid rgba(139,92,246,.4); font-size:11px; font-weight:700; color:#c4b5fd; text-transform:uppercase; letter-spacing:.08em; }
+
+    /* Intent editor (Studio-style sections) */
+    .wiz-intent-card { border:1px solid var(--border); border-radius:14px; background:var(--card); overflow:hidden; }
+    .wiz-intent-card.short { border-color:rgba(234,179,8,.5); }
+    .wiz-intent-head { display:flex; justify-content:space-between; align-items:center; gap:12px; padding:12px 14px; cursor:pointer; background:rgba(255,255,255,.02); user-select:none; }
+    .wiz-intent-head:hover { background:rgba(255,255,255,.04); }
+    .wiz-intent-head h3 { margin:0; font-size:1rem; display:inline-flex; align-items:center; gap:8px; flex-wrap:wrap; }
+    .wiz-intent-head .caret { color:var(--muted); transition:transform .15s ease; font-size:14px; }
+    .wiz-intent-card.open .wiz-intent-head .caret { transform:rotate(90deg); }
+    .wiz-intent-body { display:none; padding:16px; flex-direction:column; gap:20px; border-top:1px solid var(--border); }
+    .wiz-intent-card.open .wiz-intent-body { display:flex; }
+    .wiz-sec { display:flex; flex-direction:column; gap:8px; }
+    .wiz-sec-head { display:flex; justify-content:space-between; align-items:center; gap:8px; }
+    .wiz-sec-head h4 { margin:0; font-size:0.9rem; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); }
+    .wiz-sec-grid { display:grid; grid-template-columns:3fr 2fr; gap:16px; align-items:start; }
+    @media (max-width:900px){ .wiz-sec-grid { grid-template-columns:1fr; } }
+    .wiz-sec-body { padding:12px; border:1px solid var(--border); border-radius:12px; background:rgba(255,255,255,.015); display:flex; flex-direction:column; gap:10px; }
+
+    /* Utterance editor */
+    .wiz-utt-edit-list { display:flex; flex-direction:column; gap:4px; max-height:260px; overflow-y:auto; padding-right:4px; }
+    .wiz-utt-edit-row { display:flex; align-items:center; gap:6px; padding:5px 8px 5px 10px; border-radius:8px; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,.05); font-size:0.88rem; }
+    .wiz-utt-edit-row:hover { background:rgba(255,255,255,0.06); }
+    .wiz-utt-edit-row .num { color:var(--muted); font-size:0.72rem; min-width:22px; }
+    .wiz-utt-edit-row .text { flex:1; font-family:ui-monospace,'SF Mono',Menlo,monospace; word-break:break-word; }
+    .wiz-utt-edit-row .x { background:transparent; border:none; color:var(--muted); cursor:pointer; font-size:14px; padding:0 4px; opacity:.5; }
+    .wiz-utt-edit-row .x:hover { color:#fca5a5; opacity:1; }
+    .wiz-utt-add { display:flex; gap:8px; margin-top:4px; }
+    .wiz-utt-add input { flex:1; background:var(--input); color:var(--fg); border:1px solid var(--border); border-radius:10px; padding:8px 12px; font-size:0.9rem; }
+    .wiz-utt-empty { padding:12px; text-align:center; color:var(--muted); font-size:0.82rem; border:1px dashed var(--border); border-radius:10px; }
+
+    /* Slot editor */
+    .wiz-slot-row { padding:10px; border:1px solid var(--border); border-radius:10px; background:rgba(255,255,255,.02); display:flex; flex-direction:column; gap:8px; margin-bottom:8px; }
+    .wiz-slot-row-head { display:flex; justify-content:space-between; align-items:center; gap:8px; }
+    .wiz-slot-row-head strong { font-size:0.9rem; }
+    .wiz-slot-row-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+    @media (max-width:720px){ .wiz-slot-row-grid { grid-template-columns:1fr; } }
+    .wiz-slot-row-grid .wiz-field label, .wiz-slot-row-grid .wiz-field .label { font-size:0.72rem; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); font-weight:700; }
+    .wiz-slot-row-grid .wiz-field input, .wiz-slot-row-grid .wiz-field select { padding:7px 10px; font-size:0.88rem; }
   </style>
 </head>
 <body class="dark-mode api-aiagent" data-aiagent-mode="wizard">
@@ -236,9 +274,13 @@ appointment_type, Follow Up, followup|follow-up"></textarea>
             <div class="wiz-section-head">
               <div>
                 <h2>Intents &amp; Utterances</h2>
-                <p class="wiz-sub">What the user says and what intent it maps to. Paste a CSV with one utterance per row.</p>
+                <p class="wiz-sub">What the user says and what intent it maps to. Paste a CSV, or click an intent card to expand its full editor.</p>
               </div>
-              <span class="wiz-chip" id="wizIntentsCount">0 intents · 0 utterances</span>
+              <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+                <button class="wiz-mini-btn" id="wizExpandAllIntents" type="button">Expand all</button>
+                <button class="wiz-mini-btn" id="wizCollapseAllIntents" type="button">Collapse all</button>
+                <span class="wiz-chip" id="wizIntentsCount">0 intents · 0 utterances</span>
+              </div>
             </div>
 
             <div class="wiz-field">
@@ -270,7 +312,7 @@ schedule_appointment, can I set up a visit"></textarea>
               </div>
             </div>
 
-            <div id="wizIntentsList" class="wiz-list"></div>
+            <div id="wizIntentsList" style="display:flex;flex-direction:column;gap:12px;"></div>
           </section>
 
           <!-- STEP 4: Responses -->
@@ -564,83 +606,167 @@ schedule_appointment, can I set up a visit"></textarea>
         return;
       }
       const entityOptions = state.entities.map(e => `<option value="${esc(e.name)}">${esc(e.name)} (${esc(e.type || 'custom')})</option>`).join('');
+
       el.innerHTML = state.intents.map((intent, idx) => {
         const effectiveDesc = intent.description || autoIntentDescription(intent.name);
+        const utts = intent.utterances || [];
+        const short = utts.length < 10;
+        const needs = Math.max(0, 10 - utts.length);
+        const open = intent._ui_open ? 'open' : '';
+        const utteranceRows = utts.length
+          ? utts.map((u, ui) => `
+              <div class="wiz-utt-edit-row">
+                <span class="num">${ui+1}.</span>
+                <span class="text">${esc(u)}</span>
+                <button class="x" data-utt-remove="${idx}:${ui}" type="button" title="Remove">×</button>
+              </div>
+            `).join('')
+          : '<div class="wiz-utt-empty">No utterances yet. Add some below.</div>';
         const slotRows = (intent.slots || []).map((s, si) => `
-          <div class="wiz-mini-row" data-slot-row="${idx}:${si}" style="align-items:end;padding:8px;border:1px solid var(--border);border-radius:10px;background:rgba(255,255,255,0.02);">
-            <div class="wiz-field">
-              <div class="label">Entity</div>
-              <select data-slot-entity="${idx}:${si}">
-                <option value="">— pick an entity —</option>
-                ${entityOptions}
-              </select>
+          <div class="wiz-slot-row">
+            <div class="wiz-slot-row-head">
+              <strong>Slot ${si + 1}${s.entityName ? ' — ' + esc(s.entityName) : ''}</strong>
+              <button class="wiz-remove-btn" data-slot-remove="${idx}:${si}" type="button">Remove slot</button>
+            </div>
+            <div class="wiz-slot-row-grid">
+              <div class="wiz-field">
+                <label>Entity to collect</label>
+                <select data-slot-entity="${idx}:${si}">
+                  <option value="">— pick an entity —</option>
+                  ${entityOptions}
+                </select>
+              </div>
+              <div class="wiz-field">
+                <label>Retries</label>
+                <input type="number" min="1" max="10" data-slot-retries="${idx}:${si}" value="${esc(s.retries || 3)}" />
+              </div>
             </div>
             <div class="wiz-field">
-              <div class="label">Prompt (slot ask-template)</div>
-              <input type="text" data-slot-prompt="${idx}:${si}" value="${esc(s.prompt || '')}" placeholder="What's your <value>?" />
+              <label>Prompt — what the <em>bot</em> says to ask the caller for this value</label>
+              <input type="text" data-slot-prompt="${idx}:${si}" value="${esc(s.prompt || '')}" placeholder="e.g. What's your package number?" />
             </div>
-            <div class="wiz-field">
-              <div class="label">Retries</div>
-              <input type="number" min="1" max="10" data-slot-retries="${idx}:${si}" value="${esc(s.retries || 3)}" />
-            </div>
-            <div class="wiz-field" style="flex-direction:row;justify-content:space-between;align-items:center;">
-              <label class="wiz-toggle"><input type="checkbox" data-slot-required="${idx}:${si}" ${s.required !== false ? 'checked' : ''} /> Required</label>
-              <button class="wiz-remove-btn" data-slot-remove="${idx}:${si}" type="button">Remove</button>
+            <div>
+              <label class="wiz-toggle"><input type="checkbox" data-slot-required="${idx}:${si}" ${s.required !== false ? 'checked' : ''} /> Required (bot must collect before responding)</label>
             </div>
           </div>
         `).join('');
-        const short = intent.utterances.length < 10;
-        const needs = Math.max(0, 10 - intent.utterances.length);
+
         return `
-        <div class="wiz-card" style="${short ? 'border-color:rgba(234,179,8,.5);' : ''}">
-          <div class="wiz-card-head">
-            <h3>${esc(intent.name)} <span class="wiz-chip">${intent.utterances.length} utt${intent.utterances.length===1?'':'s'}</span>${short ? `<span class="wiz-chip warn">Needs ${needs} more — Studio requires ≥10 to train</span>` : ''}${intent.slots && intent.slots.length ? `<span class="wiz-chip type">${intent.slots.length} slot${intent.slots.length===1?'':'s'}</span>` : ''}</h3>
-            <button class="wiz-remove-btn" data-remove-intent="${idx}" type="button">Remove</button>
-          </div>
-          <div class="wiz-utt-list">
-            ${intent.utterances.map(u => `<div class="wiz-utt-row">${esc(u)}</div>`).join('')}
+        <div class="wiz-intent-card ${open} ${short ? 'short' : ''}" data-intent-card="${idx}">
+          <div class="wiz-intent-head" data-intent-toggle="${idx}">
+            <h3>
+              <span class="caret">▸</span>
+              ${esc(intent.name)}
+              <span class="wiz-chip ${short ? 'warn' : ''}">${utts.length}/10 utterance${utts.length===1?'':'s'}${short ? ` — needs ${needs} more` : ''}</span>
+              ${intent.slots && intent.slots.length ? `<span class="wiz-chip type">${intent.slots.length} slot${intent.slots.length===1?'':'s'}</span>` : ''}
+            </h3>
+            <button class="wiz-remove-btn" data-remove-intent="${idx}" type="button">Remove intent</button>
           </div>
 
-          <div class="wiz-fold" data-fold>
-            <div class="wiz-fold-head" data-fold-toggle>Intent settings &amp; slots</div>
-            <div class="wiz-fold-body">
-              <div class="wiz-field">
-                <div class="label">Intent description <span style="color:#f87171;">(required by Studio)</span></div>
-                <textarea data-intent-desc="${idx}" style="min-height:60px;" placeholder="${esc(autoIntentDescription(intent.name))}">${esc(intent.description || '')}</textarea>
-                <div class="wiz-hint">Leave blank to use the auto-generated description: <em>${esc(effectiveDesc)}</em></div>
+          <div class="wiz-intent-body">
+            <!-- Section 1 — General -->
+            <div class="wiz-sec">
+              <div class="wiz-sec-head"><h4>General</h4></div>
+              <div class="wiz-sec-body">
+                <div class="wiz-field">
+                  <label>Intent description <span style="color:#f87171;">(required by Studio)</span></label>
+                  <textarea data-intent-desc="${idx}" style="min-height:60px;" placeholder="${esc(autoIntentDescription(intent.name))}">${esc(intent.description || '')}</textarea>
+                  <div class="wiz-hint">Studio uses this to understand the intent's purpose and to AI-generate variant utterances. Leave blank for the auto default: <em>${esc(effectiveDesc)}</em></div>
+                </div>
               </div>
-              <div class="wiz-field">
-                <div class="label">Slot filling ${!state.entities.length ? '<span style="color:#fde68a;">(add entities on step 2 first)</span>' : ''}</div>
-                ${slotRows || '<div class="wiz-hint" style="padding:8px 0;">No slots configured. Add one to collect an entity value before the response fires.</div>'}
-                <button class="wiz-mini-btn" data-add-slot="${idx}" type="button" ${!state.entities.length ? 'disabled style="opacity:.5;cursor:not-allowed;"' : ''}>+ Add slot</button>
+            </div>
+
+            <!-- Section 2+3 — Utterances (left) + Slot filling (right) -->
+            <div class="wiz-sec-grid">
+              <div class="wiz-sec">
+                <div class="wiz-sec-head">
+                  <h4>Utterances</h4>
+                  <span class="wiz-chip ${short ? 'warn' : 'ok'}">${utts.length} / 10</span>
+                </div>
+                <div class="wiz-sec-body">
+                  <div class="wiz-hint">What the <strong>caller</strong> might say to trigger this intent. Studio needs ≥10 to train.</div>
+                  <div class="wiz-utt-edit-list">${utteranceRows}</div>
+                  <div class="wiz-utt-add">
+                    <input type="text" data-utt-add="${idx}" placeholder="Add utterance and press Enter…" />
+                    <button class="btn primary" data-utt-add-btn="${idx}" type="button" style="padding:8px 16px;">+ Add</button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="wiz-sec">
+                <div class="wiz-sec-head">
+                  <h4>Slot filling <span style="color:var(--muted);font-weight:400;text-transform:none;letter-spacing:0;font-size:0.78rem;">(optional)</span></h4>
+                </div>
+                <div class="wiz-sec-body">
+                  <div class="wiz-hint">Link an entity the bot needs to collect. If the caller didn't say it in their first utterance, the bot asks the <strong>prompt</strong> text (up to <strong>retries</strong> times). Once filled, the intent's response fires.</div>
+                  ${slotRows || '<div class="wiz-utt-empty">No slots. Add one if the intent needs to collect an entity value from the caller before responding.</div>'}
+                  <button class="wiz-mini-btn" data-add-slot="${idx}" type="button" ${!state.entities.length ? 'disabled style="opacity:.5;cursor:not-allowed;" title="Add entities on step 2 first"' : ''}>+ Add slot${!state.entities.length ? ' (needs entities)' : ''}</button>
+                </div>
               </div>
             </div>
           </div>
         </div>
       `;}).join('');
 
-      // Set current slot entity values post-render (since we built the select before knowing the value)
+      // Restore slot entity values (select values must be set after render)
       el.querySelectorAll('[data-slot-entity]').forEach(sel => {
         const [i, si] = sel.dataset.slotEntity.split(':').map(Number);
         const s = state.intents[i]?.slots?.[si];
         if (s && s.entityName) sel.value = s.entityName;
       });
 
-      // Wire
-      el.querySelectorAll('[data-remove-intent]').forEach(btn => {
-        btn.addEventListener('click', () => {
-          const i = parseInt(btn.dataset.removeIntent, 10);
-          const name = state.intents[i].name;
-          state.intents.splice(i, 1);
-          delete state.responses[name];
-          save(); renderIntents();
-        });
-      });
+      // Toggle expand/collapse
+      el.querySelectorAll('[data-intent-toggle]').forEach(h => h.addEventListener('click', e => {
+        if (e.target.closest('[data-remove-intent]')) return; // ignore clicks on Remove
+        const i = parseInt(h.dataset.intentToggle, 10);
+        state.intents[i]._ui_open = !state.intents[i]._ui_open;
+        const card = h.closest('[data-intent-card]');
+        if (card) card.classList.toggle('open');
+      }));
+
+      // Remove intent
+      el.querySelectorAll('[data-remove-intent]').forEach(btn => btn.addEventListener('click', e => {
+        e.stopPropagation();
+        const i = parseInt(btn.dataset.removeIntent, 10);
+        const name = state.intents[i].name;
+        state.intents.splice(i, 1);
+        delete state.responses[name];
+        save(); renderIntents();
+      }));
+
+      // Description
       el.querySelectorAll('[data-intent-desc]').forEach(t => t.addEventListener('input', e => {
         const i = parseInt(t.dataset.intentDesc, 10);
         state.intents[i].description = e.target.value;
         save();
       }));
+
+      // Utterance add
+      function addUtt(i, val){
+        val = (val || '').trim();
+        if (!val) return;
+        ensureIntentFields(state.intents[i]);
+        if (!state.intents[i].utterances.includes(val)) state.intents[i].utterances.push(val);
+        state.intents[i]._ui_open = true;
+        save(); renderIntents();
+      }
+      el.querySelectorAll('[data-utt-add]').forEach(input => input.addEventListener('keydown', e => {
+        if (e.key === 'Enter') { e.preventDefault(); addUtt(parseInt(input.dataset.uttAdd, 10), input.value); }
+      }));
+      el.querySelectorAll('[data-utt-add-btn]').forEach(btn => btn.addEventListener('click', () => {
+        const i = parseInt(btn.dataset.uttAddBtn, 10);
+        const input = el.querySelector(`[data-utt-add="${i}"]`);
+        addUtt(i, input?.value);
+      }));
+      el.querySelectorAll('[data-utt-remove]').forEach(btn => btn.addEventListener('click', e => {
+        e.stopPropagation();
+        const [i, ui] = btn.dataset.uttRemove.split(':').map(Number);
+        state.intents[i].utterances.splice(ui, 1);
+        state.intents[i]._ui_open = true;
+        save(); renderIntents();
+      }));
+
+      // Slots
       el.querySelectorAll('[data-add-slot]').forEach(btn => btn.addEventListener('click', () => {
         const i = parseInt(btn.dataset.addSlot, 10);
         ensureIntentFields(state.intents[i]);
@@ -651,11 +777,14 @@ schedule_appointment, can I set up a visit"></textarea>
           retries: 3,
           prompt: firstEntity ? `What's your ${firstEntity}?` : ''
         });
+        state.intents[i]._ui_open = true;
         save(); renderIntents();
       }));
-      el.querySelectorAll('[data-slot-remove]').forEach(btn => btn.addEventListener('click', () => {
+      el.querySelectorAll('[data-slot-remove]').forEach(btn => btn.addEventListener('click', e => {
+        e.stopPropagation();
         const [i, si] = btn.dataset.slotRemove.split(':').map(Number);
         state.intents[i].slots.splice(si, 1);
+        state.intents[i]._ui_open = true;
         save(); renderIntents();
       }));
       el.querySelectorAll('[data-slot-entity]').forEach(sel => sel.addEventListener('change', e => {
@@ -678,7 +807,6 @@ schedule_appointment, can I set up a visit"></textarea>
         state.intents[i].slots[si].required = e.target.checked;
         save();
       }));
-      el.querySelectorAll('[data-fold-toggle]').forEach(h => h.addEventListener('click', () => h.parentElement.classList.toggle('open')));
     }
 
     function defaultResponseFor(intent){
@@ -1347,6 +1475,14 @@ schedule_appointment, can I set up a visit"></textarea>
         save(); renderIntents();
         $('wizIntentManualUtt').value = '';
         $('wizIntentManualUtt').focus();
+      });
+      $('wizExpandAllIntents').addEventListener('click', () => {
+        state.intents.forEach(i => { i._ui_open = true; });
+        save(); renderIntents();
+      });
+      $('wizCollapseAllIntents').addEventListener('click', () => {
+        state.intents.forEach(i => { i._ui_open = false; });
+        save(); renderIntents();
       });
 
       $('wizResponsesBulkText').addEventListener('click', () => {
