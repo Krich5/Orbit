@@ -1,0 +1,735 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="light" />
+  <title>Orbit - Scripted Bot Wizard</title>
+  <link rel="icon" type="image/png" href="../../assets/images/Orbit_Icon-192.png">
+  <link rel="stylesheet" href="../../assets/css/theme.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    .wiz-shell { display:flex; flex-direction:column; gap:24px; }
+    .wiz-progress { display:grid; grid-template-columns:repeat(5,1fr); gap:10px; }
+    .wiz-step-pill { display:flex; flex-direction:column; gap:6px; padding:12px 14px; border-radius:14px; border:1px solid var(--border); background:var(--card); color:var(--muted); cursor:pointer; transition:border-color .2s ease, background .2s ease; min-width:0; }
+    .wiz-step-pill:hover { border-color:#159DD8; }
+    .wiz-step-pill.active { background:linear-gradient(135deg, rgba(21,157,216,.18), rgba(21,157,216,.08)); border-color:#159DD8; color:var(--fg); }
+    .wiz-step-pill.done { border-color:#10b981; }
+    .wiz-step-num { font-size:11px; font-weight:700; letter-spacing:.15em; text-transform:uppercase; opacity:.85; }
+    .wiz-step-label { font-size:0.95rem; font-weight:700; color:var(--fg); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .wiz-panel { display:none; flex-direction:column; gap:16px; }
+    .wiz-panel.active { display:flex; }
+    .wiz-field { display:flex; flex-direction:column; gap:6px; }
+    .wiz-field label { font-size:0.85rem; font-weight:700; color:var(--muted); }
+    .wiz-field input[type=text], .wiz-field textarea, .wiz-field select { background:var(--input); color:var(--fg); border:1px solid var(--border); border-radius:12px; padding:10px 12px; font-family:inherit; font-size:0.95rem; }
+    .wiz-field textarea { min-height:140px; resize:vertical; font-family:ui-monospace, 'SF Mono', Menlo, monospace; font-size:0.88rem; line-height:1.5; }
+    .wiz-field-row { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+    @media (max-width:720px){ .wiz-field-row { grid-template-columns:1fr; } }
+    .wiz-nav { display:flex; justify-content:space-between; align-items:center; gap:12px; margin-top:8px; }
+    .wiz-nav .right { display:flex; gap:10px; }
+    .wiz-sub { color:var(--muted); line-height:1.5; margin:0 0 4px; font-size:0.95rem; }
+    .wiz-chip { display:inline-flex; align-items:center; gap:6px; padding:3px 10px; border-radius:999px; background:rgba(21,157,216,.14); border:1px solid rgba(21,157,216,.4); font-size:12px; font-weight:600; color:#9ad3ec; }
+    .wiz-chip.ok { background:rgba(16,185,129,.14); border-color:rgba(16,185,129,.4); color:#86efac; }
+    .wiz-chip.warn { background:rgba(234,179,8,.14); border-color:rgba(234,179,8,.4); color:#fde68a; }
+    .wiz-card { border:1px solid var(--border); border-radius:14px; padding:14px 16px; background:var(--card); display:flex; flex-direction:column; gap:10px; }
+    .wiz-card-head { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+    .wiz-card-head h3 { margin:0; font-size:1rem; }
+    .wiz-list { display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:14px; }
+    .wiz-pill-row { display:flex; flex-wrap:wrap; gap:6px; }
+    .wiz-value-pill { display:inline-flex; flex-direction:column; padding:6px 10px; border-radius:10px; background:rgba(255,255,255,0.04); border:1px solid var(--border); font-size:0.85rem; max-width:100%; }
+    .wiz-value-pill strong { font-size:0.9rem; }
+    .wiz-value-pill span { font-size:0.78rem; color:var(--muted); word-break:break-word; }
+    .wiz-utt-list { max-height:140px; overflow:auto; display:flex; flex-direction:column; gap:4px; padding-right:4px; }
+    .wiz-utt-row { font-size:0.85rem; padding:5px 8px; border-radius:8px; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,.05); font-family:ui-monospace,'SF Mono',Menlo,monospace; }
+    .wiz-remove-btn { background:transparent; border:1px solid rgba(239,68,68,.4); color:#fca5a5; border-radius:10px; padding:4px 8px; font-size:12px; font-weight:600; cursor:pointer; }
+    .wiz-remove-btn:hover { background:rgba(239,68,68,.14); }
+    .wiz-stat-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:12px; }
+    .wiz-stat { padding:12px 14px; border-radius:12px; border:1px solid var(--border); background:var(--card); display:flex; flex-direction:column; gap:4px; }
+    .wiz-stat strong { font-size:1.6rem; font-weight:700; color:var(--fg); line-height:1; }
+    .wiz-stat span { font-size:12px; font-weight:600; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); }
+    .wiz-json-preview { max-height:420px; overflow:auto; background:#0a0f1c; border:1px solid var(--border); border-radius:12px; padding:14px; font-family:ui-monospace,'SF Mono',Menlo,monospace; font-size:12px; line-height:1.5; color:#d1dcee; }
+    .wiz-hint { font-size:0.82rem; color:var(--muted); line-height:1.5; }
+    .wiz-hint code { background:rgba(21,157,216,.14); color:#9ad3ec; padding:1px 6px; border-radius:6px; font-family:ui-monospace,'SF Mono',Menlo,monospace; font-size:0.8rem; }
+    .wiz-inline-form { display:grid; grid-template-columns:1fr 1fr 2fr auto; gap:8px; align-items:end; }
+    @media (max-width:720px){ .wiz-inline-form { grid-template-columns:1fr; } }
+    .wiz-inline-form .wiz-field label { font-size:0.75rem; }
+    .wiz-inline-form .wiz-field input { padding:8px 10px; font-size:0.9rem; }
+    .wiz-split { display:grid; grid-template-columns:3fr 2fr; gap:16px; align-items:start; }
+    @media (max-width:900px){ .wiz-split { grid-template-columns:1fr; } }
+    .wiz-resp-row { display:flex; flex-direction:column; gap:8px; padding:12px 14px; border:1px solid var(--border); border-radius:12px; background:var(--card); }
+    .wiz-resp-row .label { font-size:12px; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); font-weight:700; }
+    .wiz-resp-row textarea { background:var(--input); color:var(--fg); border:1px solid var(--border); border-radius:10px; padding:10px 12px; font-family:inherit; font-size:0.95rem; min-height:72px; resize:vertical; }
+    .wiz-mini-btn { background:transparent; border:1px solid var(--border); color:var(--fg); border-radius:10px; padding:4px 10px; font-size:0.8rem; font-weight:600; cursor:pointer; }
+    .wiz-mini-btn:hover { border-color:#159DD8; color:#9ad3ec; }
+    .wiz-empty { padding:20px; text-align:center; color:var(--muted); border:1px dashed var(--border); border-radius:12px; font-size:0.9rem; }
+    .wiz-section-head { display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; }
+    .wiz-section-head h2 { margin:0; font-size:1.1rem; }
+    .wiz-toast { position:fixed; bottom:20px; right:20px; padding:10px 16px; border-radius:12px; background:rgba(16,185,129,.14); border:1px solid rgba(16,185,129,.5); color:#86efac; font-weight:600; font-size:0.9rem; opacity:0; transform:translateY(10px); transition:opacity .2s ease, transform .2s ease; pointer-events:none; z-index:9999; }
+    .wiz-toast.open { opacity:1; transform:translateY(0); }
+    .wiz-toast.err { background:rgba(239,68,68,.14); border-color:rgba(239,68,68,.5); color:#fca5a5; }
+  </style>
+</head>
+<body class="dark-mode api-aiagent" data-aiagent-mode="wizard">
+  <script>if (localStorage.getItem("tpRailExpanded") === "true") document.body.classList.add("tp-rail-expanded");</script>
+  <api-tools-header basepath="../../"></api-tools-header>
+
+  <main>
+    <div class="wrap wide aiagent-page-stack">
+      <section class="card aiagent-card">
+        <div class="pageHeader aiagent-page-header">
+          <div>
+            <h1>Scripted Bot Wizard</h1>
+            <p class="lead">Build a Cisco AI Agent Studio-compatible scripted bot. Bulk-paste intents, entities, and responses; download the JSON and import it from Control Hub &rsaquo; AI Agent Studio &rsaquo; Scripted.</p>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <button class="btn" id="wizSaveDraftBtn" type="button">Save Draft</button>
+            <button class="btn" id="wizResetBtn" type="button">Start Over</button>
+          </div>
+        </div>
+
+        <div class="wiz-shell">
+          <div class="wiz-progress" id="wizProgress"></div>
+
+          <!-- STEP 1: Bot Info -->
+          <section class="wiz-panel active" data-wiz-step="1">
+            <h2 style="margin:0;">Bot Information</h2>
+            <p class="wiz-sub">Give the bot a name and description. Everything else happens in the next steps.</p>
+            <div class="wiz-field-row">
+              <div class="wiz-field">
+                <label for="wizBotName">Bot Name <span style="color:#f87171;">*</span></label>
+                <input type="text" id="wizBotName" placeholder="e.g. Patient Portal Assistant" autocomplete="off" />
+              </div>
+              <div class="wiz-field">
+                <label for="wizBotLang">Default Language</label>
+                <select id="wizBotLang">
+                  <option value="en-US" selected>English (US) — en-US</option>
+                  <option value="en-GB">English (UK) — en-GB</option>
+                  <option value="es-US">Spanish (US) — es-US</option>
+                  <option value="es-ES">Spanish (Spain) — es-ES</option>
+                  <option value="fr-FR">French (France) — fr-FR</option>
+                  <option value="fr-CA">French (Canada) — fr-CA</option>
+                  <option value="de-DE">German — de-DE</option>
+                  <option value="it-IT">Italian — it-IT</option>
+                  <option value="pt-BR">Portuguese (Brazil) — pt-BR</option>
+                  <option value="ja-JP">Japanese — ja-JP</option>
+                </select>
+              </div>
+            </div>
+            <div class="wiz-field">
+              <label for="wizBotDesc">Description</label>
+              <input type="text" id="wizBotDesc" placeholder="Short description of what this bot does" autocomplete="off" style="min-height:unset;" />
+            </div>
+          </section>
+
+          <!-- STEP 2: Entities -->
+          <section class="wiz-panel" data-wiz-step="2">
+            <div class="wiz-section-head">
+              <div>
+                <h2>Custom Entities</h2>
+                <p class="wiz-sub">Define custom list entities (e.g. <code>department</code>, <code>appointment_type</code>). Skip this step if you don't need any.</p>
+              </div>
+              <span class="wiz-chip" id="wizEntitiesCount">0 entities</span>
+            </div>
+
+            <div class="wiz-field">
+              <label for="wizEntityPaste">Paste CSV — <code>EntityName, Value, Synonym1|Synonym2|Synonym3</code></label>
+              <textarea id="wizEntityPaste" placeholder="department, Billing, billing dept|accounts|invoices
+department, Pharmacy, pharmacy|rx|prescriptions
+department, Scheduling, appointments|schedule
+appointment_type, New Patient, new
+appointment_type, Follow Up, followup|follow-up"></textarea>
+              <div class="wiz-hint">One row per value. Synonyms are optional; separate multiple synonyms with <code>|</code>. Rows with the same EntityName get grouped into one entity.</div>
+              <div style="display:flex;gap:10px;">
+                <button class="btn primary" id="wizEntityParseBtn" type="button">Add from CSV</button>
+                <button class="btn" id="wizEntityClearPasteBtn" type="button">Clear paste</button>
+              </div>
+            </div>
+
+            <div class="wiz-card">
+              <div class="wiz-card-head"><h3>Add one manually</h3></div>
+              <div class="wiz-inline-form">
+                <div class="wiz-field"><label>Entity</label><input type="text" id="wizEntityManualName" placeholder="department" /></div>
+                <div class="wiz-field"><label>Value</label><input type="text" id="wizEntityManualValue" placeholder="Billing" /></div>
+                <div class="wiz-field"><label>Synonyms (pipe-separated)</label><input type="text" id="wizEntityManualSyn" placeholder="billing dept|accounts" /></div>
+                <button class="btn primary" id="wizEntityManualAddBtn" type="button" style="padding:10px 18px;">Add</button>
+              </div>
+            </div>
+
+            <div id="wizEntitiesList" class="wiz-list"></div>
+          </section>
+
+          <!-- STEP 3: Intents + Utterances -->
+          <section class="wiz-panel" data-wiz-step="3">
+            <div class="wiz-section-head">
+              <div>
+                <h2>Intents &amp; Utterances</h2>
+                <p class="wiz-sub">What the user says and what intent it maps to. Paste a CSV with one utterance per row.</p>
+              </div>
+              <span class="wiz-chip" id="wizIntentsCount">0 intents · 0 utterances</span>
+            </div>
+
+            <div class="wiz-field">
+              <label for="wizIntentPaste">Paste CSV — <code>IntentName, Utterance</code></label>
+              <textarea id="wizIntentPaste" placeholder="greeting, hi
+greeting, hello
+greeting, hey there
+check_balance, what's my balance
+check_balance, how much do I owe
+check_balance, show me my balance
+schedule_appointment, I need to schedule an appointment
+schedule_appointment, book me an appointment
+schedule_appointment, can I set up a visit"></textarea>
+              <div class="wiz-hint">Intent names should be <code>snake_case</code>. Duplicate IntentNames get merged into one intent with all their utterances.</div>
+              <div style="display:flex;gap:10px;">
+                <button class="btn primary" id="wizIntentParseBtn" type="button">Add from CSV</button>
+                <button class="btn" id="wizIntentClearPasteBtn" type="button">Clear paste</button>
+              </div>
+            </div>
+
+            <div class="wiz-card">
+              <div class="wiz-card-head"><h3>Add one manually</h3></div>
+              <div class="wiz-inline-form">
+                <div class="wiz-field"><label>Intent name</label><input type="text" id="wizIntentManualName" placeholder="check_balance" /></div>
+                <div class="wiz-field" style="grid-column:span 2;"><label>Utterance</label><input type="text" id="wizIntentManualUtt" placeholder="what's my balance" /></div>
+                <button class="btn primary" id="wizIntentManualAddBtn" type="button" style="padding:10px 18px;">Add</button>
+              </div>
+            </div>
+
+            <div id="wizIntentsList" class="wiz-list"></div>
+          </section>
+
+          <!-- STEP 4: Responses -->
+          <section class="wiz-panel" data-wiz-step="4">
+            <div class="wiz-section-head">
+              <div>
+                <h2>Response Templates</h2>
+                <p class="wiz-sub">One response per intent. Web text shows in chat, voice text is spoken on calls. Both default to the same text — override voice when you need SSML or a shorter spoken form.</p>
+              </div>
+              <span class="wiz-chip" id="wizResponsesCount">0 responses</span>
+            </div>
+            <div id="wizResponsesList" style="display:flex;flex-direction:column;gap:12px;"></div>
+          </section>
+
+          <!-- STEP 5: Review -->
+          <section class="wiz-panel" data-wiz-step="5">
+            <div class="wiz-section-head">
+              <div>
+                <h2>Review &amp; Download</h2>
+                <p class="wiz-sub">Download the bot JSON, then in Control Hub go to AI Agent Studio &rsaquo; Scripted &rsaquo; Import.</p>
+              </div>
+            </div>
+
+            <div class="wiz-stat-grid" id="wizStats"></div>
+
+            <div style="display:flex;gap:10px;flex-wrap:wrap;">
+              <button class="btn primary" id="wizDownloadBtn" type="button">⬇ Download Bot JSON</button>
+              <button class="btn" id="wizCopyJsonBtn" type="button">Copy JSON</button>
+              <button class="btn" id="wizTogglePreviewBtn" type="button">Show JSON preview</button>
+            </div>
+
+            <div id="wizJsonPreviewWrap" style="display:none;">
+              <pre class="wiz-json-preview" id="wizJsonPreview"></pre>
+            </div>
+          </section>
+
+          <!-- Nav -->
+          <div class="wiz-nav">
+            <button class="btn" id="wizPrevBtn" type="button" disabled>&larr; Back</button>
+            <div class="right">
+              <span id="wizValidationHint" style="color:var(--muted);font-size:0.85rem;align-self:center;"></span>
+              <button class="btn primary" id="wizNextBtn" type="button">Next &rarr;</button>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <div class="wiz-toast" id="wizToast"></div>
+
+  <script src="../../assets/js/theme.js"></script>
+  <script>
+  (function(){
+    const LS_KEY = 'opshub.aiagent.scriptedWizard.v1';
+    const STEPS = [
+      { n: 1, label: 'Bot info' },
+      { n: 2, label: 'Entities' },
+      { n: 3, label: 'Intents' },
+      { n: 4, label: 'Responses' },
+      { n: 5, label: 'Review' }
+    ];
+
+    const state = {
+      step: 1,
+      botName: '',
+      botDesc: '',
+      lang: 'en-US',
+      // entities: [{ name, values: [{ value, synonyms: [] }] }]
+      entities: [],
+      // intents: [{ name, utterances: [string, string, ...] }]
+      intents: [],
+      // responses keyed by intent name: { [intentName]: { web, voice } }
+      responses: {}
+    };
+
+    // ----- utils -----
+    const $ = id => document.getElementById(id);
+    function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+    function slug(s){ return String(s||'').trim().toLowerCase().replace(/[^a-z0-9]+/g,'_').replace(/^_+|_+$/g,'').slice(0,60) || 'intent'; }
+    function toast(msg, isErr){
+      const el = $('wizToast'); if (!el) return;
+      el.textContent = msg;
+      el.classList.toggle('err', !!isErr);
+      el.classList.add('open');
+      clearTimeout(toast._t);
+      toast._t = setTimeout(() => el.classList.remove('open'), 2200);
+    }
+    function save(){
+      try { localStorage.setItem(LS_KEY, JSON.stringify(state)); } catch(e){}
+    }
+    function load(){
+      try {
+        const raw = localStorage.getItem(LS_KEY);
+        if (!raw) return;
+        const parsed = JSON.parse(raw);
+        Object.assign(state, parsed);
+      } catch(e){}
+    }
+
+    // Simple CSV row splitter — supports quoted fields with commas/newlines inside quotes.
+    function splitCsvLine(line){
+      const out = [];
+      let cur = '', inQ = false;
+      for (let i=0;i<line.length;i++){
+        const c = line[i];
+        if (inQ){
+          if (c === '"' && line[i+1] === '"'){ cur += '"'; i++; }
+          else if (c === '"'){ inQ = false; }
+          else cur += c;
+        } else {
+          if (c === ','){ out.push(cur.trim()); cur = ''; }
+          else if (c === '"'){ inQ = true; }
+          else cur += c;
+        }
+      }
+      out.push(cur.trim());
+      return out;
+    }
+
+    // ----- renderers -----
+    function renderProgress(){
+      const el = $('wizProgress'); if (!el) return;
+      el.innerHTML = STEPS.map(s => {
+        const cls = s.n === state.step ? 'active' : (s.n < state.step ? 'done' : '');
+        return `<button class="wiz-step-pill ${cls}" data-go-step="${s.n}" type="button">
+          <span class="wiz-step-num">Step ${s.n}</span>
+          <span class="wiz-step-label">${esc(s.label)}</span>
+        </button>`;
+      }).join('');
+      el.querySelectorAll('[data-go-step]').forEach(btn => {
+        btn.addEventListener('click', () => goStep(parseInt(btn.dataset.goStep, 10)));
+      });
+    }
+
+    function renderStepPanels(){
+      document.querySelectorAll('.wiz-panel').forEach(panel => {
+        panel.classList.toggle('active', parseInt(panel.dataset.wizStep, 10) === state.step);
+      });
+      $('wizPrevBtn').disabled = state.step <= 1;
+      $('wizNextBtn').textContent = state.step >= STEPS.length ? 'Done' : 'Next →';
+      $('wizNextBtn').disabled = state.step >= STEPS.length;
+      updateValidationHint();
+      if (state.step === 4) renderResponses();
+      if (state.step === 5) renderReview();
+    }
+
+    function updateValidationHint(){
+      const hint = $('wizValidationHint');
+      if (!hint) return;
+      let msg = '';
+      if (state.step === 1 && !state.botName.trim()) msg = 'Bot name is required';
+      hint.textContent = msg;
+    }
+
+    function renderEntities(){
+      const el = $('wizEntitiesList'); if (!el) return;
+      $('wizEntitiesCount').textContent = `${state.entities.length} ${state.entities.length === 1 ? 'entity' : 'entities'}`;
+      if (!state.entities.length){
+        el.innerHTML = '<div class="wiz-empty">No entities yet. Paste a CSV or add one manually above.</div>';
+        return;
+      }
+      el.innerHTML = state.entities.map((ent, idx) => `
+        <div class="wiz-card">
+          <div class="wiz-card-head">
+            <h3>${esc(ent.name)} <span class="wiz-chip">${ent.values.length} value${ent.values.length===1?'':'s'}</span></h3>
+            <button class="wiz-remove-btn" data-remove-entity="${idx}" type="button">Remove</button>
+          </div>
+          <div class="wiz-pill-row">
+            ${ent.values.map((v, vi) => `
+              <div class="wiz-value-pill">
+                <strong>${esc(v.value)}</strong>
+                ${v.synonyms && v.synonyms.length ? `<span>${esc(v.synonyms.join(', '))}</span>` : ''}
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `).join('');
+      el.querySelectorAll('[data-remove-entity]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const i = parseInt(btn.dataset.removeEntity, 10);
+          state.entities.splice(i, 1);
+          save(); renderEntities();
+        });
+      });
+    }
+
+    function renderIntents(){
+      const el = $('wizIntentsList'); if (!el) return;
+      const totalUtts = state.intents.reduce((n, i) => n + (i.utterances?.length || 0), 0);
+      $('wizIntentsCount').textContent = `${state.intents.length} intent${state.intents.length===1?'':'s'} · ${totalUtts} utterance${totalUtts===1?'':'s'}`;
+      if (!state.intents.length){
+        el.innerHTML = '<div class="wiz-empty">No intents yet. Paste a CSV or add one manually above.</div>';
+        return;
+      }
+      el.innerHTML = state.intents.map((intent, idx) => `
+        <div class="wiz-card">
+          <div class="wiz-card-head">
+            <h3>${esc(intent.name)} <span class="wiz-chip">${intent.utterances.length} utt${intent.utterances.length===1?'':'s'}</span></h3>
+            <button class="wiz-remove-btn" data-remove-intent="${idx}" type="button">Remove</button>
+          </div>
+          <div class="wiz-utt-list">
+            ${intent.utterances.map(u => `<div class="wiz-utt-row">${esc(u)}</div>`).join('')}
+          </div>
+        </div>
+      `).join('');
+      el.querySelectorAll('[data-remove-intent]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const i = parseInt(btn.dataset.removeIntent, 10);
+          const name = state.intents[i].name;
+          state.intents.splice(i, 1);
+          delete state.responses[name];
+          save(); renderIntents();
+        });
+      });
+    }
+
+    function renderResponses(){
+      const el = $('wizResponsesList'); if (!el) return;
+      // ensure every intent has a response entry
+      state.intents.forEach(intent => {
+        if (!state.responses[intent.name]) {
+          const sample = intent.utterances[0] || intent.name;
+          state.responses[intent.name] = {
+            web: `You said: "${sample}". (Replace this with the real reply.)`,
+            voice: ''
+          };
+        }
+      });
+      $('wizResponsesCount').textContent = `${state.intents.length} response${state.intents.length===1?'':'s'}`;
+      if (!state.intents.length){
+        el.innerHTML = '<div class="wiz-empty">Add some intents in step 3 first.</div>';
+        return;
+      }
+      el.innerHTML = state.intents.map((intent, idx) => {
+        const r = state.responses[intent.name] || { web:'', voice:'' };
+        return `
+          <div class="wiz-resp-row">
+            <div class="wiz-card-head">
+              <h3 style="margin:0;">${esc(intent.name)} <span class="wiz-chip">${intent.utterances.length} utt${intent.utterances.length===1?'':'s'}</span></h3>
+              <button class="wiz-mini-btn" data-copy-web-voice="${esc(intent.name)}" type="button">Copy web → voice</button>
+            </div>
+            <div class="wiz-field">
+              <div class="label">Web response</div>
+              <textarea data-resp-web="${esc(intent.name)}" placeholder="What the bot replies in chat">${esc(r.web)}</textarea>
+            </div>
+            <div class="wiz-field">
+              <div class="label">Voice response (optional — defaults to web)</div>
+              <textarea data-resp-voice="${esc(intent.name)}" placeholder="Leave blank to reuse the web reply">${esc(r.voice)}</textarea>
+            </div>
+          </div>
+        `;
+      }).join('');
+      el.querySelectorAll('[data-resp-web]').forEach(t => {
+        t.addEventListener('input', e => {
+          const n = t.dataset.respWeb;
+          if (!state.responses[n]) state.responses[n] = { web:'', voice:'' };
+          state.responses[n].web = e.target.value;
+          save();
+        });
+      });
+      el.querySelectorAll('[data-resp-voice]').forEach(t => {
+        t.addEventListener('input', e => {
+          const n = t.dataset.respVoice;
+          if (!state.responses[n]) state.responses[n] = { web:'', voice:'' };
+          state.responses[n].voice = e.target.value;
+          save();
+        });
+      });
+      el.querySelectorAll('[data-copy-web-voice]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const n = btn.dataset.copyWebVoice;
+          if (!state.responses[n]) return;
+          state.responses[n].voice = state.responses[n].web;
+          save();
+          renderResponses();
+          toast('Web text copied to voice.');
+        });
+      });
+    }
+
+    function renderReview(){
+      const totalUtts = state.intents.reduce((n, i) => n + (i.utterances?.length || 0), 0);
+      const totalVals = state.entities.reduce((n, e) => n + (e.values?.length || 0), 0);
+      $('wizStats').innerHTML = `
+        <div class="wiz-stat"><strong>${state.intents.length}</strong><span>Intents</span></div>
+        <div class="wiz-stat"><strong>${totalUtts}</strong><span>Utterances</span></div>
+        <div class="wiz-stat"><strong>${state.entities.length}</strong><span>Entities</span></div>
+        <div class="wiz-stat"><strong>${totalVals}</strong><span>Entity Values</span></div>
+        <div class="wiz-stat"><strong>${state.intents.length}</strong><span>Responses</span></div>
+      `;
+      $('wizJsonPreview').textContent = JSON.stringify(buildBotJson(), null, 2);
+    }
+
+    // ----- builders -----
+    function buildBotJson(){
+      const lang = state.lang || 'en-US';
+
+      const intents = state.intents.map((intent, idx) => ({
+        intent_id: `${slug(intent.name)}_${idx}`,
+        name: intent.name,
+        template_key: `resp_${slug(intent.name)}`,
+        reset_state: false,
+        end_conversation: false,
+        update_slots: false,
+        entry_context: [],
+        exit_context: [],
+        entities: [],
+        variants: {
+          [lang]: {
+            utterances: intent.utterances.map(utt => ({ utterance: utt, entities: [] }))
+          }
+        }
+      }));
+
+      const entities = state.entities.map(ent => ({
+        name: ent.name,
+        type: 'custom',
+        data: {
+          values: ent.values.map(v => ({
+            value: v.value,
+            synonyms: Array.isArray(v.synonyms) ? v.synonyms : []
+          }))
+        }
+      }));
+
+      const templates = {};
+      state.intents.forEach(intent => {
+        const key = `resp_${slug(intent.name)}`;
+        const r = state.responses[intent.name] || { web:'', voice:'' };
+        const web = r.web || '';
+        const voice = r.voice || r.web || '';
+        templates[key] = {
+          updated_at: new Date().toISOString(),
+          variants: {
+            [lang]: {
+              paths: {
+                default: {
+                  actions: {
+                    web: web ? [{ text: [web] }] : [],
+                    voice: voice ? [{ text: [voice] }] : []
+                  }
+                },
+                configurable: []
+              }
+            }
+          }
+        };
+      });
+
+      return {
+        metadata: {
+          name: state.botName || 'Untitled Bot',
+          description: state.botDesc || '',
+          default_language: lang,
+          generated_by: 'OpsHub Scripted Bot Wizard',
+          generated_at: new Date().toISOString()
+        },
+        intents,
+        entities,
+        responses: { templates }
+      };
+    }
+
+    // ----- parsers -----
+    function parseEntitiesCsv(text){
+      const added = [];
+      const lines = String(text || '').split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+      for (const line of lines){
+        const cols = splitCsvLine(line);
+        if (cols.length < 2) continue;
+        const name = cols[0]; const value = cols[1];
+        const syns = (cols[2] || '').split('|').map(s => s.trim()).filter(Boolean);
+        if (!name || !value) continue;
+        addEntityValue(name, value, syns);
+        added.push({ name, value });
+      }
+      return added.length;
+    }
+
+    function addEntityValue(entityName, value, synonyms){
+      let ent = state.entities.find(e => e.name === entityName);
+      if (!ent){ ent = { name: entityName, values: [] }; state.entities.push(ent); }
+      let existing = ent.values.find(v => v.value === value);
+      if (!existing){
+        ent.values.push({ value, synonyms: synonyms || [] });
+      } else {
+        // merge synonyms uniquely
+        const set = new Set(existing.synonyms || []);
+        (synonyms || []).forEach(s => set.add(s));
+        existing.synonyms = Array.from(set);
+      }
+    }
+
+    function parseIntentsCsv(text){
+      const added = [];
+      const lines = String(text || '').split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+      for (const line of lines){
+        const cols = splitCsvLine(line);
+        if (cols.length < 2) continue;
+        const name = cols[0]; const utt = cols[1];
+        if (!name || !utt) continue;
+        addIntentUtterance(name, utt);
+        added.push({ name, utt });
+      }
+      return added.length;
+    }
+
+    function addIntentUtterance(intentName, utterance){
+      let intent = state.intents.find(i => i.name === intentName);
+      if (!intent){ intent = { name: intentName, utterances: [] }; state.intents.push(intent); }
+      if (!intent.utterances.includes(utterance)) intent.utterances.push(utterance);
+    }
+
+    // ----- nav -----
+    function goStep(n){
+      n = Math.max(1, Math.min(STEPS.length, n));
+      // Soft-validate step 1
+      if (state.step === 1 && n > 1 && !state.botName.trim()){
+        toast('Enter a bot name first.', true);
+        $('wizBotName').focus();
+        return;
+      }
+      state.step = n;
+      save();
+      renderProgress();
+      renderStepPanels();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // ----- events -----
+    function wire(){
+      $('wizBotName').addEventListener('input', e => { state.botName = e.target.value; save(); updateValidationHint(); });
+      $('wizBotDesc').addEventListener('input', e => { state.botDesc = e.target.value; save(); });
+      $('wizBotLang').addEventListener('change', e => { state.lang = e.target.value; save(); });
+
+      $('wizEntityParseBtn').addEventListener('click', () => {
+        const n = parseEntitiesCsv($('wizEntityPaste').value);
+        if (n > 0){ save(); renderEntities(); toast(`Added ${n} entity value${n===1?'':'s'}.`); $('wizEntityPaste').value = ''; }
+        else toast('Nothing parsed. Check the CSV format.', true);
+      });
+      $('wizEntityClearPasteBtn').addEventListener('click', () => { $('wizEntityPaste').value = ''; });
+      $('wizEntityManualAddBtn').addEventListener('click', () => {
+        const name = $('wizEntityManualName').value.trim();
+        const value = $('wizEntityManualValue').value.trim();
+        const syn = $('wizEntityManualSyn').value.split('|').map(s=>s.trim()).filter(Boolean);
+        if (!name || !value){ toast('Entity name and value required.', true); return; }
+        addEntityValue(name, value, syn);
+        save(); renderEntities();
+        $('wizEntityManualValue').value = ''; $('wizEntityManualSyn').value = '';
+        $('wizEntityManualValue').focus();
+      });
+
+      $('wizIntentParseBtn').addEventListener('click', () => {
+        const n = parseIntentsCsv($('wizIntentPaste').value);
+        if (n > 0){ save(); renderIntents(); toast(`Added ${n} utterance${n===1?'':'s'}.`); $('wizIntentPaste').value = ''; }
+        else toast('Nothing parsed. Check the CSV format.', true);
+      });
+      $('wizIntentClearPasteBtn').addEventListener('click', () => { $('wizIntentPaste').value = ''; });
+      $('wizIntentManualAddBtn').addEventListener('click', () => {
+        const name = $('wizIntentManualName').value.trim();
+        const utt = $('wizIntentManualUtt').value.trim();
+        if (!name || !utt){ toast('Intent name and utterance required.', true); return; }
+        addIntentUtterance(name, utt);
+        save(); renderIntents();
+        $('wizIntentManualUtt').value = '';
+        $('wizIntentManualUtt').focus();
+      });
+
+      $('wizPrevBtn').addEventListener('click', () => goStep(state.step - 1));
+      $('wizNextBtn').addEventListener('click', () => goStep(state.step + 1));
+
+      $('wizSaveDraftBtn').addEventListener('click', () => { save(); toast('Draft saved locally.'); });
+      $('wizResetBtn').addEventListener('click', () => {
+        if (!confirm('Clear everything and start over?')) return;
+        Object.assign(state, { step:1, botName:'', botDesc:'', lang:'en-US', entities:[], intents:[], responses:{} });
+        try { localStorage.removeItem(LS_KEY); } catch(e){}
+        hydrateForm();
+        renderAll();
+        toast('Cleared.');
+      });
+
+      $('wizDownloadBtn').addEventListener('click', () => {
+        if (!state.botName.trim()){ toast('Enter a bot name on step 1 first.', true); return; }
+        if (!state.intents.length){ toast('Add at least one intent on step 3.', true); return; }
+        const json = buildBotJson();
+        const blob = new Blob([JSON.stringify(json, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const safe = state.botName.replace(/[^a-z0-9_\-]+/gi, '_').replace(/^_+|_+$/g, '') || 'bot';
+        const date = new Date().toISOString().slice(0,10);
+        const a = document.createElement('a');
+        a.href = url; a.download = `${safe}_scripted_bot_${date}.json`;
+        document.body.appendChild(a); a.click(); document.body.removeChild(a);
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+        toast('JSON downloaded.');
+      });
+      $('wizCopyJsonBtn').addEventListener('click', async () => {
+        try {
+          await navigator.clipboard.writeText(JSON.stringify(buildBotJson(), null, 2));
+          toast('JSON copied to clipboard.');
+        } catch(e){ toast('Copy failed.', true); }
+      });
+      $('wizTogglePreviewBtn').addEventListener('click', () => {
+        const wrap = $('wizJsonPreviewWrap');
+        const open = wrap.style.display === 'none';
+        wrap.style.display = open ? 'block' : 'none';
+        $('wizTogglePreviewBtn').textContent = open ? 'Hide JSON preview' : 'Show JSON preview';
+      });
+    }
+
+    function hydrateForm(){
+      $('wizBotName').value = state.botName || '';
+      $('wizBotDesc').value = state.botDesc || '';
+      $('wizBotLang').value = state.lang || 'en-US';
+    }
+
+    function renderAll(){
+      renderProgress();
+      renderStepPanels();
+      renderEntities();
+      renderIntents();
+    }
+
+    function init(){
+      load();
+      hydrateForm();
+      wire();
+      renderAll();
+    }
+
+    document.addEventListener('DOMContentLoaded', init);
+  })();
+  </script>
+</body>
+</html>

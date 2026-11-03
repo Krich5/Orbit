@@ -79,6 +79,7 @@
     {
       title: 'AI Agent',
       items: [
+        { label: 'AI Agent Wizard', path: '/pages/aiagent/wizard.html' },
         { label: 'AI Bot Visualizer', path: '/pages/aiagent/visualizer.html' },
         { label: 'AI Call Transcript Summary', path: '/pages/aiagent/summary.html' },
         { label: 'AI Utilization', path: '/pages/aiagent/utilization.html' },
