@@ -539,25 +539,87 @@ schedule_appointment, can I set up a visit"></textarea>
       });
     }
 
+    function autoIntentDescription(name){
+      return `Handle user requests related to the ${name} scenario.`;
+    }
+
+    function ensureIntentFields(intent){
+      if (intent.description == null) intent.description = '';
+      if (!Array.isArray(intent.slots)) intent.slots = [];
+    }
+
     function renderIntents(){
       const el = $('wizIntentsList'); if (!el) return;
+      state.intents.forEach(ensureIntentFields);
       const totalUtts = state.intents.reduce((n, i) => n + (i.utterances?.length || 0), 0);
-      $('wizIntentsCount').textContent = `${state.intents.length} intent${state.intents.length===1?'':'s'} · ${totalUtts} utterance${totalUtts===1?'':'s'}`;
+      const totalSlots = state.intents.reduce((n, i) => n + (i.slots?.length || 0), 0);
+      $('wizIntentsCount').textContent = `${state.intents.length} intent${state.intents.length===1?'':'s'} · ${totalUtts} utt · ${totalSlots} slot${totalSlots===1?'':'s'}`;
       if (!state.intents.length){
         el.innerHTML = '<div class="wiz-empty">No intents yet. Paste a CSV or add one manually above.</div>';
         return;
       }
-      el.innerHTML = state.intents.map((intent, idx) => `
+      const entityOptions = state.entities.map(e => `<option value="${esc(e.name)}">${esc(e.name)} (${esc(e.type || 'custom')})</option>`).join('');
+      el.innerHTML = state.intents.map((intent, idx) => {
+        const effectiveDesc = intent.description || autoIntentDescription(intent.name);
+        const slotRows = (intent.slots || []).map((s, si) => `
+          <div class="wiz-mini-row" data-slot-row="${idx}:${si}" style="align-items:end;padding:8px;border:1px solid var(--border);border-radius:10px;background:rgba(255,255,255,0.02);">
+            <div class="wiz-field">
+              <div class="label">Entity</div>
+              <select data-slot-entity="${idx}:${si}">
+                <option value="">— pick an entity —</option>
+                ${entityOptions}
+              </select>
+            </div>
+            <div class="wiz-field">
+              <div class="label">Prompt (slot ask-template)</div>
+              <input type="text" data-slot-prompt="${idx}:${si}" value="${esc(s.prompt || '')}" placeholder="What's your <value>?" />
+            </div>
+            <div class="wiz-field">
+              <div class="label">Retries</div>
+              <input type="number" min="1" max="10" data-slot-retries="${idx}:${si}" value="${esc(s.retries || 3)}" />
+            </div>
+            <div class="wiz-field" style="flex-direction:row;justify-content:space-between;align-items:center;">
+              <label class="wiz-toggle"><input type="checkbox" data-slot-required="${idx}:${si}" ${s.required !== false ? 'checked' : ''} /> Required</label>
+              <button class="wiz-remove-btn" data-slot-remove="${idx}:${si}" type="button">Remove</button>
+            </div>
+          </div>
+        `).join('');
+        return `
         <div class="wiz-card">
           <div class="wiz-card-head">
-            <h3>${esc(intent.name)} <span class="wiz-chip">${intent.utterances.length} utt${intent.utterances.length===1?'':'s'}</span></h3>
+            <h3>${esc(intent.name)} <span class="wiz-chip">${intent.utterances.length} utt${intent.utterances.length===1?'':'s'}</span>${intent.slots && intent.slots.length ? `<span class="wiz-chip type">${intent.slots.length} slot${intent.slots.length===1?'':'s'}</span>` : ''}</h3>
             <button class="wiz-remove-btn" data-remove-intent="${idx}" type="button">Remove</button>
           </div>
           <div class="wiz-utt-list">
             ${intent.utterances.map(u => `<div class="wiz-utt-row">${esc(u)}</div>`).join('')}
           </div>
+
+          <div class="wiz-fold" data-fold>
+            <div class="wiz-fold-head" data-fold-toggle>Intent settings &amp; slots</div>
+            <div class="wiz-fold-body">
+              <div class="wiz-field">
+                <div class="label">Intent description <span style="color:#f87171;">(required by Studio)</span></div>
+                <textarea data-intent-desc="${idx}" style="min-height:60px;" placeholder="${esc(autoIntentDescription(intent.name))}">${esc(intent.description || '')}</textarea>
+                <div class="wiz-hint">Leave blank to use the auto-generated description: <em>${esc(effectiveDesc)}</em></div>
+              </div>
+              <div class="wiz-field">
+                <div class="label">Slot filling ${!state.entities.length ? '<span style="color:#fde68a;">(add entities on step 2 first)</span>' : ''}</div>
+                ${slotRows || '<div class="wiz-hint" style="padding:8px 0;">No slots configured. Add one to collect an entity value before the response fires.</div>'}
+                <button class="wiz-mini-btn" data-add-slot="${idx}" type="button" ${!state.entities.length ? 'disabled style="opacity:.5;cursor:not-allowed;"' : ''}>+ Add slot</button>
+              </div>
+            </div>
+          </div>
         </div>
-      `).join('');
+      `;}).join('');
+
+      // Set current slot entity values post-render (since we built the select before knowing the value)
+      el.querySelectorAll('[data-slot-entity]').forEach(sel => {
+        const [i, si] = sel.dataset.slotEntity.split(':').map(Number);
+        const s = state.intents[i]?.slots?.[si];
+        if (s && s.entityName) sel.value = s.entityName;
+      });
+
+      // Wire
       el.querySelectorAll('[data-remove-intent]').forEach(btn => {
         btn.addEventListener('click', () => {
           const i = parseInt(btn.dataset.removeIntent, 10);
@@ -567,6 +629,49 @@ schedule_appointment, can I set up a visit"></textarea>
           save(); renderIntents();
         });
       });
+      el.querySelectorAll('[data-intent-desc]').forEach(t => t.addEventListener('input', e => {
+        const i = parseInt(t.dataset.intentDesc, 10);
+        state.intents[i].description = e.target.value;
+        save();
+      }));
+      el.querySelectorAll('[data-add-slot]').forEach(btn => btn.addEventListener('click', () => {
+        const i = parseInt(btn.dataset.addSlot, 10);
+        ensureIntentFields(state.intents[i]);
+        const firstEntity = state.entities[0]?.name || '';
+        state.intents[i].slots.push({
+          entityName: firstEntity,
+          required: true,
+          retries: 3,
+          prompt: firstEntity ? `What's your ${firstEntity}?` : ''
+        });
+        save(); renderIntents();
+      }));
+      el.querySelectorAll('[data-slot-remove]').forEach(btn => btn.addEventListener('click', () => {
+        const [i, si] = btn.dataset.slotRemove.split(':').map(Number);
+        state.intents[i].slots.splice(si, 1);
+        save(); renderIntents();
+      }));
+      el.querySelectorAll('[data-slot-entity]').forEach(sel => sel.addEventListener('change', e => {
+        const [i, si] = sel.dataset.slotEntity.split(':').map(Number);
+        state.intents[i].slots[si].entityName = e.target.value;
+        save();
+      }));
+      el.querySelectorAll('[data-slot-prompt]').forEach(t => t.addEventListener('input', e => {
+        const [i, si] = t.dataset.slotPrompt.split(':').map(Number);
+        state.intents[i].slots[si].prompt = e.target.value;
+        save();
+      }));
+      el.querySelectorAll('[data-slot-retries]').forEach(t => t.addEventListener('input', e => {
+        const [i, si] = t.dataset.slotRetries.split(':').map(Number);
+        state.intents[i].slots[si].retries = parseInt(e.target.value, 10) || 3;
+        save();
+      }));
+      el.querySelectorAll('[data-slot-required]').forEach(c => c.addEventListener('change', e => {
+        const [i, si] = c.dataset.slotRequired.split(':').map(Number);
+        state.intents[i].slots[si].required = e.target.checked;
+        save();
+      }));
+      el.querySelectorAll('[data-fold-toggle]').forEach(h => h.addEventListener('click', () => h.parentElement.classList.toggle('open')));
     }
 
     function defaultResponseFor(intent){
@@ -870,30 +975,40 @@ schedule_appointment, can I set up a visit"></textarea>
 
       // ---------- Intents ----------
       const sysIntents = SYSTEM_INTENTS.map(sys => buildSystemIntent(sys, lang));
-      const userIntents = state.intents.map((intent, idx) => ({
-        auto_complete_entities: false,
-        description: '',
-        end_conversation: false,
-        entities: [],
-        entry_context: [],
-        exit_context: [],
-        intent_description: '',
-        intent_id: String(idx + 1),
-        name: intent.name,
-        reset_state: false,
-        restart_template: '',
-        template_key: `resp_${slug(intent.name)}`,
-        update_slots: false,
-        variants: {
-          [lang]: {
-            utterances: intent.utterances.map(utt => ({
-              entities: [],
-              generated: false,
-              utterance: utt
-            }))
+      const userIntents = state.intents.map((intent, idx) => {
+        ensureIntentFields(intent);
+        const slotEntities = (intent.slots || []).filter(s => s.entityName).map(s => ({
+          counter: Number(s.retries) || 3,
+          entity_name: s.entityName,
+          required: s.required !== false,
+          role_name: '',
+          template_key: `ask${s.entityName}`
+        }));
+        return {
+          auto_complete_entities: false,
+          description: '',
+          end_conversation: false,
+          entities: slotEntities,
+          entry_context: [],
+          exit_context: [],
+          intent_description: intent.description || autoIntentDescription(intent.name),
+          intent_id: String(idx + 1),
+          name: intent.name,
+          reset_state: slotEntities.length > 0,
+          restart_template: '',
+          template_key: `resp_${slug(intent.name)}`,
+          update_slots: false,
+          variants: {
+            [lang]: {
+              utterances: intent.utterances.map(utt => ({
+                entities: [],
+                generated: false,
+                utterance: utt
+              }))
+            }
           }
-        }
-      }));
+        };
+      });
       const intents = sysIntents.concat(userIntents);
 
       // ---------- Entities (Studio shape) ----------
@@ -973,6 +1088,30 @@ schedule_appointment, can I set up a visit"></textarea>
             }
           }
         };
+
+        // Slot-prompt templates: one per slot (ask<EntityName>)
+        (intent.slots || []).forEach(s => {
+          if (!s.entityName) return;
+          const askKey = `ask${s.entityName}`;
+          const promptText = s.prompt || `What's your ${s.entityName}?`;
+          templates[askKey] = {
+            updated_at: Date.now(),
+            variants: {
+              [lang]: {
+                logic: '',
+                paths: {
+                  configurable: [],
+                  default: { actions: {
+                    voice: [{ speech_settings: speech, text: [promptText], type: 'response' }],
+                    web: [{ text: [promptText], type: 'response' }]
+                  } }
+                },
+                response_type: 'paths',
+                send_response_in_default_language: false
+              }
+            }
+          };
+        });
       });
 
       // ---------- Workflow events ----------
