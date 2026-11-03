@@ -734,115 +734,330 @@ schedule_appointment, can I set up a visit"></textarea>
     }
 
     // ----- builders -----
-    function buildVoiceActionBase(vs){
-      // Shape used by the Studio UI: alongside text/payload, voice action items
-      // carry per-item settings (timeout, allow_barge_in, timeout_response, dtmf_input).
+    // --------------------------------------------------------------
+    //  Studio-exact output shape — verified against real Studio exports.
+    //  Our wizard state is user-friendly; this builder translates it
+    //  into the exact JSON Studio emits when you Export a bot.
+    // --------------------------------------------------------------
+
+    // Map wizard entity type ids → Studio's internal type ids + flags.
+    const STUDIO_ENTITY_MAP = {
+      custom:       { studio: 'custom',       system: false, canSecure: false },
+      digits:       { studio: 'digits',       system: false, canSecure: true  },
+      date:         { studio: 'date',         system: false, canSecure: false },
+      time:         { studio: 'time',         system: true,  canSecure: false },
+      email:        { studio: 'email',        system: true,  canSecure: false },
+      phone:        { studio: 'mobileno',     system: true,  canSecure: false },
+      regex:        { studio: 'regex',        system: false, canSecure: true  },
+      alphanumeric: { studio: 'alphanum',     system: false, canSecure: true  },
+      monetary:     { studio: 'money',        system: true,  canSecure: false },
+      ordinal:      { studio: 'ordinal',      system: true,  canSecure: false },
+      cardinal:     { studio: 'cardinal',     system: true,  canSecure: false },
+      geo:          { studio: 'geo_location', system: true,  canSecure: false },
+      person_names: { studio: 'person',       system: true,  canSecure: false },
+      quantity:     { studio: 'quantity',     system: true,  canSecure: false },
+      duration:     { studio: 'duration',     system: true,  canSecure: false },
+      free_form:    { studio: 'freeform',     system: true,  canSecure: true  },
+      map_location: { studio: 'map_location', system: true,  canSecure: false }
+    };
+
+    function randColor(){
+      return '#' + Math.floor(Math.random()*0xffffff).toString(16).padStart(6,'0');
+    }
+
+    function studioSpeechSettings(vs){
       return {
-        allow_barge_in: !!vs.allowBargeIn,
-        timeout: Number(vs.timeout) || 10,
-        timeout_response: vs.timeoutResponse || '',
-        dtmf_input: !!vs.dtmfInput
+        allow_dtmf: !!vs.dtmfInput,
+        barge_in: vs.allowBargeIn !== false,
+        dtmf_config: {
+          allow_voice: true,
+          dtmf_length: '',
+          inter_digit_timeout_in_ms: 5000,
+          termchar: ''
+        },
+        timeout_in_ms: (Number(vs.timeout) || 10) * 1000,
+        timeout_response: vs.timeoutResponse || 'Please configure your timeout response'
       };
     }
 
     function parseEventPayloadJson(str){
-      // Users may type invalid JSON while editing — fall back to raw string wrapped in intent
       try { return JSON.parse(str); } catch(e) { return { intent: String(str || '').trim() }; }
+    }
+
+    // --- System intents + templates every exported bot has baked in ---
+    const SYSTEM_INTENTS = [
+      { intent_id: 'none', name: 'Default fallback intent', template_key: 'Fallback message', reset_state: true,
+        intent_description: "Handle user input that doesn't match any other defined intent, providing a fallback response to keep the conversation flowing.",
+        utterances: [] },
+      { intent_id: 'help', name: 'Help', template_key: 'Help message', reset_state: true,
+        intent_description: "Provide assistance and information about the bot's capabilities when the user requests help or asks what the bot can do.",
+        utterances: ['What can you do?','How can you help?','Help','What do you do?','Could you please help me'] },
+      { intent_id: 'agent', name: 'Talk to an agent', template_key: 'Agent handover', reset_state: true, end_conversation: true,
+        intent_description: 'Escalate the conversation to a human agent when the user requests to speak with a real person or human support.',
+        utterances: ['Can I talk to a human?','agent','human','Connect me to a human','Chat with agent','Can I speak with someone?'] },
+      { intent_id: 'good_bye', name: 'Goodbye', template_key: 'Goodbye', reset_state: true,
+        intent_description: 'Acknowledge and respond appropriately when the user is ending the conversation with a farewell or departure expression.',
+        utterances: ['Goodbye','Bye','Good bye','See you later','See ya later','Catch you later','gotta go','Good night'] },
+      { intent_id: 'greetings', name: 'Greetings', template_key: 'Greetings', reset_state: true,
+        intent_description: 'Respond appropriately when the user initiates conversation with a greeting or salutation, including hellos, time-based greetings, and casual farewells.',
+        utterances: ['Hello','Hello there','Hi','Hi there!','Hiya','Howdy','Hey','Good morning','Good afternoon','Good evening'] },
+      { intent_id: 'not_helpful', name: 'Not helpful', template_key: 'Not helpful', reset_state: true,
+        intent_description: "Handle user feedback indicating dissatisfaction with the bot's response, including complaints about inaccuracy, irrelevance, confusion, or general unhelpfulness.",
+        utterances: ['That was unhelpful',"That's inaccurate","That's wrong","That's not relevant","Not what I asked","I don't understand","That made no sense",'Wrong answer'] },
+      { intent_id: 'thank_you', name: 'Thank you', template_key: 'Thank you', reset_state: true,
+        intent_description: 'Acknowledge and respond appropriately when the user expresses gratitude or thanks.',
+        utterances: ['Thank you','Thanks','Many thanks','Thx','Thnx','Thanks a lot','I appreciate that'] }
+    ];
+
+    function buildSystemIntent(sys, lang){
+      return {
+        auto_complete_entities: false,
+        description: '',
+        end_conversation: !!sys.end_conversation,
+        entities: [],
+        entry_context: [],
+        exit_context: [],
+        intent_description: sys.intent_description,
+        intent_id: sys.intent_id,
+        name: sys.name,
+        reset_state: sys.reset_state,
+        restart_template: '',
+        template_key: sys.template_key,
+        update_slots: false,
+        variants: {
+          [lang]: {
+            utterances: sys.utterances.map(u => ({ entities: [], utterance: u }))
+          }
+        }
+      };
+    }
+
+    function makeTextTemplate(text, lang){
+      return {
+        variants: {
+          [lang]: {
+            logic: '',
+            paths: {
+              configurable: [],
+              default: { actions: { web: [{ text: [text], type: 'response' }] } }
+            },
+            response_type: 'paths',
+            send_response_in_default_language: false
+          }
+        }
+      };
+    }
+
+    function buildSystemTemplates(lang){
+      return {
+        'Fallback message':    makeTextTemplate('Sorry, I am unable to understand your message. Could you please rephrase it?', lang),
+        'Help message':        makeTextTemplate('I can help with a few things — try asking what I can do.', lang),
+        'Agent handover':      makeTextTemplate('Please wait while I redirect you to one of our team members.', lang),
+        'Goodbye':             makeTextTemplate('Goodbye and take care!', lang),
+        'Greetings':           makeTextTemplate('Hello there.', lang),
+        'Not helpful':         makeTextTemplate("Sorry, I hear that wasn't able to help you. Please try asking a different question.", lang),
+        'Thank you':           makeTextTemplate("You're welcome, take care!", lang),
+        'Welcome message':     makeTextTemplate('Hello, how can I help you today?', lang),
+        'Entity suggestion':   makeTextTemplate('Choose one of the following or provide your own', lang),
+        'Response suggestion': makeTextTemplate('You can also see the results for', lang),
+        'Partial match':       makeTextTemplate('Sorry, I was unable to understand your query accurately. Could you select which intent you were referring to?', lang)
+      };
     }
 
     function buildBotJson(){
       const lang = state.lang || 'en-US';
+      const langBase = lang.split('-')[0] || 'en';
 
-      const intents = state.intents.map((intent, idx) => ({
-        intent_id: `${slug(intent.name)}_${idx}`,
-        name: intent.name,
-        template_key: `resp_${slug(intent.name)}`,
-        reset_state: false,
+      // ---------- Intents ----------
+      const sysIntents = SYSTEM_INTENTS.map(sys => buildSystemIntent(sys, lang));
+      const userIntents = state.intents.map((intent, idx) => ({
+        auto_complete_entities: false,
+        description: '',
         end_conversation: false,
-        update_slots: false,
+        entities: [],
         entry_context: [],
         exit_context: [],
-        entities: [],
+        intent_description: '',
+        intent_id: String(idx + 1),
+        name: intent.name,
+        reset_state: false,
+        restart_template: '',
+        template_key: `resp_${slug(intent.name)}`,
+        update_slots: false,
         variants: {
           [lang]: {
-            utterances: intent.utterances.map(utt => ({ utterance: utt, entities: [] }))
+            utterances: intent.utterances.map(utt => ({
+              entities: [],
+              generated: false,
+              utterance: utt
+            }))
           }
         }
       }));
+      const intents = sysIntents.concat(userIntents);
 
+      // ---------- Entities (Studio shape) ----------
       const entities = state.entities.map(ent => {
+        const map = STUDIO_ENTITY_MAP[ent.type] || STUDIO_ENTITY_MAP.custom;
+        const base = {
+          auto_complete: false,
+          color: randColor(),
+          data: {},
+          name: ent.name,
+          roles: [],
+          secure: !!(map.canSecure && ent.sensitive),
+          system_entity: map.system,
+          type: map.studio
+        };
         if (ent.type === 'custom') {
-          return {
-            name: ent.name,
-            type: 'custom',
-            data: {
-              values: (ent.values || []).map(v => ({ value: v.value, synonyms: Array.isArray(v.synonyms) ? v.synonyms : [] }))
-            }
-          };
+          base.data = { values: (ent.values || []).map(v => ({
+            synonyms: Array.isArray(v.synonyms) ? v.synonyms : [],
+            value: v.value
+          })) };
+        } else if (ent.type === 'digits') {
+          if (ent.length != null && ent.length !== '') base.data.length = Number(ent.length) || ent.length;
+        } else if (ent.type === 'date') {
+          base.data.output_format = ent.format || 'mm/dd/YYYY';
+        } else if (ent.type === 'regex' || ent.type === 'alphanumeric') {
+          base.data.pattern = ent.pattern || '.+';
         }
-        const out = { name: ent.name, type: ent.type };
-        if (ent.length != null && ent.length !== '') out.length = Number(ent.length) || ent.length;
-        if (ent.format) out.format = ent.format;
-        if (ent.pattern) out.pattern = ent.pattern;
-        if (ent.sensitive) out.sensitive_data = true;
-        return out;
+        return base;
       });
 
-      const templates = {};
+      // ---------- Response templates ----------
+      const templates = buildSystemTemplates(lang);
+
       state.intents.forEach(intent => {
         const key = `resp_${slug(intent.name)}`;
         const r = state.responses[intent.name] || defaultResponseFor(intent);
         const vs = r.voiceSettings || { timeout:10, timeoutResponse:'', allowBargeIn:true, dtmfInput:false };
+        const speech = studioSpeechSettings(vs);
 
-        let webActions = [];
-        let voiceActions = [];
+        let webActions, voiceActions;
         if (r.mode === 'event') {
           const payload = parseEventPayloadJson(r.eventPayload);
-          const eventItem = {
+          const eventName = r.eventName || intent.name;
+          voiceActions = [{
             payload: [{
               Execute_Request: {
                 Data: { Params: payload },
-                Event_Name: r.eventName || intent.name
+                Event_Name: eventName
               }
             }],
+            speech_settings: Object.assign({ event_name: '' }, speech),
             type: 'response'
-          };
-          webActions = [eventItem];
-          voiceActions = [Object.assign({}, eventItem, buildVoiceActionBase(vs))];
+          }];
+          webActions = [{ text: ['Please configure your message.'], type: 'response' }];
         } else {
-          const web = r.web || '';
-          const voice = r.voice || r.web || '';
-          if (web) webActions = [{ text: [web], type: 'response' }];
-          if (voice) voiceActions = [Object.assign({ text: [voice], type: 'response' }, buildVoiceActionBase(vs))];
+          const webText = r.web || 'Please configure your message.';
+          const voiceText = r.voice || r.web || 'Please configure your message.';
+          voiceActions = [{
+            speech_settings: speech,
+            text: [voiceText],
+            type: 'response'
+          }];
+          webActions = [{ text: [webText], type: 'response' }];
         }
 
         templates[key] = {
-          updated_at: new Date().toISOString(),
+          updated_at: Date.now(),
           variants: {
             [lang]: {
               logic: '',
-              response_type: 'paths',
-              send_response_in_default_language: false,
               paths: {
-                default: { actions: { web: webActions, voice: voiceActions } },
-                configurable: []
-              }
+                configurable: [],
+                default: { actions: { voice: voiceActions, web: webActions } }
+              },
+              response_type: 'paths',
+              send_response_in_default_language: false
             }
           }
         };
       });
 
+      // ---------- Workflow events ----------
+      const workflowEvents = {
+        'Reset context': { action: { type: 'reset_context' } },
+        'Reset slots':   { action: { type: 'reset_slots' } },
+        'Welcome':       { action: { template: 'Welcome message', type: 'response' } }
+      };
+      // Also expose each user intent's template_key as an event (lets Flows fire it directly)
+      state.intents.forEach(intent => {
+        const key = `resp_${slug(intent.name)}`;
+        if (!workflowEvents[intent.name]) {
+          workflowEvents[intent.name] = { action: { template: key, type: 'response' } };
+        }
+      });
+
+      // ---------- Assemble ----------
       return {
-        metadata: {
-          name: state.botName || 'Untitled Bot',
-          description: state.botDesc || '',
-          default_language: lang,
-          generated_by: 'OpsHub Scripted Bot Wizard',
-          generated_at: new Date().toISOString()
+        agent_handover_setting: {
+          consecutive_count: { enabled: false, value: 1 },
+          fallback_count: { enabled: false, value: 3 },
+          handover_after_retries: false,
+          partial_match_count: { enabled: false, value: 3 },
+          response_flag: true
         },
-        intents,
+        algorithm: {
+          algo_configuration: {
+            infer_configuration: { spellcheck_in_inference: true },
+            n_results: 3,
+            n_results_partial_entity: 3,
+            n_results_related_entity: 3,
+            slots_before_intents: true,
+            threshold_diff_score: 0.02,
+            threshold_min_score: 0.05,
+            threshold_partial_entity: 0.3,
+            threshold_related_entity: 0.6,
+            threshold_values: [-0.1, -0.05, 0, 0.05, 0.1, 0.15, 0.2]
+          },
+          entity_recognition: false,
+          id: 'scriptedagent'
+        },
+        allow_agent_handover: false,
+        allow_curation: true,
+        allow_feedback: false,
+        bot_metadata: { locale: 'en_GB', timezone: 'America/Los_Angeles' },
+        bot_type: 'mlbot',
+        curation_settings: {
+          agent_handover: { enabled: true },
+          downvoted: { enabled: true },
+          fallback: { enabled: true, none_in_fallback_rule: { enabled: false } },
+          from_session: { enabled: true },
+          low_confidence: { enabled: true, low_confidence_score: 0.4, recommended_low_confidence_score: 0.61 },
+          partial_match: { enabled: true }
+        },
+        default_language: lang,
+        description: state.botDesc || '',
         entities,
-        responses: { templates }
+        error_message: '',
+        first_message: '',
+        intents,
+        language: langBase,
+        languages: { [lang]: true },
+        logo: 'https://studio.aiagent-us1.cisco.com/static/assets/img/bot-logo/default-mlbot.svg',
+        responses: {
+          templates,
+          workflow: {
+            events: workflowEvents,
+            logic: '',
+            static_events: ['Reset slots', 'Reset context'],
+            type: 'workflow_event'
+          }
+        },
+        test_cases: [{
+          callbacks: [],
+          child_template: false,
+          expected_language: lang,
+          expected_template: 'Template to match with',
+          intent: '',
+          is_selected: true,
+          new_room: true,
+          user_message: 'The message to test on'
+        }],
+        test_cases_callbacks: false,
+        test_cases_partial_match_success: true,
+        voice_settings: { voices: [] }
       };
     }
 
