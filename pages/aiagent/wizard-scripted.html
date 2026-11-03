@@ -415,9 +415,7 @@ schedule_appointment, can I set up a visit"></textarea>
       });
     }
 
-    function renderResponses(){
-      const el = $('wizResponsesList'); if (!el) return;
-      // ensure every intent has a response entry
+    function ensureResponseDefaults(){
       state.intents.forEach(intent => {
         if (!state.responses[intent.name]) {
           const sample = intent.utterances[0] || intent.name;
@@ -427,6 +425,11 @@ schedule_appointment, can I set up a visit"></textarea>
           };
         }
       });
+    }
+
+    function renderResponses(){
+      const el = $('wizResponsesList'); if (!el) return;
+      ensureResponseDefaults();
       $('wizResponsesCount').textContent = `${state.intents.length} response${state.intents.length===1?'':'s'}`;
       if (!state.intents.length){
         el.innerHTML = '<div class="wiz-empty">Add some intents in step 3 first.</div>';
@@ -480,6 +483,8 @@ schedule_appointment, can I set up a visit"></textarea>
     }
 
     function renderReview(){
+      ensureResponseDefaults();
+      save();
       const totalUtts = state.intents.reduce((n, i) => n + (i.utterances?.length || 0), 0);
       const totalVals = state.entities.reduce((n, e) => n + (e.values?.length || 0), 0);
       $('wizStats').innerHTML = `
