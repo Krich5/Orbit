@@ -23,7 +23,7 @@
     .wiz-panel.active { display:flex; }
     .wiz-field { display:flex; flex-direction:column; gap:6px; }
     .wiz-field label { font-size:0.85rem; font-weight:700; color:var(--muted); }
-    .wiz-field input[type=text], .wiz-field textarea, .wiz-field select { background:var(--input); color:var(--fg); border:1px solid var(--border); border-radius:12px; padding:10px 12px; font-family:inherit; font-size:0.95rem; }
+    .wiz-field input[type=text], .wiz-field input[type=number], .wiz-field textarea, .wiz-field select { background:var(--input); color:var(--fg); border:1px solid var(--border); border-radius:12px; padding:10px 12px; font-family:inherit; font-size:0.95rem; }
     .wiz-field textarea { min-height:140px; resize:vertical; font-family:ui-monospace, 'SF Mono', Menlo, monospace; font-size:0.88rem; line-height:1.5; }
     .wiz-field-row { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
     @media (max-width:720px){ .wiz-field-row { grid-template-columns:1fr; } }
@@ -33,6 +33,7 @@
     .wiz-chip { display:inline-flex; align-items:center; gap:6px; padding:3px 10px; border-radius:999px; background:rgba(21,157,216,.14); border:1px solid rgba(21,157,216,.4); font-size:12px; font-weight:600; color:#9ad3ec; }
     .wiz-chip.ok { background:rgba(16,185,129,.14); border-color:rgba(16,185,129,.4); color:#86efac; }
     .wiz-chip.warn { background:rgba(234,179,8,.14); border-color:rgba(234,179,8,.4); color:#fde68a; }
+    .wiz-chip.type { background:rgba(139,92,246,.14); border-color:rgba(139,92,246,.4); color:#c4b5fd; }
     .wiz-card { border:1px solid var(--border); border-radius:14px; padding:14px 16px; background:var(--card); display:flex; flex-direction:column; gap:10px; }
     .wiz-card-head { display:flex; align-items:center; justify-content:space-between; gap:12px; }
     .wiz-card-head h3 { margin:0; font-size:1rem; }
@@ -52,15 +53,20 @@
     .wiz-json-preview { max-height:420px; overflow:auto; background:#0a0f1c; border:1px solid var(--border); border-radius:12px; padding:14px; font-family:ui-monospace,'SF Mono',Menlo,monospace; font-size:12px; line-height:1.5; color:#d1dcee; }
     .wiz-hint { font-size:0.82rem; color:var(--muted); line-height:1.5; }
     .wiz-hint code { background:rgba(21,157,216,.14); color:#9ad3ec; padding:1px 6px; border-radius:6px; font-family:ui-monospace,'SF Mono',Menlo,monospace; font-size:0.8rem; }
-    .wiz-inline-form { display:grid; grid-template-columns:1fr 1fr 2fr auto; gap:8px; align-items:end; }
-    @media (max-width:720px){ .wiz-inline-form { grid-template-columns:1fr; } }
-    .wiz-inline-form .wiz-field label { font-size:0.75rem; }
-    .wiz-inline-form .wiz-field input { padding:8px 10px; font-size:0.9rem; }
+    .wiz-ent-form { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+    @media (max-width:720px){ .wiz-ent-form { grid-template-columns:1fr; } }
+    .wiz-ent-form .wiz-field label { font-size:0.75rem; }
+    .wiz-ent-form .wiz-field input, .wiz-ent-form .wiz-field select { padding:8px 10px; font-size:0.9rem; }
+    .wiz-ent-form .fullrow { grid-column: 1 / -1; }
+    .wiz-toggle { display:inline-flex; align-items:center; gap:8px; cursor:pointer; color:var(--fg); font-size:0.9rem; }
+    .wiz-toggle input { width:16px; height:16px; }
     .wiz-split { display:grid; grid-template-columns:3fr 2fr; gap:16px; align-items:start; }
     @media (max-width:900px){ .wiz-split { grid-template-columns:1fr; } }
-    .wiz-resp-row { display:flex; flex-direction:column; gap:8px; padding:12px 14px; border:1px solid var(--border); border-radius:12px; background:var(--card); }
+    .wiz-resp-row { display:flex; flex-direction:column; gap:10px; padding:12px 14px; border:1px solid var(--border); border-radius:12px; background:var(--card); }
     .wiz-resp-row .label { font-size:12px; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); font-weight:700; }
-    .wiz-resp-row textarea { background:var(--input); color:var(--fg); border:1px solid var(--border); border-radius:10px; padding:10px 12px; font-family:inherit; font-size:0.95rem; min-height:72px; resize:vertical; }
+    .wiz-resp-row textarea, .wiz-resp-row input[type=text], .wiz-resp-row input[type=number] { background:var(--input); color:var(--fg); border:1px solid var(--border); border-radius:10px; padding:9px 12px; font-family:inherit; font-size:0.95rem; }
+    .wiz-resp-row textarea { min-height:72px; resize:vertical; }
+    .wiz-resp-row textarea.mono { font-family:ui-monospace,'SF Mono',Menlo,monospace; font-size:0.85rem; }
     .wiz-mini-btn { background:transparent; border:1px solid var(--border); color:var(--fg); border-radius:10px; padding:4px 10px; font-size:0.8rem; font-weight:600; cursor:pointer; }
     .wiz-mini-btn:hover { border-color:#159DD8; color:#9ad3ec; }
     .wiz-empty { padding:20px; text-align:center; color:var(--muted); border:1px dashed var(--border); border-radius:12px; font-size:0.9rem; }
@@ -69,6 +75,19 @@
     .wiz-toast { position:fixed; bottom:20px; right:20px; padding:10px 16px; border-radius:12px; background:rgba(16,185,129,.14); border:1px solid rgba(16,185,129,.5); color:#86efac; font-weight:600; font-size:0.9rem; opacity:0; transform:translateY(10px); transition:opacity .2s ease, transform .2s ease; pointer-events:none; z-index:9999; }
     .wiz-toast.open { opacity:1; transform:translateY(0); }
     .wiz-toast.err { background:rgba(239,68,68,.14); border-color:rgba(239,68,68,.5); color:#fca5a5; }
+    .wiz-mode-row { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+    .wiz-mode-btn { padding:6px 12px; border-radius:999px; border:1px solid var(--border); background:transparent; color:var(--muted); font-size:0.82rem; font-weight:700; cursor:pointer; }
+    .wiz-mode-btn.active { background:rgba(21,157,216,.18); border-color:#159DD8; color:#9ad3ec; }
+    .wiz-fold { border:1px dashed var(--border); border-radius:12px; padding:0; overflow:hidden; background:rgba(255,255,255,0.02); }
+    .wiz-fold-head { display:flex; justify-content:space-between; align-items:center; padding:10px 14px; cursor:pointer; user-select:none; font-size:0.9rem; font-weight:700; color:var(--muted); }
+    .wiz-fold-head:hover { color:var(--fg); }
+    .wiz-fold-body { display:none; padding:10px 14px 14px; border-top:1px solid var(--border); flex-direction:column; gap:10px; }
+    .wiz-fold.open .wiz-fold-body { display:flex; }
+    .wiz-fold-head::after { content:'▸'; font-size:12px; transition:transform .2s ease; }
+    .wiz-fold.open .wiz-fold-head::after { transform:rotate(90deg); }
+    .wiz-mini-row { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+    @media (max-width:720px){ .wiz-mini-row { grid-template-columns:1fr; } }
+    .wiz-type-pill { display:inline-flex; align-items:center; gap:6px; padding:2px 8px; border-radius:999px; background:rgba(139,92,246,.14); border:1px solid rgba(139,92,246,.4); font-size:11px; font-weight:700; color:#c4b5fd; text-transform:uppercase; letter-spacing:.08em; }
   </style>
 </head>
 <body class="dark-mode api-aiagent" data-aiagent-mode="wizard">
@@ -81,7 +100,7 @@
         <div class="pageHeader aiagent-page-header">
           <div>
             <h1>Scripted Bot Wizard</h1>
-            <p class="lead">Build a Cisco AI Agent Studio-compatible scripted bot. Bulk-paste intents, entities, and responses; download the JSON and import it from Control Hub &rsaquo; AI Agent Studio &rsaquo; Scripted.</p>
+            <p class="lead">Build a Cisco AI Agent Studio-compatible scripted bot. Bulk-paste intents, pick from the full entity type list, wire up custom-event responses that trigger your Flow, then download the JSON.</p>
           </div>
           <div style="display:flex;gap:8px;align-items:center;">
             <button class="btn" id="wizSaveDraftBtn" type="button">Save Draft</button>
@@ -119,7 +138,7 @@
             </div>
             <div class="wiz-field">
               <label for="wizBotDesc">Description</label>
-              <input type="text" id="wizBotDesc" placeholder="Short description of what this bot does" autocomplete="off" style="min-height:unset;" />
+              <input type="text" id="wizBotDesc" placeholder="Short description of what this bot does" autocomplete="off" />
             </div>
           </section>
 
@@ -127,20 +146,20 @@
           <section class="wiz-panel" data-wiz-step="2">
             <div class="wiz-section-head">
               <div>
-                <h2>Custom Entities</h2>
-                <p class="wiz-sub">Define custom list entities (e.g. <code>department</code>, <code>appointment_type</code>). Skip this step if you don't need any.</p>
+                <h2>Entities</h2>
+                <p class="wiz-sub">Define the entities the bot can recognize. Use custom lists for your own values, or built-in types (date, phone, email, digits, etc.) to leverage AI Agent Studio's recognizers.</p>
               </div>
               <span class="wiz-chip" id="wizEntitiesCount">0 entities</span>
             </div>
 
             <div class="wiz-field">
-              <label for="wizEntityPaste">Paste CSV — <code>EntityName, Value, Synonym1|Synonym2|Synonym3</code></label>
+              <label for="wizEntityPaste">Paste CSV (custom lists only) — <code>EntityName, Value, Synonym1|Synonym2|Synonym3</code></label>
               <textarea id="wizEntityPaste" placeholder="department, Billing, billing dept|accounts|invoices
 department, Pharmacy, pharmacy|rx|prescriptions
 department, Scheduling, appointments|schedule
 appointment_type, New Patient, new
 appointment_type, Follow Up, followup|follow-up"></textarea>
-              <div class="wiz-hint">One row per value. Synonyms are optional; separate multiple synonyms with <code>|</code>. Rows with the same EntityName get grouped into one entity.</div>
+              <div class="wiz-hint">For built-in types (date/phone/digits/etc.) use the manual add form below. CSV paste only handles custom-list entities. Rows with the same EntityName get grouped.</div>
               <div style="display:flex;gap:10px;">
                 <button class="btn primary" id="wizEntityParseBtn" type="button">Add from CSV</button>
                 <button class="btn" id="wizEntityClearPasteBtn" type="button">Clear paste</button>
@@ -149,11 +168,63 @@ appointment_type, Follow Up, followup|follow-up"></textarea>
 
             <div class="wiz-card">
               <div class="wiz-card-head"><h3>Add one manually</h3></div>
-              <div class="wiz-inline-form">
-                <div class="wiz-field"><label>Entity</label><input type="text" id="wizEntityManualName" placeholder="department" /></div>
-                <div class="wiz-field"><label>Value</label><input type="text" id="wizEntityManualValue" placeholder="Billing" /></div>
-                <div class="wiz-field"><label>Synonyms (pipe-separated)</label><input type="text" id="wizEntityManualSyn" placeholder="billing dept|accounts" /></div>
-                <button class="btn primary" id="wizEntityManualAddBtn" type="button" style="padding:10px 18px;">Add</button>
+              <div class="wiz-ent-form">
+                <div class="wiz-field">
+                  <label>Entity name</label>
+                  <input type="text" id="wizEntityManualName" placeholder="e.g. department" />
+                </div>
+                <div class="wiz-field">
+                  <label>Entity type</label>
+                  <select id="wizEntityManualType"></select>
+                </div>
+
+                <!-- Custom list fields -->
+                <div class="wiz-field" data-ent-field="value">
+                  <label>Value</label>
+                  <input type="text" id="wizEntityManualValue" placeholder="Billing" />
+                </div>
+                <div class="wiz-field" data-ent-field="synonyms">
+                  <label>Synonyms (pipe-separated)</label>
+                  <input type="text" id="wizEntityManualSyn" placeholder="billing dept|accounts" />
+                </div>
+
+                <!-- Length (digits) -->
+                <div class="wiz-field" data-ent-field="length" style="display:none;">
+                  <label>Length (digits)</label>
+                  <input type="number" id="wizEntityManualLength" placeholder="e.g. 10" min="1" />
+                </div>
+
+                <!-- Pattern (regex / alphanumeric) -->
+                <div class="wiz-field fullrow" data-ent-field="pattern" style="display:none;">
+                  <label>Regex pattern</label>
+                  <input type="text" id="wizEntityManualPattern" placeholder="e.g. ^[A-Z]{3}-\d{4}$" />
+                </div>
+
+                <!-- Format (date) -->
+                <div class="wiz-field" data-ent-field="format" style="display:none;">
+                  <label>Date format</label>
+                  <select id="wizEntityManualFormat">
+                    <option value="dd/mm/YYYY" selected>dd/mm/YYYY</option>
+                    <option value="dd/mm/YY">dd/mm/YY</option>
+                    <option value="dd-mm-YYYY">dd-mm-YYYY</option>
+                    <option value="dd-mm-YY">dd-mm-YY</option>
+                    <option value="YYYY-mm-dd">YYYY-mm-dd</option>
+                    <option value="YYYY/mm/dd">YYYY/mm/dd</option>
+                    <option value="mm/dd/YYYY">mm/dd/YYYY</option>
+                    <option value="mm/dd/YY">mm/dd/YY</option>
+                    <option value="mm-dd-YYYY">mm-dd-YYYY</option>
+                    <option value="mm-dd-YY">mm-dd-YY</option>
+                  </select>
+                </div>
+
+                <!-- Sensitive data toggle (several types) -->
+                <div class="wiz-field fullrow" data-ent-field="sensitive" style="display:none;">
+                  <label class="wiz-toggle"><input type="checkbox" id="wizEntityManualSensitive" /> Sensitive data (pause recording for this slot)</label>
+                </div>
+
+                <div class="wiz-field fullrow" style="display:flex;flex-direction:row;justify-content:flex-end;">
+                  <button class="btn primary" id="wizEntityManualAddBtn" type="button" style="padding:10px 18px;">Add Entity</button>
+                </div>
               </div>
             </div>
 
@@ -181,7 +252,7 @@ check_balance, show me my balance
 schedule_appointment, I need to schedule an appointment
 schedule_appointment, book me an appointment
 schedule_appointment, can I set up a visit"></textarea>
-              <div class="wiz-hint">Intent names should be <code>snake_case</code>. Duplicate IntentNames get merged into one intent with all their utterances.</div>
+              <div class="wiz-hint">Intent names in <code>CamelCase</code> or <code>snake_case</code> both work. Duplicate IntentNames get merged. The intent name is reused in step 4 as the Custom Event name that triggers your Flow.</div>
               <div style="display:flex;gap:10px;">
                 <button class="btn primary" id="wizIntentParseBtn" type="button">Add from CSV</button>
                 <button class="btn" id="wizIntentClearPasteBtn" type="button">Clear paste</button>
@@ -190,10 +261,12 @@ schedule_appointment, can I set up a visit"></textarea>
 
             <div class="wiz-card">
               <div class="wiz-card-head"><h3>Add one manually</h3></div>
-              <div class="wiz-inline-form">
+              <div class="wiz-ent-form">
                 <div class="wiz-field"><label>Intent name</label><input type="text" id="wizIntentManualName" placeholder="check_balance" /></div>
-                <div class="wiz-field" style="grid-column:span 2;"><label>Utterance</label><input type="text" id="wizIntentManualUtt" placeholder="what's my balance" /></div>
-                <button class="btn primary" id="wizIntentManualAddBtn" type="button" style="padding:10px 18px;">Add</button>
+                <div class="wiz-field"><label>Utterance</label><input type="text" id="wizIntentManualUtt" placeholder="what's my balance" /></div>
+                <div class="wiz-field fullrow" style="display:flex;flex-direction:row;justify-content:flex-end;">
+                  <button class="btn primary" id="wizIntentManualAddBtn" type="button" style="padding:10px 18px;">Add Utterance</button>
+                </div>
               </div>
             </div>
 
@@ -205,9 +278,13 @@ schedule_appointment, can I set up a visit"></textarea>
             <div class="wiz-section-head">
               <div>
                 <h2>Response Templates</h2>
-                <p class="wiz-sub">One response per intent. Web text shows in chat, voice text is spoken on calls. Both default to the same text — override voice when you need SSML or a shorter spoken form.</p>
+                <p class="wiz-sub">For each intent, choose how the bot responds: a plain text reply, or a Custom Event that fires back into your Flow (pre-filled with the intent name and payload).</p>
               </div>
-              <span class="wiz-chip" id="wizResponsesCount">0 responses</span>
+              <div style="display:flex;gap:8px;align-items:center;">
+                <button class="wiz-mini-btn" id="wizResponsesBulkText" type="button">All → Text</button>
+                <button class="wiz-mini-btn" id="wizResponsesBulkEvent" type="button">All → Custom Event</button>
+                <span class="wiz-chip" id="wizResponsesCount">0 responses</span>
+              </div>
             </div>
             <div id="wizResponsesList" style="display:flex;flex-direction:column;gap:12px;"></div>
           </section>
@@ -252,7 +329,8 @@ schedule_appointment, can I set up a visit"></textarea>
   <script src="../../assets/js/theme.js"></script>
   <script>
   (function(){
-    const LS_KEY = 'opshub.aiagent.scriptedWizard.v1';
+    const LS_KEY = 'opshub.aiagent.scriptedWizard.v2';
+    const LS_KEY_OLD = 'opshub.aiagent.scriptedWizard.v1';
     const STEPS = [
       { n: 1, label: 'Bot info' },
       { n: 2, label: 'Entities' },
@@ -261,16 +339,41 @@ schedule_appointment, can I set up a visit"></textarea>
       { n: 5, label: 'Review' }
     ];
 
+    // Entity type registry — the shape AI Agent Studio supports.
+    // `shape`: which extra fields the type needs. `sensitive`: supports the Sensitive-data flag.
+    const ENTITY_TYPES = [
+      { id: 'custom',       label: 'Custom list',         shape: ['value','synonyms'] },
+      { id: 'digits',       label: 'Digits',              shape: ['length','sensitive'] },
+      { id: 'date',         label: 'Date',                shape: ['format'] },
+      { id: 'time',         label: 'Time',                shape: [] },
+      { id: 'email',        label: 'Email',               shape: [] },
+      { id: 'phone',        label: 'Phone number',        shape: [] },
+      { id: 'regex',        label: 'Regex',               shape: ['pattern','sensitive'] },
+      { id: 'alphanumeric', label: 'Alphanumeric',        shape: ['pattern','sensitive'] },
+      { id: 'monetary',     label: 'Monetary units',      shape: [] },
+      { id: 'ordinal',      label: 'Ordinal',             shape: [] },
+      { id: 'cardinal',     label: 'Cardinal',            shape: [] },
+      { id: 'geo',          label: 'Geo location',        shape: [] },
+      { id: 'person_names', label: 'Person names',        shape: [] },
+      { id: 'quantity',     label: 'Quantity',            shape: [] },
+      { id: 'duration',     label: 'Duration',            shape: [] },
+      { id: 'free_form',    label: 'Free form',           shape: ['sensitive'] },
+      { id: 'map_location', label: 'Map location (whatsapp)', shape: [] }
+    ];
+
+    const RESPONSE_MODES = ['text', 'event'];
+
     const state = {
       step: 1,
       botName: '',
       botDesc: '',
       lang: 'en-US',
-      // entities: [{ name, values: [{ value, synonyms: [] }] }]
+      // entities: [{ name, type, values?, length?, format?, pattern?, sensitive? }]
       entities: [],
-      // intents: [{ name, utterances: [string, string, ...] }]
+      // intents: [{ name, utterances: [string] }]
       intents: [],
-      // responses keyed by intent name: { [intentName]: { web, voice } }
+      // responses keyed by intent name:
+      // { mode: 'text'|'event', web, voice, eventName, eventPayload, voiceSettings: { timeout, timeoutResponse, allowBargeIn, dtmfInput } }
       responses: {}
     };
 
@@ -291,7 +394,18 @@ schedule_appointment, can I set up a visit"></textarea>
     }
     function load(){
       try {
-        const raw = localStorage.getItem(LS_KEY);
+        let raw = localStorage.getItem(LS_KEY);
+        if (!raw) {
+          // one-time migrate v1 → v2 (old entities had no .type)
+          const old = localStorage.getItem(LS_KEY_OLD);
+          if (old) {
+            const parsed = JSON.parse(old);
+            if (Array.isArray(parsed.entities)) {
+              parsed.entities = parsed.entities.map(e => Object.assign({ type: 'custom' }, e));
+            }
+            raw = JSON.stringify(parsed);
+          }
+        }
         if (!raw) return;
         const parsed = JSON.parse(raw);
         Object.assign(state, parsed);
@@ -317,6 +431,8 @@ schedule_appointment, can I set up a visit"></textarea>
       out.push(cur.trim());
       return out;
     }
+
+    function getEntityTypeDef(id){ return ENTITY_TYPES.find(t => t.id === id) || ENTITY_TYPES[0]; }
 
     // ----- renderers -----
     function renderProgress(){
@@ -353,6 +469,26 @@ schedule_appointment, can I set up a visit"></textarea>
       hint.textContent = msg;
     }
 
+    function populateEntityTypeSelect(){
+      const sel = $('wizEntityManualType');
+      if (!sel) return;
+      sel.innerHTML = ENTITY_TYPES.map(t => `<option value="${esc(t.id)}">${esc(t.label)}</option>`).join('');
+      sel.addEventListener('change', updateEntityFormFields);
+      updateEntityFormFields();
+    }
+
+    function updateEntityFormFields(){
+      const sel = $('wizEntityManualType');
+      const def = sel ? getEntityTypeDef(sel.value) : getEntityTypeDef('custom');
+      const show = new Set(def.shape);
+      // value/synonyms only visible for 'custom'
+      document.querySelectorAll('[data-ent-field]').forEach(el => {
+        const field = el.dataset.entField;
+        const visible = show.has(field);
+        el.style.display = visible ? '' : 'none';
+      });
+    }
+
     function renderEntities(){
       const el = $('wizEntitiesList'); if (!el) return;
       $('wizEntitiesCount').textContent = `${state.entities.length} ${state.entities.length === 1 ? 'entity' : 'entities'}`;
@@ -360,22 +496,40 @@ schedule_appointment, can I set up a visit"></textarea>
         el.innerHTML = '<div class="wiz-empty">No entities yet. Paste a CSV or add one manually above.</div>';
         return;
       }
-      el.innerHTML = state.entities.map((ent, idx) => `
-        <div class="wiz-card">
-          <div class="wiz-card-head">
-            <h3>${esc(ent.name)} <span class="wiz-chip">${ent.values.length} value${ent.values.length===1?'':'s'}</span></h3>
-            <button class="wiz-remove-btn" data-remove-entity="${idx}" type="button">Remove</button>
+      el.innerHTML = state.entities.map((ent, idx) => {
+        const def = getEntityTypeDef(ent.type || 'custom');
+        let body = '';
+        if (ent.type === 'custom') {
+          const vals = Array.isArray(ent.values) ? ent.values : [];
+          body = `
+            <div class="wiz-pill-row">
+              ${vals.map(v => `
+                <div class="wiz-value-pill">
+                  <strong>${esc(v.value)}</strong>
+                  ${v.synonyms && v.synonyms.length ? `<span>${esc(v.synonyms.join(', '))}</span>` : ''}
+                </div>
+              `).join('')}
+            </div>
+            <span class="wiz-chip">${vals.length} value${vals.length===1?'':'s'}</span>
+          `;
+        } else {
+          const metaBits = [];
+          if (ent.length) metaBits.push(`Length ${esc(ent.length)}`);
+          if (ent.format) metaBits.push(`Format ${esc(ent.format)}`);
+          if (ent.pattern) metaBits.push(`Pattern <code>${esc(ent.pattern)}</code>`);
+          if (ent.sensitive) metaBits.push(`<span style="color:#fde68a;">Sensitive</span>`);
+          body = metaBits.length ? `<div class="wiz-hint" style="line-height:1.8;">${metaBits.join(' · ')}</div>` : '<div class="wiz-hint">Built-in recognizer.</div>';
+        }
+        return `
+          <div class="wiz-card">
+            <div class="wiz-card-head">
+              <h3>${esc(ent.name)} <span class="wiz-type-pill">${esc(def.label)}</span></h3>
+              <button class="wiz-remove-btn" data-remove-entity="${idx}" type="button">Remove</button>
+            </div>
+            ${body}
           </div>
-          <div class="wiz-pill-row">
-            ${ent.values.map((v, vi) => `
-              <div class="wiz-value-pill">
-                <strong>${esc(v.value)}</strong>
-                ${v.synonyms && v.synonyms.length ? `<span>${esc(v.synonyms.join(', '))}</span>` : ''}
-              </div>
-            `).join('')}
-          </div>
-        </div>
-      `).join('');
+        `;
+      }).join('');
       el.querySelectorAll('[data-remove-entity]').forEach(btn => {
         btn.addEventListener('click', () => {
           const i = parseInt(btn.dataset.removeEntity, 10);
@@ -415,13 +569,39 @@ schedule_appointment, can I set up a visit"></textarea>
       });
     }
 
+    function defaultResponseFor(intent){
+      const sample = intent.utterances[0] || intent.name;
+      const payloadObj = { intent: intent.name };
+      return {
+        mode: 'text',
+        web: `You said: "${sample}". (Replace this with the real reply.)`,
+        voice: '',
+        eventName: intent.name,
+        eventPayload: JSON.stringify(payloadObj),
+        voiceSettings: {
+          timeout: 10,
+          timeoutResponse: 'Please configure your timeout response',
+          allowBargeIn: true,
+          dtmfInput: false
+        }
+      };
+    }
+
     function ensureResponseDefaults(){
       state.intents.forEach(intent => {
         if (!state.responses[intent.name]) {
-          const sample = intent.utterances[0] || intent.name;
-          state.responses[intent.name] = {
-            web: `You said: "${sample}". (Replace this with the real reply.)`,
-            voice: ''
+          state.responses[intent.name] = defaultResponseFor(intent);
+        } else {
+          // backfill missing new fields on legacy records
+          const r = state.responses[intent.name];
+          if (!r.mode) r.mode = 'text';
+          if (r.eventName == null) r.eventName = intent.name;
+          if (r.eventPayload == null) r.eventPayload = JSON.stringify({ intent: intent.name });
+          if (!r.voiceSettings) r.voiceSettings = {
+            timeout: 10,
+            timeoutResponse: 'Please configure your timeout response',
+            allowBargeIn: true,
+            dtmfInput: false
           };
         }
       });
@@ -435,69 +615,141 @@ schedule_appointment, can I set up a visit"></textarea>
         el.innerHTML = '<div class="wiz-empty">Add some intents in step 3 first.</div>';
         return;
       }
-      el.innerHTML = state.intents.map((intent, idx) => {
-        const r = state.responses[intent.name] || { web:'', voice:'' };
+      el.innerHTML = state.intents.map(intent => {
+        const r = state.responses[intent.name];
+        const isText = r.mode === 'text';
+        const isEvent = r.mode === 'event';
+        const vs = r.voiceSettings;
+        const safe = esc(intent.name);
         return `
-          <div class="wiz-resp-row">
-            <div class="wiz-card-head">
-              <h3 style="margin:0;">${esc(intent.name)} <span class="wiz-chip">${intent.utterances.length} utt${intent.utterances.length===1?'':'s'}</span></h3>
-              <button class="wiz-mini-btn" data-copy-web-voice="${esc(intent.name)}" type="button">Copy web → voice</button>
+          <div class="wiz-resp-row" data-intent="${safe}">
+            <div class="wiz-card-head" style="flex-wrap:wrap;gap:10px;">
+              <h3 style="margin:0;">${safe} <span class="wiz-chip">${intent.utterances.length} utt${intent.utterances.length===1?'':'s'}</span></h3>
+              <div class="wiz-mode-row">
+                <button class="wiz-mode-btn ${isText?'active':''}" data-set-mode="text" data-intent="${safe}" type="button">Text reply</button>
+                <button class="wiz-mode-btn ${isEvent?'active':''}" data-set-mode="event" data-intent="${safe}" type="button">Custom Event</button>
+              </div>
             </div>
-            <div class="wiz-field">
-              <div class="label">Web response</div>
-              <textarea data-resp-web="${esc(intent.name)}" placeholder="What the bot replies in chat">${esc(r.web)}</textarea>
-            </div>
-            <div class="wiz-field">
-              <div class="label">Voice response (optional — defaults to web)</div>
-              <textarea data-resp-voice="${esc(intent.name)}" placeholder="Leave blank to reuse the web reply">${esc(r.voice)}</textarea>
+
+            ${isText ? `
+              <div class="wiz-field">
+                <div class="label">Web response</div>
+                <textarea data-resp-web="${safe}" placeholder="What the bot replies in chat">${esc(r.web)}</textarea>
+              </div>
+              <div class="wiz-field">
+                <div class="label">Voice response (optional — defaults to web)</div>
+                <textarea data-resp-voice="${safe}" placeholder="Leave blank to reuse the web reply">${esc(r.voice)}</textarea>
+              </div>
+              <div style="display:flex;gap:8px;">
+                <button class="wiz-mini-btn" data-copy-web-voice="${safe}" type="button">Copy web → voice</button>
+              </div>
+            ` : `
+              <div class="wiz-mini-row">
+                <div class="wiz-field">
+                  <div class="label">Event name</div>
+                  <input type="text" data-resp-event-name="${safe}" value="${esc(r.eventName)}" placeholder="e.g. ${safe}" />
+                </div>
+                <div class="wiz-field" style="justify-content:flex-end;">
+                  <button class="wiz-mini-btn" data-reset-event="${safe}" type="button" style="align-self:flex-end;">Reset to intent name</button>
+                </div>
+              </div>
+              <div class="wiz-field">
+                <div class="label">Event payload (JSON)</div>
+                <textarea class="mono" data-resp-event-payload="${safe}" placeholder='{"intent":"${safe}"}'>${esc(r.eventPayload)}</textarea>
+                <div class="wiz-hint">Pre-filled with <code>{"intent":"${safe}"}</code> — this is what your WxCC Flow listens for. Add any extra fields the Flow needs.</div>
+              </div>
+            `}
+
+            <div class="wiz-fold" data-fold>
+              <div class="wiz-fold-head" data-fold-toggle>Voice settings</div>
+              <div class="wiz-fold-body">
+                <div class="wiz-mini-row">
+                  <div class="wiz-field">
+                    <div class="label">Timeout (seconds)</div>
+                    <input type="number" min="1" max="60" data-vs-timeout="${safe}" value="${esc(vs.timeout)}" />
+                  </div>
+                  <div class="wiz-field" style="justify-content:center;">
+                    <label class="wiz-toggle"><input type="checkbox" data-vs-barge="${safe}" ${vs.allowBargeIn?'checked':''}/> Allow barge-in</label>
+                    <label class="wiz-toggle"><input type="checkbox" data-vs-dtmf="${safe}" ${vs.dtmfInput?'checked':''}/> DTMF input</label>
+                  </div>
+                </div>
+                <div class="wiz-field">
+                  <div class="label">Timeout response</div>
+                  <input type="text" data-vs-timeout-resp="${safe}" value="${esc(vs.timeoutResponse)}" />
+                </div>
+              </div>
             </div>
           </div>
         `;
       }).join('');
-      el.querySelectorAll('[data-resp-web]').forEach(t => {
-        t.addEventListener('input', e => {
-          const n = t.dataset.respWeb;
-          if (!state.responses[n]) state.responses[n] = { web:'', voice:'' };
-          state.responses[n].web = e.target.value;
-          save();
-        });
-      });
-      el.querySelectorAll('[data-resp-voice]').forEach(t => {
-        t.addEventListener('input', e => {
-          const n = t.dataset.respVoice;
-          if (!state.responses[n]) state.responses[n] = { web:'', voice:'' };
-          state.responses[n].voice = e.target.value;
-          save();
-        });
-      });
-      el.querySelectorAll('[data-copy-web-voice]').forEach(btn => {
+
+      // Wire inputs
+      el.querySelectorAll('[data-set-mode]').forEach(btn => {
         btn.addEventListener('click', () => {
-          const n = btn.dataset.copyWebVoice;
+          const n = btn.dataset.intent;
+          const m = btn.dataset.setMode;
           if (!state.responses[n]) return;
-          state.responses[n].voice = state.responses[n].web;
-          save();
-          renderResponses();
-          toast('Web text copied to voice.');
+          state.responses[n].mode = m;
+          save(); renderResponses();
         });
       });
+      el.querySelectorAll('[data-resp-web]').forEach(t => t.addEventListener('input', e => { state.responses[t.dataset.respWeb].web = e.target.value; save(); }));
+      el.querySelectorAll('[data-resp-voice]').forEach(t => t.addEventListener('input', e => { state.responses[t.dataset.respVoice].voice = e.target.value; save(); }));
+      el.querySelectorAll('[data-resp-event-name]').forEach(t => t.addEventListener('input', e => { state.responses[t.dataset.respEventName].eventName = e.target.value; save(); }));
+      el.querySelectorAll('[data-resp-event-payload]').forEach(t => t.addEventListener('input', e => { state.responses[t.dataset.respEventPayload].eventPayload = e.target.value; save(); }));
+      el.querySelectorAll('[data-reset-event]').forEach(btn => btn.addEventListener('click', () => {
+        const n = btn.dataset.resetEvent;
+        state.responses[n].eventName = n;
+        state.responses[n].eventPayload = JSON.stringify({ intent: n });
+        save(); renderResponses();
+        toast('Reset to intent defaults.');
+      }));
+      el.querySelectorAll('[data-copy-web-voice]').forEach(btn => btn.addEventListener('click', () => {
+        const n = btn.dataset.copyWebVoice;
+        state.responses[n].voice = state.responses[n].web;
+        save(); renderResponses();
+        toast('Web text copied to voice.');
+      }));
+      el.querySelectorAll('[data-vs-timeout]').forEach(t => t.addEventListener('input', e => { state.responses[t.dataset.vsTimeout].voiceSettings.timeout = parseInt(e.target.value, 10) || 10; save(); }));
+      el.querySelectorAll('[data-vs-timeout-resp]').forEach(t => t.addEventListener('input', e => { state.responses[t.dataset.vsTimeoutResp].voiceSettings.timeoutResponse = e.target.value; save(); }));
+      el.querySelectorAll('[data-vs-barge]').forEach(c => c.addEventListener('change', e => { state.responses[c.dataset.vsBarge].voiceSettings.allowBargeIn = e.target.checked; save(); }));
+      el.querySelectorAll('[data-vs-dtmf]').forEach(c => c.addEventListener('change', e => { state.responses[c.dataset.vsDtmf].voiceSettings.dtmfInput = e.target.checked; save(); }));
+      el.querySelectorAll('[data-fold-toggle]').forEach(h => h.addEventListener('click', () => h.parentElement.classList.toggle('open')));
     }
 
     function renderReview(){
       ensureResponseDefaults();
       save();
       const totalUtts = state.intents.reduce((n, i) => n + (i.utterances?.length || 0), 0);
-      const totalVals = state.entities.reduce((n, e) => n + (e.values?.length || 0), 0);
+      const totalVals = state.entities.filter(e => e.type === 'custom').reduce((n, e) => n + (e.values?.length || 0), 0);
+      const eventCount = Object.values(state.responses).filter(r => r.mode === 'event').length;
       $('wizStats').innerHTML = `
         <div class="wiz-stat"><strong>${state.intents.length}</strong><span>Intents</span></div>
         <div class="wiz-stat"><strong>${totalUtts}</strong><span>Utterances</span></div>
         <div class="wiz-stat"><strong>${state.entities.length}</strong><span>Entities</span></div>
-        <div class="wiz-stat"><strong>${totalVals}</strong><span>Entity Values</span></div>
-        <div class="wiz-stat"><strong>${state.intents.length}</strong><span>Responses</span></div>
+        <div class="wiz-stat"><strong>${totalVals}</strong><span>Custom-list Values</span></div>
+        <div class="wiz-stat"><strong>${eventCount} / ${state.intents.length}</strong><span>Custom Events</span></div>
       `;
       $('wizJsonPreview').textContent = JSON.stringify(buildBotJson(), null, 2);
     }
 
     // ----- builders -----
+    function buildVoiceActionBase(vs){
+      // Shape used by the Studio UI: alongside text/payload, voice action items
+      // carry per-item settings (timeout, allow_barge_in, timeout_response, dtmf_input).
+      return {
+        allow_barge_in: !!vs.allowBargeIn,
+        timeout: Number(vs.timeout) || 10,
+        timeout_response: vs.timeoutResponse || '',
+        dtmf_input: !!vs.dtmfInput
+      };
+    }
+
+    function parseEventPayloadJson(str){
+      // Users may type invalid JSON while editing — fall back to raw string wrapped in intent
+      try { return JSON.parse(str); } catch(e) { return { intent: String(str || '').trim() }; }
+    }
+
     function buildBotJson(){
       const lang = state.lang || 'en-US';
 
@@ -518,34 +770,61 @@ schedule_appointment, can I set up a visit"></textarea>
         }
       }));
 
-      const entities = state.entities.map(ent => ({
-        name: ent.name,
-        type: 'custom',
-        data: {
-          values: ent.values.map(v => ({
-            value: v.value,
-            synonyms: Array.isArray(v.synonyms) ? v.synonyms : []
-          }))
+      const entities = state.entities.map(ent => {
+        if (ent.type === 'custom') {
+          return {
+            name: ent.name,
+            type: 'custom',
+            data: {
+              values: (ent.values || []).map(v => ({ value: v.value, synonyms: Array.isArray(v.synonyms) ? v.synonyms : [] }))
+            }
+          };
         }
-      }));
+        const out = { name: ent.name, type: ent.type };
+        if (ent.length != null && ent.length !== '') out.length = Number(ent.length) || ent.length;
+        if (ent.format) out.format = ent.format;
+        if (ent.pattern) out.pattern = ent.pattern;
+        if (ent.sensitive) out.sensitive_data = true;
+        return out;
+      });
 
       const templates = {};
       state.intents.forEach(intent => {
         const key = `resp_${slug(intent.name)}`;
-        const r = state.responses[intent.name] || { web:'', voice:'' };
-        const web = r.web || '';
-        const voice = r.voice || r.web || '';
+        const r = state.responses[intent.name] || defaultResponseFor(intent);
+        const vs = r.voiceSettings || { timeout:10, timeoutResponse:'', allowBargeIn:true, dtmfInput:false };
+
+        let webActions = [];
+        let voiceActions = [];
+        if (r.mode === 'event') {
+          const payload = parseEventPayloadJson(r.eventPayload);
+          const eventItem = {
+            payload: [{
+              Execute_Request: {
+                Data: { Params: payload },
+                Event_Name: r.eventName || intent.name
+              }
+            }],
+            type: 'response'
+          };
+          webActions = [eventItem];
+          voiceActions = [Object.assign({}, eventItem, buildVoiceActionBase(vs))];
+        } else {
+          const web = r.web || '';
+          const voice = r.voice || r.web || '';
+          if (web) webActions = [{ text: [web], type: 'response' }];
+          if (voice) voiceActions = [Object.assign({ text: [voice], type: 'response' }, buildVoiceActionBase(vs))];
+        }
+
         templates[key] = {
           updated_at: new Date().toISOString(),
           variants: {
             [lang]: {
+              logic: '',
+              response_type: 'paths',
+              send_response_in_default_language: false,
               paths: {
-                default: {
-                  actions: {
-                    web: web ? [{ text: [web] }] : [],
-                    voice: voice ? [{ text: [voice] }] : []
-                  }
-                },
+                default: { actions: { web: webActions, voice: voiceActions } },
                 configurable: []
               }
             }
@@ -577,24 +856,32 @@ schedule_appointment, can I set up a visit"></textarea>
         const name = cols[0]; const value = cols[1];
         const syns = (cols[2] || '').split('|').map(s => s.trim()).filter(Boolean);
         if (!name || !value) continue;
-        addEntityValue(name, value, syns);
+        addCustomEntityValue(name, value, syns);
         added.push({ name, value });
       }
       return added.length;
     }
 
-    function addEntityValue(entityName, value, synonyms){
-      let ent = state.entities.find(e => e.name === entityName);
-      if (!ent){ ent = { name: entityName, values: [] }; state.entities.push(ent); }
+    function addCustomEntityValue(entityName, value, synonyms){
+      let ent = state.entities.find(e => e.name === entityName && (e.type === 'custom' || !e.type));
+      if (!ent){ ent = { name: entityName, type: 'custom', values: [] }; state.entities.push(ent); }
+      if (!ent.values) ent.values = [];
       let existing = ent.values.find(v => v.value === value);
       if (!existing){
         ent.values.push({ value, synonyms: synonyms || [] });
       } else {
-        // merge synonyms uniquely
         const set = new Set(existing.synonyms || []);
         (synonyms || []).forEach(s => set.add(s));
         existing.synonyms = Array.from(set);
       }
+    }
+
+    function addNonCustomEntity(name, type, extras){
+      // Replace existing same-name non-custom entity (so re-adding updates it)
+      const existingIdx = state.entities.findIndex(e => e.name === name && e.type === type);
+      const ent = Object.assign({ name, type }, extras);
+      if (existingIdx >= 0) state.entities[existingIdx] = ent;
+      else state.entities.push(ent);
     }
 
     function parseIntentsCsv(text){
@@ -620,7 +907,6 @@ schedule_appointment, can I set up a visit"></textarea>
     // ----- nav -----
     function goStep(n){
       n = Math.max(1, Math.min(STEPS.length, n));
-      // Soft-validate step 1
       if (state.step === 1 && n > 1 && !state.botName.trim()){
         toast('Enter a bot name first.', true);
         $('wizBotName').focus();
@@ -641,19 +927,47 @@ schedule_appointment, can I set up a visit"></textarea>
 
       $('wizEntityParseBtn').addEventListener('click', () => {
         const n = parseEntitiesCsv($('wizEntityPaste').value);
-        if (n > 0){ save(); renderEntities(); toast(`Added ${n} entity value${n===1?'':'s'}.`); $('wizEntityPaste').value = ''; }
+        if (n > 0){ save(); renderEntities(); toast(`Added ${n} custom-list value${n===1?'':'s'}.`); $('wizEntityPaste').value = ''; }
         else toast('Nothing parsed. Check the CSV format.', true);
       });
       $('wizEntityClearPasteBtn').addEventListener('click', () => { $('wizEntityPaste').value = ''; });
+
       $('wizEntityManualAddBtn').addEventListener('click', () => {
         const name = $('wizEntityManualName').value.trim();
-        const value = $('wizEntityManualValue').value.trim();
-        const syn = $('wizEntityManualSyn').value.split('|').map(s=>s.trim()).filter(Boolean);
-        if (!name || !value){ toast('Entity name and value required.', true); return; }
-        addEntityValue(name, value, syn);
+        const type = $('wizEntityManualType').value;
+        if (!name){ toast('Entity name is required.', true); return; }
+        const def = getEntityTypeDef(type);
+        if (type === 'custom') {
+          const value = $('wizEntityManualValue').value.trim();
+          const syn = $('wizEntityManualSyn').value.split('|').map(s=>s.trim()).filter(Boolean);
+          if (!value){ toast('Value is required for custom lists.', true); return; }
+          addCustomEntityValue(name, value, syn);
+          $('wizEntityManualValue').value = ''; $('wizEntityManualSyn').value = '';
+        } else {
+          const extras = {};
+          if (def.shape.includes('length')) {
+            const l = $('wizEntityManualLength').value.trim();
+            if (!l){ toast('Length is required for Digits.', true); return; }
+            extras.length = Number(l) || l;
+          }
+          if (def.shape.includes('pattern')) {
+            const p = $('wizEntityManualPattern').value.trim();
+            if (!p){ toast('Pattern is required for this type.', true); return; }
+            extras.pattern = p;
+          }
+          if (def.shape.includes('format')) {
+            extras.format = $('wizEntityManualFormat').value;
+          }
+          if (def.shape.includes('sensitive')) {
+            extras.sensitive = $('wizEntityManualSensitive').checked;
+          }
+          addNonCustomEntity(name, type, extras);
+          $('wizEntityManualName').value = '';
+          $('wizEntityManualLength').value = '';
+          $('wizEntityManualPattern').value = '';
+          $('wizEntityManualSensitive').checked = false;
+        }
         save(); renderEntities();
-        $('wizEntityManualValue').value = ''; $('wizEntityManualSyn').value = '';
-        $('wizEntityManualValue').focus();
       });
 
       $('wizIntentParseBtn').addEventListener('click', () => {
@@ -672,6 +986,19 @@ schedule_appointment, can I set up a visit"></textarea>
         $('wizIntentManualUtt').focus();
       });
 
+      $('wizResponsesBulkText').addEventListener('click', () => {
+        ensureResponseDefaults();
+        Object.values(state.responses).forEach(r => { r.mode = 'text'; });
+        save(); renderResponses();
+        toast('All responses switched to Text reply.');
+      });
+      $('wizResponsesBulkEvent').addEventListener('click', () => {
+        ensureResponseDefaults();
+        Object.values(state.responses).forEach(r => { r.mode = 'event'; });
+        save(); renderResponses();
+        toast('All responses switched to Custom Event.');
+      });
+
       $('wizPrevBtn').addEventListener('click', () => goStep(state.step - 1));
       $('wizNextBtn').addEventListener('click', () => goStep(state.step + 1));
 
@@ -679,7 +1006,7 @@ schedule_appointment, can I set up a visit"></textarea>
       $('wizResetBtn').addEventListener('click', () => {
         if (!confirm('Clear everything and start over?')) return;
         Object.assign(state, { step:1, botName:'', botDesc:'', lang:'en-US', entities:[], intents:[], responses:{} });
-        try { localStorage.removeItem(LS_KEY); } catch(e){}
+        try { localStorage.removeItem(LS_KEY); localStorage.removeItem(LS_KEY_OLD); } catch(e){}
         hydrateForm();
         renderAll();
         toast('Cleared.');
@@ -728,6 +1055,7 @@ schedule_appointment, can I set up a visit"></textarea>
 
     function init(){
       load();
+      populateEntityTypeSelect();
       hydrateForm();
       wire();
       renderAll();
