@@ -18,6 +18,7 @@ app.use('/functions', express.json());
 app.use('/flows', express.text({ type: '*/*' }));
 app.use('/token', express.json());
 app.use('/user', express.json({ limit: '5mb' }));
+app.use('/aiagent', express.json({ limit: '15mb' }));
 
 async function relay(res, url, { method = 'GET', headers = {}, body } = {}) {
   const upstream = await fetch(url, { method, headers, body });
@@ -205,6 +206,55 @@ app.post('/user', async (req, res) => {
   }
 
   return res.status(400).json({ error: 'Unsupported action' });
+});
+
+// AI Agent Studio import relay.
+// Studio sends `access-control-allow-origin: https://studio.aiagent-*.cisco.com` only,
+// so a browser-origin fetch from the wizard is CORS-blocked. The wizard POSTs
+// here with the user's auth-token + user-access-token (grabbed from DevTools on
+// their Studio tab) and the fully-built bot body; we relay to Studio and pass
+// back the status, body, and Location header (which carries the new bot id).
+const ALLOWED_AIAGENT_HOSTS = [
+  'https://studio.aiagent-us1.cisco.com/',
+  'https://studio.aiagent-eu1.cisco.com/',
+  'https://studio.aiagent-apjc1.cisco.com/',
+  'https://studio.aiagent-anz1.cisco.com/',
+  'https://studio.aiagent-ca1.cisco.com/',
+  'https://studio.aiagent-jp1.cisco.com/',
+  'https://studio.aiagent-sg1.cisco.com/',
+  'https://studio.aiagent-eu2.cisco.com/',
+];
+
+app.post('/aiagent', async (req, res) => {
+  const input = req.body || {};
+  const { url, authToken, userAccessToken, body, method } = input;
+  if (!url) return res.status(400).json({ error: 'Missing url' });
+  if (!authToken || !userAccessToken) return res.status(401).json({ error: 'Missing authToken or userAccessToken' });
+  if (!ALLOWED_AIAGENT_HOSTS.some(h => url.startsWith(h))) {
+    return res.status(403).json({ error: 'URL host not allowed', allowed: ALLOWED_AIAGENT_HOSTS });
+  }
+  const headers = {
+    'auth-token': String(authToken).trim(),
+    'user-access-token': String(userAccessToken).trim(),
+    'content-type': 'application/json',
+    accept: 'application/json',
+    origin: new URL(url).origin,
+    referer: new URL(url).origin + '/',
+  };
+  try {
+    const upstream = await fetch(url, {
+      method: (method || 'POST').toUpperCase(),
+      headers,
+      body: body == null ? undefined : (typeof body === 'string' ? body : JSON.stringify(body)),
+    });
+    const text = await upstream.text();
+    const location = upstream.headers.get('location') || '';
+    res.set('Access-Control-Expose-Headers', 'X-Upstream-Location');
+    if (location) res.set('X-Upstream-Location', location);
+    res.status(upstream.status).set('Content-Type', 'application/json').send(text);
+  } catch (err) {
+    res.status(502).json({ error: 'Proxy fetch failed', detail: String(err && err.message || err) });
+  }
 });
 
 app.post('/token', async (req, res) => {
