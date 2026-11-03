@@ -553,7 +553,12 @@ schedule_appointment, can I set up a visit"></textarea>
       state.intents.forEach(ensureIntentFields);
       const totalUtts = state.intents.reduce((n, i) => n + (i.utterances?.length || 0), 0);
       const totalSlots = state.intents.reduce((n, i) => n + (i.slots?.length || 0), 0);
-      $('wizIntentsCount').textContent = `${state.intents.length} intent${state.intents.length===1?'':'s'} · ${totalUtts} utt · ${totalSlots} slot${totalSlots===1?'':'s'}`;
+      const shortCount = state.intents.filter(i => (i.utterances?.length || 0) < 10).length;
+      const chip = $('wizIntentsCount');
+      chip.textContent = shortCount > 0
+        ? `${state.intents.length} intent${state.intents.length===1?'':'s'} · ${totalUtts} utt · ${shortCount} short of 10`
+        : `${state.intents.length} intent${state.intents.length===1?'':'s'} · ${totalUtts} utt · ${totalSlots} slot${totalSlots===1?'':'s'}`;
+      chip.className = shortCount > 0 ? 'wiz-chip warn' : 'wiz-chip';
       if (!state.intents.length){
         el.innerHTML = '<div class="wiz-empty">No intents yet. Paste a CSV or add one manually above.</div>';
         return;
@@ -584,10 +589,12 @@ schedule_appointment, can I set up a visit"></textarea>
             </div>
           </div>
         `).join('');
+        const short = intent.utterances.length < 10;
+        const needs = Math.max(0, 10 - intent.utterances.length);
         return `
-        <div class="wiz-card">
+        <div class="wiz-card" style="${short ? 'border-color:rgba(234,179,8,.5);' : ''}">
           <div class="wiz-card-head">
-            <h3>${esc(intent.name)} <span class="wiz-chip">${intent.utterances.length} utt${intent.utterances.length===1?'':'s'}</span>${intent.slots && intent.slots.length ? `<span class="wiz-chip type">${intent.slots.length} slot${intent.slots.length===1?'':'s'}</span>` : ''}</h3>
+            <h3>${esc(intent.name)} <span class="wiz-chip">${intent.utterances.length} utt${intent.utterances.length===1?'':'s'}</span>${short ? `<span class="wiz-chip warn">Needs ${needs} more — Studio requires ≥10 to train</span>` : ''}${intent.slots && intent.slots.length ? `<span class="wiz-chip type">${intent.slots.length} slot${intent.slots.length===1?'':'s'}</span>` : ''}</h3>
             <button class="wiz-remove-btn" data-remove-intent="${idx}" type="button">Remove</button>
           </div>
           <div class="wiz-utt-list">
@@ -890,28 +897,30 @@ schedule_appointment, can I set up a visit"></textarea>
     }
 
     // --- System intents + templates every exported bot has baked in ---
+    // Studio requires at least 10 utterances per intent before it will train.
+    // Expanded lists harvested from production Studio exports.
     const SYSTEM_INTENTS = [
       { intent_id: 'none', name: 'Default fallback intent', template_key: 'Fallback message', reset_state: true,
         intent_description: "Handle user input that doesn't match any other defined intent, providing a fallback response to keep the conversation flowing.",
         utterances: [] },
       { intent_id: 'help', name: 'Help', template_key: 'Help message', reset_state: true,
         intent_description: "Provide assistance and information about the bot's capabilities when the user requests help or asks what the bot can do.",
-        utterances: ['What can you do?','How can you help?','Help','What do you do?','Could you please help me'] },
+        utterances: ['What can you do?','How can you help?','Help','What do you do?','Could you please help me','What assistance can you provide?','I would like some help, please.','Would you be able to help me?','Could you kindly assist me?','Can you provide details on how you may assist?','I need help','Please help me'] },
       { intent_id: 'agent', name: 'Talk to an agent', template_key: 'Agent handover', reset_state: true, end_conversation: true,
         intent_description: 'Escalate the conversation to a human agent when the user requests to speak with a real person or human support.',
-        utterances: ['Can I talk to a human?','agent','human','Connect me to a human','Chat with agent','Can I speak with someone?'] },
+        utterances: ['Can I talk to a human?','agent','human','Connect me to a human','Chat with agent','Can I speak with someone?','I need to speak to a person','Please transfer me to a human agent','I want to talk to support','Can you connect me to a real person?','Transfer me','I want a representative'] },
       { intent_id: 'good_bye', name: 'Goodbye', template_key: 'Goodbye', reset_state: true,
         intent_description: 'Acknowledge and respond appropriately when the user is ending the conversation with a farewell or departure expression.',
-        utterances: ['Goodbye','Bye','Good bye','See you later','See ya later','Catch you later','gotta go','Good night'] },
+        utterances: ['Goodbye','Adieu','Adios','Bye','Good bye','Catch you later','G2G','Ciao','CYA','C-ya','Fare thee well','Catch ya later','gotta go','See you later','See ya later'] },
       { intent_id: 'greetings', name: 'Greetings', template_key: 'Greetings', reset_state: true,
         intent_description: 'Respond appropriately when the user initiates conversation with a greeting or salutation, including hellos, time-based greetings, and casual farewells.',
-        utterances: ['Hello','Hello there','Hi','Hi there!','Hiya','Howdy','Hey','Good morning','Good afternoon','Good evening'] },
+        utterances: ['Hello','Hello there','Ahoy','Hey pal','Greetings and salutations',"G'day",'Good day','Heya','Well hey there','Yo dude','Hey-hey','Hi','Hi there!','Hiya','Howdy','evenin','Good evening','Good morning sunshine',"Mornin'",'Good morning','Good night',"G'night",'Sweet dreams','Nighty night'] },
       { intent_id: 'not_helpful', name: 'Not helpful', template_key: 'Not helpful', reset_state: true,
         intent_description: "Handle user feedback indicating dissatisfaction with the bot's response, including complaints about inaccuracy, irrelevance, confusion, or general unhelpfulness.",
-        utterances: ['That was unhelpful',"That's inaccurate","That's wrong","That's not relevant","Not what I asked","I don't understand","That made no sense",'Wrong answer'] },
+        utterances: ['That was unhelpful',"That's inaccurate",'That was a terrible answer',"That wasn't True",'Not what I asked',"That's not a good answer","That's not relevant",'Not True','Not even close','That was a stupid answer','Inaccurate','False',"That's wrong",'Answers are not very good','Answers are irrelevant',"Responses aren't relevant",'Responses are unTrue','Responses are dumb','Responses are stupid',"Didn't answer my question",'Wrong answer','Explain yourself',"I'm confused","I don't understand","I don't get it",'That made no sense',"That didn't make sense",'You are confusing me'] },
       { intent_id: 'thank_you', name: 'Thank you', template_key: 'Thank you', reset_state: true,
         intent_description: 'Acknowledge and respond appropriately when the user expresses gratitude or thanks.',
-        utterances: ['Thank you','Thanks','Many thanks','Thx','Thnx','Thanks a lot','I appreciate that'] }
+        utterances: ['Thank you','Many thanks','Kthx','I appreciate that','Thx','Thnx','Thanks bot','Thanks a lot','Thanks','Appreciate it','Thank you so much','Much appreciated'] }
     ];
 
     function buildSystemIntent(sys, lang){
@@ -1366,9 +1375,7 @@ schedule_appointment, can I set up a visit"></textarea>
         toast('Cleared.');
       });
 
-      $('wizDownloadBtn').addEventListener('click', () => {
-        if (!state.botName.trim()){ toast('Enter a bot name on step 1 first.', true); return; }
-        if (!state.intents.length){ toast('Add at least one intent on step 3.', true); return; }
+      function performDownload(){
         const json = buildBotJson();
         const blob = new Blob([JSON.stringify(json, null, 2)], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
@@ -1379,6 +1386,19 @@ schedule_appointment, can I set up a visit"></textarea>
         document.body.appendChild(a); a.click(); document.body.removeChild(a);
         setTimeout(() => URL.revokeObjectURL(url), 1000);
         toast('JSON downloaded.');
+      }
+
+      $('wizDownloadBtn').addEventListener('click', () => {
+        if (!state.botName.trim()){ toast('Enter a bot name on step 1 first.', true); return; }
+        if (!state.intents.length){ toast('Add at least one intent on step 3.', true); return; }
+        // Pre-check: warn when any user intent has <10 utterances (Studio training requirement)
+        const shortIntents = state.intents.filter(i => (i.utterances?.length || 0) < 10);
+        if (shortIntents.length){
+          const list = shortIntents.map(i => `  • ${i.name} — has ${i.utterances.length}, needs ${10 - i.utterances.length} more`).join('\n');
+          const msg = `Studio needs at least 10 utterances per intent to train.\n\n${shortIntents.length} intent${shortIntents.length===1?'':'s'} short:\n${list}\n\nYou can still download, but Studio will reject training until each short intent has 10+. Fix after import using Studio's "Generate variants" button.\n\nDownload anyway?`;
+          if (!confirm(msg)) return;
+        }
+        performDownload();
       });
       $('wizCopyJsonBtn').addEventListener('click', async () => {
         try {
