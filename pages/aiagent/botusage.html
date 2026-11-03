@@ -1,0 +1,485 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="light" />
+  <title>Orbit - Bot Flow References</title>
+  <link rel="icon" type="image/png" href="../../assets/images/Orbit_Icon-192.png">
+  <link rel="stylesheet" href="../../assets/css/theme.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    .bu-wrap { display:flex; flex-direction:column; gap:20px; }
+    .bu-actions { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+    .bu-stats { display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:12px; }
+    .bu-stat { padding:12px 14px; border-radius:12px; border:1px solid var(--border); background:var(--card); display:flex; flex-direction:column; gap:4px; }
+    .bu-stat strong { font-size:1.6rem; font-weight:700; color:var(--fg); line-height:1; }
+    .bu-stat span { font-size:12px; font-weight:600; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); }
+    .bu-progress { padding:14px 16px; border:1px solid rgba(21,157,216,.4); border-radius:12px; background:rgba(21,157,216,.08); color:#e9edf5; display:none; align-items:center; gap:14px; }
+    .bu-progress.open { display:flex; }
+    .bu-progress .bar { flex:1; height:6px; background:rgba(255,255,255,.1); border-radius:3px; overflow:hidden; }
+    .bu-progress .bar-fill { height:100%; background:linear-gradient(90deg,#159DD8,#38bdf8); transition:width .2s ease; }
+    .bu-progress .label { font-weight:600; font-size:0.9rem; min-width:220px; }
+    .bu-bot-card { border:1px solid var(--border); border-radius:14px; background:var(--card); padding:16px; display:flex; flex-direction:column; gap:12px; }
+    .bu-bot-head { display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; }
+    .bu-bot-head h3 { margin:0; font-size:1.15rem; display:inline-flex; align-items:center; gap:10px; flex-wrap:wrap; }
+    .bu-bot-id { font-size:0.78rem; color:var(--muted); font-family:ui-monospace,'SF Mono',Menlo,monospace; }
+    .bu-chip { display:inline-flex; align-items:center; gap:6px; padding:3px 10px; border-radius:999px; font-size:12px; font-weight:600; border:1px solid rgba(21,157,216,.4); background:rgba(21,157,216,.14); color:#9ad3ec; }
+    .bu-chip.v2 { background:rgba(139,92,246,.14); border-color:rgba(139,92,246,.4); color:#c4b5fd; }
+    .bu-chip.v1 { background:rgba(234,179,8,.14); border-color:rgba(234,179,8,.4); color:#fde68a; }
+    .bu-chip.count { background:rgba(16,185,129,.14); border-color:rgba(16,185,129,.4); color:#86efac; }
+    .bu-copy { background:transparent; border:1px solid var(--border); color:var(--muted); border-radius:8px; padding:2px 8px; font-size:11px; cursor:pointer; margin-left:4px; }
+    .bu-copy:hover { color:#9ad3ec; border-color:#159DD8; }
+    .bu-flow-table { width:100%; border-collapse:collapse; font-size:0.9rem; }
+    .bu-flow-table th { text-align:left; padding:8px 12px; font-size:0.78rem; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); border-bottom:1px solid var(--border); }
+    .bu-flow-table td { padding:9px 12px; border-bottom:1px solid rgba(255,255,255,.04); vertical-align:top; }
+    .bu-flow-table tr:last-child td { border-bottom:none; }
+    .bu-flow-table td.mono { font-family:ui-monospace,'SF Mono',Menlo,monospace; font-size:0.82rem; color:var(--muted); word-break:break-all; }
+    .bu-flow-link { color:#9ad3ec; text-decoration:none; }
+    .bu-flow-link:hover { text-decoration:underline; }
+    .bu-empty { padding:40px 20px; text-align:center; color:var(--muted); border:1px dashed var(--border); border-radius:14px; }
+    .bu-filter { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+    .bu-filter input[type=text] { background:var(--input); color:var(--fg); border:1px solid var(--border); border-radius:10px; padding:8px 12px; font-size:0.9rem; min-width:220px; }
+    .bu-toolbar { display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; }
+    .bu-toast { position:fixed; bottom:20px; right:20px; padding:10px 16px; border-radius:12px; background:rgba(16,185,129,.14); border:1px solid rgba(16,185,129,.5); color:#86efac; font-weight:600; font-size:0.9rem; opacity:0; transform:translateY(10px); transition:opacity .2s ease, transform .2s ease; pointer-events:none; z-index:9999; }
+    .bu-toast.open { opacity:1; transform:translateY(0); }
+    .bu-toast.err { background:rgba(239,68,68,.14); border-color:rgba(239,68,68,.5); color:#fca5a5; }
+    .bu-error-box { padding:12px 14px; border:1px solid rgba(239,68,68,.4); background:rgba(239,68,68,.08); color:#fca5a5; border-radius:12px; font-size:0.9rem; }
+  </style>
+</head>
+<body class="dark-mode api-aiagent" data-aiagent-mode="botusage">
+  <script>if (localStorage.getItem("tpRailExpanded") === "true") document.body.classList.add("tp-rail-expanded");</script>
+  <api-tools-header basepath="../../"></api-tools-header>
+
+  <main>
+    <div class="wrap wide aiagent-page-stack">
+      <section class="card aiagent-card">
+        <div class="pageHeader aiagent-page-header">
+          <div>
+            <h1>Bot Flow References</h1>
+            <p class="lead">Scan every WxCC flow for Virtual Agent nodes (v1 and v2) and see exactly which flows reference which bot. Useful before decommissioning a bot, migrating to a new one, or auditing coverage.</p>
+          </div>
+        </div>
+
+        <div class="bu-wrap">
+          <div class="bu-actions">
+            <button class="btn primary" id="buScanBtn" type="button">Scan Flows</button>
+            <button class="btn" id="buExportCsvBtn" type="button" disabled>Export CSV</button>
+            <span id="buHint" style="color:var(--muted);font-size:0.9rem;"></span>
+          </div>
+
+          <div id="buErrorBox" class="bu-error-box" style="display:none;"></div>
+
+          <div id="buProgress" class="bu-progress">
+            <div class="label" id="buProgressLabel">Scanning…</div>
+            <div class="bar"><div class="bar-fill" id="buProgressFill" style="width:0%"></div></div>
+            <div style="min-width:80px;text-align:right;" id="buProgressCount">0 / 0</div>
+            <button class="wiz-mini-btn" id="buCancelBtn" type="button" style="background:rgba(239,68,68,.14);border-color:rgba(239,68,68,.4);color:#fca5a5;padding:4px 10px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;">Cancel</button>
+          </div>
+
+          <div id="buStats" class="bu-stats" style="display:none;"></div>
+
+          <div class="bu-toolbar" id="buToolbar" style="display:none;">
+            <div class="bu-filter">
+              <input type="text" id="buFilter" placeholder="Filter by bot or flow name…" autocomplete="off" />
+            </div>
+            <div style="color:var(--muted);font-size:0.85rem;" id="buFilterCount"></div>
+          </div>
+
+          <div id="buResults" style="display:flex;flex-direction:column;gap:16px;"></div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <div class="bu-toast" id="buToast"></div>
+
+  <script src="../../assets/js/theme.js"></script>
+  <script>
+  (function(){
+    const FLOW_PROXY = (window.ORBIT_PROXY_BASE || 'https://orbit-proxy-production.up.railway.app') + '/flows';
+    const DEFAULT_PROJECT_ID = '5e5c9ad6d61f870d6d778c1b';
+    const PAGE_SIZE = 100;
+    const CONCURRENCY = 5;
+
+    // Both v1 and v2 of the Virtual Agent IVR node use these activityName values
+    // (the old "Virtual Agent" and the newer Autonomous AI Agent v2). We also
+    // surface a 'virtualAgent' generic name just in case a renamed node slips by.
+    const VA_ACTIVITY_NAMES = new Set(['ivr-virtualassistant', 'ivr-virtualassistantvoice', 'virtualAgentV2', 'virtualagent']);
+
+    const state = {
+      scanning: false,
+      cancelled: false,
+      bots: [],      // [{ botName, botId, connectorName, kind, refs: [{flowId, flowName, nodeName, activityName}] }]
+      rawRefs: [],   // flat list of every match, used for CSV export
+    };
+
+    const $ = id => document.getElementById(id);
+
+    function toast(msg, isErr){
+      const el = $('buToast'); if (!el) return;
+      el.textContent = msg;
+      el.classList.toggle('err', !!isErr);
+      el.classList.add('open');
+      clearTimeout(toast._t);
+      toast._t = setTimeout(() => el.classList.remove('open'), 2200);
+    }
+
+    function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+    function getToken(){ return (localStorage.getItem('authBearer') || '').trim(); }
+    function getProjectId(){ return localStorage.getItem('wxccFlowProjectId') || DEFAULT_PROJECT_ID; }
+    function getOrgIdValue(){
+      const cached = localStorage.getItem('authOrgId') || '';
+      if (cached) {
+        if (/^Y2lz/i.test(cached)) {
+          try {
+            const padded = cached.replace(/-/g, '+').replace(/_/g, '/').padEnd(Math.ceil(cached.length / 4) * 4, '=');
+            const decoded = atob(padded);
+            const parts = decoded.split('/');
+            return parts[parts.length - 1] || decoded;
+          } catch(e) { return cached; }
+        }
+        return cached;
+      }
+      return '';
+    }
+
+    function proxyUrl(url){ return `${FLOW_PROXY}?url=${encodeURIComponent(url)}`; }
+
+    async function listAllFlows(orgId, projectId, bearer) {
+      const headers = { Authorization: `Bearer ${bearer}`, Accept: 'application/json' };
+      const all = [];
+      let page = 0;
+      while (true) {
+        if (state.cancelled) break;
+        const base = `https://api.wxcc-us1.cisco.com/flow-store/${encodeURIComponent(orgId)}/project/${encodeURIComponent(projectId)}/flows?page=${page}&pageSize=${PAGE_SIZE}&size=${PAGE_SIZE}`;
+        const res = await fetch(proxyUrl(base), { headers });
+        if (!res.ok) throw new Error(`Flow list failed: HTTP ${res.status}`);
+        const data = await res.json();
+        const rows = data?.data || data?.items || data?.content || [];
+        if (!rows.length) break;
+        all.push(...rows);
+        if (rows.length < PAGE_SIZE) break;
+        page++;
+        if (page > 50) break; // hard safety
+      }
+      return all;
+    }
+
+    async function fetchFlowExport(orgId, projectId, flowId, bearer) {
+      const base = `https://api.wxcc-us1.cisco.com/flow-store/${encodeURIComponent(orgId)}/project/${encodeURIComponent(projectId)}/flows/${encodeURIComponent(flowId)}:export`;
+      const res = await fetch(proxyUrl(base), { headers: { Authorization: `Bearer ${bearer}` } });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const text = await res.text();
+      try { return JSON.parse(text); } catch(e) { return {}; }
+    }
+
+    // Walk every activity in a flow's exported JSON and pull out Virtual Agent references.
+    function extractVaActivities(payload) {
+      const activities = payload?.process?.activities
+        || payload?.activities
+        || payload?.flow?.activities
+        || payload?.definition?.activities
+        || {};
+      const out = [];
+      Object.values(activities || {}).forEach(act => {
+        if (!act || typeof act !== 'object') return;
+        const props = act.properties || {};
+        const activityName = props.activityName || act.activityName || act.type || '';
+        if (!VA_ACTIVITY_NAMES.has(activityName)) return;
+        // Bot name + id can live under several near-duplicate keys
+        const botName =
+          props['virtualAgentId:name'] ||
+          props.virtualAgentId_name ||
+          props['virtualAgent:name'] ||
+          props.virtualAgent_name ||
+          props.botName ||
+          '';
+        const botId =
+          props.virtualAgentId ||
+          props['virtualAgentId:id'] ||
+          props.virtualAgent ||
+          props.botId ||
+          '';
+        const connectorName =
+          props['connector:name'] ||
+          props.connector_name ||
+          props['connector:type'] ||
+          props.connector_type ||
+          '';
+        out.push({
+          activityId: act.id || '',
+          activityName,
+          nodeName: props.name || act.name || '',
+          botName: String(botName).trim(),
+          botId: String(botId).trim(),
+          connectorName: String(connectorName).trim()
+        });
+      });
+      return out;
+    }
+
+    function getFlowName(flow){
+      return flow?.name || flow?.flowName || flow?.id || '(unnamed)';
+    }
+
+    function kindOf(activityName){
+      if (activityName === 'ivr-virtualassistantvoice' || activityName === 'virtualAgentV2') return 'v2';
+      return 'v1';
+    }
+
+    function labelFor(activityName){
+      if (activityName === 'ivr-virtualassistant') return 'Virtual Agent';
+      if (activityName === 'ivr-virtualassistantvoice') return 'Virtual Agent V2';
+      return activityName;
+    }
+
+    function groupByBot(flatRefs) {
+      const byBot = new Map();
+      flatRefs.forEach(r => {
+        const key = (r.botId || r.botName || '(no bot configured)') + '|' + (r.connectorName || '');
+        if (!byBot.has(key)) {
+          byBot.set(key, {
+            botName: r.botName || '(no bot configured)',
+            botId: r.botId || '',
+            connectorName: r.connectorName || '',
+            kind: kindOf(r.activityName),
+            refs: []
+          });
+        }
+        byBot.get(key).refs.push(r);
+      });
+      const list = Array.from(byBot.values());
+      list.sort((a, b) => b.refs.length - a.refs.length || a.botName.localeCompare(b.botName));
+      return list;
+    }
+
+    // ---------- UI ----------
+    function setProgress(scanned, total) {
+      const pct = total > 0 ? Math.round((scanned / total) * 100) : 0;
+      $('buProgressFill').style.width = pct + '%';
+      $('buProgressCount').textContent = `${scanned} / ${total}`;
+      $('buProgressLabel').textContent = `Scanning flows for Virtual Agent nodes…`;
+    }
+
+    function renderResults() {
+      const filter = ($('buFilter').value || '').toLowerCase().trim();
+      const bots = filter
+        ? state.bots.filter(b => {
+            if (b.botName.toLowerCase().includes(filter)) return true;
+            if (b.connectorName.toLowerCase().includes(filter)) return true;
+            return b.refs.some(r => (r.flowName || '').toLowerCase().includes(filter) || (r.nodeName || '').toLowerCase().includes(filter));
+          })
+        : state.bots;
+
+      $('buFilterCount').textContent = filter
+        ? `Showing ${bots.length} of ${state.bots.length} bots`
+        : `${state.bots.length} bot${state.bots.length===1?'':'s'}`;
+
+      const container = $('buResults');
+      if (!bots.length) {
+        container.innerHTML = state.bots.length
+          ? '<div class="bu-empty">No bots match the filter.</div>'
+          : '<div class="bu-empty">No Virtual Agent references found. Every flow was scanned and nothing used a Virtual Agent node.</div>';
+        return;
+      }
+      container.innerHTML = bots.map(bot => `
+        <div class="bu-bot-card">
+          <div class="bu-bot-head">
+            <h3>
+              ${esc(bot.botName)}
+              <span class="bu-chip ${bot.kind === 'v2' ? 'v2' : 'v1'}">${labelFor(bot.refs[0]?.activityName || '')}</span>
+              <span class="bu-chip count">${bot.refs.length} reference${bot.refs.length===1?'':'s'}</span>
+            </h3>
+            ${bot.botId ? `<div class="bu-bot-id">Bot ID: ${esc(bot.botId)} <button class="bu-copy" data-copy="${esc(bot.botId)}" type="button">Copy</button></div>` : ''}
+          </div>
+          ${bot.connectorName ? `<div style="color:var(--muted);font-size:0.85rem;">Connector: <strong style="color:var(--fg);">${esc(bot.connectorName)}</strong></div>` : ''}
+          <table class="bu-flow-table">
+            <thead>
+              <tr>
+                <th style="width:40%;">Flow</th>
+                <th>Node name</th>
+                <th>Node type</th>
+                <th style="width:28%;">Flow ID</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${bot.refs.sort((a,b) => (a.flowName||'').localeCompare(b.flowName||'')).map(r => `
+                <tr>
+                  <td>
+                    <a class="bu-flow-link" href="../wxcc/flows.html#flow=${encodeURIComponent(r.flowId)}" target="_blank" rel="noopener">${esc(r.flowName || r.flowId)}</a>
+                  </td>
+                  <td>${esc(r.nodeName || '—')}</td>
+                  <td><span class="bu-chip ${kindOf(r.activityName) === 'v2' ? 'v2' : 'v1'}" style="font-size:11px;">${labelFor(r.activityName)}</span></td>
+                  <td class="mono">${esc(r.flowId)} <button class="bu-copy" data-copy="${esc(r.flowId)}" type="button">Copy</button></td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      `).join('');
+
+      container.querySelectorAll('[data-copy]').forEach(btn => btn.addEventListener('click', async () => {
+        try { await navigator.clipboard.writeText(btn.dataset.copy); toast('Copied.'); } catch(e) {}
+      }));
+    }
+
+    function renderStats(totalFlows, scannedFlows, failed) {
+      const uniqueBots = state.bots.length;
+      const totalRefs = state.bots.reduce((n, b) => n + b.refs.length, 0);
+      const uniqueFlows = new Set(state.rawRefs.map(r => r.flowId)).size;
+      $('buStats').innerHTML = `
+        <div class="bu-stat"><strong>${scannedFlows}</strong><span>Flows scanned</span></div>
+        <div class="bu-stat"><strong>${uniqueFlows}</strong><span>Flows using bots</span></div>
+        <div class="bu-stat"><strong>${uniqueBots}</strong><span>Distinct bots</span></div>
+        <div class="bu-stat"><strong>${totalRefs}</strong><span>Total references</span></div>
+        <div class="bu-stat"><strong>${failed}</strong><span>Fetch failures</span></div>
+      `;
+      $('buStats').style.display = 'grid';
+      $('buToolbar').style.display = uniqueBots > 0 ? 'flex' : 'none';
+    }
+
+    async function scan() {
+      if (state.scanning) return;
+      $('buErrorBox').style.display = 'none';
+      const bearer = getToken();
+      const orgId = getOrgIdValue();
+      const projectId = getProjectId();
+      if (!bearer || !orgId) {
+        showError('Missing authBearer or authOrgId in localStorage. Sign in on the WxCC Flows page first (it caches both).');
+        return;
+      }
+
+      state.scanning = true;
+      state.cancelled = false;
+      state.bots = [];
+      state.rawRefs = [];
+      $('buScanBtn').disabled = true;
+      $('buScanBtn').textContent = 'Scanning…';
+      $('buExportCsvBtn').disabled = true;
+      $('buResults').innerHTML = '';
+      $('buStats').style.display = 'none';
+      $('buToolbar').style.display = 'none';
+      $('buProgress').classList.add('open');
+      $('buProgressLabel').textContent = 'Listing flows…';
+      setProgress(0, 0);
+
+      let flows;
+      try {
+        flows = await listAllFlows(orgId, projectId, bearer);
+      } catch (err) {
+        $('buProgress').classList.remove('open');
+        state.scanning = false;
+        $('buScanBtn').disabled = false;
+        $('buScanBtn').textContent = 'Scan Flows';
+        showError(`Could not list flows: ${err.message || err}`);
+        return;
+      }
+
+      if (!flows.length) {
+        $('buProgress').classList.remove('open');
+        state.scanning = false;
+        $('buScanBtn').disabled = false;
+        $('buScanBtn').textContent = 'Scan Flows';
+        $('buResults').innerHTML = '<div class="bu-empty">No flows found in this tenant.</div>';
+        return;
+      }
+
+      const flatRefs = [];
+      let failed = 0;
+      let scanned = 0;
+      let cursor = 0;
+
+      setProgress(0, flows.length);
+
+      async function worker() {
+        while (!state.cancelled) {
+          const idx = cursor++;
+          if (idx >= flows.length) return;
+          const flow = flows[idx];
+          const flowName = getFlowName(flow);
+          const flowId = flow?.id || '';
+          try {
+            const payload = await fetchFlowExport(orgId, projectId, flowId, bearer);
+            const vaActs = extractVaActivities(payload);
+            vaActs.forEach(a => {
+              flatRefs.push(Object.assign({ flowId, flowName }, a));
+            });
+          } catch (err) {
+            failed++;
+          }
+          scanned++;
+          setProgress(scanned, flows.length);
+        }
+      }
+
+      await Promise.all(Array.from({ length: Math.min(CONCURRENCY, flows.length) }, worker));
+
+      state.rawRefs = flatRefs;
+      state.bots = groupByBot(flatRefs);
+      state.scanning = false;
+      $('buScanBtn').disabled = false;
+      $('buScanBtn').textContent = 'Rescan';
+      $('buExportCsvBtn').disabled = flatRefs.length === 0;
+      $('buProgress').classList.remove('open');
+
+      renderStats(flows.length, scanned, failed);
+      renderResults();
+
+      if (state.cancelled) {
+        toast('Scan cancelled.', true);
+      } else {
+        toast(`Scan complete: ${state.bots.length} bot${state.bots.length===1?'':'s'} across ${new Set(flatRefs.map(r=>r.flowId)).size} flow${flatRefs.length===1?'':'s'}.`);
+      }
+    }
+
+    function showError(msg){
+      const box = $('buErrorBox');
+      box.textContent = msg;
+      box.style.display = 'block';
+    }
+
+    function exportCsv() {
+      if (!state.rawRefs.length) return;
+      const rows = [['Bot Name','Bot ID','Connector','Flow Name','Flow ID','Node Name','Node Type']];
+      state.rawRefs.forEach(r => {
+        rows.push([
+          r.botName || '',
+          r.botId || '',
+          r.connectorName || '',
+          r.flowName || '',
+          r.flowId || '',
+          r.nodeName || '',
+          labelFor(r.activityName)
+        ]);
+      });
+      const csv = rows.map(cols => cols.map(c => {
+        const s = String(c == null ? '' : c);
+        return /[",\r\n]/.test(s) ? `"${s.replace(/"/g,'""')}"` : s;
+      }).join(',')).join('\n');
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const date = new Date().toISOString().slice(0,10);
+      const a = document.createElement('a');
+      a.href = url; a.download = `wxcc_bot_flow_references_${date}.csv`;
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      toast('CSV downloaded.');
+    }
+
+    function init(){
+      $('buScanBtn').addEventListener('click', scan);
+      $('buCancelBtn').addEventListener('click', () => { state.cancelled = true; });
+      $('buExportCsvBtn').addEventListener('click', exportCsv);
+      $('buFilter').addEventListener('input', renderResults);
+      $('buHint').textContent = 'Click Scan Flows to crawl every flow in this tenant for Virtual Agent nodes.';
+    }
+
+    document.addEventListener('DOMContentLoaded', init);
+  })();
+  </script>
+</body>
+</html>

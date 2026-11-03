@@ -81,6 +81,7 @@
       items: [
         { label: 'AI Agent Wizard', path: '/pages/aiagent/wizard.html' },
         { label: 'AI Bot Visualizer', path: '/pages/aiagent/visualizer.html' },
+        { label: 'Bot Flow References', path: '/pages/aiagent/botusage.html' },
         { label: 'AI Call Transcript Summary', path: '/pages/aiagent/summary.html' },
         { label: 'AI Utilization', path: '/pages/aiagent/utilization.html' },
         { label: 'Autonomous Instructions', path: '/pages/aiagent/autonomous.html' },

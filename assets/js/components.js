@@ -40,6 +40,7 @@
       items: [
         { title: 'AI Agent Wizard', desc: 'Bulk-build a scripted bot (intents, entities, responses) and download a Control Hub-ready JSON.', href: 'pages/aiagent/wizard.html' },
         { title: 'AI Bot Visualizer', desc: 'Load a bot export JSON and browse intents, entities, responses, and conversation flow.', href: 'pages/aiagent/visualizer.html' },
+        { title: 'Bot Flow References', desc: 'Scan every flow in the tenant for Virtual Agent nodes and see which bot each flow uses.', href: 'pages/aiagent/botusage.html' },
         { title: 'AI Call Transcript Summary', desc: 'Run post-call, mid-call transfer, and consult summaries using the Summaries API.', href: 'pages/aiagent/summary.html' },
         { title: 'AI Utilization', desc: 'Guided setup: import AI utilization assets (global vars + subflows) into the tenant.', href: 'pages/aiagent/utilization.html' },
         { title: 'Autonomous Instructions Builder', desc: 'Draft the Agent Goal and Instructions against the shared 5,120 character limit.', href: 'pages/aiagent/autonomous.html' },
