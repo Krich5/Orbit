@@ -772,7 +772,7 @@
     }
 
     function tryAutoLoadFromHash() {
-      const m = /#studio=([^&]+)/.exec(window.location.hash || '');
+      const m = (window.location.hash || '').match(/#studio=([^&]+)/);
       if (!m) return false;
       try {
         const json = decodeURIComponent(escape(atob(decodeURIComponent(m[1]))));
