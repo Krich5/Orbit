@@ -149,22 +149,73 @@
 
     function proxyUrl(url){ return `${FLOW_PROXY}?url=${encodeURIComponent(url)}`; }
 
+    // Match the Flows page's extraction + pagination logic — the API
+    // response wraps the flow array under .items (not .data), and some
+    // tenants need the offset/limit fallback.
+    function extractFlowList(data){
+      return Array.isArray(data) ? data : (data?.items || data?.data || data?.flows || []);
+    }
+    function getTotalPages(data, pageSize){
+      const total = data?.total || data?.totalCount || data?.count || data?.meta?.totalCount || data?.meta?.total || 0;
+      const size = data?.pageSize || data?.size || data?.meta?.pageSize || pageSize;
+      if (!total || !size) return 0;
+      return Math.ceil(total / size);
+    }
+    function getNextPageUrl(data){
+      return data?.links?.next || data?.next || data?.meta?.next || '';
+    }
+
     async function listAllFlows(orgId, projectId, bearer) {
       const headers = { Authorization: `Bearer ${bearer}`, Accept: 'application/json' };
-      const all = [];
+      const seen = new Set();
+      let all = [];
       let page = 0;
-      while (true) {
+      let nextUrl = '';
+      let totalPages = 0;
+      let guard = 0;
+      let mode = 'page';
+
+      do {
         if (state.cancelled) break;
-        const base = `https://api.wxcc-us1.cisco.com/flow-store/${encodeURIComponent(orgId)}/project/${encodeURIComponent(projectId)}/flows?page=${page}&pageSize=${PAGE_SIZE}&size=${PAGE_SIZE}`;
+        const base = nextUrl || `https://api.wxcc-us1.cisco.com/flow-store/${encodeURIComponent(orgId)}/project/${encodeURIComponent(projectId)}/flows?page=${page}&pageSize=${PAGE_SIZE}&size=${PAGE_SIZE}`;
         const res = await fetch(proxyUrl(base), { headers });
         if (!res.ok) throw new Error(`Flow list failed: HTTP ${res.status}`);
         const data = await res.json();
-        const rows = data?.data || data?.items || data?.content || [];
-        if (!rows.length) break;
-        all.push(...rows);
-        if (rows.length < PAGE_SIZE) break;
-        page++;
-        if (page > 50) break; // hard safety
+        const items = extractFlowList(data) || [];
+        let added = 0;
+        items.forEach(f => {
+          const id = f?.id || '';
+          if (id && seen.has(id)) return;
+          if (id) seen.add(id);
+          all.push(f); added++;
+        });
+        totalPages = totalPages || getTotalPages(data, PAGE_SIZE);
+        nextUrl = getNextPageUrl(data);
+        page++; guard++;
+        if (!nextUrl && !totalPages && items.length === 0) break;
+        if (!nextUrl && !totalPages && added === 0 && mode === 'page') {
+          mode = 'offset'; all = []; seen.clear(); break;
+        }
+      } while ((nextUrl || (totalPages && page < totalPages) || page < 50) && guard < 50);
+
+      if (mode === 'offset') {
+        let offset = 0; guard = 0;
+        while (guard < 50 && !state.cancelled) {
+          const base = `https://api.wxcc-us1.cisco.com/flow-store/${encodeURIComponent(orgId)}/project/${encodeURIComponent(projectId)}/flows?offset=${offset}&limit=${PAGE_SIZE}`;
+          const res = await fetch(proxyUrl(base), { headers });
+          if (!res.ok) throw new Error(`Flow list failed: HTTP ${res.status}`);
+          const data = await res.json();
+          const items = extractFlowList(data) || [];
+          let added = 0;
+          items.forEach(f => {
+            const id = f?.id || '';
+            if (id && seen.has(id)) return;
+            if (id) seen.add(id);
+            all.push(f); added++;
+          });
+          if (items.length === 0 || added === 0) break;
+          offset += PAGE_SIZE; guard++;
+        }
       }
       return all;
     }
