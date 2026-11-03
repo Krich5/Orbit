@@ -47,6 +47,18 @@
     .bu-toast.open { opacity:1; transform:translateY(0); }
     .bu-toast.err { background:rgba(239,68,68,.14); border-color:rgba(239,68,68,.5); color:#fca5a5; }
     .bu-error-box { padding:12px 14px; border:1px solid rgba(239,68,68,.4); background:rgba(239,68,68,.08); color:#fca5a5; border-radius:12px; font-size:0.9rem; }
+    /* Cross-reference bot status rows */
+    .bu-xref-group { border:1px solid var(--border); border-radius:12px; padding:12px 14px; background:rgba(255,255,255,.02); }
+    .bu-xref-group.danger { border-color:rgba(239,68,68,.45); background:rgba(239,68,68,.05); }
+    .bu-xref-group.warn { border-color:rgba(234,179,8,.45); background:rgba(234,179,8,.05); }
+    .bu-xref-group.ok { border-color:rgba(16,185,129,.4); background:rgba(16,185,129,.04); }
+    .bu-xref-group h4 { margin:0 0 6px; font-size:0.95rem; display:flex; align-items:center; gap:8px; }
+    .bu-xref-group .desc { color:var(--muted); font-size:0.82rem; margin:0 0 10px; line-height:1.4; }
+    .bu-xref-row { display:grid; grid-template-columns:2fr 1fr 2fr auto; gap:10px; padding:7px 10px; border-radius:8px; background:rgba(255,255,255,.03); align-items:center; font-size:0.86rem; margin-bottom:4px; }
+    .bu-xref-row:last-child { margin-bottom:0; }
+    .bu-xref-row .mono { font-family:ui-monospace,'SF Mono',Menlo,monospace; font-size:0.78rem; color:var(--muted); word-break:break-all; }
+    .bu-xref-row strong { font-weight:600; }
+    @media (max-width:720px) { .bu-xref-row { grid-template-columns:1fr; } }
   </style>
 </head>
 <body class="dark-mode api-aiagent" data-aiagent-mode="botusage">
@@ -80,6 +92,39 @@
           </div>
 
           <div id="buStats" class="bu-stats" style="display:none;"></div>
+
+          <!-- Cross-reference with Studio's bot list — identifies orphans (safe to delete) and dangling flow refs (broken) -->
+          <div id="buXref" style="border:1px solid var(--border);border-radius:14px;background:var(--card);padding:16px;display:flex;flex-direction:column;gap:12px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;">
+              <div>
+                <h3 style="margin:0;font-size:1.05rem;">Cross-reference with Studio bot list</h3>
+                <p style="margin:4px 0 0;color:var(--muted);font-size:0.88rem;">Paste the list of bots Studio actually has, and we'll tell you which ones are safe to delete (orphans) and which flows point at bots that don't exist anymore (dangling).</p>
+              </div>
+              <button class="btn" id="buXrefCopySnippet" type="button">Copy DevTools snippet</button>
+            </div>
+
+            <details style="background:rgba(255,255,255,.02);border:1px solid var(--border);border-radius:10px;padding:10px 12px;">
+              <summary style="cursor:pointer;font-weight:600;color:var(--fg);font-size:0.9rem;">How to grab the bot list from Studio (30 seconds)</summary>
+              <ol style="margin:10px 0 0;padding-left:20px;line-height:1.6;color:var(--muted);font-size:0.88rem;">
+                <li>Open your AI Agent Studio tab (<code>studio.aiagent-us1.cisco.com</code>).</li>
+                <li>Open DevTools → Console (⌥⌘J).</li>
+                <li>Paste the snippet you just copied and press Enter. (Uses the tokens already in your Studio session — no auth to deal with.)</li>
+                <li>It fetches the bot list and copies the JSON to your clipboard.</li>
+                <li>Come back here, paste into the box below, click Analyze.</li>
+              </ol>
+            </details>
+
+            <div class="wiz-field" style="display:flex;flex-direction:column;gap:6px;">
+              <label for="buXrefPaste" style="font-size:0.85rem;font-weight:700;color:var(--muted);">Studio bots JSON</label>
+              <textarea id="buXrefPaste" spellcheck="false" style="min-height:90px;background:var(--input);color:var(--fg);border:1px solid var(--border);border-radius:10px;padding:10px 12px;font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:0.82rem;resize:vertical;" placeholder='{"meta":{...},"objects":[{...}]}'></textarea>
+            </div>
+            <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+              <button class="btn primary" id="buXrefAnalyzeBtn" type="button">Analyze</button>
+              <button class="btn" id="buXrefClearBtn" type="button">Clear</button>
+              <span id="buXrefStatus" style="color:var(--muted);font-size:0.9rem;"></span>
+            </div>
+            <div id="buXrefResults" style="display:none;flex-direction:column;gap:12px;"></div>
+          </div>
 
           <div class="bu-toolbar" id="buToolbar" style="display:none;">
             <div class="bu-filter">
@@ -194,6 +239,7 @@
         page++; guard++;
         if (!nextUrl && !totalPages && items.length === 0) break;
         if (!nextUrl && !totalPages && added === 0 && mode === 'page') {
+          // Switch to offset-style pagination
           mode = 'offset'; all = []; seen.clear(); break;
         }
       } while ((nextUrl || (totalPages && page < totalPages) || page < 50) && guard < 50);
@@ -521,12 +567,176 @@
       toast('CSV downloaded.');
     }
 
+    // ---------- Cross-reference with Studio bot list ----------
+    // The DevTools snippet: user pastes this in their signed-in Studio
+    // tab. It uses their existing auth-token cookies, so no auth paste
+    // needed. copy() is a DevTools helper that drops the result into
+    // the clipboard.
+    const STUDIO_BOT_LIST_SNIPPET =
+      `fetch('/api/v1/bot/?limit=1000&is_dashboard=true&bot_type__in=faqbot,aiassistant,virtualagent,mlbot')\n` +
+      `  .then(r => r.json())\n` +
+      `  .then(j => { copy(JSON.stringify(j)); console.log('Copied ' + (j.objects||[]).length + ' bots to clipboard. Paste into OpsHub.'); });`;
+
+    function analyzeXref() {
+      const raw = ($('buXrefPaste').value || '').trim();
+      $('buXrefResults').style.display = 'none';
+      if (!raw) { $('buXrefStatus').textContent = 'Paste the Studio JSON first.'; return; }
+      let parsed;
+      try { parsed = JSON.parse(raw); } catch (e) { $('buXrefStatus').textContent = 'Not valid JSON — copy the exact console output.'; return; }
+      const studioBots = Array.isArray(parsed) ? parsed : (parsed?.objects || parsed?.results || parsed?.bots || []);
+      if (!studioBots.length) { $('buXrefStatus').textContent = 'Could not find a bot array in that JSON (expected .objects).'; return; }
+      if (!state.bots.length) { $('buXrefStatus').textContent = 'Scan the flows first — then paste the Studio list.'; return; }
+
+      // Build lookup maps by every id-ish key Studio exposes: .id, .bot_unique_name, .name.
+      const studioById = new Map();
+      const studioByUnique = new Map();
+      const studioByName = new Map();
+      studioBots.forEach(b => {
+        if (b?.id) studioById.set(String(b.id), b);
+        if (b?.bot_unique_name) studioByUnique.set(String(b.bot_unique_name), b);
+        if (b?.name) studioByName.set(String(b.name).toLowerCase(), b);
+      });
+
+      // Flow-side: collect every (botId, botName) pair we extracted from the scan.
+      // Match against Studio by id first, then bot_unique_name, then name (case-insensitive).
+      const referencedIds = new Set(); // Studio-side identifier of bots that ARE referenced
+      const dangling = [];              // flow refs we couldn't match to any Studio bot
+      state.rawRefs.forEach(r => {
+        let match = null;
+        if (r.botId) match = studioById.get(r.botId) || studioByUnique.get(r.botId);
+        if (!match && r.botName) match = studioByName.get(r.botName.toLowerCase()) || studioByUnique.get(r.botName);
+        if (match) {
+          referencedIds.add(String(match.id));
+        } else if (r.botId || r.botName) {
+          // Only flag as dangling if the flow actually named a bot (not an empty-config node)
+          dangling.push(r);
+        }
+      });
+
+      // Orphans: Studio has it, no flow references it
+      const orphans = studioBots.filter(b => !referencedIds.has(String(b.id)));
+      // Active: Studio has it AND at least one flow references it
+      const active  = studioBots.filter(b =>  referencedIds.has(String(b.id)));
+
+      renderXref({ studioBots, orphans, active, dangling });
+    }
+
+    function botTypeLabel(t){
+      if (t === 'mlbot') return 'Scripted';
+      if (t === 'virtualagent') return 'Autonomous';
+      if (t === 'aiassistant') return 'AI Assistant';
+      if (t === 'faqbot') return 'FAQ';
+      return t || '—';
+    }
+
+    function renderXref({ studioBots, orphans, active, dangling }) {
+      const wrap = $('buXrefResults');
+      wrap.style.display = 'flex';
+      wrap.innerHTML = '';
+
+      // Summary stats
+      const summary = document.createElement('div');
+      summary.className = 'bu-stats';
+      summary.style.marginBottom = '4px';
+      summary.innerHTML = `
+        <div class="bu-stat"><strong>${studioBots.length}</strong><span>Bots in Studio</span></div>
+        <div class="bu-stat" style="border-color:rgba(16,185,129,.4);"><strong style="color:#86efac;">${active.length}</strong><span>Active (in use)</span></div>
+        <div class="bu-stat" style="border-color:rgba(234,179,8,.4);"><strong style="color:#fde68a;">${orphans.length}</strong><span>Orphans (safe to delete)</span></div>
+        <div class="bu-stat" style="border-color:rgba(239,68,68,.4);"><strong style="color:#fca5a5;">${dangling.length}</strong><span>Dangling refs (broken)</span></div>
+      `;
+      wrap.appendChild(summary);
+
+      // DANGLING — flows pointing at deleted bots (the scary case)
+      if (dangling.length) {
+        const danglingByBot = new Map();
+        dangling.forEach(r => {
+          const key = r.botId || r.botName || '(unnamed)';
+          if (!danglingByBot.has(key)) danglingByBot.set(key, { label: r.botName || r.botId, id: r.botId, refs: [] });
+          danglingByBot.get(key).refs.push(r);
+        });
+        const danglingList = Array.from(danglingByBot.values()).sort((a,b) => b.refs.length - a.refs.length);
+        const group = document.createElement('div');
+        group.className = 'bu-xref-group danger';
+        group.innerHTML = `
+          <h4>⚠ Dangling references — ${dangling.length} broken node${dangling.length===1?'':'s'}</h4>
+          <p class="desc">These flows reference a bot ID that no longer exists in Studio. In Flow Designer the node shows a red "This is a required field" error. Fix by re-pointing to a valid bot or deleting the node.</p>
+          ${danglingList.map(d => `
+            <div class="bu-xref-row">
+              <div><strong>${esc(d.label || '(no name)')}</strong></div>
+              <div class="mono">${esc(d.id || '—')}</div>
+              <div>${d.refs.length} flow${d.refs.length===1?'':'s'}: ${d.refs.slice(0,3).map(r => `<a class="bu-flow-link" href="../wxcc/flows.html#flow=${encodeURIComponent(r.flowId)}" target="_blank" rel="noopener">${esc(r.flowName || r.flowId)}</a>`).join(', ')}${d.refs.length > 3 ? ` <span style="color:var(--muted);">+${d.refs.length - 3} more</span>` : ''}</div>
+              <div><button class="bu-copy" data-copy="${esc(d.id || '')}" type="button">Copy ID</button></div>
+            </div>
+          `).join('')}
+        `;
+        wrap.appendChild(group);
+      }
+
+      // ORPHANS — safe to delete
+      if (orphans.length) {
+        const group = document.createElement('div');
+        group.className = 'bu-xref-group warn';
+        group.innerHTML = `
+          <h4>🧹 Orphan bots — ${orphans.length} safe to delete</h4>
+          <p class="desc">Studio has these bots but no WxCC flow references them. Safe candidates for cleanup. Sorted newest first.</p>
+          ${orphans.sort((a,b) => (b.updated_at || 0) - (a.updated_at || 0)).map(b => `
+            <div class="bu-xref-row">
+              <div><strong>${esc(b.name || '(unnamed)')}</strong></div>
+              <div><span class="bu-chip ${b.bot_type === 'virtualagent' ? 'v2' : 'v1'}" style="font-size:11px;">${esc(botTypeLabel(b.bot_type))}</span></div>
+              <div style="color:var(--muted);font-size:0.8rem;">Updated ${b.updated_at ? new Date(b.updated_at).toLocaleDateString() : '—'}${b.updated_by ? ' by ' + esc(String(b.updated_by).trim()) : ''}</div>
+              <div><button class="bu-copy" data-copy="${esc(b.id || '')}" type="button">Copy ID</button></div>
+            </div>
+          `).join('')}
+        `;
+        wrap.appendChild(group);
+      }
+
+      // ACTIVE — summary only (details already in the main results above)
+      if (active.length) {
+        const group = document.createElement('div');
+        group.className = 'bu-xref-group ok';
+        group.innerHTML = `
+          <h4>✓ Active bots — ${active.length} in use</h4>
+          <p class="desc">Do not delete these. See the per-bot cards below for the exact flows that reference each one.</p>
+          ${active.sort((a,b) => (a.name||'').localeCompare(b.name||'')).map(b => `
+            <div class="bu-xref-row">
+              <div><strong>${esc(b.name || '(unnamed)')}</strong></div>
+              <div><span class="bu-chip ${b.bot_type === 'virtualagent' ? 'v2' : 'v1'}" style="font-size:11px;">${esc(botTypeLabel(b.bot_type))}</span></div>
+              <div class="mono">${esc(b.id || '')}</div>
+              <div><button class="bu-copy" data-copy="${esc(b.id || '')}" type="button">Copy ID</button></div>
+            </div>
+          `).join('')}
+        `;
+        wrap.appendChild(group);
+      }
+
+      wrap.querySelectorAll('[data-copy]').forEach(btn => btn.addEventListener('click', async () => {
+        try { await navigator.clipboard.writeText(btn.dataset.copy); toast('Copied.'); } catch(e){}
+      }));
+
+      $('buXrefStatus').textContent = `Analyzed ${studioBots.length} Studio bots against ${state.rawRefs.length} flow reference${state.rawRefs.length===1?'':'s'}.`;
+    }
+
     function init(){
       $('buScanBtn').addEventListener('click', scan);
       $('buCancelBtn').addEventListener('click', () => { state.cancelled = true; });
       $('buExportCsvBtn').addEventListener('click', exportCsv);
       $('buFilter').addEventListener('input', renderResults);
       $('buHint').textContent = 'Click Scan Flows to crawl every flow in this tenant for Virtual Agent nodes.';
+
+      $('buXrefCopySnippet').addEventListener('click', async () => {
+        try {
+          await navigator.clipboard.writeText(STUDIO_BOT_LIST_SNIPPET);
+          toast('DevTools snippet copied. Paste into your Studio tab\'s Console.');
+        } catch(e) { toast('Copy failed.', true); }
+      });
+      $('buXrefAnalyzeBtn').addEventListener('click', analyzeXref);
+      $('buXrefClearBtn').addEventListener('click', () => {
+        $('buXrefPaste').value = '';
+        $('buXrefResults').style.display = 'none';
+        $('buXrefResults').innerHTML = '';
+        $('buXrefStatus').textContent = '';
+      });
     }
 
     document.addEventListener('DOMContentLoaded', init);
