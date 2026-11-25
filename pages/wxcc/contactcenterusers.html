@@ -422,6 +422,7 @@
 
     const USERS_ENDPOINT = (orgId, page, pageSize) => `https://api.wxcc-us1.cisco.com/organization/${encodeURIComponent(orgId)}/v2/user?page=${page}&pageSize=${pageSize}`;
     const TEAM_ENDPOINT = (orgId, teamId) => `https://api.wxcc-us1.cisco.com/organization/${encodeURIComponent(orgId)}/v2/team?filter=${encodeURIComponent('id=="' + teamId + '"')}`;
+    const TEAM_LIST_ENDPOINT = (orgId, page, pageSize) => `https://api.wxcc-us1.cisco.com/organization/${encodeURIComponent(orgId)}/v2/team?page=${page}&pageSize=${pageSize}`;
     const SKILL_PROFILE_ENDPOINT = (orgId, page, pageSize) => `https://api.wxcc-us1.cisco.com/organization/${encodeURIComponent(orgId)}/v2/skill-profile?page=${page}&pageSize=${pageSize}`;
     const SKILL_ENDPOINT = (orgId, page, pageSize) => `https://api.wxcc-us1.cisco.com/organization/${encodeURIComponent(orgId)}/v2/skill?page=${page}&pageSize=${pageSize}`;
     const AGENT_PROFILE_ENDPOINT = (orgId, page, pageSize) => `https://api.wxcc-us1.cisco.com/organization/${encodeURIComponent(orgId)}/v2/agent-profile?page=${page}&pageSize=${pageSize}`;
@@ -1684,6 +1685,11 @@
       lastUsers = collected;
       buildFilterValues();
       renderUsers(applySort(applyFilters(lastUsers)));
+      // The user API no longer carries team membership — list teams and
+      // reverse-map team.agents → user.teamIds before the existing
+      // name-preload path runs. (preloadTeamNames stays as a safety net
+      // for any teamIds that slipped through from other sources.)
+      await loadAllTeamsAndAttach(lastUsers);
       await preloadTeamNames(lastUsers);
       buildFilterValues(true);
       renderUsers(applySort(applyFilters(lastUsers)));
@@ -1746,6 +1752,71 @@
         completed += 1;
       }
       updateLoaderState('teams', false);
+    }
+
+    // The /v2/user response no longer carries team membership — team→user
+    // links now have to come from listing the teams and reading each team's
+    // `agents` array. This fills teamNameCache (so renderers see team names)
+    // and attaches a .teamIds array to every user.
+    async function loadAllTeamsAndAttach(users) {
+      const bearer = (localStorage.getItem(cacheKeyBearer) || '').trim();
+      const orgId = getOrgIdValue();
+      if (!bearer || !orgId) return;
+      updateLoaderState('teams', true);
+      try {
+        const pageSize = 100;
+        let page = 0;
+        let totalPages = 1;
+        let totalRecords = null;
+        const teams = [];
+        while (true) {
+          const url = TEAM_LIST_ENDPOINT(orgId, page, pageSize);
+          const res = await fetch(url, { headers: { Authorization: `Bearer ${bearer}` } });
+          if (!res.ok) break;
+          const parsed = await res.json();
+          const chunk = parsed?.data || [];
+          if (Array.isArray(chunk) && chunk.length) teams.push(...chunk);
+          const meta = parsed?.meta || {};
+          if (typeof meta.totalPages === 'number') totalPages = meta.totalPages;
+          else if (typeof meta.totalRecords === 'number') { totalRecords = meta.totalRecords; totalPages = Math.max(1, Math.ceil(totalRecords / pageSize)); }
+          page += 1;
+          if (page >= totalPages && (!Array.isArray(chunk) || chunk.length < pageSize)) break;
+          if (page > 200) break; // hard safety
+        }
+
+        // Build userId → [teamId, ...] map. Different field names across
+        // versions of the API — defensively check the usual suspects.
+        const userIdToTeams = new Map();
+        teams.forEach(team => {
+          const id = team?.id;
+          const name = team?.name || '';
+          if (!id) return;
+          teamNameCache.set(id, { status: 'ok', name });
+          const members =
+            (Array.isArray(team?.agents) && team.agents) ||
+            (Array.isArray(team?.members) && team.members) ||
+            (Array.isArray(team?.users) && team.users) ||
+            (Array.isArray(team?.userIds) && team.userIds) ||
+            [];
+          members.forEach(m => {
+            // Entries can be plain string ids OR objects like { id, ciUserId }
+            const uid = typeof m === 'string' ? m : (m?.id || m?.userId || m?.agentId || '');
+            if (!uid) return;
+            if (!userIdToTeams.has(uid)) userIdToTeams.set(uid, []);
+            userIdToTeams.get(uid).push(id);
+          });
+        });
+
+        (users || []).forEach(user => {
+          const hits = userIdToTeams.get(user?.id) || [];
+          if (hits.length) user.teamIds = hits;
+          else if (!Array.isArray(user.teamIds)) user.teamIds = [];
+        });
+      } catch (err) {
+        console.warn && console.warn('Failed to load teams list', err);
+      } finally {
+        updateLoaderState('teams', false);
+      }
     }
 
     async function loadSkillDefinitions(orgId, bearer) {
